@@ -14,6 +14,7 @@ export class InfoPanel {
         loreSection,
         audioManager,
         closeButton,
+        lightbox = null,
         tabsSelector = '.info-tab',
         tabContentSelector = '.info-content'
     }) {
@@ -31,6 +32,15 @@ export class InfoPanel {
         this.onClose = () => {};
         this.tabs = tabsSelector ? qsa(tabsSelector) : [];
         this.tabContents = tabContentSelector ? qsa(tabContentSelector) : [];
+        this.lightbox = {
+            container: lightbox?.container || null,
+            image: lightbox?.image || null,
+            caption: lightbox?.caption || null,
+            closeButton: lightbox?.closeButton || null,
+            previousFocus: null,
+            ready: false
+        };
+        this.boundLightboxKeyHandler = null;
     }
 
     initialize({ onClose }) {
@@ -42,6 +52,32 @@ export class InfoPanel {
             this.audioManager.initialize();
         }
         this.bindTabs();
+        this.setupLightbox();
+    }
+
+    bindTabs() {
+        if (!this.tabs.length || !this.tabContents.length) {
+            return;
+        }
+        this.tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab || 'description';
+                this.setActiveTab(target);
+            });
+        });
+    }
+
+    setActiveTab(target) {
+        this.tabs.forEach(tab => {
+            const isActive = tab.dataset.tab === target;
+            tab.classList.toggle('active', isActive);
+            tab.setAttribute('aria-pressed', String(isActive));
+        });
+        this.tabContents.forEach(content => {
+            const isMatch = content.id === `${target}-content`;
+            content.classList.toggle('active', isMatch);
+            content.setAttribute('aria-hidden', String(!isMatch));
+        });
     }
 
     show(entry) {
@@ -74,50 +110,46 @@ export class InfoPanel {
         }
     }
 
-    bindTabs() {
-        if (!this.tabs.length || !this.tabContents.length) {
-            return;
-        }
-        this.tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const target = tab.dataset.tab || 'description';
-                this.setActiveTab(target);
-            });
-        });
-    }
-
-    setActiveTab(target) {
-        this.tabs.forEach(tab => {
-            const isActive = tab.dataset.tab === target;
-            tab.classList.toggle('active', isActive);
-            tab.setAttribute('aria-pressed', String(isActive));
-        });
-        this.tabContents.forEach(content => {
-            const isMatch = content.id === `${target}-content`;
-            content.classList.toggle('active', isMatch);
-            content.setAttribute('aria-hidden', String(!isMatch));
-        });
-    }
-
     renderGallery(location) {
         if (!this.galleryElement) {
             return;
         }
         clearElement(this.galleryElement);
         let hasContent = false;
+        const lightboxEnabled = Boolean(this.lightbox.container && this.lightbox.image);
 
         if (Array.isArray(location.images)) {
             location.images
                 .filter(src => typeof src === 'string' && src.trim())
                 .forEach((src, index) => {
+                    const attributes = {
+                        src,
+                        alt: `${location.name} - image ${index + 1}`
+                    };
+                    if (lightboxEnabled) {
+                        attributes.tabindex = '0';
+                        attributes.role = 'button';
+                        attributes['aria-label'] = `${location.name} - agrandir l'image ${index + 1}`;
+                    }
                     const img = createElement('img', {
                         className: 'gallery-image',
-                        attributes: {
-                            src,
-                            alt: `${location.name} - image ${index + 1}`
-                        }
+                        attributes
                     });
                     img.addEventListener('error', () => img.remove());
+                    if (lightboxEnabled) {
+                        const open = () => this.openLightbox({
+                            src,
+                            alt: img.alt,
+                            caption: location.name
+                        });
+                        img.addEventListener('click', open);
+                        img.addEventListener('keydown', event => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                open();
+                            }
+                        });
+                    }
                     this.galleryElement.appendChild(img);
                     hasContent = true;
                 });
@@ -129,7 +161,7 @@ export class InfoPanel {
                 .forEach(video => {
                     const link = createElement('a', {
                         className: 'gallery-video-link',
-                        text: getString('info.watchVideo') || 'Voir la vidéo',
+                        text: getString('info.watchVideo') || 'Voir la video',
                         attributes: { href: video, target: '_blank', rel: 'noopener noreferrer' }
                     });
                     this.galleryElement.appendChild(link);
@@ -140,7 +172,7 @@ export class InfoPanel {
         if (!hasContent) {
             const empty = createElement('p', {
                 className: 'gallery-empty',
-                text: getString('info.noMedia') || 'Aucun média disponible'
+                text: getString('info.noMedia') || 'Aucun media disponible'
             });
             this.galleryElement.appendChild(empty);
         }
@@ -191,7 +223,7 @@ export class InfoPanel {
             const name = createElement('strong', { text: pnj.name || getString('info.pnjs.unknown') });
             item.appendChild(name);
             if (pnj.role) {
-                item.appendChild(document.createTextNode(` — ${pnj.role}`));
+                item.appendChild(document.createTextNode(` - ${pnj.role}`));
             }
             if (pnj.description) {
                 const desc = createElement('p', { text: pnj.description });
@@ -214,6 +246,71 @@ export class InfoPanel {
         if (this.audioManager) {
             this.audioManager.stop();
         }
+        this.closeLightbox();
         this.onClose();
+    }
+
+    setupLightbox() {
+        const { container, closeButton } = this.lightbox;
+        if (!container || this.lightbox.ready) {
+            return;
+        }
+        container.setAttribute('tabindex', '-1');
+        container.addEventListener('click', event => {
+            if (event.target === container) {
+                this.closeLightbox();
+            }
+        });
+        if (closeButton) {
+            closeButton.addEventListener('click', () => this.closeLightbox());
+        }
+        this.lightbox.ready = true;
+    }
+
+    openLightbox({ src, alt, caption }) {
+        const { container, image, caption: captionElement, closeButton } = this.lightbox;
+        if (!container || !image) {
+            return;
+        }
+        this.lightbox.previousFocus = document.activeElement;
+        image.src = src;
+        image.alt = alt || '';
+        if (captionElement) {
+            const text = caption || alt || '';
+            captionElement.textContent = text;
+            captionElement.hidden = !text;
+        }
+        container.hidden = false;
+        container.classList.add('open');
+        this.boundLightboxKeyHandler = event => {
+            if (event.key === 'Escape') {
+                this.closeLightbox();
+            }
+        };
+        document.addEventListener('keydown', this.boundLightboxKeyHandler);
+        (closeButton || container).focus?.();
+    }
+
+    closeLightbox() {
+        const { container, image, caption } = this.lightbox;
+        if (!container || container.hidden) {
+            return;
+        }
+        container.classList.remove('open');
+        container.hidden = true;
+        if (image) {
+            image.src = '';
+            image.alt = '';
+        }
+        if (caption) {
+            caption.textContent = '';
+            caption.hidden = true;
+        }
+        if (this.boundLightboxKeyHandler) {
+            document.removeEventListener('keydown', this.boundLightboxKeyHandler);
+            this.boundLightboxKeyHandler = null;
+        }
+        this.lightbox.previousFocus?.focus?.();
+        this.lightbox.previousFocus = null;
     }
 }

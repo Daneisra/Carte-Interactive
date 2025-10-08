@@ -1516,4 +1516,58 @@ body[data-theme="light"] .results-badge {
     border: none;
 }
 
+.media-lightbox {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.85);
+    padding: 32px;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.media-lightbox.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.media-lightbox-image {
+    max-width: min(90vw, 1200px);
+    max-height: 80vh;
+    border-radius: 12px;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+    object-fit: contain;
+    background: #111;
+}
+
+.media-lightbox-caption {
+    margin-top: 16px;
+    text-align: center;
+    color: #f5f7ff;
+    font-size: 15px;
+    max-width: min(80vw, 960px);
+}
+
+.media-lightbox-close {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    font-size: 32px;
+    color: #f5f7ff;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    padding: 8px;
+}
+
+.media-lightbox-close:hover,
+.media-lightbox-close:focus-visible {
+    opacity: 0.85;
+}
+
 

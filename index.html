@@ -136,6 +136,13 @@
         <span id="zoom-level">100%</span>
     </div>
 
+    <!-- 🖼️ Lightbox pour les médias -->
+    <div id="media-lightbox" class="media-lightbox" role="dialog" aria-modal="true" hidden>
+        <button id="media-lightbox-close" class="media-lightbox-close" type="button" aria-label="Fermer l'aperçu">×</button>
+        <img id="media-lightbox-image" class="media-lightbox-image" alt="">
+        <p id="media-lightbox-caption" class="media-lightbox-caption"></p>
+    </div>
+
     <!-- ⚙️ Scripts -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>

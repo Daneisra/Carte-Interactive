@@ -40,7 +40,7 @@ CrÃ©er une carte narrative immersive, fiable et maintenable qui serve Ã  la 
 
 
 
-5. Retablir les encadres pour les sections texte (histoire, quetes, PNJ, lore) dans le panneau d'information.
+
 6. Permettre l'agrandissement des images (lightbox/modale) dans l'onglet Image.
 7. Restaurer les vignettes video cliquables dans l'onglet Image au lieu d'un lien texte simple.
 8. Reconfigurer le declenchement automatique de l'audio lors de l'ouverture d'un lieu (avec fallback navigateur).

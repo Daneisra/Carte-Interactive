@@ -156,7 +156,13 @@ export class UiController {
             pnjsSection: qs('#pnjs-section'),
             loreSection: qs('#lore-section'),
             audioManager: this.audioManager,
-            closeButton: qs('#close-info-sidebar')
+            closeButton: qs('#close-info-sidebar'),
+            lightbox: {
+                container: qs('#media-lightbox'),
+                image: qs('#media-lightbox-image'),
+                caption: qs('#media-lightbox-caption'),
+                closeButton: qs('#media-lightbox-close')
+            }
         });
 
         this.filtersManager = new FiltersManager({
