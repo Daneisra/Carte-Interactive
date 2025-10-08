@@ -158,6 +158,7 @@ export class InfoPanel {
         }
 
         sectionElement.hidden = false;
+        sectionElement.classList.add('extra-section');
         const title = createElement('h4', { text: getString(`${titleKey}.title`) });
         sectionElement.appendChild(title);
 
@@ -181,6 +182,7 @@ export class InfoPanel {
             return;
         }
         this.pnjsSection.hidden = false;
+        this.pnjsSection.classList.add('extra-section');
         const title = createElement('h4', { text: getString('info.pnjs.title') });
         this.pnjsSection.appendChild(title);
         const list = createElement('ul');
