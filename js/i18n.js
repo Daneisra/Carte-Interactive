@@ -1,4 +1,4 @@
-﻿const STRINGS = {
+﻿﻿﻿﻿const STRINGS = {
     fr: {
         sidebar: {
             title: 'Exploration',
@@ -31,7 +31,12 @@
             remove: 'Retirer des favoris',
             removeWithName: 'Retirer {location} des favoris',
             iconActive: '★',
-            iconInactive: '☆'
+            iconInactive: '☆',
+            empty: 'Aucun favori enregistre pour le moment.',
+            filtered: 'Masque par les filtres actifs.',
+            summaryLabel: 'Favoris enregistres',
+            summaryCountSingle: '{count} favori',
+            summaryCountPlural: '{count} favoris'
         },
         info: {
             noDescription: 'Aucune description disponible.',
@@ -120,4 +125,6 @@ export function getString(key, params = {}) {
         return match;
     });
 }
+
+
 

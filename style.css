@@ -341,6 +341,43 @@ body {
     display: none;
 }
 
+.favorites-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgba(80, 160, 255, 0.14);
+    color: #e3ecff;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.favorites-summary-label {
+    opacity: 0.85;
+}
+
+.favorites-summary-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: #f6c344;
+}
+
+.favorites-summary-count::before {
+    content: '★';
+    font-size: 14px;
+    line-height: 1;
+}
+
+.favorites-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 .location.favorite-entry {
     background: #2c2c2c;
 }
@@ -351,6 +388,46 @@ body {
 
 .favorite-entry.is-filtered {
     opacity: 0.45;
+}
+
+.favorite-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.favorite-name {
+    font-weight: 600;
+    color: #f5f7ff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.favorite-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.favorite-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.25px;
+    background: rgba(246, 195, 68, 0.16);
+    color: #f6c344;
+    font-weight: 600;
+}
+
+.favorite-chip-continent {
+    background: rgba(80, 160, 255, 0.18);
+    color: #8bbcff;
 }
 
 .favorites-empty {
@@ -1265,6 +1342,29 @@ body[data-theme="light"] .location.favorite-entry.active {
 body[data-theme="light"] .location.favorite:not(.active),
 body[data-theme="light"] .location.favorite-entry {
     background: #e6edff;
+}
+
+body[data-theme="light"] .favorites-summary {
+    background: rgba(72, 124, 215, 0.16);
+    color: #2c3a5c;
+}
+
+body[data-theme="light"] .favorites-summary-count {
+    color: #d28a00;
+}
+
+body[data-theme="light"] .favorite-chip {
+    background: rgba(246, 195, 68, 0.22);
+    color: #7a5200;
+}
+
+body[data-theme="light"] .favorite-chip-continent {
+    background: rgba(72, 124, 215, 0.22);
+    color: #1f2d4d;
+}
+
+body[data-theme="light"] .favorite-name {
+    color: #1f2d4d;
 }
 
 body[data-theme="light"] #info-sidebar {

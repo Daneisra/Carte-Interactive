@@ -36,7 +36,7 @@ CrÃ©er une carte narrative immersive, fiable et maintenable qui serve Ã  la 
 
 ## 3. Roadmap opÃ©rationnelle
 ### Correctifs prioritaires (retour a l'etat pre-corruption)
-1. Restaurer l'ouverture/fermeture des continents dans le panneau Exploration ainsi que le bouton global pour tout afficher/masquer.
+
 2. Reappliquer le style visuel des favoris (icones, badges, layout) afin d'eviter l'affichage brut par defaut.
 3. Limiter l'historique affiche a quatre entrees tout en conservant le bouton Retour.
 4. Corriger le mode plein ecran pour laisser les panneaux (exploration, info, historique) visibles sur la carte.

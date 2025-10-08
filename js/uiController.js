@@ -18,8 +18,8 @@ const localized = (key, fallback = '', params = undefined) => {
     return resolved;
 };
 
-const favoriteIconActive = () => localized('favorites.iconActive', '[*]');
-const favoriteIconInactive = () => localized('favorites.iconInactive', '[ ]');
+const favoriteIconActive = () => localized('favorites.iconActive', '★');
+const favoriteIconInactive = () => localized('favorites.iconInactive', '☆');
 const toggleAllLabel = isExpanded => localized(
     isExpanded ? 'sidebar.toggleAllCollapse' : 'sidebar.toggleAllExpand',
     isExpanded ? 'Tout masquer' : 'Tout afficher'
@@ -410,14 +410,16 @@ export class UiController {
             text: location.name
         });
 
+        const isFavorite = this.state.hasFavorite(location.name);
         const favoriteButton = createElement('button', {
             className: 'location-favorite-toggle',
-            text: this.state.hasFavorite(location.name) ? favoriteIconActive() : favoriteIconInactive(),
+            text: isFavorite ? favoriteIconActive() : favoriteIconInactive(),
             attributes: { type: 'button' }
         });
 
-        favoriteButton.setAttribute('aria-pressed', String(this.state.hasFavorite(location.name)));
-        const favoriteTitle = this.state.hasFavorite(location.name)
+        favoriteButton.setAttribute('aria-pressed', String(isFavorite));
+        favoriteButton.classList.toggle('active', isFavorite);
+        const favoriteTitle = isFavorite
             ? localized('favorites.removeWithName', `Retirer ${location.name} des favoris`, { location: location.name })
             : localized('favorites.addWithName', `Ajouter ${location.name} aux favoris`, { location: location.name });
         favoriteButton.title = favoriteTitle;
@@ -443,7 +445,8 @@ export class UiController {
 
         entry.element = element;
         entry.favoriteButton = favoriteButton;
-        entry.element.classList.toggle('is-favorite', this.state.hasFavorite(location.name));
+        entry.element.classList.toggle('is-favorite', isFavorite);
+        entry.element.classList.toggle('favorite', isFavorite);
 
         entry.markerEntry = this.mapController.createEntry({
             location,
@@ -793,6 +796,24 @@ export class UiController {
         clearElement(container);
 
         const favorites = this.state.getFavorites();
+        const totalFavorites = favorites.length;
+
+        const summary = createElement('div', {
+            className: 'favorites-summary',
+            attributes: { 'aria-live': 'polite' }
+        });
+        summary.appendChild(createElement('span', {
+            className: 'favorites-summary-label',
+            text: localized('favorites.summaryLabel', 'Favoris enregistrés')
+        }));
+        const summaryCountKey = totalFavorites === 1 ? 'favorites.summaryCountSingle' : 'favorites.summaryCountPlural';
+        const summaryCountText = localized(summaryCountKey, `${totalFavorites} favoris`, { count: totalFavorites });
+        summary.appendChild(createElement('span', {
+            className: 'favorites-summary-count',
+            text: summaryCountText
+        }));
+        container.appendChild(summary);
+
         if (!favorites.length) {
             container.appendChild(createElement('p', {
                 className: 'favorites-empty',
@@ -801,38 +822,95 @@ export class UiController {
             return;
         }
 
-        const list = createElement('ul', { className: 'favorites-list' });
+        const list = createElement('div', { className: 'favorites-list' });
+
         favorites
             .map(name => this.entries.find(entry => entry.location.name === name))
             .filter(Boolean)
             .sort((a, b) => a.location.name.localeCompare(b.location.name, 'fr', { sensitivity: 'base' }))
             .forEach(entry => {
-                const item = createElement('li', { className: 'favorites-item' });
-                if (this.activeEntry && this.activeEntry.location.name === entry.location.name) {
-                    item.classList.add('active');
-                }
-                const button = createElement('button', {
-                    className: 'favorites-button',
-                    text: entry.location.name,
-                    attributes: { type: 'button' }
-                });
+                const isActive = this.activeEntry && this.activeEntry.location.name === entry.location.name;
+                const isFilteredOut = !entry.matchesFilters;
 
-                if (!entry.matchesFilters) {
-                    button.disabled = true;
-                    button.title = favoritesFilteredHint();
-                    item.classList.add('muted');
+                const classes = ['location', 'favorite-entry'];
+                if (isActive) {
+                    classes.push('active');
+                }
+                if (isFilteredOut) {
+                    classes.push('is-filtered');
                 }
 
-                button.addEventListener('click', () => {
-                    if (!entry.matchesFilters) {
-                        return;
+                const item = createElement('div', {
+                    className: classes.join(' '),
+                    dataset: { locationName: entry.location.name },
+                    attributes: {
+                        tabindex: isFilteredOut ? '-1' : '0',
+                        role: 'button',
+                        'aria-disabled': String(isFilteredOut)
                     }
-                    this.setSidebarView('all');
-                    this.ensureEntryVisible(entry);
-                    this.selectEntry(entry, { focusOnList: false, source: 'favorites' });
                 });
 
-                item.appendChild(button);
+                const info = createElement('div', { className: 'favorite-info' });
+                info.appendChild(createElement('span', {
+                    className: 'favorite-name',
+                    text: entry.location.name
+                }));
+
+                const tags = createElement('div', { className: 'favorite-tags' });
+                const typeLabel = entry.location.type && entry.location.type !== 'default'
+                    ? (this.typeData[entry.location.type]?.label || entry.location.type)
+                    : '';
+                if (typeLabel) {
+                    tags.appendChild(createElement('span', {
+                        className: 'favorite-chip favorite-chip-type',
+                        text: typeLabel
+                    }));
+                }
+                if (entry.continent) {
+                    tags.appendChild(createElement('span', {
+                        className: 'favorite-chip favorite-chip-continent',
+                        text: entry.continent
+                    }));
+                }
+                if (tags.childElementCount > 0) {
+                    info.appendChild(tags);
+                }
+
+                item.appendChild(info);
+
+                const removeButton = createElement('button', {
+                    className: 'location-favorite-toggle active',
+                    text: favoriteIconActive(),
+                    attributes: {
+                        type: 'button',
+                        'aria-label': localized('favorites.removeWithName', `Retirer ${entry.location.name} des favoris`, { location: entry.location.name })
+                    }
+                });
+                removeButton.addEventListener('click', event => {
+                    event.stopPropagation();
+                    this.setFavoriteState(entry.location, false);
+                });
+                item.appendChild(removeButton);
+
+                if (isFilteredOut) {
+                    item.title = favoritesFilteredHint();
+                } else {
+                    const openEntry = () => {
+                        if (this.state.sidebarView !== 'all') {
+                            this.setSidebarView('all');
+                        }
+                        this.ensureEntryVisible(entry);
+                        this.selectEntry(entry, { focusOnList: false, source: 'favorites' });
+                    };
+                    item.addEventListener('click', openEntry);
+                    item.addEventListener('keydown', event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            openEntry();
+                        }
+                    });
+                }
+
                 list.appendChild(item);
             });
 
@@ -1027,6 +1105,7 @@ export class UiController {
         this.dom.favoriteToggle.title = label;
         this.dom.favoriteToggle.setAttribute('aria-label', label);
         this.dom.favoriteToggle.setAttribute('aria-pressed', String(isFavorite));
+        this.dom.favoriteToggle.classList.toggle('active', isFavorite);
     }
 
     setFavoriteState(location, shouldFavorite) {
@@ -1051,12 +1130,14 @@ export class UiController {
         if (entry?.favoriteButton) {
             entry.favoriteButton.textContent = shouldFavorite ? favoriteIconActive() : favoriteIconInactive();
             entry.favoriteButton.setAttribute('aria-pressed', String(shouldFavorite));
+            entry.favoriteButton.classList.toggle('active', shouldFavorite);
             const label = shouldFavorite
                 ? localized('favorites.removeWithName', `Retirer ${name} des favoris`, { location: name })
                 : localized('favorites.addWithName', `Ajouter ${name} aux favoris`, { location: name });
             entry.favoriteButton.title = label;
             entry.favoriteButton.setAttribute('aria-label', label);
             entry.element?.classList.toggle('is-favorite', shouldFavorite);
+            entry.element?.classList.toggle('favorite', shouldFavorite);
         }
 
         if (this.activeEntry && this.activeEntry.location.name === name) {
