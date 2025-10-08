@@ -1,0 +1,16 @@
+# Normaliser les fins de ligne
+* text=auto
+# Traiter ces fichiers comme texte (diff corrects)
+*.html text
+*.css  text
+*.js   text
+*.json text
+*.md   text
+*.py   text
+# Git LFS pour les binaires lourds (recommandé pour tes .mp3 et grosses images)
+*.mp3 filter=lfs diff=lfs merge=lfs -text
+*.wav filter=lfs diff=lfs merge=lfs -text
+# Si certaines images sont lourdes (maps, grandes textures), active LFS :
+*.png filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.jpeg filter=lfs diff=lfs merge=lfs -text
