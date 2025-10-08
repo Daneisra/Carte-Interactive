@@ -68,7 +68,9 @@
         },
         history: {
             title: 'Historique',
-            back: 'Retour'
+            back: 'Retour',
+            overflowSingle: '{count} lieu plus ancien dans l\'historique',
+            overflowPlural: '{count} lieux plus anciens dans l\'historique'
         },
         mapControls: {
             zoomIn: 'Zoom avant',

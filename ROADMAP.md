@@ -37,7 +37,7 @@ CrÃ©er une carte narrative immersive, fiable et maintenable qui serve Ã  la 
 ## 3. Roadmap opÃ©rationnelle
 ### Correctifs prioritaires (retour a l'etat pre-corruption)
 
-2. Reappliquer le style visuel des favoris (icones, badges, layout) afin d'eviter l'affichage brut par defaut.
+
 3. Limiter l'historique affiche a quatre entrees tout en conservant le bouton Retour.
 4. Corriger le mode plein ecran pour laisser les panneaux (exploration, info, historique) visibles sur la carte.
 5. Retablir les encadres pour les sections texte (histoire, quetes, PNJ, lore) dans le panneau d'information.

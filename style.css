@@ -1,6 +1,14 @@
-﻿:root {
+﻿﻿﻿:root {
     --marker-scale: 1;
 }
+.history-overflow {
+    text-align: center;
+    font-size: 11px;
+    color: #a0a8b6;
+    padding: 4px 0;
+    letter-spacing: 0.6px;
+}
+
 
 /* ?? R�initialisation de base */
 body {
@@ -686,6 +694,14 @@ body {
     width: 100%;
 }
 
+.history-overflow {
+    text-align: center;
+    font-size: 11px;
+    color: #a0a8b6;
+    padding: 4px 0;
+    letter-spacing: 0.6px;
+}
+
 /* ?? Boutons d�historique */
 .history-item {
     background: #333;
@@ -1323,6 +1339,11 @@ body[data-theme="light"] .history-item:hover,
 body[data-theme="light"] #history-back:hover {
     background: #c9d4e8;
 }
+
+body[data-theme="light"] .history-overflow {
+    color: #5a6a8a;
+}
+
 
 body[data-theme="light"] .location {
     background: #f0f4ff;
