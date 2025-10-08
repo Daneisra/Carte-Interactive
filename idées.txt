@@ -1,0 +1,80 @@
+{
+    "name": "",
+    "type": "",
+    "x": ,
+    "y": ,
+    "description": "",
+    "images": [],
+    "videos": [],
+    "audio": "assets/audio/.mp3",
+    "history": "",
+    "quests": [],
+    "pnjs": [],
+    "lore": []
+}
+
+## ⚙️ Améliorations Fonctionnelles
+### 🧭 1. Interaction et navigation
+- Possibilité d’ajouter des marqueurs personnalisés directement sur la carte (annotations).
+- Ajout d’un indicateur de position du joueur ou d’un marqueur temporaire.
+- Carte chronologique pour suivre l’évolution des lieux dans le temps.
+- Système de calques (mode relief, frontières, couches thématiques…).
+
+---
+
+## 🎨 Améliorations Visuelles et UI
+### 🏙️ 2. Personnalisation des marqueurs
+- Palette de couleurs par type de lieu (ex : rouge pour les ennemis, bleu pour les villes).
+- Icônes adaptatives ou animées quand un lieu est sélectionné.
+- Effet d’ombre/animation au survol des marqueurs.
+
+### 📋 3. Panneau Exploration
+- Icônes devant les noms de continents et de lieux.
+- Recherche avancée avec filtres combinés (types, tags, présence de quêtes…).
+- Ouverture/fermeture animée des continents (glissement plutôt que simple `display`).
+- Gestion de favoris pour retrouver rapidement certains lieux.
+
+### 🏰 4. Panneau d’information
+- Liens interactifs : lieux proches, événements liés, suggestions de quêtes connexes.
+
+---
+
+## 👥 Expérience Utilisateur
+### 🌓 5. Personnalisation de l’affichage
+- Mode sombre / clair pour l’UI.
+- Réglage de la taille des marqueurs pour améliorer la lisibilité.
+- Ajustement de la transparence de la carte pour afficher les informations sous-jacentes.
+
+### 🗂️ 6. Historique et navigation
+- Animation douce lors de l’affichage des entrées d’historique.
+- Surlignage automatique sur la carte quand on survole un item dans l’historique ou le panneau.
+- Suppression d’une entrée d’historique (bouton « X ») et annulation possible.
+- Raccourcis clavier pour naviguer dans l’historique (`←` `→`) et rechercher (`Ctrl+K`).
+
+### 🚀 7. Optimisation des performances
+- Chargement progressif / clustering des marqueurs pour les cartes très denses.
+- Détection automatique des zones trop chargées (heatmap, aggrégation).
+- Mise en cache locale des métadonnées utilisateur (filtres, dernières positions).
+
+---
+
+## 🧠 Fonctionnalités Avancées
+### 🌀 8. Événements dynamiques
+- Quêtes interactives directement sur la carte (état de progression, jalons).
+- Gestion d’événements temporaires (ex : tempêtes, invasions) avec décompte.
+- Actualisation en temps réel des événements (websocket ou polling léger).
+- Marqueurs évolutifs selon le temps ou les actions des joueurs.
+
+### 🌐 9. Intégrations externes
+- Connexion à une base de données pour gérer massivement lieux/PNJ/quêtes.
+- Export en PDF / PNG d’une sélection de carte avec annotations.
+- Synchronisation serveur pour collaboration temps réel (maître du jeu ↔ joueurs).
+
+---
+
+## 🧭 Prochaines étapes prioritaires
+1. ✅ Modulariser le script : DataService, MapController, UiController et main.js orchestrent désormais le chargement, l'UI et la carte.
+2. **Clustering et pagination des marqueurs** : utiliser `leaflet.markercluster` ou un mécanisme maison pour éviter de retirer/rajouter les marqueurs à chaque filtre.
+3. **Persistance des préférences** : sauvegarder filtres, position de la carte et dernier lieu consulté via `localStorage` ou un backend léger.
+4. **Validations & données** : automatiser la vérification des JSON (types, assets, doublons) et prévoir une interface d’édition simplifiée.
+5. **Tests et CI locale** : introduire un script de tests UI (Playwright/Cypress) et une checklist de regression avant publication.

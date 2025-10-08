@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte Interactive</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/icons/default.png">
+</head>
+<body>
+    <!-- 🧭 Panneau Exploration -->
+    <div id="sidebar">
+        <h2>Exploration</h2>
+
+        <!-- 🌍 Bouton pour masquer/afficher tous les continents -->
+        <button id="toggle-all-continents" class="continent-toggle global-toggle" type="button">
+            Tout masquer/afficher
+        </button>
+        
+        <!-- 🔍 Barre de recherche avec bouton de réinitialisation -->
+        <div id="search-container">
+            <input type="text" id="search-bar" placeholder="Rechercher un lieu..." />
+            <button id="clear-search" aria-label="Effacer la recherche" type="button">✕</button>
+            <span id="search-results-count" class="results-badge" data-state="all" aria-live="polite" aria-atomic="true">0 lieu</span>
+        </div>
+
+        <div id="filters-container">
+            <select id="type-filter" aria-label="Filtrer par type de lieu">
+                <option value="all">Tous les types</option>
+            </select>
+            <button id="reset-filters" class="icon-button" aria-label="Réinitialiser les filtres" type="button">↺</button>
+            <button id="random-location" class="icon-button" type="button" aria-label="Choisir un lieu aléatoire">🎲</button>
+        </div>
+        <div id="clustering-container" class="toggle-row">
+            <label for="clustering-toggle" class="toggle-label">
+                <input type="checkbox" id="clustering-toggle" />
+                <span>Regrouper les marqueurs</span>
+            </label>
+            <span id="clustering-metrics" class="toggle-hint" data-state="off" aria-live="polite" aria-atomic="true">📍 0/0</span>
+        </div>
+
+        <div id="marker-scale-container" class="slider-row">
+            <label for="marker-size" class="slider-label">Taille des marqueurs</label>
+            <div class="slider-control">
+                <input type="range" id="marker-size" min="70" max="130" step="5" value="100" aria-label="Ajuster la taille des marqueurs" />
+                <span id="marker-size-value" class="slider-value" aria-live="polite" aria-atomic="true">100%</span>
+            </div>
+        </div>
+
+        <div id="exploration-tabs" class="segmented-control" role="tablist">
+            <button id="tab-all-locations" class="tab-button active" type="button" data-view="all" aria-pressed="true">Tous les lieux</button>
+            <button id="tab-favorites" class="tab-button" type="button" data-view="favorites" aria-pressed="false">Favoris</button>
+        </div>
+
+        <div id="favorites-container" class="favorites-container" hidden aria-live="polite" aria-atomic="true"></div>
+        <div id="continents-container"></div>
+    </div>
+
+    <!-- 🏰 Panneau d'information des lieux -->
+    <div id="info-sidebar">
+        <div id="info-header">
+            <h3 id="info-title">Titre du lieu</h3>
+            <div class="info-actions">
+                <button id="favorite-toggle" class="icon-button favorite-toggle" type="button" aria-label="Ajouter aux favoris" aria-pressed="false" disabled>☆</button>
+                <button id="close-info-sidebar" class="close-btn" type="button" aria-label="Fermer le panneau">✖</button>
+            </div>
+        </div>
+    
+        <!-- 📂 Onglets de navigation -->
+        <div id="info-tabs">
+            <button class="info-tab active" data-tab="description">Description</button>
+            <button class="info-tab" data-tab="image">Image</button>
+        </div>
+
+        <!-- 🎵 Lecteur audio compact -->
+        <div id="audio-container">
+            <p id="audio-title">🎧 Ambiance sonore</p>
+            <audio id="audio-player" controls>
+                Votre navigateur ne supporte pas l'élément audio.
+            </audio>
+            <button id="audio-fallback" class="audio-fallback" type="button" hidden>
+                ▶️ Lancer la lecture
+            </button>
+            <p id="audio-status" class="audio-status" role="status" aria-live="polite" hidden></p>
+        </div>
+
+        <!-- 📚 Contenu des onglets -->
+        <div id="info-content">
+            <div id="description-content" class="info-content active">
+                <p id="description-text">Description du lieu...</p>
+
+                <!-- ➕ Sections d'informations supplémentaires -->
+                <div id="history-section"></div>
+                <div id="quests-section"></div>
+                <div id="pnjs-section"></div>
+                <div id="lore-section"></div>
+
+            </div>
+            
+            <div id="image-content" class="info-content">
+                <div id="image-gallery"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 📜 Historique modernisé en bas à gauche -->
+    <div id="history-container">
+        <p id="history-title">Historique</p>
+        <div id="history-list"></div> <!-- Les éléments de l'historique seront insérés ici -->
+        <button id="history-back" type="button">Retour</button> <!-- Bouton Retour placé sous l'historique -->
+    </div>
+
+    <!-- 🗺️ Conteneur de la carte -->
+    <div id="map"></div>
+
+    <!-- 🎛️ Barre de contrôle en bas à droite -->
+    <div id="map-controls">
+        <button id="zoom-in" aria-label="Zoom avant" type="button"><span aria-hidden="true">&#x2795;</span></button>
+        <button id="zoom-out" aria-label="Zoom arrière" type="button"><span aria-hidden="true">&#x2796;</span></button>
+        <button id="reset-map" aria-label="Recentrer la carte" type="button" title="Recentrer"><span aria-hidden="true">&#x21BA;</span></button>
+        <button id="fullscreen-map" aria-label="Plein écran" type="button" title="Plein écran"><span aria-hidden="true">&#x2922;</span></button>
+        <div id="theme-toggle" class="theme-toggle" role="group" aria-label="Mode d'affichage">
+            <button type="button" class="theme-toggle-option active" data-theme="dark" aria-pressed="true" title="Mode sombre">
+                <span aria-hidden="true">&#x1F319;</span>
+            </button>
+            <button type="button" class="theme-toggle-option" data-theme="light" aria-pressed="false" title="Mode clair">
+                <span aria-hidden="true">&#x2600;</span>
+            </button>
+        </div>
+        <span id="zoom-level">100%</span>
+    </div>
+
+    <!-- ⚙️ Scripts -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <script type="module" src="js/main.js"></script>
+
+</body>
+</html>
+
+
+
+
+
+
+
