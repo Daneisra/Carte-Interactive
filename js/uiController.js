@@ -386,10 +386,6 @@ export class UiController {
 
         this.renderContinentEntries(section.entries, section.pagination, content);
 
-        if (index === 0) {
-            this.setContinentExpanded(section, true);
-        }
-
         return section;
     }
 
@@ -452,7 +448,10 @@ export class UiController {
         entry.markerEntry = this.mapController.createEntry({
             location,
             continent: continentName,
-            onSelect: () => this.selectEntry(entry, { focusOnList: false, source: 'map' }),
+            onSelect: () => {
+                this.ensureEntryVisible(entry);
+                this.selectEntry(entry, { focusOnList: false, source: 'map' });
+            },
             onHover: () => element.classList.add('hover'),
             onLeave: () => element.classList.remove('hover')
         });
@@ -510,6 +509,7 @@ export class UiController {
                 controls.container.style.display = 'none';
                 container.appendChild(controls.container);
             }
+            container.style.maxHeight = '0';
             return;
         }
 
@@ -519,6 +519,22 @@ export class UiController {
         const startIndex = pagination.currentPage * this.pageSize;
         const pageEntries = entries.slice(startIndex, startIndex + this.pageSize);
         pageEntries.forEach(entry => container.appendChild(entry.element));
+
+        const scheduleHeightUpdate = () => {
+            if (container.style.display === 'none') {
+                return;
+            }
+            const applyHeight = () => {
+                container.style.maxHeight = `${container.scrollHeight}px`;
+            };
+            if (typeof requestAnimationFrame === 'function') {
+                requestAnimationFrame(applyHeight);
+            } else {
+                applyHeight();
+            }
+        };
+
+        scheduleHeightUpdate();
 
         if (!controls?.container) {
             return;
@@ -556,6 +572,8 @@ export class UiController {
         controls.container.appendChild(controls.info);
         controls.container.appendChild(controls.next);
         container.appendChild(controls.container);
+
+        scheduleHeightUpdate();
     }
     bindTabs() {
         const attach = (button, view) => {
@@ -1108,9 +1126,51 @@ export class UiController {
         if (!section?.content || !section?.toggleButton) {
             return;
         }
-        section.content.style.display = shouldExpand ? 'block' : 'none';
-        section.content.setAttribute('aria-hidden', shouldExpand ? 'false' : 'true');
-        section.toggleButton.setAttribute('aria-expanded', String(shouldExpand));
+        const content = section.content;
+        const button = section.toggleButton;
+        const wasHidden = content.style.display === 'none';
+
+        if (shouldExpand) {
+            content.style.display = 'block';
+            content.classList.add('is-open');
+            content.setAttribute('aria-hidden', 'false');
+            button.setAttribute('aria-expanded', 'true');
+
+            // force reflow before calculating height
+            if (wasHidden) {
+                content.style.maxHeight = '0';
+            }
+            const targetHeight = content.scrollHeight;
+            content.style.maxHeight = `${targetHeight}px`;
+
+            const handleTransitionEnd = event => {
+                if (event.target === content) {
+                    content.removeEventListener('transitionend', handleTransitionEnd);
+                }
+            };
+            content.addEventListener('transitionend', handleTransitionEnd, { once: true });
+        } else {
+            content.classList.remove('is-open');
+            content.setAttribute('aria-hidden', 'true');
+            button.setAttribute('aria-expanded', 'false');
+            content.style.maxHeight = '0';
+
+            // hide content after collapsing to avoid keyboard focus
+            const handleTransitionEnd = event => {
+                if (event.target === content && !content.classList.contains('is-open')) {
+                    content.style.display = 'none';
+                    content.removeEventListener('transitionend', handleTransitionEnd);
+                }
+            };
+
+            content.addEventListener('transitionend', handleTransitionEnd, { once: true });
+
+            // fallback in case transitions are disabled
+            if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+                handleTransitionEnd({ target: content });
+            }
+        }
+        button.classList.toggle('is-open', shouldExpand);
     }
 
     isContinentExpanded(section) {
