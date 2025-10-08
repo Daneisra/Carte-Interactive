@@ -59,14 +59,29 @@ export class MapControlsManager {
     }
 
     toggleFullscreen() {
-        const mapElement = document.getElementById('map');
-        if (!mapElement) {
+        const fullscreenElement = document.fullscreenElement
+            || document.webkitFullscreenElement
+            || document.mozFullScreenElement
+            || document.msFullscreenElement;
+
+        if (!fullscreenElement) {
+            const target = document.documentElement || document.body;
+            const request = target.requestFullscreen
+                || target.webkitRequestFullscreen
+                || target.mozRequestFullScreen
+                || target.msRequestFullscreen;
+            if (typeof request === 'function') {
+                request.call(target);
+            }
             return;
         }
-        if (!document.fullscreenElement) {
-            mapElement.requestFullscreen?.().catch(() => {});
-        } else {
-            document.exitFullscreen?.().catch(() => {});
+
+        const exit = document.exitFullscreen
+            || document.webkitExitFullscreen
+            || document.mozCancelFullScreen
+            || document.msExitFullscreen;
+        if (typeof exit === 'function') {
+            exit.call(document);
         }
     }
 

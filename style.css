@@ -634,12 +634,30 @@ body {
 }
 
 /* ??? Carte */
-#map {
+.map-wrapper {
     flex: 1;
     height: 100vh;
     position: relative;
     z-index: 0;
     border-radius: 10px;
+    overflow: hidden;
+}
+
+#map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+}
+
+.map-wrapper:-webkit-full-screen,
+.map-wrapper:-moz-full-screen,
+.map-wrapper:-ms-fullscreen,
+.map-wrapper:fullscreen {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
 }
 
 /* ? Bouton de recentrage */
