@@ -11,6 +11,8 @@
     <link rel="icon" type="image/png" href="assets/icons/default.png">
 </head>
 <body>
+    <div id="aria-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="aria-alert" class="sr-only" role="alert" aria-live="assertive" aria-atomic="true"></div>
     <!-- 🧭 Panneau Exploration -->
     <div id="sidebar">
         <h2>Exploration</h2>
@@ -70,9 +72,9 @@
         </div>
     
         <!-- 📂 Onglets de navigation -->
-        <div id="info-tabs">
-            <button class="info-tab active" data-tab="description">Description</button>
-            <button class="info-tab" data-tab="image">Image</button>
+        <div id="info-tabs" role="tablist" aria-label="Sections d'information du lieu">
+            <button id="info-tab-description" class="info-tab active" type="button" role="tab" data-tab="description" aria-controls="description-content" aria-selected="true" tabindex="0">Description</button>
+            <button id="info-tab-image" class="info-tab" type="button" role="tab" data-tab="image" aria-controls="image-content" aria-selected="false" tabindex="-1">Image</button>
         </div>
 
         <!-- 🎵 Lecteur audio compact -->
@@ -89,7 +91,7 @@
 
         <!-- 📚 Contenu des onglets -->
         <div id="info-content">
-            <div id="description-content" class="info-content active">
+            <div id="description-content" class="info-content active" role="tabpanel" aria-labelledby="info-tab-description" tabindex="0">
                 <p id="description-text">Description du lieu...</p>
 
                 <!-- ➕ Sections d'informations supplémentaires -->
@@ -99,8 +101,8 @@
                 <div id="lore-section" class="extra-section" data-section="lore"></div>
 
             </div>
-            
-            <div id="image-content" class="info-content">
+
+            <div id="image-content" class="info-content" role="tabpanel" aria-labelledby="info-tab-image" aria-hidden="true" tabindex="-1">
                 <div id="image-gallery"></div>
             </div>
         </div>

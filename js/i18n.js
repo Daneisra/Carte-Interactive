@@ -44,6 +44,7 @@
             quests: { title: 'Quêtes' },
             lore: { title: 'Lore' },
             pnjs: { title: 'Personnages', unknown: 'PNJ' },
+            tabsAriaLabel: 'Sections d\'information du lieu',
             watchVideo: 'Voir la vidéo',
             noMedia: 'Aucun média disponible'
         },
@@ -54,6 +55,12 @@
             fallbackBlocked: 'Lecture bloquée par le navigateur. Cliquez pour lancer la lecture.',
             fallbackMissing: 'Audio indisponible ou corrompu.',
             fallbackButton: '▶ Lancer la lecture'
+        },
+        aria: {
+            locationSelected: '{location} sélectionné.',
+            infoClosed: 'Panneau d\'information fermé.',
+            favoriteAdded: '{location} ajouté aux favoris.',
+            favoriteRemoved: '{location} retiré des favoris.'
         },
         clustering: {
             iconOn: '📊',

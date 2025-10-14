@@ -1,65 +1,48 @@
-﻿# Carte Interactive - Roadmap 2025
+﻿# Carte Interactive – Roadmap 2025
 
 ## 1. Vision
-CrÃ©er une carte narrative immersive, fiable et maintenable qui serve Ã  la fois de support de jeu et de rÃ©fÃ©rentiel vivant pour l'univers. La feuille de route s'articule autour de trois axesÂ : qualitÃ© des donnÃ©es, excellence UX et industrialisation.
+Créer une carte narrative immersive, fiable et maintenable servant à la fois de support de jeu et de référentiel vivant de l'univers. Pour 2025, les priorités se structurent autour de trois axes : qualité des données, excellence UX et industrialisation.
 
-## 2. RÃ©alisations Ã  date
-### Architecture & QualitÃ© logicielle
-- Refactoring complet du monolithe `script.js` en modules `DataService`, `MapController`, `UiController` orchestrÃ©s par `main.js`.
-- Mise en place d'une validation centralisÃ©e des jeux de donnÃ©es (norme des coordonnÃ©es, types, doublons, chemins assets).
-- Normalisation UTF-8 gÃ©nÃ©ralisÃ©e (HTML/CSS/JSON) avec restauration des Ã©mojis originaux.
-- Script de validation automatisÃ©e (`tools/validate_assets.py`) pour contrÃ´ler cohÃ©rence JSON et prÃ©sence des mÃ©dias.
+## 2. Réalisations récentes (T4 2025)
+- Modules `DataService`, `MapController`, `UiController` stabilisés et orchestrés par `main.js`.
+- Validation centralisée des datasets (coordonnées, types, doublons, chemins assets) + nettoyage exhaustif des contenus.
+- Galerie média enrichie : miniatures vidéo cliquables avec titres, gestion robuste des images et fallback propre.
+- Lecteur audio réinitialisé automatiquement avec gestion des cas d’autoplay bloqués et bouton fallback.
+- Fermeture automatique du panneau d'information hors interaction et synchronisation avec les marqueurs.
+- Persistance locale avancée (`PreferencesService`) : filtres, vue carte, dernier lieu et favoris utilisateurs.
+- Clustering Leaflet configuré avec indicateurs de visibilité, pagination par continent et badge de résultats de recherche.
+- Mode sombre/clair persistant, réglage taille des marqueurs, favoris et bouton “Lieu aléatoire”.
+- Historique de navigation opérationnel et scripts d’assainissement (`tools/validate_assets.py`).
 
-### ExpÃ©rience utilisateur & carte
-- RÃ©activation et fiabilisation du bouton de reset, des icÃ´nes par dÃ©faut et des champs manquants dans la sidebar.
-- Modernisation du panneau d'informationÂ : onglets stables, sections (histoire, quÃªtes, PNJ, lore) pleinement opÃ©rationnelles.
-- Lecteur audio robuste (dÃ©tection des Ã©lÃ©ments, reset source, fallback Ã©lÃ©gant) et titres contextualisÃ©s.
-- Tooltips de survol sur les marqueurs et synchronisation du panneau de commandes (zoom, plein Ã©cran, niveau de zoom).
-- Badge de rÃ©sultats, surlignage des correspondances et navigation clavier sur la recherche.
-- Animation fluide d'ouverture/fermeture des continents, focus clavier visible et relance audio manuelle en cas de blocage navigateur.
-- Pagination continent par continent avec commandes de navigation, compteur dynamique et toggle global de repli.
-- Persistance locale des filtres, de l'Ã©tat de la carte et du dernier lieu via `PreferencesService` et restauration automatique au chargement.
-- Clustering Leaflet.markerclusterÂ : regroupement dynamique, icÃ´nes agrÃ©gÃ©es et mÃ©triques de visibilitÃ© en sidebar.
-- Curseur persistant de taille des marqueurs (70-130Â %) avec sauvegarde automatique.
-- Favoris utilisateursÂ : Ã©toile dans le panneau info, liste dÃ©diÃ©e et bouton alÃ©atoire.
-- Mode sombre/clair avec bascule persistante intÃ©grÃ©e Ã  la barre de contrÃ´les de la carte.
-- Barre de contrÃ´les carte iconographiÃ©e (zoom/reset/plein Ã©cran) avec intÃ©gration directe du sÃ©lecteur de thÃ¨me.
-- Ã€ planifierÂ : Ã©dition in-app des lieux.
+## 3. Priorités immédiates (fin 2025)
+### UX & Accessibilité
+- Compléter les contrôles ARIA, libellés et annonces vocales (navigation clavier exhaustive).
+- Finaliser le responsive < 1024 px : layout mobile, repositionnement des contrôles et gestuelles tactiles.
+- Ajouter une aide contextuelle (infobulles ou onboarding léger) pour les favoris et le clustering.
 
-### DonnÃ©es & contenus
-- Nettoyage exhaustif des textes (`assets/locations.json`, `assets/types.json`, `style.css`) avec suppression des artefacts d'encodage.
-- Consolidation des chemins mÃ©dias (audio/images) et filtrage des entrÃ©es vides.
+### Qualité des données
+- Étendre le pipeline `tools/validate_assets.py` : vérification des images/audio manquants, cohérence des PNJ et quêtes.
+- Introduire la gestion officielle des titres vidéo dans `assets/locations.json` avec harmonisation des champs.
+- Préparer des jeux d’essai allégés pour la recette et les tests automatisés.
 
-### UtilisabilitÃ© & support
-- Documentation d'amÃ©lioration initiale (`idÃ©es.txt`) et backlog priorisÃ©.
-- Historique de navigation fonctionnel (pile de retours, synchronisation carte â†” panneau).
+### Industrialisation
+- Ajouter une batterie de tests UI (Playwright/Cypress) couvrant la sélection de lieux, le clustering et la galerie média.
+- Mettre en place un workflow CI (GitHub Actions) pour lint, build statique et validation des données.
+- Instrumenter les performances (logs ou métriques) autour du cluster et du chargement initial.
 
-## 3. Roadmap opÃ©rationnelle
+## 4. Initiatives moyen terme (H1 2026)
+- **Édition in-app des lieux** : création/modification directe, validations temps réel, prévisualisation des médias.
+- **Internationalisation** : support multi-langues, extraction des libellés restants et chargement dynamique des locales.
+- **Architecture UI modulaire** : découper `UiController` en sous-modules testables, couverture unitaire ciblée.
+- **Expérience collaborative** : préparation d’une API CRUD (lieux/PNJ/quêtes) et réflexion sur l’authentification.
 
-| **Sprint 1** | Pagination & navigation latÃ©rale | Pagination continent (page de 8), toggle global, scroll auto (livrÃ©) | Modules UI stabilisÃ©s |
-|  | Persistance locale des prÃ©fÃ©rences | Sauvegarde filtres, type, carte et dernier lieu via `PreferencesService` (livrÃ©) | Support `localStorage` disponible |
-|  | Clustering des marqueurs | ImplÃ©mentation markercluster (livrÃ©), icÃ´nes agrÃ©gÃ©es, logs perfs | Cartographie des zones denses, audit datasets |
+## 5. Risques & parades
+- **Volume de données croissant** : prévoir pagination côté backend ou moteur de recherche dédié.
+- **Blocage audio/autoplay** : conserver bouton manuel + message contextuel, surveiller les politiques navigateurs.
+- **Dette historique CSS/HTML** : suivi Lighthouse (performance/accessibilité) et plan de refactor progressif.
+- **Absence de CI** : risque de régressions silencieuses — prioriser la mise en place du pipeline de tests.
 
-| **Sprint 2** | Pipeline de validation automatisÃ©e | Script `tools/validate_assets.py` (premiÃ¨re itÃ©ration) + rapport CLI | Convention de nommage assets, plan CI |
-|  | AccessibilitÃ© & UX fine | Animation ouverture continents, focus states, audio manuel fallback (livrÃ©) | Recette design |
-
-| **Sprint 3** | Personnalisation avancÃ©e | âœ… Mode sombre/clair, âœ… rÃ©glage taille marqueurs, âœ… favoris utilisateurs, ðŸ†• auto-dÃ©tection du thÃ¨me & import/export des prÃ©fÃ©rences | RÃ©sultats Ã©tude UX |
-|  | Navigation & dÃ©couverte | âœ… Onglet Â« Favoris Â», âœ… bouton Â« Lieu alÃ©atoire Â», ðŸ†• raccourcis clavier & tri personnalisable | Favoris persistants, dataset complet |
-|  | Internationalisation & accessibilitÃ© | ðŸ†• Normalisation UTF-8/I18N, annonces ARIA cohÃ©rentes, prÃ©paration multi-langue | Audit des libellÃ©s et assets texte |
-|  | Infrastructure de tests & CI | Suite `Playwright`/`Cypress` + workflow GitHub Actions | Environnement de dÃ©mo stable |
-
-| **Sprint 4** | Architecture & performance UI | ðŸ†• Scinder `UiController` en sous-modules, couverture unitaire, instrumentation clusters | Design modules & harness de test |
-|  | ExpÃ©rience mobile | ðŸ†• Layout responsive < 1024px, repositionnement des contrÃ´les, gestuelles tactiles | Charte responsive, jeux d'essai mobiles |
-
-| **Ã‰tape suivante** | IntÃ©gration temps rÃ©el & Ã©dition collaborative | API CRUD (lieux/PNJ/quÃªtes), socket/webhook pour Ã©vÃ©nements, interface admin | Choix stack backend, auth |
-|  | Ã‰diteur de carte | Gestion in-app des lieux (ajout, modification, suppression) | Back-end d'authentification et validation temps rÃ©el |
-
-## 4. Risques & parades
-- *Volume de donnÃ©es croissant*Â : anticiper pagination cÃ´tÃ© serveur ou backend de recherche.
-- *Bloqueurs audio/autoplay*Â : prÃ©voir bouton Play forcÃ© + message contextuel si le navigateur refuse.
-- *Dette historique CSS/HTML*Â : suivre Lighthouse (accessibilitÃ©, performance) et prioriser les refactors critiques.
-
-## 5. Annexes
-- Backlog dÃ©taillÃ©Â : `idÃ©es.txt`
-- Jeux de donnÃ©esÂ : `assets/locations.json`, `assets/types.json`
-- Modules frontÂ : `js/`
+## 6. Annexes
+- Backlog détaillé : `idées.txt`
+- Jeux de données : `assets/locations.json`, `assets/types.json`
+- Modules front : `js/`

@@ -5,6 +5,7 @@ import { MapControlsManager } from './ui/mapControlsManager.js';
 import { HistoryManager } from './ui/historyManager.js';
 import { AudioManager } from './ui/audioManager.js';
 import { InfoPanel } from './ui/infoPanel.js';
+import { AriaAnnouncer } from './ui/ariaAnnouncer.js';
 import { qs, createElement, clearElement } from './ui/dom.js';
 import { getString } from './i18n.js';
 
@@ -116,6 +117,11 @@ export class UiController {
             audioFallback: document.getElementById('audio-fallback'),
             audioStatus: document.getElementById('audio-status')
         };
+
+        this.announcer = new AriaAnnouncer({
+            politeNode: qs('#aria-status'),
+            assertiveNode: qs('#aria-alert')
+        });
 
         this.state = new UiState({
             filters: this.preferences?.getFilters?.(),
@@ -1093,6 +1099,15 @@ export class UiController {
         this.infoPanel.show(entry);
         this.updateFavoriteToggle(entry.location);
 
+        if (this.announcer) {
+            const message = localized(
+                'aria.locationSelected',
+                `${entry.location.name} sélectionné.`,
+                { location: entry.location.name }
+            );
+            this.announcer.polite(message);
+        }
+
         this.mapController.setSelectedEntry(entry.markerEntry);
         this.mapController.focusOnEntry(entry.markerEntry, { animate: source !== 'history' });
 
@@ -1127,6 +1142,10 @@ export class UiController {
         this.activeEntry = null;
         this.updateFavoriteToggle(null);
         this.updateRandomButtonState();
+        if (this.announcer) {
+            const message = localized('aria.infoClosed', 'Panneau d\'information fermé.');
+            this.announcer.polite(message);
+        }
     }
 
     updateFavoriteToggle(location) {
@@ -1185,6 +1204,15 @@ export class UiController {
 
         if (this.activeEntry && this.activeEntry.location.name === name) {
             this.updateFavoriteToggle(this.activeEntry.location);
+        }
+
+        if (this.announcer) {
+            const message = localized(
+                shouldFavorite ? 'aria.favoriteAdded' : 'aria.favoriteRemoved',
+                shouldFavorite ? `${name} ajouté aux favoris.` : `${name} retiré des favoris.`,
+                { location: name }
+            );
+            this.announcer.polite(message);
         }
 
         this.renderFavoritesView();

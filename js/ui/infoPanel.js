@@ -52,6 +52,7 @@ export class InfoPanel {
             this.audioManager.initialize();
         }
         this.bindTabs();
+        this.setupTabsAccessibility();
         this.setupLightbox();
     }
 
@@ -59,10 +60,13 @@ export class InfoPanel {
         if (!this.tabs.length || !this.tabContents.length) {
             return;
         }
-        this.tabs.forEach(tab => {
+        this.tabs.forEach((tab, index) => {
             tab.addEventListener('click', () => {
                 const target = tab.dataset.tab || 'description';
                 this.setActiveTab(target);
+            });
+            tab.addEventListener('keydown', event => {
+                this.handleTabKeydown(event, index);
             });
         });
     }
@@ -71,12 +75,14 @@ export class InfoPanel {
         this.tabs.forEach(tab => {
             const isActive = tab.dataset.tab === target;
             tab.classList.toggle('active', isActive);
-            tab.setAttribute('aria-pressed', String(isActive));
+            tab.setAttribute('aria-selected', String(isActive));
+            tab.setAttribute('tabindex', isActive ? '0' : '-1');
         });
         this.tabContents.forEach(content => {
             const isMatch = content.id === `${target}-content`;
             content.classList.toggle('active', isMatch);
             content.setAttribute('aria-hidden', String(!isMatch));
+            content.setAttribute('tabindex', isMatch ? '0' : '-1');
         });
     }
 
@@ -214,6 +220,88 @@ export class InfoPanel {
             }
         });
         sectionElement.appendChild(list);
+    }
+
+    setupTabsAccessibility() {
+        if (!this.tabs.length || !this.tabContents.length) {
+            return;
+        }
+
+        const tablist = this.tabs[0].parentElement;
+        if (tablist) {
+            tablist.setAttribute('role', 'tablist');
+            const label = getString('info.tabsAriaLabel');
+            if (label && label !== 'info.tabsAriaLabel') {
+                tablist.setAttribute('aria-label', label);
+            }
+        }
+
+        this.tabs.forEach(tab => {
+            const tabId = tab.id || `info-tab-${tab.dataset.tab || ''}`;
+            tab.id = tabId;
+            tab.setAttribute('role', 'tab');
+            const panelId = `${tab.dataset.tab || 'description'}-content`;
+            tab.setAttribute('aria-controls', panelId);
+        });
+
+        this.tabContents.forEach(content => {
+            const tabName = content.id.replace('-content', '');
+            const controller = this.tabs.find(tab => tab.dataset.tab === tabName);
+            if (controller) {
+                content.setAttribute('role', 'tabpanel');
+                content.setAttribute('aria-labelledby', controller.id);
+            }
+        });
+    }
+
+    handleTabKeydown(event, index) {
+        switch (event.key) {
+            case 'ArrowRight':
+            case 'ArrowLeft': {
+                event.preventDefault();
+                const offset = event.key === 'ArrowRight' ? 1 : -1;
+                this.focusTabByOffset(index, offset);
+                break;
+            }
+            case 'Home':
+                event.preventDefault();
+                this.focusTab(0);
+                break;
+            case 'End':
+                event.preventDefault();
+                this.focusTab(this.tabs.length - 1);
+                break;
+            case 'Enter':
+            case ' ': {
+                event.preventDefault();
+                const target = this.tabs[index]?.dataset.tab;
+                if (target) {
+                    this.setActiveTab(target);
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    focusTabByOffset(currentIndex, offset) {
+        if (!this.tabs.length) {
+            return;
+        }
+        const count = this.tabs.length;
+        const nextIndex = (currentIndex + offset + count) % count;
+        this.focusTab(nextIndex);
+    }
+
+    focusTab(targetIndex) {
+        const targetTab = this.tabs[targetIndex];
+        if (!targetTab) {
+            return;
+        }
+        const targetName = targetTab.dataset.tab || 'description';
+        this.setActiveTab(targetName);
+        targetTab.focus();
     }
 
     createVideoThumbnail({ videoUrl, location, index }) {
