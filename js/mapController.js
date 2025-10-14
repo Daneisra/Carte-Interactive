@@ -345,6 +345,16 @@ export class MapController {
         this.map.flyTo([targetCenter[0], targetCenter[1]], targetZoom, { animate, duration });
     }
 
+    onMapClick(callback) {
+        if (typeof callback !== 'function') {
+            return () => {};
+        }
+        this.map.on('click', callback);
+        return () => {
+            this.map.off('click', callback);
+        };
+    }
+
     zoomIn(step = 1) {
         this.map.zoomIn(step);
     }

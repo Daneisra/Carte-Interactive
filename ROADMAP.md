@@ -35,16 +35,6 @@ CrÃ©er une carte narrative immersive, fiable et maintenable qui serve Ã  la 
 - Historique de navigation fonctionnel (pile de retours, synchronisation carte â†” panneau).
 
 ## 3. Roadmap opÃ©rationnelle
-### Correctifs prioritaires (retour a l'etat pre-corruption)
-
-
-
-
-
-
-
-
-9. Fermer automatiquement le panneau d'information lorsqu'un clic intervient sur la carte Leaflet.
 
 | **Sprint 1** | Pagination & navigation latÃ©rale | Pagination continent (page de 8), toggle global, scroll auto (livrÃ©) | Modules UI stabilisÃ©s |
 |  | Persistance locale des prÃ©fÃ©rences | Sauvegarde filtres, type, carte et dernier lieu via `PreferencesService` (livrÃ©) | Support `localStorage` disponible |

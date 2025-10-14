@@ -130,6 +130,7 @@ export class UiController {
         this.toggleAllState = false;
         this.typeData = {};
         this.boundKeyboardShortcuts = false;
+        this.mapClickUnsubscribe = null;
 
         this.historyManager = new HistoryManager({
             container: this.dom.historyContainer,
@@ -215,6 +216,7 @@ export class UiController {
         this.bindFavoriteToggle();
         this.bindRandomButton();
         this.bindMapKeyboardShortcuts();
+        this.bindMapBackgroundDismissal();
 
         this.populateTypeFilterOptions();
         this.buildSidebar(locationsData || {});
@@ -698,6 +700,41 @@ export class UiController {
         };
         document.addEventListener('keydown', this.keyboardHandler);
         this.boundKeyboardShortcuts = true;
+    }
+
+    bindMapBackgroundDismissal() {
+        if (!this.mapController || !this.infoPanel) {
+            return;
+        }
+
+        if (typeof this.mapClickUnsubscribe === 'function') {
+            this.mapClickUnsubscribe();
+        }
+
+        this.mapClickUnsubscribe = this.mapController.onMapClick(event => {
+            const sidebar = this.dom.infoSidebar;
+            if (!sidebar?.classList.contains('open')) {
+                return;
+            }
+
+            const originalEvent = event?.originalEvent;
+            if (originalEvent?.defaultPrevented) {
+                return;
+            }
+
+            if (typeof originalEvent?.button === 'number' && originalEvent.button !== 0) {
+                return;
+            }
+
+            const target = originalEvent?.target;
+            if (target && typeof target.closest === 'function') {
+                if (target.closest('.leaflet-interactive') || target.closest('.leaflet-control')) {
+                    return;
+                }
+            }
+
+            this.infoPanel.close();
+        });
     }
 
     restoreMapState() {
