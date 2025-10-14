@@ -24,7 +24,7 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Ajouter un outil d'obtention des coordonnées à côté de l'outil de mesure des distances. ✅
 
 ### Qualité des données
-- Étendre le pipeline `tools/validate_assets.py` : vérification des images/audio manquants, cohérence des PNJ et quêtes.
+- Étendre le pipeline `tools/validate_assets.py` : vérification des images/audio manquants, cohérence des PNJ et quêtes. ✅
 - Introduire la gestion officielle des titres vidéo dans `assets/locations.json` avec harmonisation des champs.
 - Préparer des jeux d’essai allégés pour la recette et les tests automatisés.
 

@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS_DIR = ROOT / "assets"
@@ -39,17 +40,30 @@ def validate_types(types: Dict[str, Dict[str, Any]], *, check_media: bool) -> Li
     return issues
 
 
+def normalize_media_path(path: str | None) -> Path | None:
+    if not path or not isinstance(path, str):
+        return None
+    return (ROOT / path).resolve()
+
+
+def validate_media(path: Path) -> bool:
+    return path.exists() and path.is_file()
+
+
 def validate_locations(dataset: Dict[str, Any], types: Dict[str, Any], *, check_media: bool) -> List[str]:
     issues: List[str] = []
     seen_names: Dict[str, str] = {}
+
     for continent, raw_locations in dataset.items():
         if not isinstance(raw_locations, list):
             issues.append(f"Continent '{continent}': structure attendue = liste")
             continue
+
         for index, entry in enumerate(raw_locations):
             if not isinstance(entry, dict):
                 issues.append(f"{continent}[{index}]: entree non objet JSON")
                 continue
+
             name = (entry.get("name") or "").strip()
             if not name:
                 issues.append(f"{continent}[{index}]: nom manquant")
@@ -73,8 +87,8 @@ def validate_locations(dataset: Dict[str, Any], types: Dict[str, Any], *, check_
                 if not isinstance(audio_path, str):
                     issues.append(f"{name}: champ audio doit etre une chaine")
                 elif check_media:
-                    resolved = ROOT / audio_path
-                    if not resolved.exists():
+                    resolved = normalize_media_path(audio_path)
+                    if not resolved or not validate_media(resolved):
                         issues.append(f"{name}: fichier audio introuvable ({audio_path})")
 
             images = entry.get("images") or []
@@ -84,15 +98,84 @@ def validate_locations(dataset: Dict[str, Any], types: Dict[str, Any], *, check_
                         issues.append(f"{name}: entree image non valide ({image!r})")
                         continue
                     if check_media:
-                        resolved = ROOT / image
-                        if not resolved.exists():
+                        resolved = normalize_media_path(image)
+                        if not resolved or not validate_media(resolved):
                             issues.append(f"{name}: image introuvable ({image})")
             elif images:
                 issues.append(f"{name}: champ images doit etre une liste")
+
+            quests = entry.get("quests")
+            if quests:
+                if isinstance(quests, list):
+                    for quest in quests:
+                        if not isinstance(quest, str) or not quest.strip():
+                            issues.append(f"{name}: entree de quete invalide ({quest!r})")
+                elif isinstance(quests, str):
+                    if not quests.strip():
+                        issues.append(f"{name}: entree de quete vide")
+                else:
+                    issues.append(f"{name}: champ quests doit etre une liste ou une chaine")
+
+            pnjs = entry.get("pnjs") or []
+            if isinstance(pnjs, list):
+                for pnj_index, pnj in enumerate(pnjs):
+                    if not isinstance(pnj, dict):
+                        issues.append(f"{name}: pnjs[{pnj_index}] n'est pas un objet")
+                        continue
+                    pnj_name = (pnj.get("name") or "").strip()
+                    if not pnj_name:
+                        issues.append(f"{name}: PNJ #{pnj_index + 1} sans nom")
+                    role = pnj.get("role")
+                    if role is not None and not isinstance(role, str):
+                        issues.append(f"{name}: PNJ '{pnj_name or pnj_index + 1}' role invalide ({role!r})")
+                    description = pnj.get("description")
+                    if description is not None and not isinstance(description, str):
+                        issues.append(f"{name}: PNJ '{pnj_name or pnj_index + 1}' description invalide ({description!r})")
+            elif pnjs:
+                issues.append(f"{name}: champ pnjs doit etre une liste")
     return issues
 
 
+def collect_media(dataset: Dict[str, Any]) -> Iterable[str]:
+    for raw_locations in dataset.values():
+        if not isinstance(raw_locations, list):
+            continue
+        for entry in raw_locations:
+            if not isinstance(entry, dict):
+                continue
+            for image in entry.get("images") or []:
+                if isinstance(image, str):
+                    yield image
+            audio = entry.get("audio")
+            if isinstance(audio, str):
+                yield audio
+
+
+def collect_registered_media(types: Dict[str, Any]) -> Iterable[str]:
+    for payload in types.values():
+        icon = payload.get("icon")
+        if isinstance(icon, str):
+            yield icon
+
+
+def detect_unused_media(dataset: Dict[str, Any], types: Dict[str, Any]) -> List[str]:
+    declared = {Path(path).as_posix() for path in collect_media(dataset)}
+    declared.update(Path(path).as_posix() for path in collect_registered_media(types))
+    existing = {
+        path.relative_to(ROOT).as_posix()
+        for path in ASSETS_DIR.rglob("*")
+        if path.is_file()
+    }
+    unused = sorted(existing - declared)
+    return [f"Media non référencé : {path}" for path in unused if not path.endswith(".json")]
+
+
 def main() -> int:
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
+
     parser = argparse.ArgumentParser(description="Validation des ressources de la carte interactive")
     parser.add_argument("--locations", type=Path, default=LOCATIONS_PATH, help="Chemin du fichier locations.json")
     parser.add_argument("--types", type=Path, default=TYPES_PATH, help="Chemin du fichier types.json")
@@ -106,6 +189,8 @@ def main() -> int:
     issues: List[str] = []
     issues.extend(validate_types(types_data, check_media=check_media))
     issues.extend(validate_locations(locations_data, types_data, check_media=check_media))
+    if check_media:
+        issues.extend(detect_unused_media(locations_data, types_data))
 
     if issues:
         print("\n[ERREUR] Problemes detectes :")
