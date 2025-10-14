@@ -63,8 +63,12 @@
 
 .ui-tooltip.is-visible {
     opacity: 1;
-    pointer-events: auto;
+    pointer-events: none;
     transform: translateY(0);
+}
+
+.ui-tooltip.is-visible.is-persistent {
+    pointer-events: auto;
 }
 
 .ui-tooltip-text {

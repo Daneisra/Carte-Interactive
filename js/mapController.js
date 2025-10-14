@@ -39,6 +39,7 @@ export class MapController {
 
         this.map.on('moveend', () => this.notifyMapStateChange());
         this.map.on('zoomend', () => this.notifyMapStateChange());
+        this.map.on('click', event => this.logPixelCoordinates(event));
     }
 
     setTypeData(typeData) {
@@ -373,6 +374,18 @@ export class MapController {
         return clamped * 100;
     }
 
+    logPixelCoordinates(event) {
+        if (!event?.latlng) {
+            return;
+        }
+        const { lat, lng } = event.latlng;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            return;
+        }
+        const x = Math.round(lng);
+        const y = Math.round(lat);
+        console.info(`Carte · coordonnées px → x: ${x}, y: ${y}`);
+    }
 
     createClusterIcon(cluster) {
         const markers = cluster.getAllChildMarkers();
