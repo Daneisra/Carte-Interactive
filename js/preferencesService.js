@@ -8,7 +8,11 @@ const SAFE_DEFAULT = {
     map: null,
     lastLocation: null,
     pagination: {},
-    theme: 'dark'
+    theme: 'dark',
+    onboarding: {
+        favorites: false,
+        clustering: false
+    }
 };
 
 const hasStorageSupport = () => {
@@ -118,6 +122,25 @@ export class PreferencesService {
     setTheme(theme) {
         const normalized = theme === 'light' ? 'light' : 'dark';
         this.state.theme = normalized;
+        this.#write();
+    }
+
+    hasSeenOnboarding(step) {
+        if (!step) {
+            return false;
+        }
+        const onboarding = this.state.onboarding || SAFE_DEFAULT.onboarding;
+        return Boolean(onboarding[step]);
+    }
+
+    setOnboardingSeen(step, value = true) {
+        if (!step) {
+            return;
+        }
+        if (!this.state.onboarding) {
+            this.state.onboarding = { ...SAFE_DEFAULT.onboarding };
+        }
+        this.state.onboarding[step] = Boolean(value);
         this.#write();
     }
 

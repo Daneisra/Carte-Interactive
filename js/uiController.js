@@ -137,6 +137,8 @@ export class UiController {
         this.typeData = {};
         this.boundKeyboardShortcuts = false;
         this.mapClickUnsubscribe = null;
+        this.tooltipMeta = new WeakMap();
+        this.visibleTooltips = new Set();
 
         this.historyManager = new HistoryManager({
             container: this.dom.historyContainer,
@@ -171,6 +173,22 @@ export class UiController {
                 closeButton: qs('#media-lightbox-close')
             }
         });
+        this.favoriteTooltip = this.createTooltip(localized(
+            'onboarding.favoritesHint',
+            'Ajoutez vos lieux préférés pour y revenir rapidement.'
+        ));
+        this.favoriteOnboardingTooltip = this.createTooltip(localized(
+            'onboarding.favoritesHint',
+            'Ajoutez vos lieux préférés pour y revenir rapidement.'
+        ), { persistent: true, key: 'favorites' });
+        this.clusteringTooltip = this.createTooltip(localized(
+            'onboarding.clusteringHint',
+            'Activez le regroupement pour fluidifier la carte lorsque le zoom est éloigné.'
+        ));
+        this.clusteringOnboardingTooltip = this.createTooltip(localized(
+            'onboarding.clusteringHint',
+            'Activez le regroupement pour fluidifier la carte lorsque le zoom est éloigné.'
+        ), { persistent: true, key: 'clustering' });
 
         this.filtersManager = new FiltersManager({
             state: this.state,
@@ -202,7 +220,196 @@ export class UiController {
             zoomDisplay: this.dom.zoomLevel,
             preferences: this.preferences
         });
+        this.handleTooltipReposition = () => this.repositionVisibleTooltips();
+        window.addEventListener('resize', this.handleTooltipReposition);
+        window.addEventListener('scroll', this.handleTooltipReposition, { capture: true, passive: true });
     }
+
+    createTooltip(message, { persistent = false, key = null } = {}) {
+        const classes = persistent ? 'ui-tooltip ui-tooltip--persistent' : 'ui-tooltip';
+        const tooltip = createElement('div', {
+            className: classes,
+            attributes: { role: 'tooltip', 'aria-hidden': 'true' }
+        });
+        const text = createElement('span', { className: 'ui-tooltip-text', text: message });
+        tooltip.appendChild(text);
+        let dismissButton = null;
+        if (persistent) {
+            dismissButton = createElement('button', {
+                className: 'ui-tooltip-dismiss',
+                text: localized('onboarding.gotIt', 'Compris'),
+                attributes: { type: 'button' }
+            });
+            tooltip.appendChild(dismissButton);
+            dismissButton.addEventListener('click', () => {
+                if (key) {
+                    this.dismissOnboarding(key);
+                } else {
+                    this.hideTooltip(tooltip);
+                }
+            });
+        }
+        tooltip.hidden = true;
+        document.body.appendChild(tooltip);
+        this.tooltipMeta.set(tooltip, {
+            persistent,
+            key,
+            target: null,
+            placement: 'top',
+            dismissButton
+        });
+        return tooltip;
+    }
+
+    attachHoverTooltip(target, tooltip, options = {}) {
+        if (!target || !tooltip) {
+            return;
+        }
+        const show = () => this.showTooltip(target, tooltip, options);
+        const hide = () => this.hideTooltip(tooltip);
+        target.addEventListener('mouseenter', show);
+        target.addEventListener('focusin', show);
+        target.addEventListener('mouseleave', hide);
+        target.addEventListener('focusout', hide);
+    }
+
+    showTooltip(target, tooltip, { placement = 'top', persistent = null } = {}) {
+        if (!target || !tooltip) {
+            return;
+        }
+        const meta = this.tooltipMeta.get(tooltip);
+        if (!meta) {
+            return;
+        }
+        const isPersistent = persistent !== null ? persistent : Boolean(meta.persistent);
+        this.tooltipMeta.set(tooltip, { ...meta, target, placement, persistent: meta.persistent });
+        tooltip.dataset.placement = placement;
+        tooltip.setAttribute('aria-hidden', 'false');
+        tooltip.hidden = false;
+        tooltip.classList.add('is-visible');
+        tooltip.classList.toggle('is-persistent', isPersistent);
+        requestAnimationFrame(() => {
+            this.positionTooltip(target, tooltip, placement);
+        });
+        this.visibleTooltips.add(tooltip);
+    }
+
+    hideTooltip(tooltip) {
+        if (!tooltip) {
+            return;
+        }
+        tooltip.classList.remove('is-visible');
+        tooltip.classList.remove('is-persistent');
+        tooltip.setAttribute('aria-hidden', 'true');
+        tooltip.hidden = true;
+        this.visibleTooltips.delete(tooltip);
+        const meta = this.tooltipMeta.get(tooltip);
+        if (meta) {
+            this.tooltipMeta.set(tooltip, { ...meta, target: null });
+        }
+    }
+
+    positionTooltip(target, tooltip, placement = 'top') {
+        if (!target || !tooltip.classList.contains('is-visible')) {
+            return;
+        }
+        const rect = target.getBoundingClientRect();
+        const spacing = 10;
+        const tooltipRect = tooltip.getBoundingClientRect();
+        let top = rect.top - tooltipRect.height - spacing;
+        let left = rect.left + (rect.width - tooltipRect.width) / 2;
+
+        if (placement === 'bottom') {
+            top = rect.bottom + spacing;
+        } else if (placement === 'left') {
+            top = rect.top + (rect.height - tooltipRect.height) / 2;
+            left = rect.left - tooltipRect.width - spacing;
+        } else if (placement === 'right') {
+            top = rect.top + (rect.height - tooltipRect.height) / 2;
+            left = rect.right + spacing;
+        }
+
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        left = Math.max(8, Math.min(left, viewportWidth - tooltipRect.width - 8));
+        top = Math.max(8, Math.min(top, viewportHeight - tooltipRect.height - 8));
+
+        tooltip.style.top = `${Math.round(top)}px`;
+        tooltip.style.left = `${Math.round(left)}px`;
+    }
+
+    repositionVisibleTooltips() {
+        this.visibleTooltips.forEach(tooltip => {
+            const meta = this.tooltipMeta.get(tooltip);
+            if (meta?.target && meta.target.isConnected) {
+                this.positionTooltip(meta.target, tooltip, meta.placement || 'top');
+            } else if (meta) {
+                this.hideTooltip(tooltip);
+            }
+        });
+    }
+
+    hasSeenOnboarding(step) {
+        return Boolean(this.preferences?.hasSeenOnboarding?.(step));
+    }
+
+    markOnboardingSeen(step) {
+        if (!step) {
+            return;
+        }
+        this.preferences?.setOnboardingSeen?.(step, true);
+    }
+
+    dismissOnboarding(step) {
+        if (!step) {
+            return;
+        }
+        const tooltip = step === 'favorites'
+            ? this.favoriteOnboardingTooltip
+            : step === 'clustering'
+                ? this.clusteringOnboardingTooltip
+                : null;
+        if (tooltip) {
+            this.hideTooltip(tooltip);
+        }
+        if (step === 'favorites') {
+            this.hideTooltip(this.favoriteTooltip);
+        }
+        if (step === 'clustering') {
+            this.hideTooltip(this.clusteringTooltip);
+        }
+        this.markOnboardingSeen(step);
+    }
+
+    maybeShowClusteringOnboarding() {
+        if (this.hasSeenOnboarding('clustering')) {
+            return;
+        }
+        const toggle = this.dom.clusteringToggle;
+        if (!toggle) {
+            return;
+        }
+        const anchor = toggle.closest('#clustering-container') || toggle;
+        setTimeout(() => {
+            if (this.hasSeenOnboarding('clustering') || !anchor?.isConnected) {
+                return;
+            }
+            this.hideTooltip(this.clusteringTooltip);
+            this.showTooltip(anchor, this.clusteringOnboardingTooltip, { placement: 'bottom', persistent: true });
+        }, 600);
+    }
+
+    maybeShowFavoritesOnboarding() {
+        if (this.hasSeenOnboarding('favorites')) {
+            return;
+        }
+        if (!this.dom.favoriteToggle || !this.dom.favoriteToggle.isConnected || !this.dom.infoSidebar?.classList.contains('open')) {
+            return;
+        }
+        this.hideTooltip(this.favoriteTooltip);
+        this.showTooltip(this.dom.favoriteToggle, this.favoriteOnboardingTooltip, { placement: 'left', persistent: true });
+    }
+
     initialize({ typeData, locationsData }) {
         this.typeData = typeData || {};
         this.mapController.setTypeData(this.typeData);
@@ -242,6 +449,8 @@ export class UiController {
             }
             this.state.mapState = state;
         });
+
+        this.maybeShowClusteringOnboarding();
     }
 
     applyLocalization() {
@@ -444,6 +653,8 @@ export class UiController {
             this.setFavoriteState(location, !this.state.hasFavorite(location.name));
         });
 
+        this.attachHoverTooltip(favoriteButton, this.favoriteTooltip, { placement: 'left' });
+
         element.appendChild(label);
         element.appendChild(favoriteButton);
 
@@ -638,7 +849,11 @@ export class UiController {
                 this.preferences.setClustering(enabled);
             }
             this.updateClusteringMetrics();
+            this.dismissOnboarding('clustering');
         });
+
+        const container = toggle.closest('#clustering-container') || toggle;
+        this.attachHoverTooltip(container, this.clusteringTooltip, { placement: 'bottom' });
     }
 
     bindMarkerScale() {
@@ -674,6 +889,7 @@ export class UiController {
             const location = this.activeEntry.location;
             this.setFavoriteState(location, !this.state.hasFavorite(location.name));
         });
+        this.attachHoverTooltip(this.dom.favoriteToggle, this.favoriteTooltip, { placement: 'left' });
     }
 
     bindRandomButton() {
@@ -939,6 +1155,7 @@ export class UiController {
                     event.stopPropagation();
                     this.setFavoriteState(entry.location, false);
                 });
+                this.attachHoverTooltip(removeButton, this.favoriteTooltip, { placement: 'left' });
                 item.appendChild(removeButton);
 
                 if (isFilteredOut) {
@@ -1111,6 +1328,8 @@ export class UiController {
         this.mapController.setSelectedEntry(entry.markerEntry);
         this.mapController.focusOnEntry(entry.markerEntry, { animate: source !== 'history' });
 
+        this.maybeShowFavoritesOnboarding();
+
         if (pushHistory) {
             this.historyManager.push({
                 locationName: entry.location.name,
@@ -1142,6 +1361,8 @@ export class UiController {
         this.activeEntry = null;
         this.updateFavoriteToggle(null);
         this.updateRandomButtonState();
+        this.hideTooltip(this.favoriteTooltip);
+        this.hideTooltip(this.favoriteOnboardingTooltip);
         if (this.announcer) {
             const message = localized('aria.infoClosed', 'Panneau d\'information fermé.');
             this.announcer.polite(message);
@@ -1205,6 +1426,8 @@ export class UiController {
         if (this.activeEntry && this.activeEntry.location.name === name) {
             this.updateFavoriteToggle(this.activeEntry.location);
         }
+
+        this.dismissOnboarding('favorites');
 
         if (this.announcer) {
             const message = localized(

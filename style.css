@@ -12,6 +12,88 @@
     white-space: nowrap;
     border: 0;
 }
+.ui-tooltip {
+    position: fixed;
+    background: rgba(28, 31, 43, 0.94);
+    color: #f1f4ff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    font-size: 13px;
+    line-height: 1.4;
+    z-index: 2005;
+    max-width: min(280px, 80vw);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    transform: translateY(-4px);
+}
+
+.ui-tooltip::before {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: inherit;
+    transform: rotate(45deg);
+    z-index: -1;
+    top: 50%;
+    left: 50%;
+    margin-left: -6px;
+    margin-top: -6px;
+}
+
+.ui-tooltip[data-placement="top"]::before {
+    bottom: -6px;
+    top: auto;
+}
+
+.ui-tooltip[data-placement="bottom"]::before {
+    top: -6px;
+}
+
+.ui-tooltip[data-placement="left"]::before {
+    left: auto;
+    right: -6px;
+}
+
+.ui-tooltip[data-placement="right"]::before {
+    left: -6px;
+}
+
+.ui-tooltip.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.ui-tooltip-text {
+    display: block;
+}
+
+.ui-tooltip--persistent {
+    padding-right: 48px;
+}
+
+.ui-tooltip--persistent .ui-tooltip-dismiss {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    border: none;
+    background: rgba(241, 244, 255, 0.16);
+    color: #f1f4ff;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.ui-tooltip--persistent .ui-tooltip-dismiss:hover,
+.ui-tooltip--persistent .ui-tooltip-dismiss:focus-visible {
+    background: rgba(241, 244, 255, 0.3);
+}
 .history-overflow {
     text-align: center;
     font-size: 11px;
@@ -1662,6 +1744,22 @@ body[data-theme="light"] .favorites-summary-count {
 body[data-theme="light"] .favorite-chip {
     background: rgba(246, 195, 68, 0.22);
     color: #7a5200;
+}
+
+body[data-theme="light"] .ui-tooltip {
+    background: rgba(245, 249, 255, 0.96);
+    color: #1f2a44;
+    box-shadow: 0 12px 28px rgba(15, 32, 62, 0.18);
+}
+
+body[data-theme="light"] .ui-tooltip--persistent .ui-tooltip-dismiss {
+    background: rgba(17, 25, 40, 0.12);
+    color: #1f2a44;
+}
+
+body[data-theme="light"] .ui-tooltip--persistent .ui-tooltip-dismiss:hover,
+body[data-theme="light"] .ui-tooltip--persistent .ui-tooltip-dismiss:focus-visible {
+    background: rgba(17, 25, 40, 0.24);
 }
 
 body[data-theme="light"] .favorite-chip-continent {

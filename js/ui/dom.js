@@ -17,7 +17,8 @@ export function createElement(tag, {
     text = '',
     html = '',
     dataset = null,
-    attributes = null
+    attributes = null,
+    title = ''
 } = {}) {
     const element = document.createElement(tag);
     if (className) {
@@ -28,6 +29,9 @@ export function createElement(tag, {
     }
     if (html) {
         element.innerHTML = html;
+    }
+    if (title) {
+        element.title = title;
     }
     if (dataset) {
         Object.entries(dataset).forEach(([key, value]) => {

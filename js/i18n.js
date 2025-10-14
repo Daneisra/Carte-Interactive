@@ -38,6 +38,11 @@
             summaryCountSingle: '{count} favori',
             summaryCountPlural: '{count} favoris'
         },
+        onboarding: {
+            favoritesHint: 'Ajoutez vos lieux préférés pour y revenir rapidement.',
+            clusteringHint: 'Activez le regroupement pour fluidifier la carte lorsque le zoom est éloigné.',
+            gotIt: 'Compris'
+        },
         info: {
             noDescription: 'Aucune description disponible.',
             history: { title: 'Histoire' },
