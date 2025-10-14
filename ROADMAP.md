@@ -41,40 +41,35 @@ CrÃ©er une carte narrative immersive, fiable et maintenable qui serve Ã  la 
 
 
 
-6. Permettre l'agrandissement des images (lightbox/modale) dans l'onglet Image.
-7. Restaurer les vignettes video cliquables dans l'onglet Image au lieu d'un lien texte simple.
+
+
 8. Reconfigurer le declenchement automatique de l'audio lors de l'ouverture d'un lieu (avec fallback navigateur).
 9. Fermer automatiquement le panneau d'information lorsqu'un clic intervient sur la carte Leaflet.
 
-| Horizon | Objectifs clÃ©s | Livrables / Indicateurs | PrÃ©-requis |
-| --- | --- | --- | --- |
-| **Sprint 1 (Semaine 39)** | Pagination & navigation latÃ©rale | Pagination continent (page de 8), toggle global, scroll auto (livrÃ©) | Modules UI stabilisÃ©s |
+| **Sprint 1** | Pagination & navigation latÃ©rale | Pagination continent (page de 8), toggle global, scroll auto (livrÃ©) | Modules UI stabilisÃ©s |
 |  | Persistance locale des prÃ©fÃ©rences | Sauvegarde filtres, type, carte et dernier lieu via `PreferencesService` (livrÃ©) | Support `localStorage` disponible |
 |  | Clustering des marqueurs | ImplÃ©mentation markercluster (livrÃ©), icÃ´nes agrÃ©gÃ©es, logs perfs | Cartographie des zones denses, audit datasets |
+
 | **Sprint 2** | Pipeline de validation automatisÃ©e | Script `tools/validate_assets.py` (premiÃ¨re itÃ©ration) + rapport CLI | Convention de nommage assets, plan CI |
 |  | AccessibilitÃ© & UX fine | Animation ouverture continents, focus states, audio manuel fallback (livrÃ©) | Recette design |
+
 | **Sprint 3** | Personnalisation avancÃ©e | âœ… Mode sombre/clair, âœ… rÃ©glage taille marqueurs, âœ… favoris utilisateurs, ðŸ†• auto-dÃ©tection du thÃ¨me & import/export des prÃ©fÃ©rences | RÃ©sultats Ã©tude UX |
 |  | Navigation & dÃ©couverte | âœ… Onglet Â« Favoris Â», âœ… bouton Â« Lieu alÃ©atoire Â», ðŸ†• raccourcis clavier & tri personnalisable | Favoris persistants, dataset complet |
 |  | Internationalisation & accessibilitÃ© | ðŸ†• Normalisation UTF-8/I18N, annonces ARIA cohÃ©rentes, prÃ©paration multi-langue | Audit des libellÃ©s et assets texte |
 |  | Infrastructure de tests & CI | Suite `Playwright`/`Cypress` + workflow GitHub Actions | Environnement de dÃ©mo stable |
+
 | **Sprint 4** | Architecture & performance UI | ðŸ†• Scinder `UiController` en sous-modules, couverture unitaire, instrumentation clusters | Design modules & harness de test |
 |  | ExpÃ©rience mobile | ðŸ†• Layout responsive < 1024px, repositionnement des contrÃ´les, gestuelles tactiles | Charte responsive, jeux d'essai mobiles |
+
 | **Ã‰tape suivante** | IntÃ©gration temps rÃ©el & Ã©dition collaborative | API CRUD (lieux/PNJ/quÃªtes), socket/webhook pour Ã©vÃ©nements, interface admin | Choix stack backend, auth |
 |  | Ã‰diteur de carte | Gestion in-app des lieux (ajout, modification, suppression) | Back-end d'authentification et validation temps rÃ©el |
 
-## 4. CapacitÃ© & gouvernance
-- **Cadence**Â : sprints de 2Â semaines, comitÃ© de suivi en fin d'itÃ©ration.
-- **Rituels**Â : daily courte (â‰ˆ10Â min), revue croisÃ©e code/UI, dÃ©mo Ã  chaque incrÃ©ment.
-- **KPIs**Â : temps de chargement (<Â 1,5Â s), taux de rÃ©ussite validation donnÃ©es (100Â %), couverture E2E (>Â 80Â %).
-
-## 5. Risques & parades
+## 4. Risques & parades
 - *Volume de donnÃ©es croissant*Â : anticiper pagination cÃ´tÃ© serveur ou backend de recherche.
 - *Bloqueurs audio/autoplay*Â : prÃ©voir bouton Play forcÃ© + message contextuel si le navigateur refuse.
 - *Dette historique CSS/HTML*Â : suivre Lighthouse (accessibilitÃ©, performance) et prioriser les refactors critiques.
 
-## 6. Annexes
+## 5. Annexes
 - Backlog dÃ©taillÃ©Â : `idÃ©es.txt`
 - Jeux de donnÃ©esÂ : `assets/locations.json`, `assets/types.json`
 - Modules frontÂ : `js/`
-
-> Document mis Ã  jour le 2025-09-25. Ã€ rÃ©viser Ã  chaque fin de sprint.

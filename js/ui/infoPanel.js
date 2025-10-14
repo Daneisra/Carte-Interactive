@@ -158,13 +158,25 @@ export class InfoPanel {
         if (Array.isArray(location.videos)) {
             location.videos
                 .filter(video => typeof video === 'string' && video.trim())
-                .forEach(video => {
-                    const link = createElement('a', {
+                .forEach((video, index) => {
+                    const videoElement = this.createVideoThumbnail({
+                        videoUrl: video,
+                        location,
+                        index
+                    });
+
+                    if (videoElement) {
+                        this.galleryElement.appendChild(videoElement);
+                        hasContent = true;
+                        return;
+                    }
+
+                    const fallbackLink = createElement('a', {
                         className: 'gallery-video-link',
                         text: getString('info.watchVideo') || 'Voir la video',
                         attributes: { href: video, target: '_blank', rel: 'noopener noreferrer' }
                     });
-                    this.galleryElement.appendChild(link);
+                    this.galleryElement.appendChild(fallbackLink);
                     hasContent = true;
                 });
         }
@@ -202,6 +214,89 @@ export class InfoPanel {
             }
         });
         sectionElement.appendChild(list);
+    }
+
+    createVideoThumbnail({ videoUrl, location, index }) {
+        const videoId = InfoPanel.extractYoutubeId(videoUrl);
+        if (!videoId) {
+            return null;
+        }
+
+        const titles = Array.isArray(location.videoTitles) ? location.videoTitles : [];
+        const rawTitle = titles[index];
+        const providedTitle = typeof rawTitle === 'string' ? rawTitle.trim() : '';
+        const videoTitle = providedTitle || `${location.name} - vidéo ${index + 1}`;
+        const watchLabel = getString('info.watchVideo') || 'Voir la vidéo';
+
+        const container = createElement('div', {
+            className: 'gallery-video-container'
+        });
+
+        const link = createElement('a', {
+            className: 'gallery-video',
+            attributes: {
+                href: videoUrl,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                'aria-label': `${watchLabel} - ${videoTitle}`
+            }
+        });
+
+        const thumbnail = createElement('img', {
+            className: 'gallery-thumbnail',
+            attributes: {
+                src: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+                alt: videoTitle
+            }
+        });
+
+        link.appendChild(thumbnail);
+        container.appendChild(link);
+
+        container.appendChild(createElement('span', {
+            className: 'gallery-video-title',
+            text: videoTitle
+        }));
+
+        return container;
+    }
+
+    static extractYoutubeId(url) {
+        if (typeof url !== 'string') {
+            return null;
+        }
+
+        try {
+            const parsedUrl = new URL(url.trim());
+            const host = parsedUrl.hostname.replace(/^www\./, '');
+            const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+
+            if (host === 'youtu.be') {
+                return pathSegments[0] || null;
+            }
+
+            if (host === 'youtube.com' || host === 'm.youtube.com') {
+                if (parsedUrl.pathname === '/watch') {
+                    return parsedUrl.searchParams.get('v');
+                }
+
+                if (pathSegments[0] === 'embed' || pathSegments[0] === 'shorts' || pathSegments[0] === 'live') {
+                    return pathSegments[1] || null;
+                }
+            }
+
+            if (host.endsWith('youtube.com')) {
+                const watchId = parsedUrl.searchParams.get('v');
+                if (watchId) {
+                    return watchId;
+                }
+            }
+        } catch (error) {
+            return null;
+        }
+
+        const match = url.match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{6,})/);
+        return match ? match[1] : null;
     }
 
     renderPnjsSection(pnjs) {

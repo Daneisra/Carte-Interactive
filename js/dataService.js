@@ -44,6 +44,9 @@ export class DataService {
             videos: Array.isArray(rawLocation.videos)
                 ? rawLocation.videos.filter(video => typeof video === 'string' && video.trim().length).map(video => video.trim())
                 : [],
+            videoTitles: Array.isArray(rawLocation.videoTitles)
+                ? rawLocation.videoTitles.map(title => typeof title === 'string' ? title.trim() : '').filter(Boolean)
+                : [],
             audio: typeof rawLocation.audio === 'string' && rawLocation.audio.trim().length ? rawLocation.audio.trim() : null,
             history: Array.isArray(rawLocation.history)
                 ? rawLocation.history.filter(Boolean).map(entry => String(entry).trim())
