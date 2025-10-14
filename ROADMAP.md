@@ -19,7 +19,9 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Compléter les contrôles ARIA, libellés et annonces vocales (navigation clavier exhaustive). ✅
 - Finaliser le responsive < 1024 px : layout mobile, repositionnement des contrôles et gestuelles tactiles. ✅
 - Ajouter une aide contextuelle (infobulles ou onboarding léger) pour les favoris et le clustering. ✅
-- Obtention des coordonées x et y en px via clique sur la carte et résultat afficher dans la console du navigateur
+- Obtention des coordonées x et y en px via clique sur la carte et résultat afficher dans la console du navigateur. ✅
+- Ajouter un outil de mesure des distances (conversion pixels → kilomètres) pour faciliter l’estimation des trajets. ✅
+- Ajouter un outil d'obtension des coordonées a coté de l'outil de mesure des distances
 
 ### Qualité des données
 - Étendre le pipeline `tools/validate_assets.py` : vérification des images/audio manquants, cohérence des PNJ et quêtes.

@@ -374,16 +374,20 @@ export class MapController {
         return clamped * 100;
     }
 
+    toPixelCoordinates(latlng) {
+        if (!latlng || typeof latlng.lat !== 'number' || typeof latlng.lng !== 'number') {
+            return null;
+        }
+        return { x: latlng.lng, y: latlng.lat };
+    }
+
     logPixelCoordinates(event) {
-        if (!event?.latlng) {
+        const coords = this.toPixelCoordinates(event?.latlng);
+        if (!coords) {
             return;
         }
-        const { lat, lng } = event.latlng;
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-            return;
-        }
-        const x = Math.round(lng);
-        const y = Math.round(lat);
+        const x = Math.round(coords.x);
+        const y = Math.round(coords.y);
         console.info(`Carte · coordonnées px → x: ${x}, y: ${y}`);
     }
 

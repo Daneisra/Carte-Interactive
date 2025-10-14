@@ -907,6 +907,12 @@ textarea {
     border-radius: 5px;
 }
 
+#map-controls button.active,
+#map-controls button[aria-pressed="true"] {
+    background: rgba(255, 255, 255, 0.24);
+    border-radius: 5px;
+}
+
 #map-controls button:active {
     transform: scale(0.9);
 }
@@ -1764,6 +1770,11 @@ body[data-theme="light"] .ui-tooltip--persistent .ui-tooltip-dismiss {
 body[data-theme="light"] .ui-tooltip--persistent .ui-tooltip-dismiss:hover,
 body[data-theme="light"] .ui-tooltip--persistent .ui-tooltip-dismiss:focus-visible {
     background: rgba(17, 25, 40, 0.24);
+}
+
+body[data-theme="light"] #map-controls button.active,
+body[data-theme="light"] #map-controls button[aria-pressed="true"] {
+    background: rgba(31, 41, 51, 0.16);
 }
 
 body[data-theme="light"] .favorite-chip-continent {

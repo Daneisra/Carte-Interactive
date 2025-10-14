@@ -10,6 +10,7 @@ import { qs, createElement, clearElement } from './ui/dom.js';
 import { getString } from './i18n.js';
 
 const PAGE_SIZE = 8;
+const KM_PER_PIXEL = 10;
 
 const localized = (key, fallback = '', params = undefined) => {
     const resolved = params === undefined ? getString(key) : getString(key, params);
@@ -110,6 +111,7 @@ export class UiController {
             zoomOut: qs('#zoom-out'),
             resetMap: qs('#reset-map'),
             fullscreen: qs('#fullscreen-map'),
+            measureDistance: document.getElementById('measure-distance'),
             zoomLevel: document.getElementById('zoom-level'),
             favoriteToggle: document.getElementById('favorite-toggle'),
             audioPlayer: document.getElementById(audioPlayerId),
@@ -189,6 +191,10 @@ export class UiController {
             'onboarding.clusteringHint',
             'Activez le regroupement pour fluidifier la carte lorsque le zoom est éloigné.'
         ), { persistent: true, key: 'clustering' });
+        this.measurement = { active: false, points: [] };
+        this.measurementClickUnsubscribe = null;
+        this.measureTooltip = this.createTooltip('' , { persistent: false });
+        this.measureTooltipTimeout = null;
 
         this.filtersManager = new FiltersManager({
             state: this.state,
@@ -428,6 +434,7 @@ export class UiController {
         this.bindMarkerScale();
         this.bindFavoriteToggle();
         this.bindRandomButton();
+        this.bindMeasurementTool();
         this.bindMapKeyboardShortcuts();
         this.bindMapBackgroundDismissal();
 
@@ -495,6 +502,8 @@ export class UiController {
             this.dom.favoriteToggle.setAttribute('aria-pressed', 'false');
             this.dom.favoriteToggle.disabled = true;
         }
+
+        this.updateMeasurementButton();
     }
 
     populateTypeFilterOptions() {
@@ -899,6 +908,133 @@ export class UiController {
         this.dom.randomButton.addEventListener('click', () => this.goToRandomLocation());
     }
 
+    bindMeasurementTool() {
+        const button = this.dom.measureDistance;
+        if (!button) {
+            return;
+        }
+
+        this.updateMeasurementButton();
+        button.addEventListener('click', () => {
+            if (this.measurement.active) {
+                this.stopMeasurementMode(true);
+            } else {
+                this.startMeasurementMode();
+            }
+        });
+    }
+
+    startMeasurementMode() {
+        if (this.measurement.active) {
+            return;
+        }
+        this.measurement.active = true;
+        this.measurement.points = [];
+        if (!this.measurementClickUnsubscribe && this.mapController) {
+            this.measurementClickUnsubscribe = this.mapController.onMapClick(event => this.handleMeasurementClick(event));
+        }
+        this.updateMeasurementButton();
+        const message = localized('distance.active', 'Outil de mesure actif. Cliquez deux points sur la carte pour calculer la distance.');
+        this.announcer?.polite(message);
+        this.showMeasurementMessage(message, 3000);
+    }
+
+    stopMeasurementMode(announce = false) {
+        if (!this.measurement.active) {
+            return;
+        }
+        this.measurement.active = false;
+        this.measurement.points = [];
+        if (this.measurementClickUnsubscribe) {
+            this.measurementClickUnsubscribe();
+            this.measurementClickUnsubscribe = null;
+        }
+        this.updateMeasurementButton();
+        if (this.measureTooltipTimeout) {
+            clearTimeout(this.measureTooltipTimeout);
+            this.measureTooltipTimeout = null;
+        }
+        this.hideTooltip(this.measureTooltip);
+        if (announce) {
+            const message = localized('distance.cancelled', 'Outil de mesure désactivé.');
+            this.announcer?.polite(message);
+        }
+    }
+
+    handleMeasurementClick(event) {
+        if (!this.measurement.active) {
+            return;
+        }
+        const coords = this.mapController?.toPixelCoordinates(event?.latlng);
+        if (!coords) {
+            return;
+        }
+        const roundedX = Math.round(coords.x);
+        const roundedY = Math.round(coords.y);
+        this.measurement.points.push({ x: coords.x, y: coords.y });
+        console.info(`Mesure · point ${this.measurement.points.length} → x: ${roundedX}, y: ${roundedY}`);
+
+        if (this.measurement.points.length === 1) {
+            const message = localized('distance.pointStored', `Point de départ enregistré : x ${roundedX}, y ${roundedY}.`, { x: roundedX, y: roundedY });
+            this.announcer?.polite(message);
+            this.showMeasurementMessage(message, 3000);
+            return;
+        }
+
+        const start = this.measurement.points.shift();
+        const dx = coords.x - start.x;
+        const dy = coords.y - start.y;
+        const distancePx = Math.hypot(dx, dy);
+        const distanceKm = distancePx * KM_PER_PIXEL;
+        const message = localized(
+            'distance.result',
+            `Distance : ${distanceKm.toFixed(1)} km (${distancePx.toFixed(1)} px).`,
+            { distance: distanceKm.toFixed(1), pixels: distancePx.toFixed(1) }
+        );
+        console.info(`Mesure · distance = ${distancePx.toFixed(2)} px (${distanceKm.toFixed(2)} km)`);
+        this.announcer?.polite(message);
+        this.showMeasurementMessage(message, 5000);
+        this.measurement.points = [];
+    }
+
+    updateMeasurementButton() {
+        const button = this.dom.measureDistance;
+        if (!button) {
+            return;
+        }
+        const active = Boolean(this.measurement.active);
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+        const label = localized(
+            active ? 'distance.active' : 'distance.enable',
+            active
+                ? 'Outil de mesure actif. Cliquez deux points sur la carte pour calculer la distance.'
+                : 'Activer la mesure de distance'
+        );
+        button.setAttribute('aria-label', label);
+        button.title = label;
+    }
+
+    showMeasurementMessage(message, duration = 4000) {
+        if (!this.measureTooltip || !this.dom.measureDistance) {
+            return;
+        }
+        const textNode = this.measureTooltip.querySelector('.ui-tooltip-text');
+        if (textNode) {
+            textNode.textContent = message;
+        } else {
+            this.measureTooltip.textContent = message;
+        }
+        this.showTooltip(this.dom.measureDistance, this.measureTooltip, { placement: 'top', persistent: false });
+        if (this.measureTooltipTimeout) {
+            clearTimeout(this.measureTooltipTimeout);
+        }
+        this.measureTooltipTimeout = window.setTimeout(() => {
+            this.hideTooltip(this.measureTooltip);
+            this.measureTooltipTimeout = null;
+        }, Math.max(1500, duration));
+    }
+
     bindMapKeyboardShortcuts() {
         if (this.boundKeyboardShortcuts) {
             return;
@@ -913,6 +1049,12 @@ export class UiController {
                 }
             } else if (event.key === 'r' || event.key === 'R') {
                 this.goToRandomLocation();
+            } else if (event.key === 'm' || event.key === 'M') {
+                if (this.measurement.active) {
+                    this.stopMeasurementMode(true);
+                } else {
+                    this.startMeasurementMode();
+                }
             } else if (event.key === 'c' || event.key === 'C') {
                 if (this.dom.clusteringToggle) {
                     this.dom.clusteringToggle.checked = !this.dom.clusteringToggle.checked;
@@ -934,6 +1076,9 @@ export class UiController {
         }
 
         this.mapClickUnsubscribe = this.mapController.onMapClick(event => {
+            if (this.measurement?.active) {
+                return;
+            }
             const sidebar = this.dom.infoSidebar;
             if (!sidebar?.classList.contains('open')) {
                 return;

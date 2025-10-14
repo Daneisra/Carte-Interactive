@@ -61,6 +61,13 @@
             fallbackMissing: 'Audio indisponible ou corrompu.',
             fallbackButton: '▶ Lancer la lecture'
         },
+        distance: {
+            enable: 'Activer la mesure de distance',
+            active: 'Outil de mesure actif. Cliquez deux points sur la carte pour calculer la distance.',
+            pointStored: 'Point de départ enregistré : x {x}, y {y}.',
+            result: 'Distance : {distance} km ({pixels} px).',
+            cancelled: 'Outil de mesure désactivé.'
+        },
         aria: {
             locationSelected: '{location} sélectionné.',
             infoClosed: 'Panneau d\'information fermé.',
