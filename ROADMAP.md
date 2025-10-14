@@ -16,8 +16,8 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 
 ## 3. Priorités immédiates (fin 2025)
 ### UX & Accessibilité
-- Compléter les contrôles ARIA, libellés et annonces vocales (navigation clavier exhaustive).
-- Finaliser le responsive < 1024 px : layout mobile, repositionnement des contrôles et gestuelles tactiles.
+- Compléter les contrôles ARIA, libellés et annonces vocales (navigation clavier exhaustive). ✅
+- Finaliser le responsive < 1024 px : layout mobile, repositionnement des contrôles et gestuelles tactiles. ✅
 - Ajouter une aide contextuelle (infobulles ou onboarding léger) pour les favoris et le clustering.
 
 ### Qualité des données
