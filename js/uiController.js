@@ -112,6 +112,7 @@ export class UiController {
             resetMap: qs('#reset-map'),
             fullscreen: qs('#fullscreen-map'),
             measureDistance: document.getElementById('measure-distance'),
+            captureCoordinates: document.getElementById('capture-coordinates'),
             zoomLevel: document.getElementById('zoom-level'),
             favoriteToggle: document.getElementById('favorite-toggle'),
             audioPlayer: document.getElementById(audioPlayerId),
@@ -193,8 +194,11 @@ export class UiController {
         ), { persistent: true, key: 'clustering' });
         this.measurement = { active: false, points: [] };
         this.measurementClickUnsubscribe = null;
-        this.measureTooltip = this.createTooltip('' , { persistent: false });
-        this.measureTooltipTimeout = null;
+        this.coordinateTool = { active: false };
+        this.coordinateClickUnsubscribe = null;
+        this.measureTooltip = this.createTooltip('', { persistent: false });
+        this.coordinateTooltip = this.createTooltip('', { persistent: false });
+        this.controlTooltipTimeouts = new Map();
 
         this.filtersManager = new FiltersManager({
             state: this.state,
@@ -435,6 +439,7 @@ export class UiController {
         this.bindFavoriteToggle();
         this.bindRandomButton();
         this.bindMeasurementTool();
+        this.bindCoordinateTool();
         this.bindMapKeyboardShortcuts();
         this.bindMapBackgroundDismissal();
 
@@ -504,6 +509,7 @@ export class UiController {
         }
 
         this.updateMeasurementButton();
+        this.updateCoordinateButton();
     }
 
     populateTypeFilterOptions() {
@@ -908,6 +914,22 @@ export class UiController {
         this.dom.randomButton.addEventListener('click', () => this.goToRandomLocation());
     }
 
+    bindCoordinateTool() {
+        const button = this.dom.captureCoordinates;
+        if (!button) {
+            return;
+        }
+
+        this.updateCoordinateButton();
+        button.addEventListener('click', () => {
+            if (this.coordinateTool.active) {
+                this.stopCoordinateMode(true);
+            } else {
+                this.startCoordinateMode();
+            }
+        });
+    }
+
     bindMeasurementTool() {
         const button = this.dom.measureDistance;
         if (!button) {
@@ -928,6 +950,9 @@ export class UiController {
         if (this.measurement.active) {
             return;
         }
+        if (this.coordinateTool.active) {
+            this.stopCoordinateMode(false);
+        }
         this.measurement.active = true;
         this.measurement.points = [];
         if (!this.measurementClickUnsubscribe && this.mapController) {
@@ -936,7 +961,12 @@ export class UiController {
         this.updateMeasurementButton();
         const message = localized('distance.active', 'Outil de mesure actif. Cliquez deux points sur la carte pour calculer la distance.');
         this.announcer?.polite(message);
-        this.showMeasurementMessage(message, 3000);
+        this.showControlMessage({
+            button: this.dom.measureDistance,
+            tooltip: this.measureTooltip,
+            message,
+            duration: 3000
+        });
     }
 
     stopMeasurementMode(announce = false) {
@@ -950,11 +980,7 @@ export class UiController {
             this.measurementClickUnsubscribe = null;
         }
         this.updateMeasurementButton();
-        if (this.measureTooltipTimeout) {
-            clearTimeout(this.measureTooltipTimeout);
-            this.measureTooltipTimeout = null;
-        }
-        this.hideTooltip(this.measureTooltip);
+        this.clearControlMessage(this.measureTooltip);
         if (announce) {
             const message = localized('distance.cancelled', 'Outil de mesure désactivé.');
             this.announcer?.polite(message);
@@ -977,7 +1003,12 @@ export class UiController {
         if (this.measurement.points.length === 1) {
             const message = localized('distance.pointStored', `Point de départ enregistré : x ${roundedX}, y ${roundedY}.`, { x: roundedX, y: roundedY });
             this.announcer?.polite(message);
-            this.showMeasurementMessage(message, 3000);
+            this.showControlMessage({
+                button: this.dom.measureDistance,
+                tooltip: this.measureTooltip,
+                message,
+                duration: 3000
+            });
             return;
         }
 
@@ -993,7 +1024,12 @@ export class UiController {
         );
         console.info(`Mesure · distance = ${distancePx.toFixed(2)} px (${distanceKm.toFixed(2)} km)`);
         this.announcer?.polite(message);
-        this.showMeasurementMessage(message, 5000);
+        this.showControlMessage({
+            button: this.dom.measureDistance,
+            tooltip: this.measureTooltip,
+            message,
+            duration: 5000
+        });
         this.measurement.points = [];
     }
 
@@ -1015,24 +1051,115 @@ export class UiController {
         button.title = label;
     }
 
-    showMeasurementMessage(message, duration = 4000) {
-        if (!this.measureTooltip || !this.dom.measureDistance) {
+    updateCoordinateButton() {
+        const button = this.dom.captureCoordinates;
+        if (!button) {
             return;
         }
-        const textNode = this.measureTooltip.querySelector('.ui-tooltip-text');
+        const active = Boolean(this.coordinateTool.active);
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+        const label = localized(
+            active ? 'coords.active' : 'coords.enable',
+            active
+                ? 'Outil de capture actif. Cliquez sur la carte pour obtenir les coordonnées.'
+                : 'Activer l\'outil d\'obtention des coordonnées'
+        );
+        button.setAttribute('aria-label', label);
+        button.title = label;
+    }
+
+    startCoordinateMode() {
+        if (this.coordinateTool.active) {
+            return;
+        }
+        if (this.measurement.active) {
+            this.stopMeasurementMode(false);
+        }
+        this.coordinateTool.active = true;
+        if (!this.coordinateClickUnsubscribe && this.mapController) {
+            this.coordinateClickUnsubscribe = this.mapController.onMapClick(event => this.handleCoordinateClick(event));
+        }
+        this.updateCoordinateButton();
+        const message = localized('coords.active', 'Outil de capture actif. Cliquez sur la carte pour obtenir les coordonnées.');
+        this.announcer?.polite(message);
+        this.showControlMessage({
+            button: this.dom.captureCoordinates,
+            tooltip: this.coordinateTooltip,
+            message,
+            duration: 3000
+        });
+    }
+
+    stopCoordinateMode(announce = false) {
+        if (!this.coordinateTool.active) {
+            return;
+        }
+        this.coordinateTool.active = false;
+        if (this.coordinateClickUnsubscribe) {
+            this.coordinateClickUnsubscribe();
+            this.coordinateClickUnsubscribe = null;
+        }
+        this.updateCoordinateButton();
+        this.clearControlMessage(this.coordinateTooltip);
+        if (announce) {
+            const message = localized('coords.cancelled', 'Outil de coordonnées désactivé.');
+            this.announcer?.polite(message);
+        }
+    }
+
+    handleCoordinateClick(event) {
+        if (!this.coordinateTool.active) {
+            return;
+        }
+        const coords = this.mapController?.toPixelCoordinates(event?.latlng);
+        if (!coords) {
+            return;
+        }
+        const roundedX = Math.round(coords.x);
+        const roundedY = Math.round(coords.y);
+        console.info(`Coordonnées · x: ${roundedX}, y: ${roundedY}`);
+        const message = localized('coords.result', `Coordonnées : x ${roundedX} px, y ${roundedY} px.`, { x: roundedX, y: roundedY });
+        this.announcer?.polite(message);
+        this.showControlMessage({
+            button: this.dom.captureCoordinates,
+            tooltip: this.coordinateTooltip,
+            message,
+            duration: 4000
+        });
+    }
+
+    showControlMessage({ button, tooltip, message, duration = 4000, placement = 'top' }) {
+        if (!button || !tooltip || !message) {
+            return;
+        }
+        this.clearControlMessage(tooltip, false);
+        const textNode = tooltip.querySelector('.ui-tooltip-text');
         if (textNode) {
             textNode.textContent = message;
         } else {
-            this.measureTooltip.textContent = message;
+            tooltip.textContent = message;
         }
-        this.showTooltip(this.dom.measureDistance, this.measureTooltip, { placement: 'top', persistent: false });
-        if (this.measureTooltipTimeout) {
-            clearTimeout(this.measureTooltipTimeout);
-        }
-        this.measureTooltipTimeout = window.setTimeout(() => {
-            this.hideTooltip(this.measureTooltip);
-            this.measureTooltipTimeout = null;
+        this.showTooltip(button, tooltip, { placement, persistent: false });
+        const timeoutId = window.setTimeout(() => {
+            this.hideTooltip(tooltip);
+            this.controlTooltipTimeouts.delete(tooltip);
         }, Math.max(1500, duration));
+        this.controlTooltipTimeouts.set(tooltip, timeoutId);
+    }
+
+    clearControlMessage(tooltip, hide = true) {
+        if (!tooltip) {
+            return;
+        }
+        const timeoutId = this.controlTooltipTimeouts.get(tooltip);
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            this.controlTooltipTimeouts.delete(tooltip);
+        }
+        if (hide) {
+            this.hideTooltip(tooltip);
+        }
     }
 
     bindMapKeyboardShortcuts() {
@@ -1055,6 +1182,12 @@ export class UiController {
                 } else {
                     this.startMeasurementMode();
                 }
+            } else if (event.key === 'o' || event.key === 'O') {
+                if (this.coordinateTool.active) {
+                    this.stopCoordinateMode(true);
+                } else {
+                    this.startCoordinateMode();
+                }
             } else if (event.key === 'c' || event.key === 'C') {
                 if (this.dom.clusteringToggle) {
                     this.dom.clusteringToggle.checked = !this.dom.clusteringToggle.checked;
@@ -1076,7 +1209,7 @@ export class UiController {
         }
 
         this.mapClickUnsubscribe = this.mapController.onMapClick(event => {
-            if (this.measurement?.active) {
+            if (this.measurement?.active || this.coordinateTool?.active) {
                 return;
             }
             const sidebar = this.dom.infoSidebar;

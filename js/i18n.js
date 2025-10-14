@@ -68,6 +68,12 @@
             result: 'Distance : {distance} km ({pixels} px).',
             cancelled: 'Outil de mesure désactivé.'
         },
+        coords: {
+            enable: 'Activer l\'outil d\'obtention des coordonnées',
+            active: 'Outil de capture actif. Cliquez sur la carte pour obtenir les coordonnées.',
+            result: 'Coordonnées : x {x} px, y {y} px.',
+            cancelled: 'Outil de coordonnées désactivé.'
+        },
         aria: {
             locationSelected: '{location} sélectionné.',
             infoClosed: 'Panneau d\'information fermé.',
