@@ -8,6 +8,7 @@ export class AudioManager {
         this.fallbackButton = fallbackButton;
         this.statusElement = statusElement;
         this.bound = false;
+        this.playRequestId = 0;
     }
 
     initialize() {
@@ -48,6 +49,8 @@ export class AudioManager {
             return;
         }
 
+        const requestId = ++this.playRequestId;
+
         if (!location || !location.audio) {
             this.player.removeAttribute('src');
             this.player.load();
@@ -58,16 +61,20 @@ export class AudioManager {
         }
 
         this.container.style.display = 'block';
+        this.player.pause();
+        this.player.currentTime = 0;
         this.player.src = location.audio;
         this.titleElement.textContent = `🎧 ${getString('audio.titleForLocation', { location: location.name })}`;
         this.player.load();
         this.hideFallback();
+        this.tryAutoplay(requestId);
     }
 
     stop() {
         if (!this.player) {
             return;
         }
+        this.playRequestId += 1;
         this.player.pause();
         this.player.currentTime = 0;
         this.player.removeAttribute('src');
@@ -93,6 +100,39 @@ export class AudioManager {
         if (this.statusElement) {
             this.statusElement.hidden = true;
             this.statusElement.textContent = '';
+        }
+    }
+
+    tryAutoplay(requestId) {
+        if (!this.player) {
+            return;
+        }
+
+        const handleBlocked = error => {
+            if (this.playRequestId !== requestId) {
+                return;
+            }
+            if (error && error.name === 'AbortError') {
+                return;
+            }
+            this.showFallback(getString('audio.fallbackBlocked'));
+        };
+
+        try {
+            const playback = this.player.play();
+            if (playback && typeof playback.then === 'function') {
+                playback
+                    .then(() => {
+                        if (this.playRequestId === requestId) {
+                            this.hideFallback();
+                        }
+                    })
+                    .catch(handleBlocked);
+            } else {
+                this.hideFallback();
+            }
+        } catch (error) {
+            handleBlocked(error);
         }
     }
 }

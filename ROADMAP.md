@@ -43,7 +43,7 @@ CrÃ©er une carte narrative immersive, fiable et maintenable qui serve Ã  la 
 
 
 
-8. Reconfigurer le declenchement automatique de l'audio lors de l'ouverture d'un lieu (avec fallback navigateur).
+
 9. Fermer automatiquement le panneau d'information lorsqu'un clic intervient sur la carte Leaflet.
 
 | **Sprint 1** | Pagination & navigation latÃ©rale | Pagination continent (page de 8), toggle global, scroll auto (livrÃ©) | Modules UI stabilisÃ©s |
