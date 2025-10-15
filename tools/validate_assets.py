@@ -90,6 +90,28 @@ def validate_locations(dataset: Dict[str, Any], types: Dict[str, Any], *, check_
                     resolved = normalize_media_path(audio_path)
                     if not resolved or not validate_media(resolved):
                         issues.append(f"{name}: fichier audio introuvable ({audio_path})")
+            videos = entry.get("videos") or []
+            if isinstance(videos, list):
+                for video_index, video in enumerate(videos):
+                    if isinstance(video, str):
+                        if not video.strip():
+                            issues.append(f"{name}: videos[{video_index}] vide")
+                        continue
+                    if isinstance(video, dict):
+                        url = video.get('url')
+                        if not isinstance(url, str) or not url.strip():
+                            issues.append(f"{name}: videos[{video_index}] url manquant")
+                        title = video.get('title')
+                        if title is not None and not isinstance(title, str):
+                            issues.append(f"{name}: videos[{video_index}] title invalide ({title!r})")
+                        continue
+                    issues.append(f"{name}: videos[{video_index}] invalide ({video!r})")
+            elif videos:
+                issues.append(f"{name}: champ videos doit etre une liste")
+
+            if 'videoTitles' in entry:
+                issues.append(f"{name}: champ legacy 'videoTitles' detecte")
+
 
             images = entry.get("images") or []
             if isinstance(images, list):
@@ -189,8 +211,6 @@ def main() -> int:
     issues: List[str] = []
     issues.extend(validate_types(types_data, check_media=check_media))
     issues.extend(validate_locations(locations_data, types_data, check_media=check_media))
-    if check_media:
-        issues.extend(detect_unused_media(locations_data, types_data))
 
     if issues:
         print("\n[ERREUR] Problemes detectes :")

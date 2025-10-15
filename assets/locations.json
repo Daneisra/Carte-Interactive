@@ -1,565 +1,381 @@
 {
-    "Vruliwen":  [
-                     {
-                         "name":  "Valerius Primus",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7676,
-                         "y":  3513,
-                         "description":  "Capital de Vruliwen",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "assets/audio/valerius_ambiance.mp3",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Sanctus Imperator",
-                         "type":  "Castle",
-                         "x":  7390,
-                         "y":  3496,
-                         "description":  "Centre impériale de rééducation de la jeunesse C.I.R.J",
-                         "images":  [
-                                        "assets/images/Sanctus_Imperator_1.jpeg",
-                                        "assets/images/Sanctus_Imperator_2.jpeg",
-                                        "assets/images/Sanctus_Imperator_3.jpeg"
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "assets/audio/sanctus_imperator_ambiance.mp3",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Nikaïus",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7363,
-                         "y":  3607,
-                         "description":  "Ville portuaire cible de raid viking",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-                                        "https://youtu.be/vel1NuL8DZc",
-                                        "https://youtu.be/_kdPNiUopa4"
-                                    ],
-                        "videoTitles": [
-                            "One-Shot - La Défense de Nikaïus Part.1",
-                            "One-Shot - La Défense de Nikaïus Part.2"
-                        ],
-                         "audio":  "",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Montségur",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7568,
-                         "y":  646,
-                         "description":  "Capital des Terres du Sud de Vruliwen",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "assets/audio/montsegur_ambiance.mp3",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Gloria",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7413,
-                         "y":  2630,
-                         "description":  "Ville portuaire",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "assets/audio/gloria_ambiance.mp3",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Imossa",
-                         "type":  "Castle Ruin",
-                         "x":  7816,
-                         "y":  2915,
-                         "description":  "Ville désormais en ruine",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "assets/audio/imossa_ambiance.mp3",
-                         "history":  "Cette ville était la jumelle de Valerius Primus, rivalisant de grandeur et d’architecture. Sa population a toujours témoigné d’une culture différente et d\u0027une identité très forte.",
-                         "quests":  [
-                                        "Tuer l\u0027Hôte démoniaque",
-                                        "Purifier et libérer Imossa"
-                                    ],
-                         "pnjs":  [
-                                      {
-                                          "name":  "Aden Khenan",
-                                          "role":  "Hôtes Démoniaques",
-                                          "description":  "Un warlock suspecté d’appartenir à une organisation clandestine."
-                                      },
-                                      {
-                                          "name":  "test",
-                                          "role":  "test",
-                                          "description":  "test"
-                                      }
-                                  ],
-                         "lore":  [
-                                      "Imossa était une cité-état unique en son genre, située sur une île au cœur du continent de Vruliwen. Isolée par sa géographie insulaire, elle a prospéré pendant des siècles en cultivant un modèle politique et économique différent de celui des autres royaumes, faisant d’elle l\u0027une des cités les plus avancées et influentes.",
-                                      "Démocratie Insulaire : Dès sa fondation, Imossa a établi un modèle de gouvernement inédit pour le continent : une démocratie. Contrairement aux autres régions dirigées par des rois ou de l’aristocratie, le pouvoir à Imossa reposait entre les mains d\u0027une assemblée élue, composée de citoyens ayant acquis ce droit grâce à leur participation à la vie civique et économique de la cité. Cependant, tout le monde dans la cité n\u0027était pas citoyen, et seuls les membres influents de la société – les propriétaires terriens, les artisans reconnus, les marins et commerçants les plus prospères – avaient le droit de vote et de participer aux décisions. Cette démocratie conférait à Imossa une aura de progrès politique et social. Elle était perçue comme un modèle en avance sur son temps, où les voix de ses citoyens avaient un impact direct sur les affaires internes de la cité. Sa société accueillait des marchands et des érudits venus des quatre coins du continent, et cette ouverture lui permettait de prospérer sur le plan économique et intellectuel."
-                                  ]
-                     },
-                     {
-                         "name":  "Aguilar",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7934,
-                         "y":  840,
-                         "description":  "Siège ancestral de la Maison Valdefer",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "assets/audio/aguilar_ambiance.mp3",
-                         "history":  "Aguilar, le siège ancestral de la Maison Valdefer, s’élève comme un roc indomptable au cœur des montagnes, une forteresse qui semble avoir été sculptée dans la pierre elle-même par des mains divines. Perchée sur un éperon rocheux, la citadelle domine la vallée du Pas-du-Roc, l’unique passage entre les chaînes montagneuses qui séparent le Nord des terres du Sud. Ce passage, crucial pour le commerce et la guerre, est à la fois la richesse et le fardeau des Valdefer, et Aguilar en est le gardien.",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-                                      "Les murs d’Aguilar sont d’un gris sombre, presque noir, leur surface lisse et polie par les vents hurlants qui soufflent sans relâche. Construits en pierre de montagne, les remparts sont si épais qu’ils pourraient résister à un siège de plusieurs années, et si hauts qu’ils semblent toucher le ciel. Les tours crénelées, semblables à des griffes acérées, surveillent inlassablement les horizons, prêtes à déchaîner une pluie de flèches ou de rocs sur quiconque oserait menacer la forteresse.",
-                                      "À l’intérieur, Aguilar est un labyrinthe de cours, de passages et de salles voûtées, éclairées par des torches dont la flamme vacillante projette des ombres dansantes sur les murs de pierre. Les appartements des seigneurs Valdefer sont austères, garnis de tapisseries anciennes représentant des batailles oubliées et des paysages de montagnes. La grande salle, au centre de la forteresse, est un lieu de rassemblement où le feu crépite en permanence dans une cheminée massive, son foyer assez grand pour accueillir un tronc d’arbre entier.",
-                                      "Le cœur d’Aguilar, cependant, est son donjon, une tour imposante qui s’élève au-dessus des autres bâtiments, symbole de la puissance et de la résilience des Valdefer. C’est là que le seigneur siège, entouré de ses conseillers, et c’est là que se trouve l’armurerie, un trésor de lames, de boucliers et de cuirasses forgés dans les riches mines de la région. Les forgerons d’Aguilar, réputés dans tout le royaume, travaillent jour et nuit pour produire des armes aussi solides que les montagnes elles-mêmes.",
-                                      "Aguilar n’est pas seulement une forteresse ; c’est une déclaration, une promesse de la Maison Valdefer à ses ennemis. Tant que ses murs tiendront, aucune armée ne franchira le Pas-du-Roc. Les Valdefer ont toujours vécu dans l’ombre de cette citadelle, sachant que leur destin est lié à celui de la forteresse. Et tandis que le faucon d\u0027or flotte fièrement au-dessus de ses remparts, Aguilar reste un bastion inviolé, un symbole de la ténacité et de la force d\u0027une maison qui ne ploie jamais devant l\u0027adversité."
-                                  ]
-                     },
-                     {
-                         "name":  "Wimborne",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7798,
-                         "y":  3754,
-                         "description":  "",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Olmedum",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7335,
-                         "y":  3128,
-                         "description":  "",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Divinum Lumen",
-                         "type":  "Castle Ruin",
-                         "x":  7832,
-                         "y":  3007,
-                         "description":  "Centre impériale de rééducation de la jeunesse C.I.R.J en ruin",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "assets/audio/sanctus_imperator_ambiance.mp3",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Heraclea",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  8036,
-                         "y":  3143,
-                         "description":  "",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Ayrith",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7552,
-                         "y":  1884,
-                         "description":  "",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Imperialis Deus",
-                         "type":  "Castle",
-                         "x":  7482,
-                         "y":  1747,
-                         "description":  "",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "assets/audio/sanctus_imperator_ambiance.mp3",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Crawen",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7804,
-                         "y":  1575,
-                         "description":  "",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Carleone",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7458,
-                         "y":  1098,
-                         "description":  "",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Rafdell",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  8070,
-                         "y":  1174,
-                         "description":  "",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     },
-                     {
-                         "name":  "Brumeport",
-                         "type":  "Large City Stone Wall + Towers",
-                         "x":  7606,
-                         "y":  466,
-                         "description":  "",
-                         "images":  [
-
-                                    ],
-                         "videos":  [
-
-                                    ],
-                         "audio":  "",
-                         "history":  "",
-                         "quests":  [
-
-                                    ],
-                         "pnjs":  [
-
-                                  ],
-                         "lore":  [
-
-                                  ]
-                     }
-                 ],
-    "Dipovia":  [
-                    {
-                        "name":  "Lieu de Dipovia",
-                        "x":  3579,
-                        "y":  5243,
-                        "type":  "Crater",
-                        "description":  "Description du lieu de Dipovia",
-                        "images":  [
-
-                                   ]
-                    }
-                ],
-    "Archipel Trekrerith":  [
-                                {
-                                    "name":  "Brisant",
-                                    "x":  4515,
-                                    "y":  3280,
-                                    "type":  "Village",
-                                    "description":  "Description du lieu de Archipel Trekrerith",
-                                    "images":  [
-
-                                               ],
-                                    "videos":  [
-
-                                               ],
-                                    "audio":  "assets/audio/brisant_ambiance.mp3"
-                                },
-                                {
-                                    "name":  "Kitha",
-                                    "x":  6087,
-                                    "y":  2653,
-                                    "type":  "Town",
-                                    "description":  "Description du lieu de Archipel Trekrerith",
-                                    "images":  [
-
-                                               ]
-                                },
-                                {
-                                    "name":  "Barolt",
-                                    "x":  6595,
-                                    "y":  2328,
-                                    "type":  "Small City Stone Wall",
-                                    "description":  "Description du lieu de Archipel Trekrerith",
-                                    "images":  [
-
-                                               ]
-                                },
-                                {
-                                    "name":  "Eneris",
-                                    "x":  6865,
-                                    "y":  2677,
-                                    "type":  "Village Stone Wall",
-                                    "description":  "Description du lieu de Archipel Trekrerith",
-                                    "images":  [
-
-                                               ],
-                                    "videos":  [
-
-                                               ],
-                                    "audio":  "assets/audio/eneris_ambiance.mp3"
-                                }
-                            ],
-    "Doprouria":  [
-                      {
-                          "name":  "Irisk",
-                          "x":  3991,
-                          "y":  1037,
-                          "type":  "Large City Stone Wall + Towers",
-                          "description":  "Description du lieu de Doprouria",
-                          "images":  [
-
-                                     ],
-                          "videos":  [
-
-                                     ],
-                          "audio":  "assets/audio/irisk_ambiance.mp3"
-                      },
-                      {
-                          "name":  "Lisboa",
-                          "x":  3754,
-                          "y":  440,
-                          "type":  "Large City Stone Wall + Towers",
-                          "description":  "Description du lieu de Doprouria",
-                          "images":  [
-
-                                     ]
-                      }
-                  ],
-    "Zemantis":  [
-                     {
-                         "name":  "Vyktyskar",
-                         "x":  1837,
-                         "y":  1211,
-                         "type":  "Castle",
-                         "description":  "Description du lieu de Zemantis",
-                         "images":  [
-
-                                    ]
-                     }
-                 ],
-    "🌊 Mers et Océans 🌊":  [
-                                                                         {
-                                                                             "name":  "Les Eaux Obscures",
-                                                                             "x":  3336,
-                                                                             "y":  2872,
-                                                                             "type":  "continent",
-                                                                             "description":  "",
-                                                                             "images":  [
-
-                                                                                        ]
-                                                                         },
-                                                                         {
-                                                                             "name":  "La Mer d\u0027Ivoire",
-                                                                             "x":  6112,
-                                                                             "y":  4168,
-                                                                             "type":  "continent",
-                                                                             "description":  "",
-                                                                             "images":  [
-
-                                                                                        ]
-                                                                         },
-                                                                         {
-                                                                             "name":  "L\u0027Abysse Polaire",
-                                                                             "x":  1112,
-                                                                             "y":  5408,
-                                                                             "type":  "continent",
-                                                                             "description":  "",
-                                                                             "images":  [
-
-                                                                                        ]
-                                                                         }
-                                                                     ]
+  "Vruliwen": [
+    {
+      "name": "Valerius Primus",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7676,
+      "y": 3513,
+      "description": "Capital de Vruliwen",
+      "images": [],
+      "videos": [],
+      "audio": "assets/audio/valerius_ambiance.mp3",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Sanctus Imperator",
+      "type": "Castle",
+      "x": 7390,
+      "y": 3496,
+      "description": "Centre impériale de rééducation de la jeunesse C.I.R.J",
+      "images": [
+        "assets/images/Sanctus_Imperator_1.jpeg",
+        "assets/images/Sanctus_Imperator_2.jpeg",
+        "assets/images/Sanctus_Imperator_3.jpeg"
+      ],
+      "videos": [],
+      "audio": "assets/audio/sanctus_imperator_ambiance.mp3",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Nikaïus",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7363,
+      "y": 3607,
+      "description": "Ville portuaire cible de raid viking",
+      "images": [],
+      "videos": [
+        {
+          "url": "https://youtu.be/vel1NuL8DZc",
+          "title": "One-Shot - La Défense de Nikaïus Part.1"
+        },
+        {
+          "url": "https://youtu.be/_kdPNiUopa4",
+          "title": "One-Shot - La Défense de Nikaïus Part.2"
+        }
+      ],
+      "audio": "",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Montségur",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7568,
+      "y": 646,
+      "description": "Capital des Terres du Sud de Vruliwen",
+      "images": [],
+      "videos": [],
+      "audio": "assets/audio/montsegur_ambiance.mp3",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Gloria",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7413,
+      "y": 2630,
+      "description": "Ville portuaire",
+      "images": [],
+      "videos": [],
+      "audio": "assets/audio/gloria_ambiance.mp3",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Imossa",
+      "type": "Castle Ruin",
+      "x": 7816,
+      "y": 2915,
+      "description": "Ville désormais en ruine",
+      "images": [],
+      "videos": [],
+      "audio": "assets/audio/imossa_ambiance.mp3",
+      "history": "Cette ville était la jumelle de Valerius Primus, rivalisant de grandeur et d’architecture. Sa population a toujours témoigné d’une culture différente et d'une identité très forte.",
+      "quests": [
+        "Tuer l'Hôte démoniaque",
+        "Purifier et libérer Imossa"
+      ],
+      "pnjs": [
+        {
+          "name": "Aden Khenan",
+          "role": "Hôtes Démoniaques",
+          "description": "Un warlock suspecté d’appartenir à une organisation clandestine."
+        },
+        {
+          "name": "test",
+          "role": "test",
+          "description": "test"
+        }
+      ],
+      "lore": [
+        "Imossa était une cité-état unique en son genre, située sur une île au cœur du continent de Vruliwen. Isolée par sa géographie insulaire, elle a prospéré pendant des siècles en cultivant un modèle politique et économique différent de celui des autres royaumes, faisant d’elle l'une des cités les plus avancées et influentes.",
+        "Démocratie Insulaire : Dès sa fondation, Imossa a établi un modèle de gouvernement inédit pour le continent : une démocratie. Contrairement aux autres régions dirigées par des rois ou de l’aristocratie, le pouvoir à Imossa reposait entre les mains d'une assemblée élue, composée de citoyens ayant acquis ce droit grâce à leur participation à la vie civique et économique de la cité. Cependant, tout le monde dans la cité n'était pas citoyen, et seuls les membres influents de la société – les propriétaires terriens, les artisans reconnus, les marins et commerçants les plus prospères – avaient le droit de vote et de participer aux décisions. Cette démocratie conférait à Imossa une aura de progrès politique et social. Elle était perçue comme un modèle en avance sur son temps, où les voix de ses citoyens avaient un impact direct sur les affaires internes de la cité. Sa société accueillait des marchands et des érudits venus des quatre coins du continent, et cette ouverture lui permettait de prospérer sur le plan économique et intellectuel."
+      ]
+    },
+    {
+      "name": "Aguilar",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7934,
+      "y": 840,
+      "description": "Siège ancestral de la Maison Valdefer",
+      "images": [],
+      "videos": [],
+      "audio": "assets/audio/aguilar_ambiance.mp3",
+      "history": "Aguilar, le siège ancestral de la Maison Valdefer, s’élève comme un roc indomptable au cœur des montagnes, une forteresse qui semble avoir été sculptée dans la pierre elle-même par des mains divines. Perchée sur un éperon rocheux, la citadelle domine la vallée du Pas-du-Roc, l’unique passage entre les chaînes montagneuses qui séparent le Nord des terres du Sud. Ce passage, crucial pour le commerce et la guerre, est à la fois la richesse et le fardeau des Valdefer, et Aguilar en est le gardien.",
+      "quests": [],
+      "pnjs": [],
+      "lore": [
+        "Les murs d’Aguilar sont d’un gris sombre, presque noir, leur surface lisse et polie par les vents hurlants qui soufflent sans relâche. Construits en pierre de montagne, les remparts sont si épais qu’ils pourraient résister à un siège de plusieurs années, et si hauts qu’ils semblent toucher le ciel. Les tours crénelées, semblables à des griffes acérées, surveillent inlassablement les horizons, prêtes à déchaîner une pluie de flèches ou de rocs sur quiconque oserait menacer la forteresse.",
+        "À l’intérieur, Aguilar est un labyrinthe de cours, de passages et de salles voûtées, éclairées par des torches dont la flamme vacillante projette des ombres dansantes sur les murs de pierre. Les appartements des seigneurs Valdefer sont austères, garnis de tapisseries anciennes représentant des batailles oubliées et des paysages de montagnes. La grande salle, au centre de la forteresse, est un lieu de rassemblement où le feu crépite en permanence dans une cheminée massive, son foyer assez grand pour accueillir un tronc d’arbre entier.",
+        "Le cœur d’Aguilar, cependant, est son donjon, une tour imposante qui s’élève au-dessus des autres bâtiments, symbole de la puissance et de la résilience des Valdefer. C’est là que le seigneur siège, entouré de ses conseillers, et c’est là que se trouve l’armurerie, un trésor de lames, de boucliers et de cuirasses forgés dans les riches mines de la région. Les forgerons d’Aguilar, réputés dans tout le royaume, travaillent jour et nuit pour produire des armes aussi solides que les montagnes elles-mêmes.",
+        "Aguilar n’est pas seulement une forteresse ; c’est une déclaration, une promesse de la Maison Valdefer à ses ennemis. Tant que ses murs tiendront, aucune armée ne franchira le Pas-du-Roc. Les Valdefer ont toujours vécu dans l’ombre de cette citadelle, sachant que leur destin est lié à celui de la forteresse. Et tandis que le faucon d'or flotte fièrement au-dessus de ses remparts, Aguilar reste un bastion inviolé, un symbole de la ténacité et de la force d'une maison qui ne ploie jamais devant l'adversité."
+      ]
+    },
+    {
+      "name": "Wimborne",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7798,
+      "y": 3754,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Olmedum",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7335,
+      "y": 3128,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Divinum Lumen",
+      "type": "Castle Ruin",
+      "x": 7832,
+      "y": 3007,
+      "description": "Centre impériale de rééducation de la jeunesse C.I.R.J en ruin",
+      "images": [],
+      "videos": [],
+      "audio": "assets/audio/sanctus_imperator_ambiance.mp3",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Heraclea",
+      "type": "Large City Stone Wall + Towers",
+      "x": 8036,
+      "y": 3143,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Ayrith",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7552,
+      "y": 1884,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Imperialis Deus",
+      "type": "Castle",
+      "x": 7482,
+      "y": 1747,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "assets/audio/sanctus_imperator_ambiance.mp3",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Crawen",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7804,
+      "y": 1575,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Carleone",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7458,
+      "y": 1098,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Rafdell",
+      "type": "Large City Stone Wall + Towers",
+      "x": 8070,
+      "y": 1174,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    },
+    {
+      "name": "Brumeport",
+      "type": "Large City Stone Wall + Towers",
+      "x": 7606,
+      "y": 466,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": [],
+      "pnjs": [],
+      "lore": []
+    }
+  ],
+  "Dipovia": [
+    {
+      "name": "Lieu de Dipovia",
+      "x": 3579,
+      "y": 5243,
+      "type": "Crater",
+      "description": "Description du lieu de Dipovia",
+      "images": []
+    }
+  ],
+  "Archipel Trekrerith": [
+    {
+      "name": "Brisant",
+      "x": 4515,
+      "y": 3280,
+      "type": "Village",
+      "description": "Description du lieu de Archipel Trekrerith",
+      "images": [],
+      "videos": [],
+      "audio": "assets/audio/brisant_ambiance.mp3"
+    },
+    {
+      "name": "Kitha",
+      "x": 6087,
+      "y": 2653,
+      "type": "Town",
+      "description": "Description du lieu de Archipel Trekrerith",
+      "images": []
+    },
+    {
+      "name": "Barolt",
+      "x": 6595,
+      "y": 2328,
+      "type": "Small City Stone Wall",
+      "description": "Description du lieu de Archipel Trekrerith",
+      "images": []
+    },
+    {
+      "name": "Eneris",
+      "x": 6865,
+      "y": 2677,
+      "type": "Village Stone Wall",
+      "description": "Description du lieu de Archipel Trekrerith",
+      "images": [],
+      "videos": [],
+      "audio": "assets/audio/eneris_ambiance.mp3"
+    }
+  ],
+  "Doprouria": [
+    {
+      "name": "Irisk",
+      "x": 3991,
+      "y": 1037,
+      "type": "Large City Stone Wall + Towers",
+      "description": "Description du lieu de Doprouria",
+      "images": [],
+      "videos": [],
+      "audio": "assets/audio/irisk_ambiance.mp3"
+    },
+    {
+      "name": "Lisboa",
+      "x": 3754,
+      "y": 440,
+      "type": "Large City Stone Wall + Towers",
+      "description": "Description du lieu de Doprouria",
+      "images": []
+    }
+  ],
+  "Zemantis": [
+    {
+      "name": "Vyktyskar",
+      "x": 1837,
+      "y": 1211,
+      "type": "Castle",
+      "description": "Description du lieu de Zemantis",
+      "images": []
+    }
+  ],
+  "🌊 Mers et Océans 🌊": [
+    {
+      "name": "Les Eaux Obscures",
+      "x": 3336,
+      "y": 2872,
+      "type": "continent",
+      "description": "",
+      "images": []
+    },
+    {
+      "name": "La Mer d'Ivoire",
+      "x": 6112,
+      "y": 4168,
+      "type": "continent",
+      "description": "",
+      "images": []
+    },
+    {
+      "name": "L'Abysse Polaire",
+      "x": 1112,
+      "y": 5408,
+      "type": "continent",
+      "description": "",
+      "images": []
+    }
+  ]
 }

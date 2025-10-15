@@ -41,12 +41,8 @@ export class DataService {
             images: Array.isArray(rawLocation.images)
                 ? rawLocation.images.filter(src => typeof src === 'string' && src.trim().length).map(src => src.trim())
                 : [],
-            videos: Array.isArray(rawLocation.videos)
-                ? rawLocation.videos.filter(video => typeof video === 'string' && video.trim().length).map(video => video.trim())
-                : [],
-            videoTitles: Array.isArray(rawLocation.videoTitles)
-                ? rawLocation.videoTitles.map(title => typeof title === 'string' ? title.trim() : '').filter(Boolean)
-                : [],
+            videos: this.normalizeVideos(rawLocation),
+            videoTitles: [],
             audio: typeof rawLocation.audio === 'string' && rawLocation.audio.trim().length ? rawLocation.audio.trim() : null,
             history: Array.isArray(rawLocation.history)
                 ? rawLocation.history.filter(Boolean).map(entry => String(entry).trim())
@@ -77,7 +73,46 @@ export class DataService {
             normalized.y = 0;
         }
 
+        normalized.videoTitles = normalized.videos
+            .map(video => (typeof video.title === 'string' ? video.title.trim() : ''))
+            .filter(Boolean);
+
         return normalized;
+    }
+
+    normalizeVideos(rawLocation) {
+        const rawVideos = Array.isArray(rawLocation?.videos) ? rawLocation.videos : [];
+        const legacyTitles = Array.isArray(rawLocation?.videoTitles) ? rawLocation.videoTitles : [];
+
+        return rawVideos.reduce((accumulator, item, index) => {
+            let url = '';
+            let title = '';
+
+            if (typeof item === 'string') {
+                url = item.trim();
+            } else if (item && typeof item === 'object') {
+                if (typeof item.url === 'string') {
+                    url = item.url.trim();
+                }
+                if (typeof item.title === 'string') {
+                    title = item.title.trim();
+                }
+            }
+
+            if (!url) {
+                return accumulator;
+            }
+
+            if (!title && typeof legacyTitles[index] === 'string') {
+                title = legacyTitles[index].trim();
+            }
+
+            accumulator.push({
+                url,
+                title
+            });
+            return accumulator;
+        }, []);
     }
 
     normalizeLocations(dataset) {

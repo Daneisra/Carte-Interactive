@@ -162,29 +162,30 @@ export class InfoPanel {
         }
 
         if (Array.isArray(location.videos)) {
-            location.videos
-                .filter(video => typeof video === 'string' && video.trim())
-                .forEach((video, index) => {
-                    const videoElement = this.createVideoThumbnail({
-                        videoUrl: video,
-                        location,
-                        index
-                    });
+            location.videos.forEach((videoEntry, index) => {
+                const { element, url, title } = this.createVideoThumbnail({
+                    videoEntry,
+                    location,
+                    index
+                });
 
-                    if (videoElement) {
-                        this.galleryElement.appendChild(videoElement);
-                        hasContent = true;
-                        return;
-                    }
+                if (element) {
+                    this.galleryElement.appendChild(element);
+                    hasContent = true;
+                    return;
+                }
 
+                if (url) {
+                    const watchLabel = title || getString('info.watchVideo') || 'Voir la vidéo';
                     const fallbackLink = createElement('a', {
                         className: 'gallery-video-link',
-                        text: getString('info.watchVideo') || 'Voir la video',
-                        attributes: { href: video, target: '_blank', rel: 'noopener noreferrer' }
+                        text: watchLabel,
+                        attributes: { href: url, target: '_blank', rel: 'noopener noreferrer' }
                     });
                     this.galleryElement.appendChild(fallbackLink);
                     hasContent = true;
-                });
+                }
+            });
         }
 
         if (!hasContent) {
@@ -304,17 +305,37 @@ export class InfoPanel {
         targetTab.focus();
     }
 
-    createVideoThumbnail({ videoUrl, location, index }) {
-        const videoId = InfoPanel.extractYoutubeId(videoUrl);
-        if (!videoId) {
-            return null;
+    createVideoThumbnail({ videoEntry, location, index }) {
+        const titles = Array.isArray(location.videoTitles) ? location.videoTitles : [];
+        let url = '';
+        let providedTitle = '';
+
+        if (typeof videoEntry === 'string') {
+            url = videoEntry.trim();
+        } else if (videoEntry && typeof videoEntry === 'object') {
+            if (typeof videoEntry.url === 'string') {
+                url = videoEntry.url.trim();
+            }
+            if (typeof videoEntry.title === 'string') {
+                providedTitle = videoEntry.title.trim();
+            }
         }
 
-        const titles = Array.isArray(location.videoTitles) ? location.videoTitles : [];
-        const rawTitle = titles[index];
-        const providedTitle = typeof rawTitle === 'string' ? rawTitle.trim() : '';
+        if (!url) {
+            return { element: null, url: '', title: '' };
+        }
+
+        if (!providedTitle && typeof titles[index] === 'string') {
+            providedTitle = titles[index].trim();
+        }
+
+        const videoId = InfoPanel.extractYoutubeId(url);
         const videoTitle = providedTitle || `${location.name} - vidéo ${index + 1}`;
         const watchLabel = getString('info.watchVideo') || 'Voir la vidéo';
+
+        if (!videoId) {
+            return { element: null, url, title: videoTitle };
+        }
 
         const container = createElement('div', {
             className: 'gallery-video-container'
@@ -323,7 +344,7 @@ export class InfoPanel {
         const link = createElement('a', {
             className: 'gallery-video',
             attributes: {
-                href: videoUrl,
+                href: url,
                 target: '_blank',
                 rel: 'noopener noreferrer',
                 'aria-label': `${watchLabel} - ${videoTitle}`
@@ -346,7 +367,7 @@ export class InfoPanel {
             text: videoTitle
         }));
 
-        return container;
+        return { element: container, url, title: videoTitle };
     }
 
     static extractYoutubeId(url) {
