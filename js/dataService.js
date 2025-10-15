@@ -99,17 +99,20 @@ export class DataService {
                 }
             }
 
-            if (!url) {
-                return accumulator;
-            }
+        if (!url) {
+            return accumulator;
+        }
 
-            if (!title && typeof legacyTitles[index] === 'string') {
-                title = legacyTitles[index].trim();
+        if (!title && typeof legacyTitles[index] === 'string') {
+            const legacy = legacyTitles[index].trim();
+            if (legacy) {
+                title = legacy;
             }
+        }
 
-            accumulator.push({
-                url,
-                title
+        accumulator.push({
+            url,
+            title
             });
             return accumulator;
         }, []);
