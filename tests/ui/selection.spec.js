@@ -1,15 +1,31 @@
 ﻿const { test, expect } = require('@playwright/test');
 
+const expandAllContinents = async page => {
+  const toggles = page.locator('.continent-toggle');
+  await toggles.first().waitFor();
+
+  const count = await toggles.count();
+  for (let i = 0; i < count; i += 1) {
+    const toggle = toggles.nth(i);
+    const expanded = await toggle.getAttribute('aria-expanded');
+    if (expanded !== 'true') {
+      await toggle.click();
+    }
+  }
+};
+
 const waitForAppReady = async page => {
   await page.goto('/');
-  await page.waitForSelector('.location');
+  await page.waitForLoadState('networkidle');
+  await expandAllContinents(page);
+  await page.waitForSelector('.location:visible');
 };
 
 test.describe('Carte Interactive - UI', () => {
   test('sélection d’un lieu met à jour le panneau information', async ({ page }) => {
     await waitForAppReady(page);
 
-    const firstLocation = page.locator('.location').first();
+    const firstLocation = page.locator('.location:visible').first();
     const expectedTitle = await firstLocation.locator('.location-label').innerText();
 
     await firstLocation.click();
