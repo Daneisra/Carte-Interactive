@@ -1,4 +1,4 @@
-# OS junk
+﻿# OS junk
 .DS_Store
 Thumbs.db
 desktop.ini
@@ -52,3 +52,7 @@ pnpm-debug.log*
 # (Optionnel) si tu génères des miniatures/sprites :
 assets/images/thumbnails/
 assets/images/sprites/
+
+# Playwright
+playwright-report/
+test-results/

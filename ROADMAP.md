@@ -29,7 +29,7 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Préparer des jeux d’essai allégés pour la recette et les tests automatisés. ✅
 
 ### Industrialisation
-- Ajouter une batterie de tests UI (Playwright/Cypress) couvrant la sélection de lieux, le clustering et la galerie média.
+- Ajouter une batterie de tests UI (Playwright/Cypress) couvrant la sélection de lieux, le clustering et la galerie média. ✅
 - Mettre en place un workflow CI (GitHub Actions) pour lint, build statique et validation des données.
 - Instrumenter les performances (logs ou métriques) autour du cluster et du chargement initial.
 
