@@ -5,7 +5,9 @@
   "scripts": {
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed",
-    "test:ui:update": "playwright test --update-snapshots"
+    "test:ui:update": "playwright test --update-snapshots",
+    "lint": "echo \"No ESLint config\"",
+    "build:static": "node -e \"console.log('Static build placeholder')\""
   },
   "devDependencies": {
     "@playwright/test": "^1.46.0",

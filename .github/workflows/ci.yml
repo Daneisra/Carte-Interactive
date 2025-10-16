@@ -1,0 +1,43 @@
+﻿name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build (placeholder)
+        run: npm run build:static
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate data integrity
+        run: python tools/validate_assets.py
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: UI tests (Playwright)
+        run: npm run test:ui
