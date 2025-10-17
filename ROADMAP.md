@@ -34,7 +34,7 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Ajouter une batterie de tests UI (Playwright/Cypress) couvrant la sélection de lieux, le clustering et la galerie média. ✅
 - Mettre en place un workflow CI (GitHub Actions) pour lint, build statique et validation des données. ✅
 - Corriger les encodages UTF-8 des données (ex. Nikaïus). ✅
-- Instrumenter les performances (logs ou métriques) autour du cluster et du chargement initial.
+- Instrumenter les performances (logs ou métriques) autour du cluster et du chargement initial. ✅
 
 ## 4. Initiatives moyen terme (H1 2026)
 - **Édition in-app des lieux** : création/modification directe, validations temps réel, prévisualisation des médias.

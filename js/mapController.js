@@ -1,4 +1,6 @@
-﻿const DEFAULT_BOUNDS = [[0, 0], [6144, 8192]];
+﻿import { startTimer, endTimer, logMetric } from './utils/metrics.js';
+
+const DEFAULT_BOUNDS = [[0, 0], [6144, 8192]];
 const DEFAULT_IMAGE = 'assets/map.png';
 const DEFAULT_POSITION = [3072, 4096];
 const DEFAULT_ZOOM = -3;
@@ -230,15 +232,17 @@ export class MapController {
     setClusteringEnabled(isEnabled) {
         const nextState = Boolean(isEnabled);
         if (nextState === this.clusteringEnabled) {
+            logMetric('cluster.toggle.noop', { requestedState: nextState });
             return;
         }
 
         this.clusteringEnabled = nextState;
 
-        const startTime = performance.now();
+        const timer = startTimer('cluster.toggle', { targetState: nextState });
 
         if (this.clusteringEnabled) {
             if (typeof L.markerClusterGroup !== 'function') {
+                endTimer(timer, { status: 'error', reason: 'plugin-missing' });
                 console.warn('Clustering indisponible : plugin Leaflet.markercluster manquant.');
                 this.clusteringEnabled = false;
                 return;
@@ -283,9 +287,13 @@ export class MapController {
             }
         }
 
-        const duration = Math.round(performance.now() - startTime);
         const visibleCount = this.entries.filter(entry => entry.visible).length;
-        console.info(`Clustering ${this.clusteringEnabled ? 'activ\u00e9' : 'd\u00e9sactiv\u00e9'} : ${visibleCount} marqueurs visibles en ${duration} ms`);
+        endTimer(timer, {
+            status: 'ok',
+            mode: this.clusteringEnabled ? 'enabled' : 'disabled',
+            visibleCount,
+            totalEntries: this.entries.length
+        });
     }
 
     isClusteringEnabled() {
