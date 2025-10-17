@@ -7,6 +7,7 @@ import { AudioManager } from './ui/audioManager.js';
 import { InfoPanel } from './ui/infoPanel.js';
 import { AriaAnnouncer } from './ui/ariaAnnouncer.js';
 import { qs, createElement, clearElement } from './ui/dom.js';
+import { LocationEditor } from './ui/locationEditor.js';
 import { getString } from './i18n.js';
 
 const PAGE_SIZE = 8;
@@ -35,6 +36,24 @@ const clusteringIcon = clustered => clustered
     : localized('clustering.iconOff', 'OFF');
 const clusteringEmptyIcon = () => localized('clustering.iconEmpty', '-');
 const CLUSTERING_TOOLTIP_SEPARATOR = ' - ';
+
+const cloneLocationsData = source => {
+    if (!source) {
+        return {};
+    }
+    if (typeof structuredClone === 'function') {
+        try {
+            return structuredClone(source);
+        } catch (error) {
+            // ignore and fallback
+        }
+    }
+    try {
+        return JSON.parse(JSON.stringify(source));
+    } catch (error) {
+        return {};
+    }
+};
 
 const isInteractiveTextField = element => {
     if (!element) {
@@ -88,6 +107,7 @@ export class UiController {
             resetFilters: document.getElementById(resetFiltersId),
             toggleAll: document.getElementById(toggleAllButtonId),
             resultsBadge: document.getElementById('search-results-count'),
+            addLocation: document.getElementById('add-location'),
             clusteringToggle: document.getElementById('clustering-toggle'),
             clusteringMetrics: document.getElementById('clustering-metrics'),
             markerScaleInput: document.getElementById('marker-size'),
@@ -99,6 +119,7 @@ export class UiController {
             continentsContainer: document.getElementById('continents-container'),
             themeToggle: document.getElementById('theme-toggle'),
             infoSidebar: document.getElementById(infoSidebarId),
+            editLocation: document.getElementById('edit-location'),
             infoTitle: document.getElementById(infoTitleId),
             descriptionText: document.getElementById(descriptionTextId),
             descriptionContent: document.getElementById(descriptionContentId),
@@ -118,13 +139,17 @@ export class UiController {
             audioPlayer: document.getElementById(audioPlayerId),
             audioTitle: document.getElementById(audioTitleId),
             audioFallback: document.getElementById('audio-fallback'),
-            audioStatus: document.getElementById('audio-status')
+            audioStatus: document.getElementById('audio-status'),
+            locationEditor: document.getElementById('location-editor')
         };
 
         this.announcer = new AriaAnnouncer({
             politeNode: qs('#aria-status'),
             assertiveNode: qs('#aria-alert')
         });
+
+        this.locationEditor = null;
+        this.locationsData = {};
 
         this.state = new UiState({
             filters: this.preferences?.getFilters?.(),
@@ -423,6 +448,7 @@ export class UiController {
     initialize({ typeData, locationsData }) {
         this.typeData = typeData || {};
         this.mapController.setTypeData(this.typeData);
+        this.locationsData = cloneLocationsData(locationsData || {});
 
         this.applyLocalization();
         this.themeManager.initialize();
@@ -444,7 +470,8 @@ export class UiController {
         this.bindMapBackgroundDismissal();
 
         this.populateTypeFilterOptions();
-        this.buildSidebar(locationsData || {});
+        this.setupLocationEditor();
+        this.buildSidebar(this.locationsData);
         this.restoreMapState();
 
         this.state.sidebarView = 'all';
@@ -542,6 +569,27 @@ export class UiController {
         this.dom.typeFilter.value = currentType;
     }
 
+    setupLocationEditor() {
+        if (!this.dom.locationEditor) {
+            return;
+        }
+        this.locationEditor = new LocationEditor({
+            container: this.dom.locationEditor,
+            types: this.typeData,
+            onCreate: payload => this.handleCreateLocation(payload),
+            onUpdate: payload => this.handleUpdateLocation(payload)
+        });
+        this.locationEditor.setTypes(this.typeData);
+        if (this.dom.addLocation) {
+            this.dom.addLocation.addEventListener('click', () => this.openCreateLocation());
+        }
+        if (this.dom.editLocation) {
+            this.dom.editLocation.disabled = true;
+            this.dom.editLocation.addEventListener('click', () => this.openEditLocation());
+        }
+        this.updateEditButton(null);
+    }
+
     buildSidebar(locationsByContinent) {
         this.mapController.clearEntries();
         this.entries = [];
@@ -570,6 +618,131 @@ export class UiController {
         this.updateToggleAllState();
     }
 
+
+
+    collectExistingNames(exceptName = null) {
+        const names = [];
+        Object.values(this.locationsData || {}).forEach(list => {
+            if (!Array.isArray(list)) {
+                return;
+            }
+            list.forEach(location => {
+                if (!location?.name) {
+                    return;
+                }
+                const normalized = location.name.toLowerCase();
+                if (exceptName && normalized === exceptName.toLowerCase()) {
+                    return;
+                }
+                names.push(normalized);
+            });
+        });
+        return names;
+    }
+
+    openCreateLocation() {
+        if (!this.locationEditor) {
+            return;
+        }
+        const disallowed = this.collectExistingNames();
+        this.locationEditor.open({
+            mode: 'create',
+            location: null,
+            continent: '',
+            disallowedNames: disallowed
+        });
+    }
+
+    openEditLocation() {
+        if (!this.locationEditor || !this.activeEntry) {
+            return;
+        }
+        const entry = this.activeEntry;
+        const disallowed = this.collectExistingNames(entry.location.name);
+        this.locationEditor.open({
+            mode: 'edit',
+            location: entry.location,
+            continent: entry.continent,
+            disallowedNames: disallowed
+        });
+    }
+
+    handleCreateLocation({ continent, location }) {
+        if (!location) {
+            return;
+        }
+        const target = (continent || '').trim() || 'Divers';
+        if (!Array.isArray(this.locationsData[target])) {
+            this.locationsData[target] = [];
+        }
+        this.locationsData[target].push(location);
+        this.refreshLocations({ focusName: location.name });
+    }
+
+    handleUpdateLocation({ continent, location, originalContinent, originalName }) {
+        if (!location) {
+            return;
+        }
+        const currentName = originalName || '';
+        const source = (originalContinent || '').trim() || 'Divers';
+        const target = (continent || '').trim() || 'Divers';
+        const sourceList = Array.isArray(this.locationsData[source]) ? this.locationsData[source] : [];
+        const index = sourceList.findIndex(item => item?.name === currentName);
+        if (index !== -1) {
+            sourceList.splice(index, 1);
+        }
+        this.locationsData[source] = sourceList;
+        if (!Array.isArray(this.locationsData[target])) {
+            this.locationsData[target] = [];
+        }
+        this.locationsData[target].push(location);
+        if (!this.locationsData[source].length && source !== target) {
+            delete this.locationsData[source];
+        }
+        if (currentName && location.name && currentName !== location.name) {
+            if (this.state.hasFavorite(currentName)) {
+                this.state.removeFavorite(currentName);
+                this.state.addFavorite(location.name);
+                this.preferences?.setFavorites?.(this.state.getFavorites());
+            }
+            if (this.preferences?.getLastLocation?.() === currentName) {
+                this.preferences.setLastLocation(location.name);
+            }
+        }
+        this.refreshLocations({ focusName: location.name });
+    }
+
+    refreshLocations({ focusName } = {}) {
+        this.buildSidebar(this.locationsData);
+        this.state.sidebarView = 'all';
+        this.applyFilters();
+        this.renderFavoritesView();
+        this.updateSidebarView();
+        this.updateClusteringMetrics();
+        this.updateRandomButtonState();
+        if (focusName) {
+            const entry = this.entries.find(candidate => candidate.location.name === focusName);
+            if (entry) {
+                this.ensureEntryVisible(entry);
+                this.selectEntry(entry, { focusOnList: true, source: 'editor' });
+                return;
+            }
+        }
+        this.updateEditButton(null);
+    }
+
+    updateEditButton(location) {
+        if (!this.dom.editLocation) {
+            return;
+        }
+        if (!location) {
+            this.dom.editLocation.disabled = true;
+            this.dom.editLocation.setAttribute('aria-label', 'Modifier le lieu');
+            return;
+        }
+        this.dom.editLocation.disabled = false;
+        this.dom.editLocation.setAttribute('aria-label', `Modifier ${location.name}`);
+    }
     createContinentSection(continentName, locations, index) {
         const wrapper = createElement('section', {
             className: 'continent',
@@ -1592,6 +1765,7 @@ export class UiController {
         this.state.activeLocationName = entry.location.name;
 
         this.infoPanel.show(entry);
+        this.updateEditButton(entry.location);
         this.updateFavoriteToggle(entry.location);
 
         if (this.announcer) {
@@ -1638,6 +1812,7 @@ export class UiController {
         this.mapController.clearSelectedEntry();
         this.activeEntry = null;
         this.updateFavoriteToggle(null);
+        this.updateEditButton(null);
         this.updateRandomButtonState();
         this.hideTooltip(this.favoriteTooltip);
         this.hideTooltip(this.favoriteOnboardingTooltip);

@@ -1,0 +1,324 @@
+/* Location editor overlay */
+.primary-button,
+.secondary-button,
+.tertiary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.primary-button {
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    color: #f5f7ff;
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
+}
+
+.primary-button:hover,
+.primary-button:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.45);
+}
+
+.secondary-button {
+    background: rgba(148, 163, 184, 0.2);
+    color: #e2e8f0;
+}
+
+.secondary-button:hover,
+.secondary-button:focus-visible {
+    background: rgba(148, 163, 184, 0.35);
+}
+
+body[data-theme="light"] .secondary-button {
+    background: rgba(79, 70, 229, 0.12);
+    color: #1f2933;
+}
+
+body[data-theme="light"] .secondary-button:hover,
+body[data-theme="light"] .secondary-button:focus-visible {
+    background: rgba(79, 70, 229, 0.2);
+}
+
+.tertiary-button {
+    background: transparent;
+    color: #a5b4fc;
+    padding: 6px 10px;
+}
+
+.tertiary-button:hover,
+.tertiary-button:focus-visible {
+    background: rgba(165, 180, 252, 0.15);
+}
+
+#add-location {
+    width: 100%;
+    margin: 16px 0 20px;
+}
+
+.editor-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(4px);
+    z-index: 2100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.editor-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.editor-dialog {
+    width: min(900px, 94vw);
+    max-height: 92vh;
+    background: #1f2933;
+    border-radius: 18px;
+    box-shadow: 0 24px 80px rgba(15, 23, 42, 0.55);
+    display: flex;
+    flex-direction: column;
+    color: #f5f7ff;
+}
+
+.editor-dialog form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+body[data-theme="light"] .editor-dialog {
+    background: #f5f7ff;
+    color: #1f2933;
+}
+
+.editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 28px 0;
+}
+
+.editor-close {
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+}
+
+.editor-content {
+    padding: 20px 28px 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    flex: 1;
+    min-height: 0;
+}
+
+.editor-section {
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+}
+
+.editor-section legend {
+    padding: 0 8px;
+    font-weight: 600;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.form-row input,
+.form-row textarea,
+.form-row select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.45);
+    color: inherit;
+    font-size: 14px;
+}
+
+body[data-theme="light"] .form-row input,
+body[data-theme="light"] .form-row textarea,
+body[data-theme="light"] .form-row select {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(107, 114, 128, 0.3);
+}
+
+.form-row textarea {
+    resize: vertical;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+}
+
+.form-error {
+    margin: 0;
+    font-size: 13px;
+    color: #f87171;
+}
+
+.form-error[hidden] {
+    display: none;
+}
+
+.hint {
+    font-size: 12px;
+    opacity: 0.65;
+}
+
+.editor-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.editor-list-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-list-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+.editor-list-row.video-row input[data-role="video-title"] {
+    flex: 0.75;
+}
+
+.editor-list-row.video-row input[data-role="video-url"] {
+    flex: 1.25;
+}
+
+.media-preview {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    margin-top: 12px;
+}
+
+.preview-card {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+}
+
+body[data-theme="light"] .preview-card {
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.25);
+}
+
+.preview-card img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #111827;
+}
+
+.preview-card iframe {
+    width: 100%;
+    height: 210px;
+    border: none;
+    border-radius: 10px;
+    background: #0f172a;
+}
+
+.preview-title {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.preview-sub {
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.75;
+}
+
+.preview-card.preview-error {
+    opacity: 0.5;
+}
+
+.preview-empty {
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.editor-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 28px 24px;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+body[data-theme="light"] .editor-actions {
+    border-top-color: rgba(148, 163, 184, 0.25);
+}
+
+#sidebar .primary-button {
+    font-size: 15px;
+}
+
+.editor-content\::-webkit-scrollbar {
+    width: 8px;
+}
+
+.editor-content\::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 12px;
+}
+
+.editor-content\::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.editor-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.editor-content::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 12px;
+}
+
+.editor-content::-webkit-scrollbar-track {
+    background: transparent;
+}

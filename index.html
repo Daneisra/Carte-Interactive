@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="editor.css">
     <link rel="icon" type="image/png" href="assets/icons/default.png">
 </head>
 <body>
@@ -28,6 +29,8 @@
             <button id="clear-search" aria-label="Effacer la recherche" type="button">✕</button>
             <span id="search-results-count" class="results-badge" data-state="all" aria-live="polite" aria-atomic="true">0 lieu</span>
         </div>
+
+        <button id="add-location" class="primary-button" type="button">Ajouter un lieu</button>
 
         <div id="filters-container">
             <select id="type-filter" aria-label="Filtrer par type de lieu">
@@ -66,6 +69,7 @@
         <div id="info-header">
             <h3 id="info-title">Titre du lieu</h3>
             <div class="info-actions">
+                <button id="edit-location" class="icon-button" type="button" aria-label="Modifier le lieu" disabled>✎</button>
                 <button id="favorite-toggle" class="icon-button favorite-toggle" type="button" aria-label="Ajouter aux favoris" aria-pressed="false" disabled>☆</button>
                 <button id="close-info-sidebar" class="close-btn" type="button" aria-label="Fermer le panneau">✖</button>
             </div>
@@ -146,6 +150,103 @@
         <img id="media-lightbox-image" class="media-lightbox-image" alt="">
         <p id="media-lightbox-caption" class="media-lightbox-caption"></p>
     </div>
+    <div id="location-editor" class="editor-overlay" role="presentation" hidden>
+        <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="location-editor-title">
+            <header class="editor-header">
+                <h2 id="location-editor-title">Éditer un lieu</h2>
+                <button id="location-editor-close" class="editor-close" type="button" aria-label="Fermer">×</button>
+            </header>
+            <form id="location-editor-form" novalidate>
+                <div class="editor-content">
+                    <fieldset class="editor-section">
+                        <legend>Informations générales</legend>
+                        <div class="form-row">
+                            <label for="editor-name">Nom</label>
+                            <input id="editor-name" name="name" type="text" required />
+                            <p class="form-error" data-error-for="name"></p>
+                        </div>
+                        <div class="form-row">
+                            <label for="editor-continent">Continent</label>
+                            <input id="editor-continent" name="continent" type="text" required />
+                            <p class="form-error" data-error-for="continent"></p>
+                        </div>
+                        <div class="form-row">
+                            <label for="editor-type">Type</label>
+                            <select id="editor-type" name="type" required></select>
+                            <p class="form-error" data-error-for="type"></p>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-row">
+                                <label for="editor-x">Coordonnée X</label>
+                                <input id="editor-x" name="x" type="number" step="1" required />
+                                <p class="form-error" data-error-for="x"></p>
+                            </div>
+                            <div class="form-row">
+                                <label for="editor-y">Coordonnée Y</label>
+                                <input id="editor-y" name="y" type="number" step="1" required />
+                                <p class="form-error" data-error-for="y"></p>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label for="editor-description">Description</label>
+                            <textarea id="editor-description" name="description" rows="3"></textarea>
+                            <p class="form-error" data-error-for="description"></p>
+                        </div>
+                        <div class="form-row">
+                            <label for="editor-audio">Audio (optionnel)</label>
+                            <input id="editor-audio" name="audio" type="url" placeholder="assets/audio/example.mp3" />
+                            <p class="form-error" data-error-for="audio"></p>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="editor-section">
+                        <legend>Images</legend>
+                        <div class="editor-list" data-role="image-list"></div>
+                        <button type="button" class="secondary-button" data-action="add-image">Ajouter une image</button>
+                        <p class="form-error" data-error-for="images"></p>
+                        <div class="media-preview" data-preview="images"></div>
+                    </fieldset>
+
+                    <fieldset class="editor-section">
+                        <legend>Vidéos</legend>
+                        <div class="editor-list" data-role="video-list"></div>
+                        <button type="button" class="secondary-button" data-action="add-video">Ajouter une vidéo</button>
+                        <p class="form-error" data-error-for="videos"></p>
+                        <div class="media-preview" data-preview="videos"></div>
+                    </fieldset>
+
+                    <fieldset class="editor-section">
+                        <legend>Personnages (PNJ)</legend>
+                        <div class="editor-list" data-role="pnj-list"></div>
+                        <button type="button" class="secondary-button" data-action="add-pnj">Ajouter un PNJ</button>
+                        <p class="form-error" data-error-for="pnjs"></p>
+                        <div class="media-preview" data-preview="pnjs"></div>
+                    </fieldset>
+
+                    <fieldset class="editor-section">
+                        <legend>Détails supplémentaires</legend>
+                        <div class="form-row">
+                            <label for="editor-history">Historique<br><span class="hint">(une entrée par ligne)</span></label>
+                            <textarea id="editor-history" name="history" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="editor-quests">Quêtes<br><span class="hint">(une entrée par ligne)</span></label>
+                            <textarea id="editor-quests" name="quests" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <label for="editor-lore">Lore<br><span class="hint">(une entrée par ligne)</span></label>
+                            <textarea id="editor-lore" name="lore" rows="3"></textarea>
+                        </div>
+                    </fieldset>
+                </div>
+                <footer class="editor-actions">
+                    <p class="form-error" data-error-for="form"></p>
+                    <button type="button" class="secondary-button" data-action="cancel">Annuler</button>
+                    <button type="submit" class="primary-button" data-action="submit">Enregistrer</button>
+                </footer>
+            </form>
+        </div>
+    </div>
 
     <!-- ⚙️ Scripts -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -154,6 +255,8 @@
 
 </body>
 </html>
+
+
 
 
 

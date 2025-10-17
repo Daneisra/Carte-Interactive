@@ -37,7 +37,10 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Instrumenter les performances (logs ou métriques) autour du cluster et du chargement initial. ✅
 
 ## 4. Initiatives moyen terme (H1 2026)
-- **Édition in-app des lieux** : création/modification directe, validations temps réel, prévisualisation des médias.
+- **Édition in-app des lieux** : création/modification directe, validations temps réel, prévisualisation des médias. ✅
+- Connectez les événements d'enregistrement de l'éditeur à une couche persistante (API/exportation locale) afin que les nouveaux lieux soient conservés après le rechargement de la page.
+- ajout des lieux via éditeur directement dans location.json avec trie automatique selon continent.
+
 - **Internationalisation** : support multi-langues, extraction des libellés restants et chargement dynamique des locales.
 - **Architecture UI modulaire** : découper `UiController` en sous-modules testables, couverture unitaire ciblée.
 - **Expérience collaborative** : préparation d’une API CRUD (lieux/PNJ/quêtes) et réflexion sur l’authentification.
