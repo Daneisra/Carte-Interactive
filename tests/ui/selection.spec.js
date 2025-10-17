@@ -51,7 +51,10 @@ test.describe('Carte Interactive - UI', () => {
   test('la galerie média affiche les vidéos d’un lieu avec un titre', async ({ page }) => {
     await waitForAppReady(page);
 
-    await page.getByText('Nikaïus', { exact: true }).first().click();
+    await page.getByPlaceholder(/Rechercher un lieu/i).fill('Nikaïus');
+    const targetLocation = page.locator('.location').filter({ hasText: /nikaïus/i }).first();
+    await expect(targetLocation).toBeVisible();
+    await targetLocation.click();
 
     const galleryVideos = page.locator('#image-gallery .gallery-video-container');
     await expect(galleryVideos).not.toHaveCount(0);

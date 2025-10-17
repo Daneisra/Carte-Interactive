@@ -1,4 +1,4 @@
-# Carte Interactive – Roadmap 2025
+﻿# Carte Interactive – Roadmap 2025
 
 ## 1. Vision
 Créer une carte narrative immersive, fiable et maintenable servant à la fois de support de jeu et de référentiel vivant de l'univers. Pour 2025, les priorités se structurent autour de trois axes : qualité des données, excellence UX et industrialisation.
@@ -15,6 +15,8 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Historique de navigation opérationnel et scripts d’assainissement (`tools/validate_assets.py`).
 
 ## 3. Priorités immédiates (fin 2025)
+
+
 ### UX & Accessibilité
 - Compléter les contrôles ARIA, libellés et annonces vocales (navigation clavier exhaustive). ✅
 - Finaliser le responsive < 1024 px : layout mobile, repositionnement des contrôles et gestuelles tactiles. ✅
@@ -31,6 +33,7 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 ### Industrialisation
 - Ajouter une batterie de tests UI (Playwright/Cypress) couvrant la sélection de lieux, le clustering et la galerie média. ✅
 - Mettre en place un workflow CI (GitHub Actions) pour lint, build statique et validation des données. ✅
+- Corriger les encodages UTF-8 des données (ex. Nikaïus). ✅
 - Instrumenter les performances (logs ou métriques) autour du cluster et du chargement initial.
 
 ## 4. Initiatives moyen terme (H1 2026)
