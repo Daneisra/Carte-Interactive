@@ -297,6 +297,24 @@ body[data-theme="light"] .editor-actions {
     font-size: 15px;
 }
 
+.editor-actions-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.input-with-button {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.editor-section[data-drop-zone].is-drag-over {
+    border-color: rgba(59, 130, 246, 0.6);
+    background: rgba(59, 130, 246, 0.08);
+}
+
+
 .editor-content::-webkit-scrollbar {
     width: 8px;
 }

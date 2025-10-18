@@ -419,6 +419,27 @@
       "pnjs": []
     },
     {
+      "name": "test",
+      "type": "Cathedral",
+      "x": 3000,
+      "y": 3000,
+      "description": "test",
+      "images": [
+        "assets/images/magda_grace.jpg"
+      ],
+      "videos": [
+        {
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "title": "test"
+        }
+      ],
+      "audio": "assets/audio/kang-guo-qiang-fang-guo-yang-kang-kang-kang-djwei-ran-ban.mp3",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
       "name": "Valerius Primus",
       "type": "Large City Stone Wall + Towers",
       "x": 7676,

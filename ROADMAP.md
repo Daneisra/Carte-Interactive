@@ -12,6 +12,7 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Persistance locale avancée (`PreferencesService`) : filtres, vue carte, dernier lieu et favoris utilisateurs.
 - Clustering Leaflet configuré avec indicateurs de visibilité, pagination par continent et badge de résultats de recherche.
 - Mode sombre/clair persistant, réglage taille des marqueurs, favoris et bouton “Lieu aléatoire”.
+- Editeur in-app : creation/modification d'un lieu avec sauvegarde directe dans `assets/locations.json` (tri auto par continent/nom).
 - Historique de navigation opérationnel et scripts d’assainissement (`tools/validate_assets.py`).
 
 ## 3. Priorités immédiates (fin 2025)
@@ -36,14 +37,16 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Corriger les encodages UTF-8 des données (ex. Nikaïus). ✅
 - Instrumenter les performances (logs ou métriques) autour du cluster et du chargement initial. ✅
 
-## 4. Initiatives moyen terme (H1 2026)
-- **Édition in-app des lieux** : création/modification directe, validations temps réel, prévisualisation des médias. ✅
-- ajout des lieux via éditeur directement dans location.json avec trie automatique selon continent. ✅
-- Connectez les événements d'enregistrement de l'éditeur à une couche persistante (API/exportation locale) afin que les nouveaux lieux soient conservés après le rechargement de la page.
+### Edition in-app
+- Support de l'upload (clic ou glisser-deposer) pour les images et fichiers audio depuis l'editeur, avec copie automatique dans `assets/images/` et `assets/audio/`. ✅
+- Mettre en place la validation et le renommage automatique des fichiers importes (taille, extension, slug).
 
-- **Internationalisation** : support multi-langues, extraction des libellés restants et chargement dynamique des locales.
-- **Architecture UI modulaire** : découper `UiController` en sous-modules testables, couverture unitaire ciblée.
-- **Expérience collaborative** : préparation d’une API CRUD (lieux/PNJ/quêtes) et réflexion sur l’authentification.
+## 4. Initiatives moyen terme (H1 2026)
+- **Edition in-app des lieux** : finaliser le workflow (upload medias, validations avancees, audit/logs).
+- Connecter les enregistrements a une couche persistante distante (API/export) pour synchronisation et sauvegarde.
+- **Internationalisation** : support multi-langues, extraction des libelles restants et chargement dynamique des locales.
+- **Architecture UI modulaire** : decouper `UiController` en sous-modules testables, couverture unitaire ciblee.
+- **Experience collaborative** : definir des roles admin/utilisateur (admins ajoutent/modifient, utilisateurs explorent/favorisent) et preparer une API CRUD securisee (lieux/PNJ/quetes).
 
 ## 5. Risques & parades
 - **Volume de données croissant** : prévoir pagination côté backend ou moteur de recherche dédié.

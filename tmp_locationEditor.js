@@ -1,4 +1,4 @@
-import { createElement, clearElement } from './dom.js';
+﻿import { createElement, clearElement } from './dom.js';
 
 const DEFAULT_LOCATION = {
     name: '',
@@ -18,16 +18,6 @@ const DEFAULT_LOCATION = {
 const UPLOAD_ENDPOINT = '/api/upload';
 const UPLOAD_TYPES = { image: 'image', audio: 'audio' };
 const MAX_UPLOAD_SIZE = 15 * 1024 * 1024;
-const UPLOAD_FILE_RULES = {
-    [UPLOAD_TYPES.image]: {
-        mimePrefix: 'image/',
-        extensions: ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg']
-    },
-    [UPLOAD_TYPES.audio]: {
-        mimePrefix: 'audio/',
-        extensions: ['.mp3', '.ogg', '.wav', '.flac', '.aac', '.m4a']
-    }
-};
 
 const isValidUrl = value => {
     if (!value || typeof value !== 'string') {
@@ -52,39 +42,6 @@ const splitLines = value => (value || '')
     .split(/\r?\n/)
     .map(entry => entry.trim())
     .filter(Boolean);
-
-const partitionFilesByType = (files = [], uploadType) => {
-    const rule = UPLOAD_FILE_RULES[uploadType];
-    if (!rule) {
-        return { accepted: [], rejected: [] };
-    }
-    const accepted = [];
-    const rejected = [];
-    files.forEach(file => {
-        if (!file) {
-            return;
-        }
-        const name = (file.name || '').toLowerCase();
-        const matchesMime = file.type && rule.mimePrefix && file.type.startsWith(rule.mimePrefix);
-        const matchesExtension = rule.extensions.some(ext => name.endsWith(ext));
-        if (matchesMime || matchesExtension) {
-            accepted.push(file);
-        } else {
-            rejected.push(file);
-        }
-    });
-    return { accepted, rejected };
-};
-
-const describeAllowedExtensions = uploadType => {
-    const rule = UPLOAD_FILE_RULES[uploadType];
-    if (!rule) {
-        return '';
-    }
-    return rule.extensions
-        .map(ext => ext.replace(/^\./, '').toUpperCase())
-        .join(', ');
-};
 
 const copyLocation = source => {
     if (!source) {
@@ -151,7 +108,7 @@ export class LocationEditor {
         this.pnjPreview = this.form?.querySelector('[data-preview="pnjs"]') || null;
         this.typeSelect = this.form?.querySelector('#editor-type') || null;
         this.imageDropZone = this.form?.querySelector('[data-drop-zone="image"]') || null;
-        this.audioDropZone = this.form?.querySelector('[data-drop-zone="audio"]') || null;
+        this.audioDropZone = this.form?.querySelector('[data-drop-zone="generic"]') || null;
 
         this.callbacks = { onCreate, onUpdate };
         this.types = types || {};
@@ -742,10 +699,9 @@ export class LocationEditor {
     }
 
     async handleImageFiles(fileList) {
-        const { accepted: files } = partitionFilesByType(Array.from(fileList || []), UPLOAD_TYPES.image);
+        const files = Array.from(fileList || []).filter(file => file && file.type?.startsWith('image/'));
         if (!files.length) {
-            const formats = describeAllowedExtensions(UPLOAD_TYPES.image);
-            this.showError('form', 'Aucune image valide detectee (formats acceptes : ' + formats + ').');
+            this.showError('form', 'Aucune image valide détectée.');
             return;
         }
         this.clearError('form');
@@ -759,7 +715,7 @@ export class LocationEditor {
                     this.addImageField(uploadedPath);
                 }
             } catch (error) {
-                this.showError('form', error?.message || 'Erreur lors de l\'import de l\'image.');
+                this.showError('form', error?.message || 'Erreur lors de l'import de l'image.');
                 return;
             }
         }
@@ -768,10 +724,9 @@ export class LocationEditor {
     }
 
     async handleAudioFiles(fileList) {
-        const { accepted: files } = partitionFilesByType(Array.from(fileList || []), UPLOAD_TYPES.audio);
+        const files = Array.from(fileList || []).filter(file => file && file.type?.startsWith('audio/'));
         if (!files.length) {
-            const formats = describeAllowedExtensions(UPLOAD_TYPES.audio);
-            this.showError('form', 'Aucun fichier audio valide (formats acceptes : ' + formats + ').');
+            this.showError('form', 'Aucun fichier audio valide.');
             return;
         }
         const audioFile = files[0];
@@ -783,7 +738,7 @@ export class LocationEditor {
             this.validateAudio();
             this.clearError('form');
         } catch (error) {
-            this.showError('form', error?.message || 'Erreur lors de l\'import audio.');
+            this.showError('form', error?.message || 'Erreur lors de l'import audio.');
         }
     }
 
@@ -834,28 +789,17 @@ export class LocationEditor {
         if (!element) {
             return;
         }
-        let dragDepth = 0;
-        const addHighlight = () => element.classList.add('is-drag-over');
-        const removeHighlight = () => element.classList.remove('is-drag-over');
-        const onDragEnter = event => {
-            event.preventDefault();
-            dragDepth += 1;
-            addHighlight();
-        };
         const onDragOver = event => {
             event.preventDefault();
+            element.classList.add('is-drag-over');
         };
         const onDragLeave = event => {
             event.preventDefault();
-            dragDepth = Math.max(dragDepth - 1, 0);
-            if (dragDepth === 0) {
-                removeHighlight();
-            }
+            element.classList.remove('is-drag-over');
         };
         const onDrop = event => {
             event.preventDefault();
-            dragDepth = 0;
-            removeHighlight();
+            element.classList.remove('is-drag-over');
             const files = Array.from(event.dataTransfer?.files || []);
             if (!files.length) {
                 return;
@@ -867,7 +811,6 @@ export class LocationEditor {
             }
             event.dataTransfer?.clearData?.();
         };
-        element.addEventListener('dragenter', onDragEnter);
         element.addEventListener('dragover', onDragOver);
         element.addEventListener('dragleave', onDragLeave);
         element.addEventListener('drop', onDrop);
@@ -1017,3 +960,4 @@ export class LocationEditor {
         }
     }
 }
+

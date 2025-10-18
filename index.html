@@ -158,7 +158,7 @@
             </header>
             <form id="location-editor-form" novalidate>
                 <div class="editor-content">
-                    <fieldset class="editor-section">
+                    <fieldset class="editor-section" data-drop-zone="audio">
                         <legend>Informations générales</legend>
                         <div class="form-row">
                             <label for="editor-name">Nom</label>
@@ -194,20 +194,26 @@
                         </div>
                         <div class="form-row">
                             <label for="editor-audio">Audio (optionnel)</label>
-                            <input id="editor-audio" name="audio" type="url" placeholder="assets/audio/example.mp3" />
+                            <div class="input-with-button">
+                                <input id="editor-audio" name="audio" type="url" placeholder="assets/audio/example.mp3" />
+                                <button type="button" class="secondary-button" data-action="upload-audio">Importer un audio</button>
+                            </div>
                             <p class="form-error" data-error-for="audio"></p>
                         </div>
                     </fieldset>
 
-                    <fieldset class="editor-section">
+                    <fieldset class="editor-section" data-drop-zone="image">
                         <legend>Images</legend>
                         <div class="editor-list" data-role="image-list"></div>
-                        <button type="button" class="secondary-button" data-action="add-image">Ajouter une image</button>
+                        <div class="editor-actions-row">
+                            <button type="button" class="secondary-button" data-action="add-image">Ajouter une image</button>
+                            <button type="button" class="secondary-button" data-action="upload-image">Importer une image</button>
+                        </div>
                         <p class="form-error" data-error-for="images"></p>
                         <div class="media-preview" data-preview="images"></div>
                     </fieldset>
 
-                    <fieldset class="editor-section">
+                    <fieldset class="editor-section" data-drop-zone="video">
                         <legend>Vidéos</legend>
                         <div class="editor-list" data-role="video-list"></div>
                         <button type="button" class="secondary-button" data-action="add-video">Ajouter une vidéo</button>
@@ -215,7 +221,7 @@
                         <div class="media-preview" data-preview="videos"></div>
                     </fieldset>
 
-                    <fieldset class="editor-section">
+                    <fieldset class="editor-section" data-drop-zone="pnj">
                         <legend>Personnages (PNJ)</legend>
                         <div class="editor-list" data-role="pnj-list"></div>
                         <button type="button" class="secondary-button" data-action="add-pnj">Ajouter un PNJ</button>
@@ -239,6 +245,9 @@
                         </div>
                     </fieldset>
                 </div>
+                <input type="file" id="editor-image-upload" accept="image/*" hidden />
+                <input type="file" id="editor-audio-upload" accept="audio/*" hidden />
+
                 <footer class="editor-actions">
                     <p class="form-error" data-error-for="form"></p>
                     <button type="button" class="secondary-button" data-action="cancel">Annuler</button>
