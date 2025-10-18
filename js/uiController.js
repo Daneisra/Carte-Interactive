@@ -652,7 +652,8 @@ export class UiController {
             container: this.dom.locationEditor,
             types: this.typeData,
             onCreate: payload => this.handleCreateLocation(payload),
-            onUpdate: payload => this.handleUpdateLocation(payload)
+            onUpdate: payload => this.handleUpdateLocation(payload),
+            onDelete: payload => this.handleDeleteLocation(payload)
         });
         this.locationEditor.setTypes(this.typeData);
         if (this.dom.addLocation) {
@@ -821,6 +822,45 @@ export class UiController {
         this.locationsData[target].push(normalized);
         this.refreshLocations({ focusName: normalized.name });
         this.persistLocations();
+    }
+
+    handleDeleteLocation({ originalContinent, originalName }) {
+        const continentKey = sanitizeString(originalContinent) || 'Divers';
+        const nameKey = sanitizeString(originalName);
+        if (!nameKey) {
+            return;
+        }
+        const sourceList = Array.isArray(this.locationsData[continentKey]) ? this.locationsData[continentKey] : [];
+        const index = sourceList.findIndex(item => sanitizeString(item?.name) === nameKey);
+        if (index === -1) {
+            return;
+        }
+        const [removed] = sourceList.splice(index, 1);
+        if (sourceList.length) {
+            this.locationsData[continentKey] = sourceList;
+        } else {
+            delete this.locationsData[continentKey];
+        }
+
+        const removedName = removed?.name || originalName || '';
+        if (removedName && this.state.hasFavorite(removedName)) {
+            this.state.removeFavorite(removedName);
+            this.preferences?.setFavorites?.(this.state.getFavorites());
+        }
+        if (removedName && this.preferences?.getLastLocation?.() === removedName) {
+            this.preferences.setLastLocation(null);
+        }
+        if (this.activeEntry && sanitizeString(this.activeEntry.location?.name) === nameKey) {
+            this.infoPanel?.close();
+        }
+
+        this.refreshLocations();
+        this.persistLocations();
+
+        if (removedName && this.announcer) {
+            const message = localized('aria.locationDeleted', `${removedName} supprime.`, { location: removedName });
+            this.announcer.polite(message);
+        }
     }
 
     handleUpdateLocation({ continent, location, originalContinent, originalName }) {

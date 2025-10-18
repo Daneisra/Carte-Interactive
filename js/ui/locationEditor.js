@@ -86,6 +86,13 @@ const describeAllowedExtensions = uploadType => {
         .join(', ');
 };
 
+const buildDeleteConfirmation = name => {
+    if (name) {
+        return `Supprimer definitivement "${name}" ?`;
+    }
+    return 'Supprimer ce lieu ?';
+};
+
 const copyLocation = source => {
     if (!source) {
         return { ...DEFAULT_LOCATION };
@@ -127,7 +134,8 @@ export class LocationEditor {
         container,
         types = {},
         onCreate = null,
-        onUpdate = null
+        onUpdate = null,
+        onDelete = null
     } = {}) {
         this.container = container;
         this.dialog = container?.querySelector('.editor-dialog') || null;
@@ -135,6 +143,7 @@ export class LocationEditor {
         this.closeButton = container?.querySelector('#location-editor-close') || null;
         this.cancelButton = this.form?.querySelector('[data-action="cancel"]') || null;
         this.submitButton = this.form?.querySelector('[data-action="submit"]') || null;
+        this.deleteButton = this.form?.querySelector('[data-action="delete"]') || null;
         this.headerTitle = container?.querySelector('#location-editor-title') || null;
         this.imageList = this.form?.querySelector('[data-role="image-list"]') || null;
         this.videoList = this.form?.querySelector('[data-role="video-list"]') || null;
@@ -153,7 +162,7 @@ export class LocationEditor {
         this.imageDropZone = this.form?.querySelector('[data-drop-zone="image"]') || null;
         this.audioDropZone = this.form?.querySelector('[data-drop-zone="audio"]') || null;
 
-        this.callbacks = { onCreate, onUpdate };
+        this.callbacks = { onCreate, onUpdate, onDelete };
         this.types = types || {};
         this.mode = 'create';
         this.currentContext = null;
@@ -161,6 +170,11 @@ export class LocationEditor {
         this.boundKeyHandler = null;
         this.previousFocus = null;
         this.isOpen = false;
+
+        if (this.deleteButton) {
+            this.deleteButton.hidden = true;
+            this.deleteButton.disabled = true;
+        }
 
         if (this.form) {
             this.registerEvents();
@@ -289,6 +303,10 @@ export class LocationEditor {
         this.setupDropZone(this.imageDropZone, UPLOAD_TYPES.image);
         this.setupDropZone(this.audioDropZone, UPLOAD_TYPES.audio);
 
+        if (this.deleteButton) {
+            this.deleteButton.addEventListener('click', () => this.handleDelete());
+        }
+
         if (this.cancelButton) {
             this.cancelButton.addEventListener('click', () => this.close());
         }
@@ -344,6 +362,17 @@ export class LocationEditor {
             originalName: location?.name || ''
         };
 
+        if (this.deleteButton) {
+            const isEditMode = mode === 'edit';
+            this.deleteButton.hidden = !isEditMode;
+            this.deleteButton.disabled = !isEditMode;
+            const name = this.currentContext?.originalName || '';
+            const label = isEditMode && name
+                ? `Supprimer ${name}`
+                : 'Supprimer ce lieu';
+            this.deleteButton.setAttribute('aria-label', label);
+        }
+
         this.populateForm();
         this.resetErrors();
         this.updateImagePreview();
@@ -380,6 +409,11 @@ export class LocationEditor {
         if (this.boundKeyHandler) {
             document.removeEventListener('keydown', this.boundKeyHandler);
             this.boundKeyHandler = null;
+        }
+        if (this.deleteButton) {
+            this.deleteButton.disabled = true;
+            this.deleteButton.hidden = true;
+            this.deleteButton.removeAttribute('aria-label');
         }
         this.isOpen = false;
         this.currentContext = null;
@@ -871,6 +905,29 @@ export class LocationEditor {
         element.addEventListener('dragover', onDragOver);
         element.addEventListener('dragleave', onDragLeave);
         element.addEventListener('drop', onDrop);
+    }
+
+    handleDelete() {
+        if (this.mode !== 'edit' || !this.currentContext) {
+            return;
+        }
+        const originalName = this.currentContext.originalName || '';
+        const confirmation = buildDeleteConfirmation(originalName);
+        let confirmed = true;
+        if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+            confirmed = window.confirm(confirmation);
+        }
+        if (!confirmed) {
+            return;
+        }
+        if (typeof this.callbacks.onDelete === 'function') {
+            this.callbacks.onDelete({
+                continent: this.currentContext.continent || '',
+                originalContinent: this.currentContext.continent || '',
+                originalName: originalName
+            });
+        }
+        this.close();
     }
 
     validateVideos() {

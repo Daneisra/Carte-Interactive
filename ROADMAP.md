@@ -39,14 +39,14 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 
 ### Edition in-app
 - Support de l'upload (clic ou glisser-deposer) pour les images et fichiers audio depuis l'editeur, avec copie automatique dans `assets/images/` et `assets/audio/`. ✅
-- Mettre en place la validation et le renommage automatique des fichiers importes (taille, extension, slug).
+- Mettre en place la validation et le renommage automatique des fichiers importes (taille, extension, slug). ✅
+- Dans "Modifier un lieu" ajouter la possibilités de supprimer un lieu. ✅
 
 ## 4. Initiatives moyen terme (H1 2026)
 - **Edition in-app des lieux** : finaliser le workflow (upload medias, validations avancees, audit/logs).
 - Connecter les enregistrements a une couche persistante distante (API/export) pour synchronisation et sauvegarde.
-- **Internationalisation** : support multi-langues, extraction des libelles restants et chargement dynamique des locales.
-- **Architecture UI modulaire** : decouper `UiController` en sous-modules testables, couverture unitaire ciblee.
 - **Experience collaborative** : definir des roles admin/utilisateur (admins ajoutent/modifient, utilisateurs explorent/favorisent) et preparer une API CRUD securisee (lieux/PNJ/quetes).
+- **Architecture UI modulaire** : decouper `UiController` en sous-modules testables, couverture unitaire ciblee.
 
 ## 5. Risques & parades
 - **Volume de données croissant** : prévoir pagination côté backend ou moteur de recherche dédié.

@@ -1,7 +1,8 @@
 /* Location editor overlay */
 .primary-button,
 .secondary-button,
-.tertiary-button {
+.tertiary-button,
+.danger-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -57,6 +58,28 @@ body[data-theme="light"] .secondary-button:focus-visible {
 .tertiary-button:hover,
 .tertiary-button:focus-visible {
     background: rgba(165, 180, 252, 0.15);
+}
+
+.danger-button {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fef2f2;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.35);
+}
+
+.danger-button:hover,
+.danger-button:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(220, 38, 38, 0.45);
+}
+
+body[data-theme="light"] .danger-button {
+    background: linear-gradient(135deg, #f87171, #dc2626);
+    color: #fff1f1;
+}
+
+body[data-theme="light"] .danger-button:hover,
+body[data-theme="light"] .danger-button:focus-visible {
+    box-shadow: 0 10px 24px rgba(248, 113, 113, 0.45);
 }
 
 #add-location {
