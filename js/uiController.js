@@ -37,23 +37,98 @@ const clusteringIcon = clustered => clustered
 const clusteringEmptyIcon = () => localized('clustering.iconEmpty', '-');
 const CLUSTERING_TOOLTIP_SEPARATOR = ' - ';
 
-const cloneLocationsData = source => {
-    if (!source) {
-        return {};
+const sanitizeString = value => (value ?? '').toString().trim();
+
+const collectTextArray = value => {
+    if (Array.isArray(value)) {
+        return value.map(sanitizeString).filter(Boolean);
     }
-    if (typeof structuredClone === 'function') {
-        try {
-            return structuredClone(source);
-        } catch (error) {
-            // ignore and fallback
-        }
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed ? [trimmed] : [];
     }
-    try {
-        return JSON.parse(JSON.stringify(source));
-    } catch (error) {
-        return {};
-    }
+    return [];
 };
+
+const normalizeVideoList = videos => {
+    if (!Array.isArray(videos)) {
+        return [];
+    }
+    return videos
+        .map(video => ({
+            url: sanitizeString(video?.url),
+            title: sanitizeString(video?.title)
+        }))
+        .filter(video => video.url);
+};
+
+const normalizePnjList = pnjs => {
+    if (!Array.isArray(pnjs)) {
+        return [];
+    }
+    return pnjs
+        .map(pnj => ({
+            name: sanitizeString(pnj?.name),
+            role: sanitizeString(pnj?.role),
+            description: sanitizeString(pnj?.description)
+        }))
+        .filter(pnj => pnj.name);
+};
+
+const normalizeLocation = raw => {
+    const location = raw || {};
+    const normalized = {
+        name: sanitizeString(location.name),
+        type: sanitizeString(location.type) || 'default',
+        x: Number.isFinite(Number(location.x)) ? Number(location.x) : 0,
+        y: Number.isFinite(Number(location.y)) ? Number(location.y) : 0,
+        description: sanitizeString(location.description),
+        audio: sanitizeString(location.audio),
+        images: Array.isArray(location.images)
+            ? location.images.map(sanitizeString).filter(Boolean)
+            : [],
+        videos: normalizeVideoList(location.videos),
+        history: collectTextArray(location.history),
+        quests: collectTextArray(location.quests),
+        lore: collectTextArray(location.lore),
+        pnjs: normalizePnjList(location.pnjs)
+    };
+    return normalized;
+};
+
+const normalizeDataset = source => {
+    const result = {};
+    if (!source || typeof source !== 'object') {
+        return result;
+    }
+    Object.entries(source).forEach(([continent, places]) => {
+        const key = sanitizeString(continent);
+        if (!key) {
+            return;
+        }
+        const list = Array.isArray(places) ? places.map(normalizeLocation) : [];
+        result[key] = list;
+    });
+    return result;
+};
+
+const serializeTextGroup = value => {
+    const list = collectTextArray(value);
+    if (!list.length) {
+        return '';
+    }
+    if (list.length === 1) {
+        return list[0];
+    }
+    return list;
+};
+
+const serializeVideos = videos => normalizeVideoList(videos).map(video => ({
+    url: video.url,
+    title: video.title
+}));
+
+const serializePnjs = pnjs => normalizePnjList(pnjs);
 
 const isInteractiveTextField = element => {
     if (!element) {
@@ -448,7 +523,7 @@ export class UiController {
     initialize({ typeData, locationsData }) {
         this.typeData = typeData || {};
         this.mapController.setTypeData(this.typeData);
-        this.locationsData = cloneLocationsData(locationsData || {});
+        this.locationsData = normalizeDataset(locationsData || {});
 
         this.applyLocalization();
         this.themeManager.initialize();
@@ -590,6 +665,68 @@ export class UiController {
         this.updateEditButton(null);
     }
 
+    sortStateDataset() {
+        const sorted = {};
+        Object.keys(this.locationsData || {})
+            .sort((a, b) => sanitizeString(a).localeCompare(sanitizeString(b), 'fr', { sensitivity: 'base' }))
+            .forEach(continent => {
+                const entries = Array.isArray(this.locationsData[continent]) ? this.locationsData[continent] : [];
+                const ordered = [...entries].sort((a, b) => sanitizeString(a.name).localeCompare(sanitizeString(b.name), 'fr', { sensitivity: 'base' }));
+                sorted[continent] = ordered;
+            });
+        this.locationsData = sorted;
+    }
+
+    prepareLocationForPersist(location) {
+        const normalized = normalizeLocation(location);
+        return {
+            name: normalized.name,
+            type: normalized.type,
+            x: Math.round(normalized.x) || 0,
+            y: Math.round(normalized.y) || 0,
+            description: normalized.description,
+            images: normalized.images,
+            videos: serializeVideos(normalized.videos),
+            audio: normalized.audio || '',
+            history: serializeTextGroup(normalized.history),
+            quests: serializeTextGroup(normalized.quests),
+            lore: serializeTextGroup(normalized.lore),
+            pnjs: serializePnjs(normalized.pnjs)
+        };
+    }
+
+    prepareLocationsForPersist(dataset) {
+        const result = {};
+        Object.keys(dataset || {})
+            .sort((a, b) => sanitizeString(a).localeCompare(sanitizeString(b), 'fr', { sensitivity: 'base' }))
+            .forEach(continent => {
+                const entries = Array.isArray(dataset[continent]) ? dataset[continent] : [];
+                const ordered = [...entries].sort((a, b) => sanitizeString(a.name).localeCompare(sanitizeString(b.name), 'fr', { sensitivity: 'base' }));
+                result[continent] = ordered.map(entry => this.prepareLocationForPersist(entry));
+            });
+        return result;
+    }
+
+    async persistLocations() {
+        try {
+            const payload = this.prepareLocationsForPersist(this.locationsData);
+            const response = await fetch('/api/locations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ locations: payload })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            console.info('Sauvegarde des lieux terminée.');
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde des lieux :', error);
+            if (this.announcer) {
+                this.announcer.assertive('Erreur lors de la sauvegarde des données.');
+            }
+        }
+    }
+
     buildSidebar(locationsByContinent) {
         this.mapController.clearEntries();
         this.entries = [];
@@ -622,19 +759,20 @@ export class UiController {
 
     collectExistingNames(exceptName = null) {
         const names = [];
+        const except = exceptName ? sanitizeString(exceptName).toLowerCase() : null;
         Object.values(this.locationsData || {}).forEach(list => {
             if (!Array.isArray(list)) {
                 return;
             }
             list.forEach(location => {
-                if (!location?.name) {
+                const normalizedName = sanitizeString(location?.name).toLowerCase();
+                if (!normalizedName) {
                     return;
                 }
-                const normalized = location.name.toLowerCase();
-                if (exceptName && normalized === exceptName.toLowerCase()) {
+                if (except && normalizedName === except) {
                     return;
                 }
-                names.push(normalized);
+                names.push(normalizedName);
             });
         });
         return names;
@@ -671,23 +809,34 @@ export class UiController {
         if (!location) {
             return;
         }
-        const target = (continent || '').trim() || 'Divers';
+        const normalized = normalizeLocation(location);
+        if (!normalized.name) {
+            console.warn('Impossible de créer un lieu sans nom.');
+            return;
+        }
+        const target = sanitizeString(continent) || 'Divers';
         if (!Array.isArray(this.locationsData[target])) {
             this.locationsData[target] = [];
         }
-        this.locationsData[target].push(location);
-        this.refreshLocations({ focusName: location.name });
+        this.locationsData[target].push(normalized);
+        this.refreshLocations({ focusName: normalized.name });
+        this.persistLocations();
     }
 
     handleUpdateLocation({ continent, location, originalContinent, originalName }) {
         if (!location) {
             return;
         }
-        const currentName = originalName || '';
-        const source = (originalContinent || '').trim() || 'Divers';
-        const target = (continent || '').trim() || 'Divers';
+        const normalized = normalizeLocation(location);
+        if (!normalized.name) {
+            console.warn('Impossible de mettre à jour un lieu sans nom.');
+            return;
+        }
+        const currentName = sanitizeString(originalName);
+        const source = sanitizeString(originalContinent) || 'Divers';
+        const target = sanitizeString(continent) || 'Divers';
         const sourceList = Array.isArray(this.locationsData[source]) ? this.locationsData[source] : [];
-        const index = sourceList.findIndex(item => item?.name === currentName);
+        const index = sourceList.findIndex(item => sanitizeString(item?.name) === currentName);
         if (index !== -1) {
             sourceList.splice(index, 1);
         }
@@ -695,24 +844,26 @@ export class UiController {
         if (!Array.isArray(this.locationsData[target])) {
             this.locationsData[target] = [];
         }
-        this.locationsData[target].push(location);
+        this.locationsData[target].push(normalized);
         if (!this.locationsData[source].length && source !== target) {
             delete this.locationsData[source];
         }
-        if (currentName && location.name && currentName !== location.name) {
+        if (currentName && normalized.name && currentName !== normalized.name) {
             if (this.state.hasFavorite(currentName)) {
                 this.state.removeFavorite(currentName);
-                this.state.addFavorite(location.name);
+                this.state.addFavorite(normalized.name);
                 this.preferences?.setFavorites?.(this.state.getFavorites());
             }
             if (this.preferences?.getLastLocation?.() === currentName) {
-                this.preferences.setLastLocation(location.name);
+                this.preferences.setLastLocation(normalized.name);
             }
         }
-        this.refreshLocations({ focusName: location.name });
+        this.refreshLocations({ focusName: normalized.name });
+        this.persistLocations();
     }
 
     refreshLocations({ focusName } = {}) {
+        this.sortStateDataset();
         this.buildSidebar(this.locationsData);
         this.state.sidebarView = 'all';
         this.applyFilters();

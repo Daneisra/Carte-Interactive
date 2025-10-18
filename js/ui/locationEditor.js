@@ -251,8 +251,8 @@ export class LocationEditor {
         this.mode = mode;
         this.disallowedNames = new Set(
             (Array.isArray(disallowedNames) ? disallowedNames : [])
+                .map(name => (name ?? '').toString().trim().toLowerCase())
                 .filter(Boolean)
-                .map(name => name.toLowerCase())
         );
         this.currentContext = {
             location: copyLocation(location),

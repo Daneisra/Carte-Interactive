@@ -297,19 +297,6 @@ body[data-theme="light"] .editor-actions {
     font-size: 15px;
 }
 
-.editor-content\::-webkit-scrollbar {
-    width: 8px;
-}
-
-.editor-content\::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.35);
-    border-radius: 12px;
-}
-
-.editor-content\::-webkit-scrollbar-track {
-    background: transparent;
-}
-
 .editor-content::-webkit-scrollbar {
     width: 8px;
 }

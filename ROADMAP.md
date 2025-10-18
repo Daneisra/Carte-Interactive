@@ -38,8 +38,8 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 
 ## 4. Initiatives moyen terme (H1 2026)
 - **Édition in-app des lieux** : création/modification directe, validations temps réel, prévisualisation des médias. ✅
+- ajout des lieux via éditeur directement dans location.json avec trie automatique selon continent. ✅
 - Connectez les événements d'enregistrement de l'éditeur à une couche persistante (API/exportation locale) afin que les nouveaux lieux soient conservés après le rechargement de la page.
-- ajout des lieux via éditeur directement dans location.json avec trie automatique selon continent.
 
 - **Internationalisation** : support multi-langues, extraction des libellés restants et chargement dynamique des locales.
 - **Architecture UI modulaire** : découper `UiController` en sous-modules testables, couverture unitaire ciblée.
