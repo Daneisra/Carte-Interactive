@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
@@ -14,6 +15,11 @@ const IMAGES_DIR = path.join(ASSETS_PATH, 'images');
 const AUDIO_DIR = path.join(ASSETS_PATH, 'audio');
 const AUDIT_DIR = path.join(ASSETS_PATH, 'logs');
 const AUDIT_FILE = path.join(AUDIT_DIR, 'locations-audit.jsonl');
+const REMOTE_SYNC_URL = (process.env.REMOTE_SYNC_URL || '').trim();
+const REMOTE_SYNC_TOKEN = (process.env.REMOTE_SYNC_TOKEN || '').trim();
+const rawRemoteSyncMethod = (process.env.REMOTE_SYNC_METHOD || 'POST').trim().toUpperCase();
+const REMOTE_SYNC_METHOD = ['POST', 'PUT', 'PATCH'].includes(rawRemoteSyncMethod) ? rawRemoteSyncMethod : 'POST';
+const REMOTE_SYNC_TIMEOUT = Math.max(0, Number(process.env.REMOTE_SYNC_TIMEOUT) || 7000);
 const MAX_UPLOAD_SIZE = 15 * 1024 * 1024;
 
 const MIME_TYPES = {
@@ -108,6 +114,7 @@ const UPLOAD_RULES = {
 const IMAGE_EXTENSIONS = new Set(UPLOAD_RULES.image.extensions);
 const AUDIO_EXTENSIONS = new Set(UPLOAD_RULES.audio.extensions);
 let cachedTypes = null;
+const canSyncRemote = REMOTE_SYNC_URL.length > 0 && REMOTE_SYNC_METHOD.length;
 
 const loadTypeMap = async () => {
   if (cachedTypes) {
@@ -455,6 +462,66 @@ const appendAuditLog = async ({ dataset, diff }) => {
   }
 };
 
+const sendRemoteSync = async ({ dataset, diff }) => {
+  if (!canSyncRemote) {
+    return { status: 'skipped' };
+  }
+  try {
+    const target = new URL(REMOTE_SYNC_URL);
+    const transport = target.protocol === 'https:' ? https : http;
+    const body = JSON.stringify({
+      timestamp: new Date().toISOString(),
+      locations: dataset,
+      diff
+    });
+    const headers = {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(body)
+    };
+    if (REMOTE_SYNC_TOKEN) {
+      headers.Authorization = `Bearer ${REMOTE_SYNC_TOKEN}`;
+    }
+    const options = {
+      method: REMOTE_SYNC_METHOD,
+      hostname: target.hostname,
+      port: target.port || (target.protocol === 'https:' ? 443 : 80),
+      path: `${target.pathname}${target.search}`,
+      headers,
+      timeout: REMOTE_SYNC_TIMEOUT
+    };
+
+    return await new Promise(resolve => {
+      const request = transport.request(options, response => {
+        let responseBody = '';
+        response.on('data', chunk => {
+          responseBody += chunk;
+        });
+        response.on('end', () => {
+          if (response.statusCode >= 200 && response.statusCode < 300) {
+            resolve({ status: 'ok', statusCode: response.statusCode });
+          } else {
+            resolve({
+              status: 'error',
+              statusCode: response.statusCode,
+              body: responseBody
+            });
+          }
+        });
+      });
+      request.on('timeout', () => {
+        request.destroy(new Error('timeout'));
+      });
+      request.on('error', error => {
+        resolve({ status: 'error', error: error.message });
+      });
+      request.write(body);
+      request.end();
+    });
+  } catch (error) {
+    return { status: 'error', error: error.message };
+  }
+};
+
 const collectBody = req => new Promise((resolve, reject) => {
   let body = '';
   req.on('data', chunk => {
@@ -511,11 +578,12 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (!data || typeof data !== 'object' || typeof data.locations !== 'object') {
-        send(res, 400, JSON.stringify({ status: 'error', errors: ['Payload must contain a \"locations\" object.'] }), { 'Content-Type': 'application/json' });
+        send(res, 400, JSON.stringify({ status: 'error', errors: ['Payload must contain a "locations" object.'] }), { 'Content-Type': 'application/json' });
         return;
       }
 
-      const validation = await validateLocationsDataset(data.locations);
+      const dataset = data.locations;
+      const validation = await validateLocationsDataset(dataset);
       if (!validation.valid) {
         const errors = validation.errors.slice(0, 50);
         send(res, 400, JSON.stringify({ status: 'error', errors }), { 'Content-Type': 'application/json' });
@@ -523,10 +591,15 @@ const server = http.createServer(async (req, res) => {
       }
 
       const previous = await readLocationsFile();
-      const diff = computeLocationsDiff(previous, data.locations);
+      const diff = computeLocationsDiff(previous, dataset);
 
-      await persistLocations(data.locations);
-      await appendAuditLog({ dataset: data.locations, diff });
+      await persistLocations(dataset);
+      await appendAuditLog({ dataset, diff });
+      const syncResult = await sendRemoteSync({ dataset, diff });
+      if (syncResult.status === 'error') {
+        const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
+        console.error('[sync] remote export failed', details);
+      }
 
       send(res, 200, JSON.stringify({
         status: 'ok',
@@ -534,7 +607,12 @@ const server = http.createServer(async (req, res) => {
           created: diff.created.length,
           updated: diff.updated.length,
           deleted: diff.deleted.length
-        }
+        },
+        sync: syncResult.status,
+        syncStatusCode: syncResult.statusCode ?? null,
+        syncError: syncResult.status === 'error'
+          ? ((syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`)
+          : null
       }), { 'Content-Type': 'application/json' });
       return;
     }

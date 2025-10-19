@@ -16,28 +16,29 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Historique de navigation opérationnel et scripts d’assainissement (`tools/validate_assets.py`).
 - Upload direct d'images et d'audio depuis l'editeur (clic ou glisser-deposer) avec copie automatique dans `assets/images/` et `assets/audio/`.
 - Validation/renommage automatique des fichiers importes (taille, extension, slug) et suppression d'un lieu depuis l'editeur.
+- Synchronisation distante optionnelle : export JSON vers un endpoint configurable (REMOTE_SYNC_URL) avec audit JSONL.
 
 ## 3. Priorités immédiates (fin 2025)
 
 
 ### UX & Accessibilité
-- Compléter les contrôles ARIA, libellés et annonces vocales (navigation clavier exhaustive). ✅
-- Finaliser le responsive < 1024 px : layout mobile, repositionnement des contrôles et gestuelles tactiles. ✅
-- Ajouter une aide contextuelle (infobulles ou onboarding léger) pour les favoris et le clustering. ✅
-- Obtention des coordonées x et y en px via clique sur la carte et résultat afficher dans la console du navigateur. ✅
-- Ajouter un outil de mesure des distances (conversion pixels → kilomètres) pour faciliter l’estimation des trajets. ✅
-- Ajouter un outil d'obtention des coordonnées à côté de l'outil de mesure des distances. ✅
+- [x] Compléter les contrôles ARIA, libellés et annonces vocales (navigation clavier exhaustive).
+- [x] Finaliser le responsive < 1024 px : layout mobile, repositionnement des contrôles et gestuelles tactiles.
+- [x] Ajouter une aide contextuelle (infobulles ou onboarding léger) pour les favoris et le clustering.
+- [x] Obtention des coordonées x et y en px via clique sur la carte et résultat afficher dans la console du navigateur.
+- [x] Ajouter un outil de mesure des distances (conversion pixels → kilomètres) pour faciliter l’estimation des trajets.
+- [x] Ajouter un outil d'obtention des coordonnées à côté de l'outil de mesure des distances.
 
 ### Qualité des données
-- Étendre le pipeline `tools/validate_assets.py` : vérification des images/audio manquants, cohérence des PNJ et quêtes. ✅
-- Introduire la gestion officielle des titres vidéo dans `assets/locations.json` avec harmonisation des champs. ✅
-- Préparer des jeux d’essai allégés pour la recette et les tests automatisés. ✅
+- [x] Étendre le pipeline `tools/validate_assets.py` : vérification des images/audio manquants, cohérence des PNJ et quêtes.
+- [x] Introduire la gestion officielle des titres vidéo dans `assets/locations.json` avec harmonisation des champs.
+- [x] Préparer des jeux d’essai allégés pour la recette et les tests automatisés.
 
 ### Industrialisation
-- Ajouter une batterie de tests UI (Playwright/Cypress) couvrant la sélection de lieux, le clustering et la galerie média. ✅
-- Mettre en place un workflow CI (GitHub Actions) pour lint, build statique et validation des données. ✅
-- Corriger les encodages UTF-8 des données (ex. Nikaïus). ✅
-- Instrumenter les performances (logs ou métriques) autour du cluster et du chargement initial. ✅
+- [x] Ajouter une batterie de tests UI (Playwright/Cypress) couvrant la sélection de lieux, le clustering et la galerie média.
+- [x] Mettre en place un workflow CI (GitHub Actions) pour lint, build statique et validation des données.
+- [x] Corriger les encodages UTF-8 des données (ex. Nikaïus).
+- [x] Instrumenter les performances (logs ou métriques) autour du cluster et du chargement initial.
 
 ### Edition in-app
 - [x] Support de l'upload (clic ou glisser-deposer) pour les images et fichiers audio depuis l'editeur, avec copie automatique dans `assets/images/` et `assets/audio/`.
@@ -45,10 +46,11 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - [x] Suppression d'un lieu depuis le mode "Modifier un lieu".
 
 ## 4. Initiatives moyen terme (H1 2026)
-- **Edition in-app des lieux** : finaliser le workflow (upload medias, validations avancees, audit/logs). ✅
-- Connecter les enregistrements a une couche persistante distante (API/export) pour synchronisation et sauvegarde.
+- [x] Connecter les enregistrements a une couche persistante distante (API/export) pour synchronisation et sauvegarde.
+- [x] **Edition in-app des lieux** : finaliser le workflow (upload medias, validations avancees, audit/logs).
 - **Experience collaborative** : definir des roles admin/utilisateur (admins ajoutent/modifient, utilisateurs explorent/favorisent) et preparer une API CRUD securisee (lieux/PNJ/quetes).
 - **Architecture UI modulaire** : decouper `UiController` en sous-modules testables, couverture unitaire ciblee.
+- la configuration du serveur distant reste à fournir
 
 ## 5. Risques & parades
 - **Volume de données croissant** : prévoir pagination côté backend ou moteur de recherche dédié.
