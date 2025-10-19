@@ -18,6 +18,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - Validation/renommage automatique des fichiers importes (taille, extension, slug) et suppression d'un lieu depuis l'editeur.
 - Synchronisation distante optionnelle : export JSON vers un endpoint configurable (REMOTE_SYNC_URL) avec audit JSONL.
 - Authentification Discord (OAuth2) avec sessions signees et interface de connexion/deconnexion.
+- Base utilisateurs/roles (JSON) avec API d'administration (GET/POST/PATCH/DELETE) pour la gestion des comptes.
 
 ## 3. Priorites immediates (fin 2025)
 
@@ -54,7 +55,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [x] Authentification OAuth (Discord) cote serveur
 - [x] Gestion des sessions cote serveur (cookies signes, maintien deroles)
 - [x] Interface de connexion (login/logout, affichage du profil)
-- [ ] Migration des routes REST vers une base utilisateurs/roles
+- [x] Migration des routes REST vers une base utilisateurs/roles
 - **Architecture UI modulaire** : decouper `UiController` en sous-modules testables, couverture unitaire ciblee.
 
 ## 5. Risques & parades

@@ -41,6 +41,7 @@ const IMAGES_DIR = path.join(ASSETS_PATH, 'images');
 const AUDIO_DIR = path.join(ASSETS_PATH, 'audio');
 const AUDIT_DIR = path.join(ASSETS_PATH, 'logs');
 const AUDIT_FILE = path.join(AUDIT_DIR, 'locations-audit.jsonl');
+const USERS_FILE = path.join(ASSETS_PATH, 'users.json');
 const REMOTE_SYNC_URL = (process.env.REMOTE_SYNC_URL || '').trim();
 const REMOTE_SYNC_TOKEN = (process.env.REMOTE_SYNC_TOKEN || '').trim();
 const rawRemoteSyncMethod = (process.env.REMOTE_SYNC_METHOD || 'POST').trim().toUpperCase();
@@ -301,33 +302,35 @@ const extractBearerToken = req => {
   return null;
 };
 
-const resolveRoleFromToken = token => {
+const ensureAuthorized = async (req, res, minimumRole = 'user') => {
   if (!authRequired) {
-    return 'admin';
-  }
-  if (!token) {
-    return null;
-  }
-  if (ADMIN_API_TOKEN && token === ADMIN_API_TOKEN) {
-    return 'admin';
-  }
-  if (USER_API_TOKENS.includes(token)) {
-    return 'user';
-  }
-  return null;
-};
-
-const ensureAuthorized = (req, res, minimumRole = 'user') => {
-  if (!authRequired) {
+    req.auth = { role: 'admin' };
     return 'admin';
   }
   let role = null;
+  let userRecord = null;
   const session = getSession(req);
-  if (session?.data?.role) {
-    role = session.data.role;
-  } else {
-    const token = extractBearerToken(req);
-    role = resolveRoleFromToken(token);
+  if (session?.data?.userId) {
+    const persisted = await findUserById(session.data.userId);
+    if (persisted) {
+      role = sanitizeRole(persisted.role);
+      userRecord = persisted;
+      sessionStore.set(session.sessionId, { ...session.data, role, username: persisted.username, expiresAt: session.data.expiresAt });
+    } else {
+      destroySession(req);
+    }
+  } else if (session?.data?.role) {
+    role = sanitizeRole(session.data.role);
+    if (session?.data?.username) {
+      userRecord = { username: session.data.username, role };
+    }
+  }
+  if (!role) {
+    const tokenResult = await resolveTokenUser(extractBearerToken(req));
+    if (tokenResult) {
+      role = tokenResult.role;
+      userRecord = tokenResult.user || null;
+    }
   }
   if (!role) {
     send(res, 401, JSON.stringify({ status: 'error', message: 'Authorization required.' }), { 'Content-Type': 'application/json' });
@@ -337,9 +340,7 @@ const ensureAuthorized = (req, res, minimumRole = 'user') => {
     send(res, 403, JSON.stringify({ status: 'error', message: 'Insufficient privileges.' }), { 'Content-Type': 'application/json' });
     return null;
   }
-  if (session?.data) {
-    req.session = session.data;
-  }
+  req.auth = { role, user: userRecord, session: session?.data || null };
   return role;
 };
 
@@ -633,6 +634,186 @@ const flattenLocations = dataset => {
 
 const cloneDataset = dataset => JSON.parse(JSON.stringify(dataset || {}));
 
+const readUsersFile = async () => {
+  try {
+    const raw = await fs.promises.readFile(USERS_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    if (parsed && Array.isArray(parsed.users)) {
+      return parsed.users;
+    }
+  } catch (error) {
+    // ignore, fallback to empty list
+  }
+  return [];
+};
+
+const writeUsersFile = async users => {
+  const directory = path.dirname(USERS_FILE);
+  await fs.promises.mkdir(directory, { recursive: true });
+  const json = JSON.stringify(users, null, 2) + '\n';
+  await fs.promises.writeFile(USERS_FILE, json, 'utf-8');
+};
+
+const sanitizeRole = value => (value && value.toLowerCase() === 'admin') ? 'admin' : 'user';
+
+const sanitizeUserRecord = user => ({
+  id: user?.id || '',
+  provider: user?.provider || 'manual',
+  discordId: user?.provider === 'discord' ? user.discordId || null : null,
+  username: user?.username || '',
+  role: sanitizeRole(user?.role || 'user'),
+  apiTokens: Array.isArray(user?.apiTokens) && user?.provider !== 'discord' ? [...user.apiTokens] : undefined
+});
+
+const findUserById = async id => {
+  const users = await readUsersFile();
+  return users.find(user => user.id === id) || null;
+};
+
+const findUserByDiscordId = async discordId => {
+  const users = await readUsersFile();
+  return users.find(user => user.provider === 'discord' && user.discordId === discordId) || null;
+};
+
+const resolveTokenUser = async token => {
+  if (!token) {
+    return null;
+  }
+  const users = await readUsersFile();
+  for (const user of users) {
+    if (Array.isArray(user.apiTokens) && user.apiTokens.includes(token)) {
+      return { user, role: sanitizeRole(user.role) };
+    }
+  }
+  if (ADMIN_API_TOKEN && token === ADMIN_API_TOKEN) {
+    return { user: null, role: 'admin' };
+  }
+  if (USER_API_TOKENS.includes(token)) {
+    return { user: null, role: 'user' };
+  }
+  return null;
+};
+
+const updateSessionsForUser = (userId, updates = {}) => {
+  sessionStore.forEach((record, key) => {
+    if (record.userId === userId) {
+      sessionStore.set(key, { ...record, ...updates });
+    }
+  });
+};
+
+const destroySessionsForUser = userId => {
+  sessionStore.forEach((record, key) => {
+    if (record.userId === userId) {
+      sessionStore.delete(key);
+    }
+  });
+};
+
+const createManualUser = async ({ username = '', role = 'user', token = null }) => {
+  const users = await readUsersFile();
+  const id = `manual:${crypto.randomUUID()}`;
+  const apiToken = token && token.trim() ? token.trim() : crypto.randomBytes(24).toString('hex');
+  const user = {
+    id,
+    provider: 'manual',
+    username: username || '',
+    role: sanitizeRole(role),
+    apiTokens: [apiToken]
+  };
+  users.push(user);
+  await writeUsersFile(users);
+  return { user, token: apiToken };
+};
+
+const upsertDiscordUser = async ({ discordId, username = '', roleHint = null }) => {
+  const users = await readUsersFile();
+  let user = users.find(entry => entry.provider === 'discord' && entry.discordId === discordId);
+  if (!user) {
+    const shouldBeAdmin = roleHint
+      ? sanitizeRole(roleHint) === 'admin'
+      : DISCORD_ADMIN_IDS.includes(discordId) || users.length === 0;
+    user = {
+      id: `discord:${discordId}`,
+      provider: 'discord',
+      discordId,
+      username: username || '',
+      role: shouldBeAdmin ? 'admin' : 'user',
+      apiTokens: []
+    };
+    users.push(user);
+  } else {
+    if (username && user.username !== username) {
+      user.username = username;
+    }
+    if (roleHint) {
+      const sanitized = sanitizeRole(roleHint);
+      if (sanitized !== user.role) {
+        user.role = sanitized;
+      }
+    }
+  }
+  await writeUsersFile(users);
+  updateSessionsForUser(user.id, { role: user.role, username: user.username });
+  return user;
+};
+
+const updateUser = async (id, { role, username, addToken, removeToken }) => {
+  const users = await readUsersFile();
+  const user = users.find(entry => entry.id === id);
+  if (!user) {
+    return null;
+  }
+  let updated = false;
+  if (role) {
+    const sanitized = sanitizeRole(role);
+    if (sanitized !== user.role) {
+      user.role = sanitized;
+      updated = true;
+    }
+  }
+  if (typeof username === 'string' && username !== user.username) {
+    user.username = username;
+    updated = true;
+  }
+  if (addToken) {
+    if (!Array.isArray(user.apiTokens)) {
+      user.apiTokens = [];
+    }
+    if (!user.apiTokens.includes(addToken)) {
+      user.apiTokens.push(addToken);
+      updated = true;
+    }
+  }
+  if (removeToken && Array.isArray(user.apiTokens)) {
+    const index = user.apiTokens.indexOf(removeToken);
+    if (index !== -1) {
+      user.apiTokens.splice(index, 1);
+      updated = true;
+    }
+  }
+  if (updated) {
+    await writeUsersFile(users);
+    updateSessionsForUser(user.id, { role: user.role, username: user.username });
+  }
+  return user;
+};
+
+const deleteUser = async id => {
+  const users = await readUsersFile();
+  const index = users.findIndex(entry => entry.id === id);
+  if (index === -1) {
+    return null;
+  }
+  const [removed] = users.splice(index, 1);
+  await writeUsersFile(users);
+  destroySessionsForUser(id);
+  return removed;
+};
+
 const computeLocationsDiff = (previous, next) => {
   const before = flattenLocations(previous);
   const after = flattenLocations(next);
@@ -776,7 +957,7 @@ const server = http.createServer(async (req, res) => {
   try {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
     if (req.method === 'POST' && urlObj.pathname === '/api/upload') {
-      if (!ensureAuthorized(req, res, 'admin')) {
+      if (!(await ensureAuthorized(req, res, 'admin'))) {
         return;
       }
       const body = await collectBody(req);
@@ -802,7 +983,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && urlObj.pathname === '/api/locations') {
-      if (!ensureAuthorized(req, res, 'admin')) {
+      if (!(await ensureAuthorized(req, res, 'admin'))) {
         return;
       }
       const body = await collectBody(req);
@@ -855,7 +1036,7 @@ const server = http.createServer(async (req, res) => {
 
     if (urlObj.pathname === '/api/admin/locations') {
       if (req.method === 'GET') {
-        if (!ensureAuthorized(req, res, 'user')) {
+        if (!(await ensureAuthorized(req, res, 'user'))) {
           return;
         }
         const dataset = await readLocationsFile();
@@ -864,7 +1045,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (req.method === 'POST') {
-        if (!ensureAuthorized(req, res, 'admin')) {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
           return;
         }
         const body = await collectBody(req);
@@ -928,7 +1109,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (req.method === 'PATCH' || req.method === 'PUT') {
-        if (!ensureAuthorized(req, res, 'admin')) {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
           return;
         }
         const body = await collectBody(req);
@@ -1005,7 +1186,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (req.method === 'DELETE') {
-        if (!ensureAuthorized(req, res, 'admin')) {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
           return;
         }
         const body = await collectBody(req);
@@ -1164,10 +1345,18 @@ const server = http.createServer(async (req, res) => {
         if (!discordId) {
           throw new Error('Unable to resolve Discord user id.');
         }
-        const isAdmin = DISCORD_ADMIN_IDS.length === 0 || DISCORD_ADMIN_IDS.includes(discordId);
-        const role = isAdmin ? 'admin' : 'user';
         const displayName = userProfile?.global_name || userProfile?.username || '';
-        const signedId = createSession({ role, discordId, username: displayName });
+        const user = await upsertDiscordUser({
+          discordId,
+          username: displayName,
+          roleHint: DISCORD_ADMIN_IDS.length === 0 || DISCORD_ADMIN_IDS.includes(discordId) ? 'admin' : null
+        });
+        const signedId = createSession({
+          userId: user.id,
+          role: user.role,
+          username: user.username || displayName,
+          discordId
+        });
         sendSessionCookie(res, signedId);
         send(res, 302, '', { Location: '/' });
       } catch (error) {
@@ -1181,6 +1370,149 @@ const server = http.createServer(async (req, res) => {
       destroySession(req);
       clearSessionCookie(res);
       send(res, 204, null);
+      return;
+    }
+
+    if (urlObj.pathname === '/api/admin/users') {
+      if (req.method === 'GET') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const users = await readUsersFile();
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          users: users.map(user => sanitizeUserRecord(user))
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      if (req.method === 'POST') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const provider = normalizeString(payload?.provider) || 'manual';
+        if (provider === 'discord') {
+          const discordId = normalizeString(payload?.discordId);
+          if (!discordId) {
+            send(res, 400, JSON.stringify({ status: 'error', message: 'discordId is required.' }), { 'Content-Type': 'application/json' });
+            return;
+          }
+          const existing = await findUserByDiscordId(discordId);
+          if (existing) {
+            send(res, 409, JSON.stringify({ status: 'error', message: 'Discord user already exists.' }), { 'Content-Type': 'application/json' });
+            return;
+          }
+          const user = await upsertDiscordUser({
+            discordId,
+            username: normalizeString(payload?.username),
+            roleHint: sanitizeRole(payload?.role || 'user')
+          });
+          send(res, 201, JSON.stringify({
+            status: 'ok',
+            user: sanitizeUserRecord(user)
+          }), { 'Content-Type': 'application/json' });
+          return;
+        }
+
+        const { user, token } = await createManualUser({
+          username: normalizeString(payload?.username),
+          role: sanitizeRole(payload?.role || 'user'),
+          token: payload?.token
+        });
+        send(res, 201, JSON.stringify({
+          status: 'ok',
+          user: sanitizeUserRecord(user),
+          token
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      if (req.method === 'PATCH' || req.method === 'PUT') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const id = normalizeString(payload?.id);
+        if (!id) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'id is required.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const updates = {};
+        if (payload?.role) {
+          updates.role = sanitizeRole(payload.role);
+        }
+        if (typeof payload?.username === 'string') {
+          updates.username = payload.username;
+        }
+        let generatedToken = null;
+        if (payload?.generateToken) {
+          generatedToken = crypto.randomBytes(24).toString('hex');
+          updates.addToken = generatedToken;
+        }
+        if (payload?.removeToken) {
+          updates.removeToken = payload.removeToken;
+        }
+        const user = await updateUser(id, updates);
+        if (!user) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'User not found.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const response = {
+          status: 'ok',
+          user: sanitizeUserRecord(user)
+        };
+        if (generatedToken) {
+          response.token = generatedToken;
+        }
+        send(res, 200, JSON.stringify(response), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      if (req.method === 'DELETE') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const id = normalizeString(payload?.id);
+        if (!id) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'id is required.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const removed = await deleteUser(id);
+        if (!removed) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'User not found.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          removed: sanitizeUserRecord(removed)
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET,POST,PATCH,PUT,DELETE' });
       return;
     }
 
