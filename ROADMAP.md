@@ -14,6 +14,8 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Mode sombre/clair persistant, réglage taille des marqueurs, favoris et bouton “Lieu aléatoire”.
 - Editeur in-app : creation/modification d'un lieu avec sauvegarde directe dans `assets/locations.json` (tri auto par continent/nom).
 - Historique de navigation opérationnel et scripts d’assainissement (`tools/validate_assets.py`).
+- Upload direct d'images et d'audio depuis l'editeur (clic ou glisser-deposer) avec copie automatique dans `assets/images/` et `assets/audio/`.
+- Validation/renommage automatique des fichiers importes (taille, extension, slug) et suppression d'un lieu depuis l'editeur.
 
 ## 3. Priorités immédiates (fin 2025)
 
@@ -38,12 +40,12 @@ Créer une carte narrative immersive, fiable et maintenable servant à la fois d
 - Instrumenter les performances (logs ou métriques) autour du cluster et du chargement initial. ✅
 
 ### Edition in-app
-- Support de l'upload (clic ou glisser-deposer) pour les images et fichiers audio depuis l'editeur, avec copie automatique dans `assets/images/` et `assets/audio/`. ✅
-- Mettre en place la validation et le renommage automatique des fichiers importes (taille, extension, slug). ✅
-- Dans "Modifier un lieu" ajouter la possibilités de supprimer un lieu. ✅
+- [x] Support de l'upload (clic ou glisser-deposer) pour les images et fichiers audio depuis l'editeur, avec copie automatique dans `assets/images/` et `assets/audio/`.
+- [x] Validation et renommage automatique des fichiers importes (taille, extension, slug).
+- [x] Suppression d'un lieu depuis le mode "Modifier un lieu".
 
 ## 4. Initiatives moyen terme (H1 2026)
-- **Edition in-app des lieux** : finaliser le workflow (upload medias, validations avancees, audit/logs).
+- **Edition in-app des lieux** : finaliser le workflow (upload medias, validations avancees, audit/logs). ✅
 - Connecter les enregistrements a une couche persistante distante (API/export) pour synchronisation et sauvegarde.
 - **Experience collaborative** : definir des roles admin/utilisateur (admins ajoutent/modifient, utilisateurs explorent/favorisent) et preparer une API CRUD securisee (lieux/PNJ/quetes).
 - **Architecture UI modulaire** : decouper `UiController` en sous-modules testables, couverture unitaire ciblee.

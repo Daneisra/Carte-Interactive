@@ -9,8 +9,11 @@ const HOST = process.env.HOST || '127.0.0.1';
 const ROOT = path.resolve(__dirname);
 const ASSETS_PATH = path.join(ROOT, 'assets');
 const LOCATIONS_FILE = path.join(ASSETS_PATH, 'locations.json');
+const TYPES_FILE = path.join(ASSETS_PATH, 'types.json');
 const IMAGES_DIR = path.join(ASSETS_PATH, 'images');
 const AUDIO_DIR = path.join(ASSETS_PATH, 'audio');
+const AUDIT_DIR = path.join(ASSETS_PATH, 'logs');
+const AUDIT_FILE = path.join(AUDIT_DIR, 'locations-audit.jsonl');
 const MAX_UPLOAD_SIZE = 15 * 1024 * 1024;
 
 const MIME_TYPES = {
@@ -102,6 +105,46 @@ const UPLOAD_RULES = {
   }
 };
 
+const IMAGE_EXTENSIONS = new Set(UPLOAD_RULES.image.extensions);
+const AUDIO_EXTENSIONS = new Set(UPLOAD_RULES.audio.extensions);
+let cachedTypes = null;
+
+const loadTypeMap = async () => {
+  if (cachedTypes) {
+    return cachedTypes;
+  }
+  try {
+    const raw = await fs.promises.readFile(TYPES_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    cachedTypes = parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    cachedTypes = {};
+  }
+  return cachedTypes;
+};
+
+const normalizeString = value => (value ?? '').toString().trim();
+
+const isHttpUrl = value => {
+  if (!value || typeof value !== 'string') {
+    return false;
+  }
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
+};
+
+const resolveAssetPath = relative => {
+  const target = path.join(ROOT, relative);
+  if (!target.startsWith(ASSETS_PATH)) {
+    return null;
+  }
+  return target;
+};
+
 const sanitizeFileName = (value, fallback = 'file') => {
   const base = (value || fallback).toString().toLowerCase().replace(/[^a-z0-9._-]/g, '-').replace(/-+/g, '-').replace(/^[-.]+|[-.]+$/g, '');
   return base || fallback;
@@ -153,6 +196,263 @@ const persistUploadedFile = async ({ type, filename, data }) => {
   await fs.promises.writeFile(targetPath, buffer);
   const relative = path.relative(ROOT, targetPath).split(path.sep).join('/');
   return relative;
+};
+
+const readLocationsFile = async () => {
+  try {
+    const raw = await fs.promises.readFile(LOCATIONS_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      return {};
+    }
+    return parsed;
+  } catch (error) {
+    return {};
+  }
+};
+
+const validateLocationsDataset = async dataset => {
+  const errors = [];
+  if (!dataset || typeof dataset !== 'object' || Array.isArray(dataset)) {
+    return { valid: false, errors: ['Le payload \"locations\" doit etre un objet { continent: lieux[] }.'] };
+  }
+  const typeMap = await loadTypeMap();
+  const knownTypes = new Set(Object.keys(typeMap || {}));
+  knownTypes.add('default');
+  const seenNames = new Map();
+  const assetChecks = [];
+
+  Object.entries(dataset).forEach(([continentName, locations]) => {
+    const continent = normalizeString(continentName);
+    if (!continent) {
+      errors.push('Nom de continent manquant ou vide.');
+    }
+    if (!Array.isArray(locations)) {
+      errors.push(`La valeur du continent "${continentName}" doit etre une liste.`);
+      return;
+    }
+    locations.forEach((location, index) => {
+      const context = `${continent || continentName}#${index + 1}`;
+      if (!location || typeof location !== 'object') {
+        errors.push(`Entree invalide pour ${context} (objet attendu).`);
+        return;
+      }
+      const name = normalizeString(location.name);
+      if (!name) {
+        errors.push(`Nom manquant pour ${context}.`);
+      } else {
+        const key = name.toLowerCase();
+        if (seenNames.has(key)) {
+          errors.push(`Nom duplique "${name}" (deja dans ${seenNames.get(key)}).`);
+        } else {
+          seenNames.set(key, context);
+        }
+      }
+
+      const type = normalizeString(location.type) || 'default';
+      if (type !== 'default' && !knownTypes.has(type)) {
+        errors.push(`Type inconnu "${type}" pour ${context}.`);
+      }
+
+      const x = Number(location.x);
+      const y = Number(location.y);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        errors.push(`Coordonnees invalides pour ${context}.`);
+      }
+
+      const audio = normalizeString(location.audio);
+      if (audio) {
+        if (audio.startsWith('assets/')) {
+          const ext = path.extname(audio).toLowerCase();
+          if (!AUDIO_EXTENSIONS.has(ext)) {
+            errors.push(`Extension audio non supportee (${audio}) pour ${context}.`);
+          } else {
+            const resolved = resolveAssetPath(audio);
+            if (!resolved) {
+              errors.push(`Chemin audio hors assets (${audio}) pour ${context}.`);
+            } else {
+              assetChecks.push({ path: resolved, original: audio, context });
+            }
+          }
+        } else if (!isHttpUrl(audio)) {
+          errors.push(`Audio invalide (${audio}) pour ${context}.`);
+        }
+      }
+
+      const images = Array.isArray(location.images) ? location.images : [];
+      if (!Array.isArray(location.images)) {
+        errors.push(`Le champ images doit etre une liste pour ${context}.`);
+      }
+      images.forEach((entry, imageIndex) => {
+        const value = normalizeString(entry);
+        if (!value) {
+          return;
+        }
+        if (value.startsWith('assets/')) {
+          const ext = path.extname(value).toLowerCase();
+          if (!IMAGE_EXTENSIONS.has(ext)) {
+        errors.push(`Extension d'image non supportee (${value}) pour ${context}.`);
+          } else {
+            const resolved = resolveAssetPath(value);
+            if (!resolved) {
+              errors.push(`Chemin image hors assets (${value}) pour ${context}.`);
+            } else {
+              assetChecks.push({ path: resolved, original: value, context });
+            }
+          }
+        } else if (!isHttpUrl(value)) {
+          errors.push(`Image invalide (${value}) pour ${context} [index ${imageIndex + 1}].`);
+        }
+      });
+
+      const videos = Array.isArray(location.videos) ? location.videos : [];
+      if (location.videos && !Array.isArray(location.videos)) {
+        errors.push(`Le champ videos doit etre une liste pour ${context}.`);
+      }
+      videos.forEach((video, videoIndex) => {
+        if (!video || typeof video !== 'object') {
+          errors.push(`Video invalide pour ${context} [index ${videoIndex + 1}].`);
+          return;
+        }
+        const url = normalizeString(video.url);
+        if (url && !isHttpUrl(url) && !url.startsWith('assets/')) {
+          errors.push(`URL video invalide (${url}) pour ${context} [index ${videoIndex + 1}].`);
+        }
+      });
+
+      const ensureArrayOrStringList = (value, field) => {
+        if (!value) {
+          return;
+        }
+        if (Array.isArray(value)) {
+          const hasInvalid = value.some(entry => typeof entry !== 'string');
+          if (hasInvalid) {
+            errors.push(`Le champ ${field} de ${context} doit contenir uniquement des chaines.`);
+          }
+        } else if (typeof value !== 'string') {
+          errors.push(`Le champ ${field} de ${context} doit etre une chaine ou une liste.`);
+        }
+      };
+
+      ensureArrayOrStringList(location.history, 'history');
+      ensureArrayOrStringList(location.quests, 'quests');
+      ensureArrayOrStringList(location.lore, 'lore');
+
+      if (location.pnjs && !Array.isArray(location.pnjs)) {
+        errors.push(`Le champ pnjs doit etre une liste pour ${context}.`);
+      } else if (Array.isArray(location.pnjs)) {
+        location.pnjs.forEach((pnj, pnjIndex) => {
+          if (!pnj || typeof pnj !== 'object') {
+            errors.push(`PNJ invalide pour ${context} [index ${pnjIndex + 1}].`);
+            return;
+          }
+          const pnjName = normalizeString(pnj.name);
+          if (!pnjName) {
+            errors.push(`PNJ sans nom pour ${context} [index ${pnjIndex + 1}].`);
+          }
+        });
+      }
+    });
+  });
+
+  const seenAssetPaths = new Set();
+  for (const asset of assetChecks) {
+    if (seenAssetPaths.has(asset.path)) {
+      continue;
+    }
+    seenAssetPaths.add(asset.path);
+    try {
+      await fs.promises.access(asset.path);
+    } catch (error) {
+      errors.push(`Fichier manquant ${asset.original} reference dans ${asset.context}.`);
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+};
+
+const flattenLocations = dataset => {
+  const map = new Map();
+  Object.entries(dataset || {}).forEach(([continent, list]) => {
+    if (!Array.isArray(list)) {
+      return;
+    }
+    list.forEach(location => {
+      if (!location || typeof location !== 'object') {
+        return;
+      }
+      const name = normalizeString(location.name);
+      if (!name) {
+        return;
+      }
+      const key = `${normalizeString(continent).toLowerCase()}::${name.toLowerCase()}`;
+      map.set(key, {
+        continent: continent,
+        name: location.name,
+        location
+      });
+    });
+  });
+  return map;
+};
+
+const computeLocationsDiff = (previous, next) => {
+  const before = flattenLocations(previous);
+  const after = flattenLocations(next);
+  const created = [];
+  const updated = [];
+  const deleted = [];
+
+  after.forEach((entry, key) => {
+    if (!before.has(key)) {
+      created.push({ continent: entry.continent, name: entry.name });
+      return;
+    }
+    const previousEntry = before.get(key);
+    const beforeSnapshot = JSON.stringify(previousEntry.location);
+    const afterSnapshot = JSON.stringify(entry.location);
+    if (beforeSnapshot !== afterSnapshot) {
+      updated.push({ continent: entry.continent, name: entry.name });
+    }
+  });
+
+  before.forEach((entry, key) => {
+    if (!after.has(key)) {
+      deleted.push({ continent: entry.continent, name: entry.name });
+    }
+  });
+
+  return { created, updated, deleted };
+};
+
+const appendAuditLog = async ({ dataset, diff }) => {
+  try {
+    await fs.promises.mkdir(AUDIT_DIR, { recursive: true });
+    const totalContinents = Object.keys(dataset || {}).length;
+    const totalLocations = Object.values(dataset || {}).reduce(
+      (acc, list) => acc + (Array.isArray(list) ? list.length : 0),
+      0
+    );
+    const summarize = entries => ({
+      count: entries.length,
+      items: entries.slice(0, 10)
+    });
+    const entry = {
+      timestamp: new Date().toISOString(),
+      totals: {
+        continents: totalContinents,
+        locations: totalLocations
+      },
+      changes: {
+        created: summarize(diff.created),
+        updated: summarize(diff.updated),
+        deleted: summarize(diff.deleted)
+      }
+    };
+    await fs.promises.appendFile(AUDIT_FILE, JSON.stringify(entry) + '\n', 'utf-8');
+  } catch (error) {
+    console.error('[audit] unable to append log', error);
+  }
 };
 
 const collectBody = req => new Promise((resolve, reject) => {
@@ -211,11 +511,31 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (!data || typeof data !== 'object' || typeof data.locations !== 'object') {
-        send(res, 400, 'Payload must contain a "locations" object');
+        send(res, 400, JSON.stringify({ status: 'error', errors: ['Payload must contain a \"locations\" object.'] }), { 'Content-Type': 'application/json' });
         return;
       }
+
+      const validation = await validateLocationsDataset(data.locations);
+      if (!validation.valid) {
+        const errors = validation.errors.slice(0, 50);
+        send(res, 400, JSON.stringify({ status: 'error', errors }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      const previous = await readLocationsFile();
+      const diff = computeLocationsDiff(previous, data.locations);
+
       await persistLocations(data.locations);
-      send(res, 200, JSON.stringify({ status: 'ok' }), { 'Content-Type': 'application/json' });
+      await appendAuditLog({ dataset: data.locations, diff });
+
+      send(res, 200, JSON.stringify({
+        status: 'ok',
+        changes: {
+          created: diff.created.length,
+          updated: diff.updated.length,
+          deleted: diff.deleted.length
+        }
+      }), { 'Content-Type': 'application/json' });
       return;
     }
 
