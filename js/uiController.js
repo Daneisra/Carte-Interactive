@@ -183,6 +183,10 @@ export class UiController {
             toggleAll: document.getElementById(toggleAllButtonId),
             resultsBadge: document.getElementById('search-results-count'),
             addLocation: document.getElementById('add-location'),
+            authPanel: document.getElementById('auth-panel'),
+            authStatus: document.getElementById('auth-status'),
+            loginButton: document.getElementById('login-button'),
+            logoutButton: document.getElementById('logout-button'),
             clusteringToggle: document.getElementById('clustering-toggle'),
             clusteringMetrics: document.getElementById('clustering-metrics'),
             markerScaleInput: document.getElementById('marker-size'),
@@ -231,6 +235,9 @@ export class UiController {
             favorites: this.preferences?.getFavorites?.(),
             theme: this.preferences?.getTheme?.()
         });
+
+        this.authRequired = true;
+        this.auth = { authenticated: false, role: 'guest', username: '' };
 
         this.pageSize = PAGE_SIZE;
         this.entries = [];
@@ -532,6 +539,7 @@ export class UiController {
         this.infoPanel.initialize({ onClose: () => this.handlePanelClosed() });
         this.historyManager.initialize({ onSelect: item => this.handleHistorySelect(item) });
         this.filtersManager.initialize();
+        this.bindAuthPanel();
 
         this.bindTabs();
         this.bindToggleAll();
@@ -546,6 +554,7 @@ export class UiController {
 
         this.populateTypeFilterOptions();
         this.setupLocationEditor();
+        this.updateAuthUI();
         this.buildSidebar(this.locationsData);
         this.restoreMapState();
 
@@ -657,11 +666,23 @@ export class UiController {
         });
         this.locationEditor.setTypes(this.typeData);
         if (this.dom.addLocation) {
-            this.dom.addLocation.addEventListener('click', () => this.openCreateLocation());
+            this.dom.addLocation.addEventListener('click', () => {
+                if (!this.isAdmin()) {
+                    this.announcer?.assertive?.('Connexion administrateur requise.');
+                    return;
+                }
+                this.openCreateLocation();
+            });
         }
         if (this.dom.editLocation) {
             this.dom.editLocation.disabled = true;
-            this.dom.editLocation.addEventListener('click', () => this.openEditLocation());
+            this.dom.editLocation.addEventListener('click', () => {
+                if (!this.isAdmin()) {
+                    this.announcer?.assertive?.('Connexion administrateur requise.');
+                    return;
+                }
+                this.openEditLocation();
+            });
         }
         this.updateEditButton(null);
     }
@@ -783,6 +804,10 @@ export class UiController {
         if (!this.locationEditor) {
             return;
         }
+        if (!this.isAdmin()) {
+            this.announcer?.assertive?.('Connexion administrateur requise.');
+            return;
+        }
         const disallowed = this.collectExistingNames();
         this.locationEditor.open({
             mode: 'create',
@@ -794,6 +819,10 @@ export class UiController {
 
     openEditLocation() {
         if (!this.locationEditor || !this.activeEntry) {
+            return;
+        }
+        if (!this.isAdmin()) {
+            this.announcer?.assertive?.('Connexion administrateur requise.');
             return;
         }
         const entry = this.activeEntry;
@@ -926,7 +955,8 @@ export class UiController {
         if (!this.dom.editLocation) {
             return;
         }
-        if (!location) {
+        const isAdmin = this.isAdmin();
+        if (!isAdmin || !location) {
             this.dom.editLocation.disabled = true;
             this.dom.editLocation.setAttribute('aria-label', 'Modifier le lieu');
             return;
@@ -1182,6 +1212,121 @@ export class UiController {
 
         scheduleHeightUpdate();
     }
+    isAdmin() {
+        if (!this.authRequired) {
+            return Boolean(this.auth?.authenticated);
+        }
+        return (this.auth?.role || '').toLowerCase() === 'admin';
+    }
+
+    setAuthState({ authenticated = false, role = 'guest', username = '' } = {}) {
+        if (!this.authRequired) {
+            if (authenticated) {
+                this.auth = { authenticated: true, role: 'admin', username: username || this.auth.username || '' };
+            } else {
+                this.auth = { authenticated: false, role: 'guest', username: '' };
+            }
+        } else {
+            this.auth = {
+                authenticated: Boolean(authenticated),
+                role: (role || 'guest').toLowerCase(),
+                username: username || ''
+            };
+        }
+        this.updateAuthUI();
+    }
+
+    updateAuthUI() {
+        const authenticated = Boolean(this.auth?.authenticated);
+        const isAdmin = this.isAdmin();
+        if (this.dom.authPanel) {
+            const hidePanel = !this.authRequired && authenticated;
+            this.dom.authPanel.hidden = hidePanel;
+        }
+        if (this.dom.authStatus) {
+            if (!this.authRequired) {
+                if (authenticated) {
+                    this.dom.authStatus.textContent = 'Edition locale active.';
+                } else {
+                    this.dom.authStatus.textContent = 'Edition reservee aux administrateurs (Discord non configure).';
+                }
+            } else if (authenticated) {
+                const name = this.auth?.username ? ` (${this.auth.username})` : '';
+                if (isAdmin) {
+                    this.dom.authStatus.textContent = `Connecte en tant qu'administrateur${name}.`;
+                } else {
+                    this.dom.authStatus.textContent = `Connecte en tant qu'utilisateur${name}. Edition reservee aux administrateurs.`;
+                }
+            } else {
+                this.dom.authStatus.textContent = 'Connexion requise pour modifier les lieux.';
+            }
+        }
+        if (this.dom.loginButton) {
+            this.dom.loginButton.hidden = !this.authRequired || authenticated;
+        }
+        if (this.dom.logoutButton) {
+            this.dom.logoutButton.hidden = !this.authRequired || !authenticated;
+        }
+        if (this.dom.addLocation) {
+            this.dom.addLocation.disabled = !isAdmin;
+            this.dom.addLocation.setAttribute('aria-disabled', String(!isAdmin));
+        }
+        if (this.locationEditor?.deleteButton) {
+            this.locationEditor.deleteButton.disabled = !isAdmin;
+            this.locationEditor.deleteButton.hidden = !isAdmin;
+        }
+        this.updateEditButton(this.activeEntry?.location || null);
+    }
+
+    async fetchSession() {
+        if (typeof fetch !== 'function') {
+            this.authRequired = false;
+            this.setAuthState({ authenticated: true, role: 'admin', username: '' });
+            return;
+        }
+        try {
+            const response = await fetch('/auth/session', { credentials: 'include' });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            this.authRequired = payload?.authRequired !== false;
+            const authenticated = Boolean(payload?.authenticated);
+            const role = payload?.role || (authenticated ? 'user' : 'guest');
+            const username = payload?.username || '';
+            this.setAuthState({ authenticated, role, username });
+        } catch (error) {
+            console.error('[auth] session fetch failed', error);
+            this.authRequired = true;
+            this.setAuthState({ authenticated: false, role: 'guest', username: '' });
+        }
+    }
+
+    bindAuthPanel() {
+        if (!this.dom.authPanel) {
+            this.authRequired = false;
+            this.setAuthState({ authenticated: true, role: 'admin', username: '' });
+            return;
+        }
+        if (this.dom.loginButton) {
+            this.dom.loginButton.addEventListener('click', () => {
+                window.location.href = '/auth/discord/login';
+            });
+        }
+        if (this.dom.logoutButton) {
+            this.dom.logoutButton.addEventListener('click', async () => {
+                try {
+                    await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+                } catch (error) {
+                    console.error('[auth] logout failed', error);
+                }
+                await this.fetchSession();
+            });
+        }
+        this.updateAuthUI();
+        this.fetchSession();
+    }
+
     bindTabs() {
         const attach = (button, view) => {
             if (!button) {

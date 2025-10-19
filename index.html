@@ -32,6 +32,12 @@
 
         <button id="add-location" class="primary-button" type="button">Ajouter un lieu</button>
 
+        <div id="auth-panel" class="auth-panel" aria-live="polite">
+            <p id="auth-status" class="auth-status">Connexion requise pour modifier les lieux.</p>
+            <button id="login-button" class="secondary-button" type="button">Connexion Discord</button>
+            <button id="logout-button" class="secondary-button" type="button" hidden>Se déconnecter</button>
+        </div>
+
         <div id="filters-container">
             <select id="type-filter" aria-label="Filtrer par type de lieu">
                 <option value="all">Tous les types</option>

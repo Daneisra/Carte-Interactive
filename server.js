@@ -3,7 +3,33 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { URL } = require('url');
+
+const loadEnvFile = filePath => {
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    content.split(/\r?\n/).forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) {
+        return;
+      }
+      const index = trimmed.indexOf('=');
+      if (index === -1) {
+        return;
+      }
+      const key = trimmed.slice(0, index).trim();
+      const value = trimmed.slice(index + 1).trim();
+      if (!(key in process.env)) {
+        process.env[key] = value;
+      }
+    });
+  } catch (error) {
+    // ignore missing .env
+  }
+};
+
+loadEnvFile(path.join(__dirname, '.env'));
 
 const PORT = process.env.PORT || 4173;
 const HOST = process.env.HOST || '127.0.0.1';
@@ -121,6 +147,145 @@ const USER_API_TOKENS = (process.env.USER_API_TOKENS || '')
   .map(token => token.trim())
   .filter(Boolean);
 const authEnabled = ADMIN_API_TOKEN.length > 0 || USER_API_TOKENS.length > 0;
+const DISCORD_CLIENT_ID = (process.env.DISCORD_CLIENT_ID || '').trim();
+const DISCORD_CLIENT_SECRET = (process.env.DISCORD_CLIENT_SECRET || '').trim();
+const DISCORD_REDIRECT_URI = (process.env.DISCORD_REDIRECT_URI || '').trim();
+const DISCORD_OAUTH_ENABLED = DISCORD_CLIENT_ID.length > 0 && DISCORD_CLIENT_SECRET.length > 0 && DISCORD_REDIRECT_URI.length > 0;
+const DISCORD_ADMIN_IDS = (process.env.DISCORD_ADMIN_IDS || '')
+  .split(',')
+  .map(id => id.trim())
+  .filter(Boolean);
+const authRequired = authEnabled || DISCORD_OAUTH_ENABLED;
+
+const sessionStore = new Map();
+const SESSION_COOKIE_NAME = 'map_session';
+const oauthStateStore = new Map();
+const OAUTH_STATE_TTL_MS = 5 * 60 * 1000;
+const SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.SESSION_TTL_MS) || (12 * 60 * 60 * 1000));
+const SESSION_SECRET = (process.env.SESSION_SECRET || 'dev-secret').padEnd(32, '0');
+
+const parseCookies = header => {
+  if (!header) {
+    return {};
+  }
+  return header.split(';').map(chunk => chunk.trim()).reduce((acc, item) => {
+    if (!item) {
+      return acc;
+    }
+    const idx = item.indexOf('=');
+    if (idx === -1) {
+      return acc;
+    }
+    const key = item.slice(0, idx).trim();
+    const value = decodeURIComponent(item.slice(idx + 1));
+    acc[key] = value;
+    return acc;
+  }, {});
+};
+
+const signSessionId = sessionId => {
+  const hmac = crypto.createHmac('sha256', SESSION_SECRET);
+  hmac.update(sessionId);
+  return `${sessionId}.${hmac.digest('hex')}`;
+};
+
+const verifySessionId = signed => {
+  if (!signed || typeof signed !== 'string') {
+    return null;
+  }
+  const parts = signed.split('.');
+  if (parts.length !== 2) {
+    return null;
+  }
+  const [sessionId, signature] = parts;
+  const hmac = crypto.createHmac('sha256', SESSION_SECRET);
+  hmac.update(sessionId);
+  const expected = hmac.digest('hex');
+  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+    return null;
+  }
+  return sessionId;
+};
+
+const createSession = payload => {
+  const sessionId = crypto.randomUUID();
+  const expiresAt = Date.now() + SESSION_TTL_MS;
+  sessionStore.set(sessionId, { ...payload, expiresAt });
+  return signSessionId(sessionId);
+};
+
+const getSession = req => {
+  const cookies = parseCookies(req.headers?.cookie);
+  const signed = cookies[SESSION_COOKIE_NAME];
+  const sessionId = verifySessionId(signed);
+  if (!sessionId) {
+    return null;
+  }
+  const record = sessionStore.get(sessionId);
+  if (!record) {
+    return null;
+  }
+  if (record.expiresAt <= Date.now()) {
+    sessionStore.delete(sessionId);
+    return null;
+  }
+  record.expiresAt = Date.now() + SESSION_TTL_MS;
+  sessionStore.set(sessionId, record);
+  return { sessionId, data: record };
+};
+
+const destroySession = req => {
+  const cookies = parseCookies(req.headers?.cookie);
+  const signed = cookies[SESSION_COOKIE_NAME];
+  const sessionId = verifySessionId(signed);
+  if (sessionId) {
+    sessionStore.delete(sessionId);
+  }
+};
+
+const sendSessionCookie = (res, signedId) => {
+  const maxAge = Math.floor(SESSION_TTL_MS / 1000);
+  const secure = process.env.COOKIE_SECURE === 'true' ? '; Secure' : '';
+  const cookie = `${SESSION_COOKIE_NAME}=${encodeURIComponent(signedId)}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Lax${secure}`;
+  res.setHeader('Set-Cookie', cookie);
+};
+
+const clearSessionCookie = res => {
+  const secure = process.env.COOKIE_SECURE === 'true' ? '; Secure' : '';
+  res.setHeader('Set-Cookie', `${SESSION_COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${secure}`);
+};
+
+const fetchJson = (url, options = {}) => new Promise((resolve, reject) => {
+  const parsed = new URL(url);
+  const transport = parsed.protocol === 'https:' ? https : http;
+  const requestOptions = {
+    method: options.method || 'GET',
+    headers: options.headers ? { ...options.headers } : {},
+  };
+  if (options.body && !requestOptions.headers['Content-Length']) {
+    requestOptions.headers['Content-Length'] = Buffer.byteLength(options.body);
+  }
+  const request = transport.request(url, requestOptions, response => {
+    let body = '';
+    response.on('data', chunk => { body += chunk; });
+    response.on('end', () => {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        try {
+          resolve(body ? JSON.parse(body) : {});
+        } catch (error) {
+          reject(error);
+        }
+      } else {
+        reject(new Error(`HTTP ${response.statusCode}: ${body}`));
+      }
+    });
+  });
+  request.on('error', reject);
+  if (options.body) {
+    request.write(options.body);
+  }
+  request.end();
+});
 
 const AUTH_PRIORITY = { user: 1, admin: 2 };
 
@@ -137,7 +302,7 @@ const extractBearerToken = req => {
 };
 
 const resolveRoleFromToken = token => {
-  if (!authEnabled) {
+  if (!authRequired) {
     return 'admin';
   }
   if (!token) {
@@ -153,11 +318,17 @@ const resolveRoleFromToken = token => {
 };
 
 const ensureAuthorized = (req, res, minimumRole = 'user') => {
-  if (!authEnabled) {
+  if (!authRequired) {
     return 'admin';
   }
-  const token = extractBearerToken(req);
-  const role = resolveRoleFromToken(token);
+  let role = null;
+  const session = getSession(req);
+  if (session?.data?.role) {
+    role = session.data.role;
+  } else {
+    const token = extractBearerToken(req);
+    role = resolveRoleFromToken(token);
+  }
   if (!role) {
     send(res, 401, JSON.stringify({ status: 'error', message: 'Authorization required.' }), { 'Content-Type': 'application/json' });
     return null;
@@ -165,6 +336,9 @@ const ensureAuthorized = (req, res, minimumRole = 'user') => {
   if ((AUTH_PRIORITY[role] || 0) < (AUTH_PRIORITY[minimumRole] || 0)) {
     send(res, 403, JSON.stringify({ status: 'error', message: 'Insufficient privileges.' }), { 'Content-Type': 'application/json' });
     return null;
+  }
+  if (session?.data) {
+    req.session = session.data;
   }
   return role;
 };
@@ -893,6 +1067,120 @@ const server = http.createServer(async (req, res) => {
       }
 
       send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET,POST,PATCH,PUT,DELETE' });
+      return;
+    }
+
+    if (urlObj.pathname === '/auth/session') {
+      if (!DISCORD_OAUTH_ENABLED) {
+        const response = authEnabled
+          ? { status: 'ok', authenticated: false, role: 'guest', username: '', authRequired: false }
+          : { status: 'ok', authenticated: true, role: 'admin', username: '', authRequired: false };
+        send(res, 200, JSON.stringify(response), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const session = getSession(req);
+      if (session?.data) {
+        const payload = session.data;
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          authenticated: true,
+          role: payload.role || 'user',
+          username: payload.username || '',
+          authRequired: true
+        }), { 'Content-Type': 'application/json' });
+      } else {
+        send(res, 200, JSON.stringify({ status: 'ok', authenticated: false, role: 'guest', username: '', authRequired: true }), { 'Content-Type': 'application/json' });
+      }
+      return;
+    }
+
+    if (urlObj.pathname === '/auth/discord/login') {
+      if (!DISCORD_OAUTH_ENABLED) {
+        send(res, 503, JSON.stringify({ status: 'error', message: 'Discord OAuth not configured.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const state = crypto.randomUUID();
+      const now = Date.now();
+      oauthStateStore.set(state, now + OAUTH_STATE_TTL_MS);
+      for (const [key, value] of oauthStateStore.entries()) {
+        if (value <= now) {
+          oauthStateStore.delete(key);
+        }
+      }
+      const params = new URLSearchParams({
+        client_id: DISCORD_CLIENT_ID,
+        response_type: 'code',
+        scope: 'identify',
+        redirect_uri: DISCORD_REDIRECT_URI,
+        state
+      });
+      const url = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
+      send(res, 302, '', { Location: url });
+      return;
+    }
+
+    if (urlObj.pathname === '/auth/discord/callback') {
+      if (!DISCORD_OAUTH_ENABLED) {
+        send(res, 503, JSON.stringify({ status: 'error', message: 'Discord OAuth not configured.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const code = urlObj.searchParams.get('code');
+      const state = urlObj.searchParams.get('state');
+      if (!code) {
+        send(res, 400, JSON.stringify({ status: 'error', message: 'Missing code parameter.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      if (!state || !oauthStateStore.has(state)) {
+        send(res, 400, JSON.stringify({ status: 'error', message: 'Invalid state parameter.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const stateExpiry = oauthStateStore.get(state);
+      oauthStateStore.delete(state);
+      if (stateExpiry <= Date.now()) {
+        send(res, 400, JSON.stringify({ status: 'error', message: 'Expired state parameter.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      try {
+        const tokenResponse = await fetchJson('https://discord.com/api/oauth2/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            client_id: DISCORD_CLIENT_ID,
+            client_secret: DISCORD_CLIENT_SECRET,
+            grant_type: 'authorization_code',
+            code,
+            redirect_uri: DISCORD_REDIRECT_URI
+          }).toString()
+        });
+        const accessToken = tokenResponse?.access_token;
+        if (!accessToken) {
+          throw new Error('Missing access_token from Discord response.');
+        }
+        const userProfile = await fetchJson('https://discord.com/api/users/@me', {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const discordId = userProfile?.id;
+        if (!discordId) {
+          throw new Error('Unable to resolve Discord user id.');
+        }
+        const isAdmin = DISCORD_ADMIN_IDS.length === 0 || DISCORD_ADMIN_IDS.includes(discordId);
+        const role = isAdmin ? 'admin' : 'user';
+        const displayName = userProfile?.global_name || userProfile?.username || '';
+        const signedId = createSession({ role, discordId, username: displayName });
+        sendSessionCookie(res, signedId);
+        send(res, 302, '', { Location: '/' });
+      } catch (error) {
+        console.error('[auth] discord callback error', error);
+        send(res, 500, JSON.stringify({ status: 'error', message: 'Discord OAuth failed.' }), { 'Content-Type': 'application/json' });
+      }
+      return;
+    }
+
+    if (urlObj.pathname === '/auth/logout') {
+      destroySession(req);
+      clearSessionCookie(res);
+      send(res, 204, null);
       return;
     }
 

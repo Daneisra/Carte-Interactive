@@ -17,6 +17,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - Upload direct d'images et d'audio depuis l'editeur (clic ou glisser-deposer) avec copie automatique dans `assets/images/` et `assets/audio/`.
 - Validation/renommage automatique des fichiers importes (taille, extension, slug) et suppression d'un lieu depuis l'editeur.
 - Synchronisation distante optionnelle : export JSON vers un endpoint configurable (REMOTE_SYNC_URL) avec audit JSONL.
+- Authentification Discord (OAuth2) avec sessions signees et interface de connexion/deconnexion.
 
 ## 3. Priorites immediates (fin 2025)
 
@@ -49,8 +50,12 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [x] Connecter les enregistrements a une couche persistante distante (API/export) pour synchronisation et sauvegarde.
 - [x] **Edition in-app des lieux** : finaliser le workflow (upload medias, validations avancees, audit/logs).
 - [x] Experience collaborative : roles admin/utilisateur (Bearer tokens) et API CRUD securisee (lieux/PNJ/quetes).
+- la configuration du serveur distant reste a fournir, definir `REMOTE_SYNC_URL`, `REMOTE_SYNC_METHOD` (POST/PUT/PATCH), `REMOTE_SYNC_TOKEN` (optionnel) et `REMOTE_SYNC_TIMEOUT` avant de tester la synchro distante
+- [x] Authentification OAuth (Discord) cote serveur
+- [x] Gestion des sessions cote serveur (cookies signes, maintien deroles)
+- [x] Interface de connexion (login/logout, affichage du profil)
+- [ ] Migration des routes REST vers une base utilisateurs/roles
 - **Architecture UI modulaire** : decouper `UiController` en sous-modules testables, couverture unitaire ciblee.
-- la configuration du serveur distant reste a fournir, definir REMOTE_SYNC_URL, REMOTE_SYNC_METHOD (POST/PUT/PATCH), REMOTE_SYNC_TOKEN (optionnel) et REMOTE_SYNC_TIMEOUT avant de tester la synchro distante
 
 ## 5. Risques & parades
 - **Volume de donnees croissant** : prevoir pagination cote backend ou moteur de recherche dedie.
