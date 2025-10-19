@@ -115,6 +115,60 @@ const IMAGE_EXTENSIONS = new Set(UPLOAD_RULES.image.extensions);
 const AUDIO_EXTENSIONS = new Set(UPLOAD_RULES.audio.extensions);
 let cachedTypes = null;
 const canSyncRemote = REMOTE_SYNC_URL.length > 0 && REMOTE_SYNC_METHOD.length;
+const ADMIN_API_TOKEN = (process.env.ADMIN_API_TOKEN || '').trim();
+const USER_API_TOKENS = (process.env.USER_API_TOKENS || '')
+  .split(',')
+  .map(token => token.trim())
+  .filter(Boolean);
+const authEnabled = ADMIN_API_TOKEN.length > 0 || USER_API_TOKENS.length > 0;
+
+const AUTH_PRIORITY = { user: 1, admin: 2 };
+
+const extractBearerToken = req => {
+  const header = req.headers?.authorization || req.headers?.Authorization;
+  if (!header || typeof header !== 'string') {
+    return null;
+  }
+  const parts = header.split(/\s+/);
+  if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+    return parts[1].trim();
+  }
+  return null;
+};
+
+const resolveRoleFromToken = token => {
+  if (!authEnabled) {
+    return 'admin';
+  }
+  if (!token) {
+    return null;
+  }
+  if (ADMIN_API_TOKEN && token === ADMIN_API_TOKEN) {
+    return 'admin';
+  }
+  if (USER_API_TOKENS.includes(token)) {
+    return 'user';
+  }
+  return null;
+};
+
+const ensureAuthorized = (req, res, minimumRole = 'user') => {
+  if (!authEnabled) {
+    return 'admin';
+  }
+  const token = extractBearerToken(req);
+  const role = resolveRoleFromToken(token);
+  if (!role) {
+    send(res, 401, JSON.stringify({ status: 'error', message: 'Authorization required.' }), { 'Content-Type': 'application/json' });
+    return null;
+  }
+  if ((AUTH_PRIORITY[role] || 0) < (AUTH_PRIORITY[minimumRole] || 0)) {
+    send(res, 403, JSON.stringify({ status: 'error', message: 'Insufficient privileges.' }), { 'Content-Type': 'application/json' });
+    return null;
+  }
+  return role;
+};
+
 
 const loadTypeMap = async () => {
   if (cachedTypes) {
@@ -403,6 +457,8 @@ const flattenLocations = dataset => {
   return map;
 };
 
+const cloneDataset = dataset => JSON.parse(JSON.stringify(dataset || {}));
+
 const computeLocationsDiff = (previous, next) => {
   const before = flattenLocations(previous);
   const after = flattenLocations(next);
@@ -546,6 +602,9 @@ const server = http.createServer(async (req, res) => {
   try {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
     if (req.method === 'POST' && urlObj.pathname === '/api/upload') {
+      if (!ensureAuthorized(req, res, 'admin')) {
+        return;
+      }
       const body = await collectBody(req);
       let payload;
       try {
@@ -569,6 +628,9 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && urlObj.pathname === '/api/locations') {
+      if (!ensureAuthorized(req, res, 'admin')) {
+        return;
+      }
       const body = await collectBody(req);
       let data;
       try {
@@ -614,6 +676,223 @@ const server = http.createServer(async (req, res) => {
           ? ((syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`)
           : null
       }), { 'Content-Type': 'application/json' });
+      return;
+    }
+
+    if (urlObj.pathname === '/api/admin/locations') {
+      if (req.method === 'GET') {
+        if (!ensureAuthorized(req, res, 'user')) {
+          return;
+        }
+        const dataset = await readLocationsFile();
+        send(res, 200, JSON.stringify({ status: 'ok', locations: dataset }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      if (req.method === 'POST') {
+        if (!ensureAuthorized(req, res, 'admin')) {
+          return;
+        }
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const continentRaw = normalizeString(payload?.continent);
+        const location = payload?.location;
+        if (!continentRaw || !location || typeof location !== 'object') {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'continent and location are required.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const name = normalizeString(location.name);
+        if (!name) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'location.name is required.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const previous = await readLocationsFile();
+        const dataset = cloneDataset(previous);
+        const continent = continentRaw;
+        const targetList = Array.isArray(dataset[continent]) ? [...dataset[continent]] : [];
+        const nameKey = name.toLowerCase();
+        if (targetList.some(entry => normalizeString(entry?.name).toLowerCase() === nameKey)) {
+          send(res, 409, JSON.stringify({ status: 'error', message: 'Location already exists in this continent.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        targetList.push(location);
+        dataset[continent] = targetList;
+
+        const validation = await validateLocationsDataset(dataset);
+        if (!validation.valid) {
+          const errors = validation.errors.slice(0, 50);
+          send(res, 400, JSON.stringify({ status: 'error', errors }), { 'Content-Type': 'application/json' });
+          return;
+        }
+
+        const diff = computeLocationsDiff(previous, dataset);
+        await persistLocations(dataset);
+        await appendAuditLog({ dataset, diff });
+        const syncResult = await sendRemoteSync({ dataset, diff });
+        if (syncResult.status === 'error') {
+          const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
+          console.error('[sync] remote export failed', details);
+        }
+        send(res, 201, JSON.stringify({
+          status: 'ok',
+          continent,
+          location,
+          changes: diff,
+          sync: syncResult.status,
+          syncStatusCode: syncResult.statusCode ?? null,
+          syncError: syncResult.status === 'error'
+            ? ((syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`)
+            : null
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      if (req.method === 'PATCH' || req.method === 'PUT') {
+        if (!ensureAuthorized(req, res, 'admin')) {
+          return;
+        }
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const originalContinent = normalizeString(payload?.originalContinent);
+        const originalName = normalizeString(payload?.originalName);
+        const newContinent = normalizeString(payload?.continent) || originalContinent;
+        const location = payload?.location;
+        if (!originalContinent || !originalName || !location || typeof location !== 'object') {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'originalContinent, originalName et location sont requis.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const newName = normalizeString(location.name);
+        if (!newName) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'location.name est requis.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const previous = await readLocationsFile();
+        const dataset = cloneDataset(previous);
+        const sourceList = Array.isArray(dataset[originalContinent]) ? [...dataset[originalContinent]] : [];
+        const sourceIndex = sourceList.findIndex(entry => normalizeString(entry?.name).toLowerCase() === originalName.toLowerCase());
+        if (sourceIndex === -1) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'Location not found.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        sourceList.splice(sourceIndex, 1);
+        if (sourceList.length) {
+          dataset[originalContinent] = sourceList;
+        } else {
+          delete dataset[originalContinent];
+        }
+        const targetList = Array.isArray(dataset[newContinent]) ? [...dataset[newContinent]] : [];
+        const newNameKey = newName.toLowerCase();
+        if (targetList.some(entry => normalizeString(entry?.name).toLowerCase() === newNameKey)) {
+          send(res, 409, JSON.stringify({ status: 'error', message: 'Location already exists in target continent.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        targetList.push(location);
+        dataset[newContinent] = targetList;
+
+        const validation = await validateLocationsDataset(dataset);
+        if (!validation.valid) {
+          const errors = validation.errors.slice(0, 50);
+          send(res, 400, JSON.stringify({ status: 'error', errors }), { 'Content-Type': 'application/json' });
+          return;
+        }
+
+        const diff = computeLocationsDiff(previous, dataset);
+        await persistLocations(dataset);
+        await appendAuditLog({ dataset, diff });
+        const syncResult = await sendRemoteSync({ dataset, diff });
+        if (syncResult.status === 'error') {
+          const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
+          console.error('[sync] remote export failed', details);
+        }
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          continent: newContinent,
+          location,
+          changes: diff,
+          sync: syncResult.status,
+          syncStatusCode: syncResult.statusCode ?? null,
+          syncError: syncResult.status === 'error'
+            ? ((syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`)
+            : null
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      if (req.method === 'DELETE') {
+        if (!ensureAuthorized(req, res, 'admin')) {
+          return;
+        }
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const continent = normalizeString(payload?.continent);
+        const name = normalizeString(payload?.name);
+        if (!continent || !name) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'continent et name sont requis.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const previous = await readLocationsFile();
+        const dataset = cloneDataset(previous);
+        const list = Array.isArray(dataset[continent]) ? [...dataset[continent]] : [];
+        const index = list.findIndex(entry => normalizeString(entry?.name).toLowerCase() === name.toLowerCase());
+        if (index === -1) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'Location not found.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const removed = list.splice(index, 1)[0];
+        if (list.length) {
+          dataset[continent] = list;
+        } else {
+          delete dataset[continent];
+        }
+
+        const validation = await validateLocationsDataset(dataset);
+        if (!validation.valid) {
+          const errors = validation.errors.slice(0, 50);
+          send(res, 400, JSON.stringify({ status: 'error', errors }), { 'Content-Type': 'application/json' });
+          return;
+        }
+
+        const diff = computeLocationsDiff(previous, dataset);
+        await persistLocations(dataset);
+        await appendAuditLog({ dataset, diff });
+        const syncResult = await sendRemoteSync({ dataset, diff });
+        if (syncResult.status === 'error') {
+          const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
+          console.error('[sync] remote export failed', details);
+        }
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          continent,
+          removed,
+          changes: diff,
+          sync: syncResult.status,
+          syncStatusCode: syncResult.statusCode ?? null,
+          syncError: syncResult.status === 'error'
+            ? ((syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`)
+            : null
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET,POST,PATCH,PUT,DELETE' });
       return;
     }
 
