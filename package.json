@@ -8,7 +8,8 @@
     "test:ui:update": "playwright test --update-snapshots",
     "lint": "echo \"No ESLint config\"",
     "build:static": "node -e \"console.log('Static build placeholder')\"",
-    "serve": "node server.js"
+    "serve": "node server.js",
+    "sync:mock": "node tools/mockRemoteSync.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.46.0",
