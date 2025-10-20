@@ -5,6 +5,7 @@ import { MapControlsManager } from './ui/mapControlsManager.js';
 import { HistoryManager } from './ui/historyManager.js';
 import { AudioManager } from './ui/audioManager.js';
 import { InfoPanel } from './ui/infoPanel.js';
+import { UserAdminPanel } from './ui/userAdminPanel.js';
 import { AriaAnnouncer } from './ui/ariaAnnouncer.js';
 import { qs, createElement, clearElement } from './ui/dom.js';
 import { LocationEditor } from './ui/locationEditor.js';
@@ -219,7 +220,10 @@ export class UiController {
             audioTitle: document.getElementById(audioTitleId),
             audioFallback: document.getElementById('audio-fallback'),
             audioStatus: document.getElementById('audio-status'),
-            locationEditor: document.getElementById('location-editor')
+            locationEditor: document.getElementById('location-editor'),
+            userAdminButton: document.getElementById('user-admin-button'),
+            userAdminOverlay: document.getElementById('user-admin-overlay'),
+            userAdminContainer: document.getElementById('user-admin-container')
         };
 
         this.announcer = new AriaAnnouncer({
@@ -228,6 +232,7 @@ export class UiController {
         });
 
         this.locationEditor = null;
+        this.userAdminPanel = null;
         this.locationsData = {};
 
         this.state = new UiState({
@@ -285,19 +290,19 @@ export class UiController {
         });
         this.favoriteTooltip = this.createTooltip(localized(
             'onboarding.favoritesHint',
-            'Ajoutez vos lieux préférés pour y revenir rapidement.'
+            'Ajoutez vos lieux preferes pour y revenir rapidement.'
         ));
         this.favoriteOnboardingTooltip = this.createTooltip(localized(
             'onboarding.favoritesHint',
-            'Ajoutez vos lieux préférés pour y revenir rapidement.'
+            'Ajoutez vos lieux preferes pour y revenir rapidement.'
         ), { persistent: true, key: 'favorites' });
         this.clusteringTooltip = this.createTooltip(localized(
             'onboarding.clusteringHint',
-            'Activez le regroupement pour fluidifier la carte lorsque le zoom est éloigné.'
+            'Activez le regroupement pour fluidifier la carte lorsque le zoom est eloigne.'
         ));
         this.clusteringOnboardingTooltip = this.createTooltip(localized(
             'onboarding.clusteringHint',
-            'Activez le regroupement pour fluidifier la carte lorsque le zoom est éloigné.'
+            'Activez le regroupement pour fluidifier la carte lorsque le zoom est eloigne.'
         ), { persistent: true, key: 'clustering' });
         this.measurement = { active: false, points: [] };
         this.measurementClickUnsubscribe = null;
@@ -554,6 +559,7 @@ export class UiController {
 
         this.populateTypeFilterOptions();
         this.setupLocationEditor();
+        this.setupUserAdminPanel();
         this.updateAuthUI();
         this.buildSidebar(this.locationsData);
         this.restoreMapState();
@@ -740,11 +746,11 @@ export class UiController {
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
-            console.info('Sauvegarde des lieux terminée.');
+            console.info('Sauvegarde des lieux terminee.');
         } catch (error) {
             console.error('Erreur lors de la sauvegarde des lieux :', error);
             if (this.announcer) {
-                this.announcer.assertive('Erreur lors de la sauvegarde des données.');
+                this.announcer.assertive('Erreur lors de la sauvegarde des donnees.');
             }
         }
     }
@@ -841,7 +847,7 @@ export class UiController {
         }
         const normalized = normalizeLocation(location);
         if (!normalized.name) {
-            console.warn('Impossible de créer un lieu sans nom.');
+            console.warn('Impossible de creer un lieu sans nom.');
             return;
         }
         const target = sanitizeString(continent) || 'Divers';
@@ -898,7 +904,7 @@ export class UiController {
         }
         const normalized = normalizeLocation(location);
         if (!normalized.name) {
-            console.warn('Impossible de mettre à jour un lieu sans nom.');
+            console.warn('Impossible de mettre a jour un lieu sans nom.');
             return;
         }
         const currentName = sanitizeString(originalName);
@@ -1267,6 +1273,12 @@ export class UiController {
         if (this.dom.logoutButton) {
             this.dom.logoutButton.hidden = !this.authRequired || !authenticated;
         }
+        if (this.dom.userAdminButton) {
+            this.dom.userAdminButton.hidden = !isAdmin;
+        }
+        if (!isAdmin) {
+            this.closeUserAdminPanel(true);
+        }
         if (this.dom.addLocation) {
             this.dom.addLocation.disabled = !isAdmin;
             this.dom.addLocation.setAttribute('aria-disabled', String(!isAdmin));
@@ -1325,6 +1337,155 @@ export class UiController {
         }
         this.updateAuthUI();
         this.fetchSession();
+    }
+
+    setupUserAdminPanel() {
+        if (!this.dom.userAdminContainer) {
+            return;
+        }
+        if (!this.userAdminPanel) {
+            this.userAdminPanel = new UserAdminPanel({
+                container: this.dom.userAdminContainer,
+                onClose: () => this.closeUserAdminPanel(true),
+                fetchUsers: () => this.fetchUsersList(),
+                onAddUser: payload => this.createUser(payload),
+                onUpdateUser: payload => this.updateUser(payload),
+                onDeleteUser: user => this.removeUser(user)
+            });
+        }
+        if (this.dom.userAdminButton && !this.dom.userAdminButton.dataset.bound) {
+            this.dom.userAdminButton.addEventListener('click', () => this.openUserAdminPanel());
+            this.dom.userAdminButton.dataset.bound = 'true';
+        }
+        if (this.dom.userAdminOverlay && !this.dom.userAdminOverlay.dataset.bound) {
+            this.dom.userAdminOverlay.addEventListener('click', event => {
+                if (event.target === this.dom.userAdminOverlay) {
+                    this.closeUserAdminPanel(true);
+                }
+            });
+            this.dom.userAdminOverlay.dataset.bound = 'true';
+        }
+        this.closeUserAdminPanel(true);
+    }
+
+    async fetchUsersList() {
+        const response = await fetch('/api/admin/users', { credentials: 'include' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        return Array.isArray(payload?.users) ? payload.users : [];
+    }
+
+    async createUser(payload) {
+        try {
+            const response = await fetch('/api/admin/users', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    provider: 'manual',
+                    username: payload.username,
+                    role: payload.role
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const result = await response.json();
+            if (result?.token) {
+                window.prompt('Nouvel utilisateur cree. Copiez le token API :', result.token);
+            }
+            await this.refreshUserAdminPanel();
+            this.userAdminPanel?.resetAddForm();
+            this.announcer?.polite?.('Utilisateur manuel ajoute.');
+        } catch (error) {
+            console.error('[admin] create user failed', error);
+            this.announcer?.assertive?.("Impossible de creer l'utilisateur.");
+        }
+    }
+
+    async updateUser(payload) {
+        try {
+            const response = await fetch('/api/admin/users', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const result = await response.json();
+            if (result?.token) {
+                window.prompt('Nouveau token genere :', result.token);
+            }
+            await this.refreshUserAdminPanel();
+            this.announcer?.polite?.('Utilisateur mis a jour.');
+        } catch (error) {
+            console.error('[admin] update user failed', error);
+            this.announcer?.assertive?.('Mise a jour impossible.');
+        }
+    }
+
+    async removeUser(user) {
+        const confirmed = window.confirm(`Supprimer l'utilisateur "${user.username || user.id}" ?`);
+        if (!confirmed) {
+            return;
+        }
+        try {
+            const response = await fetch('/api/admin/users', {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: user.id })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            await this.refreshUserAdminPanel();
+            this.announcer?.polite?.('Utilisateur supprime.');
+        } catch (error) {
+            console.error('[admin] delete user failed', error);
+            this.announcer?.assertive?.('Suppression impossible.');
+        }
+    }
+
+    async refreshUserAdminPanel() {
+        if (!this.userAdminPanel) {
+            return;
+        }
+        try {
+            const users = await this.fetchUsersList();
+            await this.userAdminPanel.refresh(users);
+        } catch (error) {
+            console.error('[admin] fetch users failed', error);
+            this.announcer?.assertive?.('Impossible de charger la liste des utilisateurs.');
+        }
+    }
+
+    async openUserAdminPanel() {
+        if (!this.isAdmin()) {
+            this.announcer?.assertive?.('Connexion administrateur requise.');
+            return;
+        }
+        if (!this.dom.userAdminOverlay || !this.userAdminPanel) {
+            return;
+        }
+        await this.refreshUserAdminPanel();
+        this.dom.userAdminOverlay.hidden = false;
+        this.dom.userAdminOverlay.classList.add('open');
+    }
+
+    closeUserAdminPanel(force = false) {
+        if (!this.dom.userAdminOverlay) {
+            return;
+        }
+        this.dom.userAdminOverlay.classList.remove('open');
+        this.dom.userAdminOverlay.hidden = true;
+        if (force) {
+            this.dom.userAdminOverlay.scrollTop = 0;
+        }
     }
 
     bindTabs() {
@@ -1491,7 +1652,7 @@ export class UiController {
         this.updateMeasurementButton();
         this.clearControlMessage(this.measureTooltip);
         if (announce) {
-            const message = localized('distance.cancelled', 'Outil de mesure désactivé.');
+            const message = localized('distance.cancelled', 'Outil de mesure desactive.');
             this.announcer?.polite(message);
         }
     }
@@ -1510,7 +1671,7 @@ export class UiController {
         console.info(`Mesure · point ${this.measurement.points.length} → x: ${roundedX}, y: ${roundedY}`);
 
         if (this.measurement.points.length === 1) {
-            const message = localized('distance.pointStored', `Point de départ enregistré : x ${roundedX}, y ${roundedY}.`, { x: roundedX, y: roundedY });
+            const message = localized('distance.pointStored', `Point de depart enregistre : x ${roundedX}, y ${roundedY}.`, { x: roundedX, y: roundedY });
             this.announcer?.polite(message);
             this.showControlMessage({
                 button: this.dom.measureDistance,
@@ -1571,8 +1732,8 @@ export class UiController {
         const label = localized(
             active ? 'coords.active' : 'coords.enable',
             active
-                ? 'Outil de capture actif. Cliquez sur la carte pour obtenir les coordonnées.'
-                : 'Activer l\'outil d\'obtention des coordonnées'
+                ? 'Outil de capture actif. Cliquez sur la carte pour obtenir les coordonnees.'
+                : 'Activer l\'outil d\'obtention des coordonnees'
         );
         button.setAttribute('aria-label', label);
         button.title = label;
@@ -1590,7 +1751,7 @@ export class UiController {
             this.coordinateClickUnsubscribe = this.mapController.onMapClick(event => this.handleCoordinateClick(event));
         }
         this.updateCoordinateButton();
-        const message = localized('coords.active', 'Outil de capture actif. Cliquez sur la carte pour obtenir les coordonnées.');
+        const message = localized('coords.active', 'Outil de capture actif. Cliquez sur la carte pour obtenir les coordonnees.');
         this.announcer?.polite(message);
         this.showControlMessage({
             button: this.dom.captureCoordinates,
@@ -1612,7 +1773,7 @@ export class UiController {
         this.updateCoordinateButton();
         this.clearControlMessage(this.coordinateTooltip);
         if (announce) {
-            const message = localized('coords.cancelled', 'Outil de coordonnées désactivé.');
+            const message = localized('coords.cancelled', 'Outil de coordonnees desactive.');
             this.announcer?.polite(message);
         }
     }
@@ -1627,8 +1788,8 @@ export class UiController {
         }
         const roundedX = Math.round(coords.x);
         const roundedY = Math.round(coords.y);
-        console.info(`Coordonnées · x: ${roundedX}, y: ${roundedY}`);
-        const message = localized('coords.result', `Coordonnées : x ${roundedX} px, y ${roundedY} px.`, { x: roundedX, y: roundedY });
+        console.info(`Coordonnees · x: ${roundedX}, y: ${roundedY}`);
+        const message = localized('coords.result', `Coordonnees : x ${roundedX} px, y ${roundedY} px.`, { x: roundedX, y: roundedY });
         this.announcer?.polite(message);
         this.showControlMessage({
             button: this.dom.captureCoordinates,
@@ -1856,7 +2017,7 @@ export class UiController {
         });
         summary.appendChild(createElement('span', {
             className: 'favorites-summary-label',
-            text: localized('favorites.summaryLabel', 'Favoris enregistrés')
+            text: localized('favorites.summaryLabel', 'Favoris enregistres')
         }));
         const summaryCountKey = totalFavorites === 1 ? 'favorites.summaryCountSingle' : 'favorites.summaryCountPlural';
         const summaryCountText = localized(summaryCountKey, `${totalFavorites} favoris`, { count: totalFavorites });
@@ -2107,7 +2268,7 @@ export class UiController {
         if (this.announcer) {
             const message = localized(
                 'aria.locationSelected',
-                `${entry.location.name} sélectionné.`,
+                `${entry.location.name} selectionne.`,
                 { location: entry.location.name }
             );
             this.announcer.polite(message);
@@ -2153,7 +2314,7 @@ export class UiController {
         this.hideTooltip(this.favoriteTooltip);
         this.hideTooltip(this.favoriteOnboardingTooltip);
         if (this.announcer) {
-            const message = localized('aria.infoClosed', 'Panneau d\'information fermé.');
+            const message = localized('aria.infoClosed', 'Panneau d\'information ferme.');
             this.announcer.polite(message);
         }
     }
@@ -2221,7 +2382,7 @@ export class UiController {
         if (this.announcer) {
             const message = localized(
                 shouldFavorite ? 'aria.favoriteAdded' : 'aria.favoriteRemoved',
-                shouldFavorite ? `${name} ajouté aux favoris.` : `${name} retiré des favoris.`,
+                shouldFavorite ? `${name} ajoute aux favoris.` : `${name} retire des favoris.`,
                 { location: name }
             );
             this.announcer.polite(message);

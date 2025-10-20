@@ -1,4 +1,4 @@
-# Carte Interactive – Roadmap 2025
+# Carte Interactive  Roadmap 2025
 
 ## 1. Vision
 Creer une carte narrative immersive, fiable et maintenable servant a la fois de support de jeu et de referentiel vivant de l'univers. Pour 2025, les priorites se structurent autour de trois axes : qualite des donnees, excellence UX et industrialisation.
@@ -7,13 +7,13 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - Modules `DataService`, `MapController`, `UiController` stabilises et orchestres par `main.js`.
 - Validation centralisee des datasets (coordonnees, types, doublons, chemins assets) + nettoyage exhaustif des contenus.
 - Galerie media enrichie : miniatures video cliquables avec titres, gestion robuste des images et fallback propre.
-- Lecteur audio reinitialise automatiquement avec gestion des cas d’autoplay bloques et bouton fallback.
+- Lecteur audio reinitialise automatiquement avec gestion des cas dautoplay bloques et bouton fallback.
 - Fermeture automatique du panneau d'information hors interaction et synchronisation avec les marqueurs.
 - Persistance locale avancee (`PreferencesService`) : filtres, vue carte, dernier lieu et favoris utilisateurs.
 - Clustering Leaflet configure avec indicateurs de visibilite, pagination par continent et badge de resultats de recherche.
-- Mode sombre/clair persistant, reglage taille des marqueurs, favoris et bouton “Lieu aleatoire”.
+- Mode sombre/clair persistant, reglage taille des marqueurs, favoris et bouton Lieu aleatoire.
 - Editeur in-app : creation/modification d'un lieu avec sauvegarde directe dans `assets/locations.json` (tri auto par continent/nom).
-- Historique de navigation operationnel et scripts d’assainissement (`tools/validate_assets.py`).
+- Historique de navigation operationnel et scripts dassainissement (`tools/validate_assets.py`).
 - Upload direct d'images et d'audio depuis l'editeur (clic ou glisser-deposer) avec copie automatique dans `assets/images/` et `assets/audio/`.
 - Validation/renommage automatique des fichiers importes (taille, extension, slug) et suppression d'un lieu depuis l'editeur.
 - Synchronisation distante optionnelle : export JSON vers un endpoint configurable (REMOTE_SYNC_URL) avec audit JSONL.
@@ -28,13 +28,13 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [x] Finaliser le responsive < 1024?px : layout mobile, repositionnement des controles et gestuelles tactiles.
 - [x] Ajouter une aide contextuelle (infobulles ou onboarding leger) pour les favoris et le clustering.
 - [x] Obtention des coordonees x et y en px via clique sur la carte et resultat afficher dans la console du navigateur.
-- [x] Ajouter un outil de mesure des distances (conversion pixels ? kilometres) pour faciliter l’estimation des trajets.
+- [x] Ajouter un outil de mesure des distances (conversion pixels ? kilometres) pour faciliter lestimation des trajets.
 - [x] Ajouter un outil d'obtention des coordonnees a cote de l'outil de mesure des distances.
 
 ### Qualite des donnees
 - [x] Etendre le pipeline `tools/validate_assets.py` : verification des images/audio manquants, coherence des PNJ et quetes.
 - [x] Introduire la gestion officielle des titres video dans `assets/locations.json` avec harmonisation des champs.
-- [x] Preparer des jeux d’essai alleges pour la recette et les tests automatises.
+- [x] Preparer des jeux dessai alleges pour la recette et les tests automatises.
 
 ### Industrialisation
 - [x] Ajouter une batterie de tests UI (Playwright/Cypress) couvrant la selection de lieux, le clustering et la galerie media.
@@ -56,13 +56,15 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [x] Gestion des sessions cote serveur (cookies signes, maintien deroles)
 - [x] Interface de connexion (login/logout, affichage du profil)
 - [x] Migration des routes REST vers une base utilisateurs/roles
+- [x] Interface d'administration integrÃ©e (gestion des utilisateurs/roles depuis la carte).
+- [ ] Mise en ligne de la carte (hebergement Node + configuration reverse proxy/HTTPS).
 - **Architecture UI modulaire** : decouper `UiController` en sous-modules testables, couverture unitaire ciblee.
 
 ## 5. Risques & parades
 - **Volume de donnees croissant** : prevoir pagination cote backend ou moteur de recherche dedie.
 - **Blocage audio/autoplay** : conserver bouton manuel + message contextuel, surveiller les politiques navigateurs.
 - **Dette historique CSS/HTML** : suivi Lighthouse (performance/accessibilite) et plan de refactor progressif.
-- **Absence de CI** : risque de regressions silencieuses — prioriser la mise en place du pipeline de tests.
+- **Absence de CI** : risque de regressions silencieuses  prioriser la mise en place du pipeline de tests.
 
 ## 6. Annexes
 - Backlog detaille : `idees.txt`

@@ -14,6 +14,12 @@
 <body>
     <div id="aria-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="aria-alert" class="sr-only" role="alert" aria-live="assertive" aria-atomic="true"></div>
+    <div id="user-admin-overlay" class="user-admin-overlay" hidden>
+        <div class="user-admin-dialog" role="dialog" aria-modal="true" aria-labelledby="user-admin-title">
+            <div id="user-admin-container" class="user-admin-container"></div>
+        </div>
+    </div>
+
     <!-- 🧭 Panneau Exploration -->
     <div id="sidebar">
         <h2>Exploration</h2>
@@ -36,6 +42,7 @@
             <p id="auth-status" class="auth-status">Connexion requise pour modifier les lieux.</p>
             <button id="login-button" class="secondary-button" type="button">Connexion Discord</button>
             <button id="logout-button" class="secondary-button" type="button" hidden>Se déconnecter</button>
+            <button id="user-admin-button" class="secondary-button" type="button" hidden>Gestion utilisateurs</button>
         </div>
 
         <div id="filters-container">
