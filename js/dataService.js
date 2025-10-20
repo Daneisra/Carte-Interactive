@@ -1,4 +1,7 @@
-﻿const DEFAULT_TYPES_URL = 'assets/types.json';
+
+import { normalizeDataset } from './shared/locationSchema.js';
+
+const DEFAULT_TYPES_URL = 'assets/types.json';
 const DEFAULT_LOCATIONS_URL = 'assets/locations.json';
 
 export class DataService {
@@ -13,7 +16,7 @@ export class DataService {
             this.fetchJson(this.locationsUrl)
         ]);
 
-        const locationsData = this.normalizeLocations(rawLocations);
+        const locationsData = normalizeDataset(rawLocations);
         this.validateDatasets(locationsData, typeData);
 
         return { typeData, locationsData };
@@ -25,109 +28,6 @@ export class DataService {
             throw new Error(`Impossible de charger la ressource : ${url} (${response.status})`);
         }
         return response.json();
-    }
-
-    normalizeLocation(rawLocation) {
-        if (!rawLocation || typeof rawLocation !== 'object') {
-            return null;
-        }
-
-        const normalized = {
-            name: typeof rawLocation.name === 'string' ? rawLocation.name.trim() : 'Lieu inconnu',
-            type: typeof rawLocation.type === 'string' && rawLocation.type.trim().length ? rawLocation.type.trim() : 'default',
-            x: Number(rawLocation.x),
-            y: Number(rawLocation.y),
-            description: typeof rawLocation.description === 'string' ? rawLocation.description.trim() : '',
-            images: Array.isArray(rawLocation.images)
-                ? rawLocation.images.filter(src => typeof src === 'string' && src.trim().length).map(src => src.trim())
-                : [],
-            videos: this.normalizeVideos(rawLocation),
-            videoTitles: [],
-            audio: typeof rawLocation.audio === 'string' && rawLocation.audio.trim().length ? rawLocation.audio.trim() : null,
-            history: Array.isArray(rawLocation.history)
-                ? rawLocation.history.filter(Boolean).map(entry => String(entry).trim())
-                : typeof rawLocation.history === 'string' && rawLocation.history.trim()
-                    ? [rawLocation.history.trim()]
-                    : [],
-            quests: Array.isArray(rawLocation.quests)
-                ? rawLocation.quests.filter(Boolean).map(entry => String(entry).trim())
-                : typeof rawLocation.quests === 'string' && rawLocation.quests.trim()
-                    ? [rawLocation.quests.trim()]
-                    : [],
-            pnjs: Array.isArray(rawLocation.pnjs)
-                ? rawLocation.pnjs.filter(Boolean).map(pnj => ({
-                    name: typeof pnj.name === 'string' ? pnj.name.trim() : 'PNJ',
-                    role: typeof pnj.role === 'string' ? pnj.role.trim() : '',
-                    description: typeof pnj.description === 'string' ? pnj.description.trim() : ''
-                }))
-                : [],
-            lore: Array.isArray(rawLocation.lore)
-                ? rawLocation.lore.filter(Boolean).map(entry => String(entry).trim())
-                : typeof rawLocation.lore === 'string' && rawLocation.lore.trim()
-                    ? [rawLocation.lore.trim()]
-                    : []
-        };
-
-        if (Number.isNaN(normalized.x) || Number.isNaN(normalized.y)) {
-            normalized.x = 0;
-            normalized.y = 0;
-        }
-
-        normalized.videoTitles = normalized.videos
-            .map(video => (typeof video.title === 'string' ? video.title.trim() : ''))
-            .filter(Boolean);
-
-        return normalized;
-    }
-
-    normalizeVideos(rawLocation) {
-        const rawVideos = Array.isArray(rawLocation?.videos) ? rawLocation.videos : [];
-        const legacyTitles = Array.isArray(rawLocation?.videoTitles) ? rawLocation.videoTitles : [];
-
-        return rawVideos.reduce((accumulator, item, index) => {
-            let url = '';
-            let title = '';
-
-            if (typeof item === 'string') {
-                url = item.trim();
-            } else if (item && typeof item === 'object') {
-                if (typeof item.url === 'string') {
-                    url = item.url.trim();
-                }
-                if (typeof item.title === 'string') {
-                    title = item.title.trim();
-                }
-            }
-
-        if (!url) {
-            return accumulator;
-        }
-
-        if (!title && typeof legacyTitles[index] === 'string') {
-            const legacy = legacyTitles[index].trim();
-            if (legacy) {
-                title = legacy;
-            }
-        }
-
-        accumulator.push({
-            url,
-            title
-            });
-            return accumulator;
-        }, []);
-    }
-
-    normalizeLocations(dataset) {
-        const normalizedDataset = {};
-
-        Object.entries(dataset || {}).forEach(([continent, locations]) => {
-            normalizedDataset[continent] = Array.isArray(locations)
-                ? locations.map(location => this.normalizeLocation(location)).filter(Boolean)
-                : [];
-        });
-
-        return normalizedDataset;
     }
 
     validateDatasets(locationsByContinent, registeredTypes) {

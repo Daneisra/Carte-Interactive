@@ -1,4 +1,4 @@
-﻿import { UiState } from './ui/state.js';
+import { UiState } from './ui/state.js';
 import { FiltersManager } from './ui/filtersManager.js';
 import { ThemeManager } from './ui/themeManager.js';
 import { MapControlsManager } from './ui/mapControlsManager.js';
@@ -9,7 +9,16 @@ import { UserAdminPanel } from './ui/userAdminPanel.js';
 import { AriaAnnouncer } from './ui/ariaAnnouncer.js';
 import { qs, createElement, clearElement } from './ui/dom.js';
 import { LocationEditor } from './ui/locationEditor.js';
+import { EventsFeed } from './ui/eventsFeed.js';
 import { getString } from './i18n.js';
+import {
+    sanitizeString,
+    normalizeLocation,
+    normalizeDataset as normalizeSharedDataset,
+    serializeTextGroup,
+    serializeVideos,
+    serializePnjs
+} from './shared/locationSchema.js';
 
 const PAGE_SIZE = 8;
 const KM_PER_PIXEL = 10;
@@ -37,99 +46,6 @@ const clusteringIcon = clustered => clustered
     : localized('clustering.iconOff', 'OFF');
 const clusteringEmptyIcon = () => localized('clustering.iconEmpty', '-');
 const CLUSTERING_TOOLTIP_SEPARATOR = ' - ';
-
-const sanitizeString = value => (value ?? '').toString().trim();
-
-const collectTextArray = value => {
-    if (Array.isArray(value)) {
-        return value.map(sanitizeString).filter(Boolean);
-    }
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        return trimmed ? [trimmed] : [];
-    }
-    return [];
-};
-
-const normalizeVideoList = videos => {
-    if (!Array.isArray(videos)) {
-        return [];
-    }
-    return videos
-        .map(video => ({
-            url: sanitizeString(video?.url),
-            title: sanitizeString(video?.title)
-        }))
-        .filter(video => video.url);
-};
-
-const normalizePnjList = pnjs => {
-    if (!Array.isArray(pnjs)) {
-        return [];
-    }
-    return pnjs
-        .map(pnj => ({
-            name: sanitizeString(pnj?.name),
-            role: sanitizeString(pnj?.role),
-            description: sanitizeString(pnj?.description)
-        }))
-        .filter(pnj => pnj.name);
-};
-
-const normalizeLocation = raw => {
-    const location = raw || {};
-    const normalized = {
-        name: sanitizeString(location.name),
-        type: sanitizeString(location.type) || 'default',
-        x: Number.isFinite(Number(location.x)) ? Number(location.x) : 0,
-        y: Number.isFinite(Number(location.y)) ? Number(location.y) : 0,
-        description: sanitizeString(location.description),
-        audio: sanitizeString(location.audio),
-        images: Array.isArray(location.images)
-            ? location.images.map(sanitizeString).filter(Boolean)
-            : [],
-        videos: normalizeVideoList(location.videos),
-        history: collectTextArray(location.history),
-        quests: collectTextArray(location.quests),
-        lore: collectTextArray(location.lore),
-        pnjs: normalizePnjList(location.pnjs)
-    };
-    return normalized;
-};
-
-const normalizeDataset = source => {
-    const result = {};
-    if (!source || typeof source !== 'object') {
-        return result;
-    }
-    Object.entries(source).forEach(([continent, places]) => {
-        const key = sanitizeString(continent);
-        if (!key) {
-            return;
-        }
-        const list = Array.isArray(places) ? places.map(normalizeLocation) : [];
-        result[key] = list;
-    });
-    return result;
-};
-
-const serializeTextGroup = value => {
-    const list = collectTextArray(value);
-    if (!list.length) {
-        return '';
-    }
-    if (list.length === 1) {
-        return list[0];
-    }
-    return list;
-};
-
-const serializeVideos = videos => normalizeVideoList(videos).map(video => ({
-    url: video.url,
-    title: video.title
-}));
-
-const serializePnjs = pnjs => normalizePnjList(pnjs);
 
 const isInteractiveTextField = element => {
     if (!element) {
@@ -214,6 +130,7 @@ export class UiController {
             fullscreen: qs('#fullscreen-map'),
             measureDistance: document.getElementById('measure-distance'),
             captureCoordinates: document.getElementById('capture-coordinates'),
+            annotationButton: document.getElementById('annotation-mode'),
             zoomLevel: document.getElementById('zoom-level'),
             favoriteToggle: document.getElementById('favorite-toggle'),
             audioPlayer: document.getElementById(audioPlayerId),
@@ -223,7 +140,11 @@ export class UiController {
             locationEditor: document.getElementById('location-editor'),
             userAdminButton: document.getElementById('user-admin-button'),
             userAdminOverlay: document.getElementById('user-admin-overlay'),
-            userAdminContainer: document.getElementById('user-admin-container')
+            userAdminContainer: document.getElementById('user-admin-container'),
+            eventsFeed: document.getElementById('events-feed'),
+            eventsFeedList: document.getElementById('events-feed-list'),
+            eventsFilter: document.getElementById('events-filter'),
+            eventsFeedEmpty: document.getElementById('events-feed-empty')
         };
 
         this.announcer = new AriaAnnouncer({
@@ -254,11 +175,26 @@ export class UiController {
         this.mapClickUnsubscribe = null;
         this.tooltipMeta = new WeakMap();
         this.visibleTooltips = new Set();
+        this.realtimeSource = null;
+        this.realtimeCleanup = null;
+        this.annotations = new Map();
+        this.questEvents = new Map();
+        this.annotationTool = {
+            active: false,
+            clickUnsubscribe: null
+        };
 
         this.historyManager = new HistoryManager({
             container: this.dom.historyContainer,
             listElement: this.dom.historyList,
             backButton: this.dom.historyBack
+        });
+
+        this.eventsFeed = new EventsFeed({
+            container: this.dom.eventsFeed,
+            listElement: this.dom.eventsFeedList,
+            filterSelect: this.dom.eventsFilter,
+            emptyState: this.dom.eventsFeedEmpty
         });
 
         this.audioManager = new AudioManager({
@@ -310,6 +246,7 @@ export class UiController {
         this.coordinateClickUnsubscribe = null;
         this.measureTooltip = this.createTooltip('', { persistent: false });
         this.coordinateTooltip = this.createTooltip('', { persistent: false });
+        this.annotationTooltip = this.createTooltip('', { persistent: false });
         this.controlTooltipTimeouts = new Map();
 
         this.filtersManager = new FiltersManager({
@@ -535,7 +472,7 @@ export class UiController {
     initialize({ typeData, locationsData }) {
         this.typeData = typeData || {};
         this.mapController.setTypeData(this.typeData);
-        this.locationsData = normalizeDataset(locationsData || {});
+        this.locationsData = normalizeSharedDataset(locationsData || {}, { sanitizeKeys: true });
 
         this.applyLocalization();
         this.themeManager.initialize();
@@ -543,6 +480,10 @@ export class UiController {
         this.audioManager.initialize();
         this.infoPanel.initialize({ onClose: () => this.handlePanelClosed() });
         this.historyManager.initialize({ onSelect: item => this.handleHistorySelect(item) });
+        this.eventsFeed.initialize({
+            onDeleteAnnotation: id => this.requestAnnotationDeletion(id),
+            canDeleteAnnotation: () => this.isAdmin()
+        });
         this.filtersManager.initialize();
         this.bindAuthPanel();
 
@@ -554,6 +495,7 @@ export class UiController {
         this.bindRandomButton();
         this.bindMeasurementTool();
         this.bindCoordinateTool();
+        this.bindAnnotationTool();
         this.bindMapKeyboardShortcuts();
         this.bindMapBackgroundDismissal();
 
@@ -571,6 +513,7 @@ export class UiController {
         this.updateClusteringMetrics();
         this.updateRandomButtonState();
         this.restoreLastLocation();
+        this.setupRealtimeStream();
 
         this.mapController.onMapStateChange(state => {
             if (this.preferences?.setMapState) {
@@ -579,6 +522,7 @@ export class UiController {
             this.state.mapState = state;
         });
 
+        this.loadRealtimeData();
         this.maybeShowClusteringOnboarding();
     }
 
@@ -1288,6 +1232,10 @@ export class UiController {
             this.locationEditor.deleteButton.hidden = !isAdmin;
         }
         this.updateEditButton(this.activeEntry?.location || null);
+        this.updateAnnotationButton();
+        if (this.eventsFeed) {
+            this.eventsFeed.setCanDeleteResolver(() => this.isAdmin());
+        }
     }
 
     async fetchSession() {
@@ -1623,6 +1571,9 @@ export class UiController {
         if (this.coordinateTool.active) {
             this.stopCoordinateMode(false);
         }
+        if (this.annotationTool.active) {
+            this.stopAnnotationMode(false);
+        }
         this.measurement.active = true;
         this.measurement.points = [];
         if (!this.measurementClickUnsubscribe && this.mapController) {
@@ -1746,6 +1697,9 @@ export class UiController {
         if (this.measurement.active) {
             this.stopMeasurementMode(false);
         }
+        if (this.annotationTool.active) {
+            this.stopAnnotationMode(false);
+        }
         this.coordinateTool.active = true;
         if (!this.coordinateClickUnsubscribe && this.mapController) {
             this.coordinateClickUnsubscribe = this.mapController.onMapClick(event => this.handleCoordinateClick(event));
@@ -1797,6 +1751,204 @@ export class UiController {
             message,
             duration: 4000
         });
+    }
+
+    bindAnnotationTool() {
+        const button = this.dom.annotationButton;
+        if (!button) {
+            return;
+        }
+        this.updateAnnotationButton();
+        button.addEventListener('click', () => {
+            if (this.annotationTool.active) {
+                this.stopAnnotationMode(true);
+            } else {
+                this.startAnnotationMode();
+            }
+        });
+    }
+
+    updateAnnotationButton() {
+        const button = this.dom.annotationButton;
+        if (!button) {
+            return;
+        }
+        button.setAttribute('aria-pressed', String(Boolean(this.annotationTool.active)));
+        const disabled = !this.auth?.authenticated;
+        button.disabled = disabled;
+        button.setAttribute('aria-disabled', String(disabled));
+        if (disabled && this.annotationTool.active) {
+            this.stopAnnotationMode(false);
+        }
+    }
+
+    startAnnotationMode() {
+        if (this.annotationTool.active) {
+            return;
+        }
+        if (!this.auth?.authenticated) {
+            this.announcer?.assertive?.('Connexion requise pour ajouter une annotation.');
+            return;
+        }
+        if (this.measurement.active) {
+            this.stopMeasurementMode(false);
+        }
+        if (this.coordinateTool.active) {
+            this.stopCoordinateMode(false);
+        }
+        this.annotationTool.active = true;
+        if (!this.annotationTool.clickUnsubscribe && this.mapController) {
+            this.annotationTool.clickUnsubscribe = this.mapController.onMapClick(event => this.handleAnnotationClick(event));
+        }
+        this.updateAnnotationButton();
+        const message = 'Cliquez sur la carte pour placer une annotation.';
+        this.announcer?.polite(message);
+        this.showControlMessage({
+            button: this.dom.annotationButton,
+            tooltip: this.annotationTooltip,
+            message,
+            duration: 4000
+        });
+    }
+
+    stopAnnotationMode(announce = false) {
+        if (!this.annotationTool.active) {
+            return;
+        }
+        this.annotationTool.active = false;
+        if (this.annotationTool.clickUnsubscribe) {
+            this.annotationTool.clickUnsubscribe();
+            this.annotationTool.clickUnsubscribe = null;
+        }
+        this.updateAnnotationButton();
+        this.clearControlMessage(this.annotationTooltip);
+        if (announce) {
+            this.announcer?.polite('Mode annotation desactive.');
+        }
+    }
+
+    async handleAnnotationClick(event) {
+        if (!this.annotationTool.active) {
+            return;
+        }
+        const coords = this.mapController?.toPixelCoordinates(event?.latlng);
+        if (!coords) {
+            return;
+        }
+        const roundedX = Math.round(coords.x);
+        const roundedY = Math.round(coords.y);
+        const details = this.promptAnnotationDetails({ x: roundedX, y: roundedY });
+        if (!details) {
+            this.stopAnnotationMode(false);
+            return;
+        }
+        await this.createAnnotation({
+            x: roundedX,
+            y: roundedY,
+            label: details.label,
+            color: details.color,
+            icon: details.icon || null,
+            scope: details.scope
+        });
+        this.stopAnnotationMode(false);
+    }
+
+    promptAnnotationDetails({ x, y }) {
+        const labelInput = window.prompt(`Annotation - (${x}, ${y})\nTitre de l'annotation :`, '');
+        const label = labelInput ? labelInput.trim() : '';
+        if (!label) {
+            this.announcer?.polite('Annotation annulee.');
+            return null;
+        }
+        const colorInput = window.prompt('Couleur hex (ex: #ff8a00) ou laissez vide :', '#ff8a00') || '#ff8a00';
+        const color = this.normalizeAnnotationColor(colorInput);
+        const scopeInput = window.prompt('Portee (public, party, private) :', 'public') || 'public';
+        const normalizedScope = (() => {
+            const candidate = scopeInput.toLowerCase().trim();
+            const allowed = ['public', 'party', 'private'];
+            return allowed.includes(candidate) ? candidate : 'public';
+        })();
+        return {
+            label,
+            color,
+            scope: normalizedScope
+        };
+    }
+
+    normalizeAnnotationColor(value) {
+        const normalized = (value || '').toString().trim();
+        if (!normalized) {
+            return '#ff8a00';
+        }
+        if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(normalized)) {
+            return normalized;
+        }
+        if (/^[0-9a-f]{3}$/i.test(normalized)) {
+            return `#${normalized}`;
+        }
+        if (/^[0-9a-f]{6}$/i.test(normalized)) {
+            return `#${normalized}`;
+        }
+        return '#ff8a00';
+    }
+
+    async createAnnotation(annotation) {
+        if (!annotation || !this.auth?.authenticated) {
+            return;
+        }
+        try {
+            const locationName = this.activeEntry?.location?.name || '';
+            const response = await fetch('/api/annotations', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    x: annotation.x,
+                    y: annotation.y,
+                    label: annotation.label,
+                    color: annotation.color,
+                    scope: annotation.scope,
+                    locationName: locationName
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            if (payload?.annotation) {
+                this.announcer?.polite('Annotation ajoutee. Elle apparaitra sur la carte.');
+                this.annotations.set(payload.annotation.id, payload.annotation);
+                this.mapController.addAnnotation(payload.annotation);
+            }
+        } catch (error) {
+            console.error('[annotations] creation failed', error);
+            this.announcer?.assertive?.('Impossible de creer l\'annotation.');
+        }
+    }
+
+    async requestAnnotationDeletion(annotationId) {
+        if (!this.isAdmin() || !annotationId) {
+            return;
+        }
+        const confirmation = window.confirm('Supprimer cette annotation ?');
+        if (!confirmation) {
+            return;
+        }
+        try {
+            const response = await fetch(`/api/annotations/${encodeURIComponent(annotationId)}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (!response.ok && response.status !== 204) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            this.announcer?.polite('Annotation supprimee.');
+            this.annotations.delete(annotationId);
+            this.mapController.removeAnnotation(annotationId);
+        } catch (error) {
+            console.error('[annotations] suppression impossible', error);
+            this.announcer?.assertive?.('Erreur lors de la suppression de l\'annotation.');
+        }
     }
 
     showControlMessage({ button, tooltip, message, duration = 4000, placement = 'top' }) {
@@ -1879,7 +2031,7 @@ export class UiController {
         }
 
         this.mapClickUnsubscribe = this.mapController.onMapClick(event => {
-            if (this.measurement?.active || this.coordinateTool?.active) {
+            if (this.measurement?.active || this.coordinateTool?.active || this.annotationTool?.active) {
                 return;
             }
             const sidebar = this.dom.infoSidebar;
@@ -1926,6 +2078,392 @@ export class UiController {
         }
         this.ensureEntryVisible(entry);
         this.selectEntry(entry, { focusOnList: false, source: 'restore' });
+    }
+
+    async loadRealtimeData() {
+        try {
+            await Promise.allSettled([
+                this.fetchAnnotations(),
+                this.fetchQuestEvents()
+            ]);
+        } catch (error) {
+            console.warn('[realtime] Erreur lors du chargement des donnees temps reel', error);
+        }
+    }
+
+    async fetchAnnotations() {
+        try {
+            const response = await fetch('/api/annotations', { cache: 'no-store', credentials: 'include' });
+            if (!response.ok) {
+                return;
+            }
+            const payload = await response.json();
+            if (!Array.isArray(payload?.annotations)) {
+                return;
+            }
+            this.applyAnnotationBootstrap(payload.annotations);
+        } catch (error) {
+            console.warn('[realtime] Impossible de charger les annotations', error);
+        }
+    }
+
+    applyAnnotationBootstrap(list = []) {
+        const registry = new Map();
+        list.forEach(annotation => {
+            if (annotation?.id) {
+                registry.set(annotation.id, annotation);
+            }
+        });
+        this.annotations = registry;
+        this.mapController.setAnnotations(Array.from(registry.values()));
+    }
+
+    handleAnnotationCreated(data) {
+        if (!data || typeof data !== 'object') {
+            return;
+        }
+        const annotation = data.annotation || data;
+        if (!annotation?.id) {
+            return;
+        }
+        this.annotations.set(annotation.id, annotation);
+        this.mapController.addAnnotation(annotation);
+        const locationLabel = sanitizeString(annotation.locationName);
+        const messageParts = [
+            annotation.label || 'Annotation ajoutee',
+            locationLabel ? `@ ${locationLabel}` : null
+        ].filter(Boolean);
+        if (messageParts.length) {
+            this.announcer?.polite(messageParts.join(' · '));
+        }
+        const descriptionParts = [
+            locationLabel ? `@ ${locationLabel}` : null,
+            annotation.scope ? `Portee : ${annotation.scope}` : null,
+            Number.isFinite(annotation.x) && Number.isFinite(annotation.y)
+                ? `(${Math.round(annotation.x)}, ${Math.round(annotation.y)})`
+                : null
+        ].filter(Boolean);
+        this.eventsFeed.addEvent({
+            id: `annotation-${annotation.id}-${annotation.updatedAt || annotation.createdAt || Date.now()}`,
+            type: 'annotations',
+            title: annotation.label || 'Annotation ajoutee',
+            description: descriptionParts.join(' · ') || 'Annotation creee.',
+            timestamp: annotation.updatedAt || annotation.createdAt || new Date().toISOString(),
+            annotationId: annotation.id
+        });
+    }
+
+    handleAnnotationDeleted(payload) {
+        const annotationId = payload?.id;
+        if (!annotationId || !this.annotations.has(annotationId)) {
+            return;
+        }
+        const previous = this.annotations.get(annotationId);
+        this.annotations.delete(annotationId);
+        this.mapController.removeAnnotation(annotationId);
+        const label = previous?.label ? ` "${previous.label}"` : '';
+        this.announcer?.polite(`Annotation${label} supprimee.`);
+        const descriptionParts = [
+            previous?.locationName ? `@ ${sanitizeString(previous.locationName)}` : null,
+            Number.isFinite(previous?.x) && Number.isFinite(previous?.y)
+                ? `(${Math.round(previous.x)}, ${Math.round(previous.y)})`
+                : null
+        ].filter(Boolean);
+        this.eventsFeed.addEvent({
+            id: `annotation-delete-${annotationId}-${Date.now()}`,
+            type: 'annotations',
+            title: 'Annotation supprimee',
+            description: descriptionParts.join(' · ') || 'Annotation retiree de la carte.',
+            timestamp: new Date().toISOString(),
+            annotationId
+        });
+    }
+
+    async fetchQuestEvents() {
+        try {
+            const response = await fetch('/api/quest-events', { cache: 'no-store', credentials: 'include' });
+            if (!response.ok) {
+                return;
+            }
+            const payload = await response.json();
+            if (!Array.isArray(payload?.events)) {
+                return;
+            }
+            this.applyQuestEventBootstrap(payload.events);
+        } catch (error) {
+            console.warn('[realtime] Impossible de charger les evenements de quete', error);
+        }
+    }
+
+    applyQuestEventBootstrap(events = []) {
+        const registry = new Map();
+        events.forEach(event => {
+            if (event?.id) {
+                registry.set(event.id, event);
+            }
+        });
+        this.questEvents = registry;
+        registry.forEach(event => this.applyQuestEventToLocation(event));
+        const recent = events.slice(-5);
+        recent.forEach(event => {
+            this.eventsFeed.addEvent({
+                id: `quest-${event.id}`,
+                type: 'quests',
+                title: this.formatQuestEventLabel(event),
+                description: event.note || `Quete ${event.questId || 'inconnue'} mise a jour.`,
+                timestamp: event.updatedAt || new Date().toISOString(),
+                questId: event.questId || null
+            });
+        });
+    }
+
+    handleQuestUpdated(payload) {
+        const event = payload?.event || payload;
+        if (!event?.id) {
+            return;
+        }
+        this.questEvents.set(event.id, event);
+        this.applyQuestEventToLocation(event);
+        const message = [
+            event.questId,
+            event.status,
+            event.milestone,
+            event.locationName ? `@ ${event.locationName}` : null,
+            event.progress && Number.isFinite(event.progress.current)
+                ? (Number.isFinite(event.progress.max)
+                    ? `${event.progress.current}/${event.progress.max}`
+                    : `${event.progress.current}`)
+                : null
+        ].filter(Boolean).join(' · ');
+        if (message) {
+            this.announcer?.polite(message);
+        }
+        this.eventsFeed.addEvent({
+            id: `quest-${event.id}-${event.updatedAt || Date.now()}`,
+            type: 'quests',
+            title: this.formatQuestEventLabel(event),
+            description: event.note || `Quete ${event.questId || 'inconnue'} mise a jour.`,
+            timestamp: event.updatedAt || new Date().toISOString(),
+            questId: event.questId || null
+        });
+    }
+
+    formatQuestEventLabel(event) {
+        if (!event) {
+            return '';
+        }
+        const parts = [
+            event.questId,
+            event.milestone,
+            event.status,
+            event.progress && Number.isFinite(event.progress.current)
+                ? (Number.isFinite(event.progress.max)
+                    ? `${event.progress.current}/${event.progress.max}`
+                    : `${event.progress.current}`)
+                : null,
+            event.note,
+            event.locationName ? `@ ${event.locationName}` : null
+        ].filter(Boolean);
+        return parts.length ? `[LIVE] ${parts.join(' · ')}` : '[LIVE] Mise a jour de quete';
+    }
+
+    applyQuestEventToLocation(event) {
+        const locationName = sanitizeString(event?.locationName);
+        if (!locationName) {
+            return;
+        }
+        const label = this.formatQuestEventLabel(event);
+        const questId = sanitizeString(event?.questId);
+        const isSameQuest = entry => {
+            if (!questId) {
+                return false;
+            }
+            return entry.startsWith('[LIVE]') && entry.includes(questId);
+        };
+        const normalizedTarget = locationName.toLowerCase();
+
+        Object.values(this.locationsData || {}).forEach(list => {
+            list?.forEach(location => {
+                if (sanitizeString(location.name).toLowerCase() !== normalizedTarget) {
+                    return;
+                }
+                const current = Array.isArray(location.quests) ? location.quests.slice() : [];
+                const filtered = questId ? current.filter(entry => !isSameQuest(entry)) : current;
+                filtered.push(label);
+                location.quests = filtered;
+            });
+        });
+
+        const entry = this.entries.find(candidate => sanitizeString(candidate.location.name).toLowerCase() === normalizedTarget);
+        if (entry) {
+            const current = Array.isArray(entry.location.quests) ? entry.location.quests.slice() : [];
+            const filtered = questId ? current.filter(item => !isSameQuest(item)) : current;
+            filtered.push(label);
+            entry.location.quests = filtered;
+            if (this.activeEntry && this.activeEntry.location === entry.location) {
+                this.infoPanel.show(this.activeEntry);
+            }
+        }
+    }
+
+    async handleLocationsSync(payload) {
+        if (!payload || payload.sync === 'error') {
+            return;
+        }
+        const created = Array.isArray(payload?.diff?.created) ? payload.diff.created.length : 0;
+        const updated = Array.isArray(payload?.diff?.updated) ? payload.diff.updated.length : 0;
+        const deleted = Array.isArray(payload?.diff?.deleted) ? payload.diff.deleted.length : 0;
+        this.eventsFeed.addEvent({
+            id: `sync-${payload?.timestamp || Date.now()}`,
+            type: 'sync',
+            title: 'Donnees synchronisees',
+            description: `Creees: ${created} · Modifiees: ${updated} · Supprimees: ${deleted}`,
+            timestamp: payload?.timestamp || new Date().toISOString()
+        });
+        await this.refreshLocationsDataset();
+    }
+
+    async refreshLocationsDataset() {
+        try {
+            const response = await fetch('/api/admin/locations', { cache: 'no-store', credentials: 'include' });
+            if (!response.ok) {
+                return;
+            }
+            const payload = await response.json();
+            if (payload?.status !== 'ok' || typeof payload.locations !== 'object') {
+                return;
+            }
+
+            const previousSelection = this.activeEntry?.location?.name || null;
+            this.locationsData = normalizeSharedDataset(payload.locations, { sanitizeKeys: true });
+            this.buildSidebar(this.locationsData);
+            this.applyFilters();
+            this.updateSidebarView();
+            this.updateClusteringMetrics();
+            this.updateRandomButtonState();
+            if (previousSelection) {
+                this.focusLocationByName(previousSelection);
+            }
+            this.questEvents.forEach(event => this.applyQuestEventToLocation(event));
+            this.mapController.setAnnotations(Array.from(this.annotations.values()));
+        } catch (error) {
+            console.warn('[realtime] Impossible de rafraichir le dataset', error);
+        }
+    }
+
+    focusLocationByName(name) {
+        const target = sanitizeString(name).toLowerCase();
+        if (!target) {
+            return;
+        }
+        const entry = this.entries.find(candidate => sanitizeString(candidate.location.name).toLowerCase() === target);
+        if (entry) {
+            this.ensureEntryVisible(entry);
+            this.selectEntry(entry, { focusOnList: false, source: 'sync' });
+        }
+    }
+
+    setupRealtimeStream() {
+        if (typeof window === 'undefined' || typeof window.EventSource !== 'function') {
+            return;
+        }
+
+        if (this.realtimeSource) {
+            this.realtimeCleanup?.();
+            this.realtimeSource.close();
+            this.realtimeSource = null;
+        }
+
+        try {
+            const source = new window.EventSource('/api/events/stream');
+            this.realtimeSource = source;
+
+            const handleConnected = event => {
+                let payload = null;
+                try {
+                    payload = event?.data ? JSON.parse(event.data) : null;
+                } catch (error) {
+                    payload = null;
+                }
+                if (payload?.timestamp) {
+                    this.announcer?.polite('Flux temps reel synchronise.');
+                }
+            };
+
+            const handleLocationsSync = event => {
+                if (!event?.data) {
+                    return;
+                }
+                try {
+                    const payload = JSON.parse(event.data);
+                    this.handleLocationsSync(payload);
+                } catch (error) {
+                    console.warn('[sse] Flux locations.sync invalide', error);
+                }
+            };
+
+            const handleAnnotationCreated = event => {
+                if (!event?.data) {
+                    return;
+                }
+                try {
+                    const payload = JSON.parse(event.data);
+                    this.handleAnnotationCreated(payload);
+                } catch (error) {
+                    console.warn('[sse] Annotation created invalide', error);
+                }
+            };
+
+            const handleAnnotationDeleted = event => {
+                if (!event?.data) {
+                    return;
+                }
+                try {
+                    const payload = JSON.parse(event.data);
+                    this.handleAnnotationDeleted(payload);
+                } catch (error) {
+                    console.warn('[sse] Annotation deleted invalide', error);
+                }
+            };
+
+            const handleQuestUpdated = event => {
+                if (!event?.data) {
+                    return;
+                }
+                try {
+                    const payload = JSON.parse(event.data);
+                    this.handleQuestUpdated(payload);
+                } catch (error) {
+                    console.warn('[sse] Quest updated invalide', error);
+                }
+            };
+
+            source.addEventListener('connected', handleConnected);
+            source.addEventListener('locations.sync', handleLocationsSync);
+            source.addEventListener('annotation.created', handleAnnotationCreated);
+            source.addEventListener('annotation.deleted', handleAnnotationDeleted);
+            source.addEventListener('quest.updated', handleQuestUpdated);
+            source.addEventListener('heartbeat', () => {});
+            source.onerror = error => {
+                console.warn('[sse] Flux temps reel en erreur, EventSource gere la reconnexion automatique.', error?.message || error);
+            };
+
+            const handleUnload = () => {
+                source.close();
+            };
+            window.addEventListener('beforeunload', handleUnload, { once: true });
+
+            this.realtimeCleanup = () => {
+                window.removeEventListener('beforeunload', handleUnload);
+                source.removeEventListener('connected', handleConnected);
+                source.removeEventListener('locations.sync', handleLocationsSync);
+                source.removeEventListener('annotation.created', handleAnnotationCreated);
+                source.removeEventListener('annotation.deleted', handleAnnotationDeleted);
+                source.removeEventListener('quest.updated', handleQuestUpdated);
+            };
+        } catch (error) {
+            console.error('[sse] Impossible d\'ouvrir le flux SSE', error);
+        }
     }
 
     applyFilters() {

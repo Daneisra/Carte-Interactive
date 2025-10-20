@@ -20,45 +20,40 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - Authentification Discord (OAuth2) avec sessions signees et interface de connexion/deconnexion.
 - Base utilisateurs/roles (JSON) avec API d'administration (GET/POST/PATCH/DELETE) pour la gestion des comptes.
 
-## 3. Priorites immediates (fin 2025)
+## 3. Chantiers prioritaires (H1 2026)
 
+### P0 - Essentiels
+- [x] Actualisation en temps reel des evenements (websocket/polling leger) pour synchroniser marqueurs, quetes et alertes entre clients.
+- [x] Marqueurs evolutifs selon le temps ou les actions des joueurs (etats, couleurs, contenus du panneau info).
+- [ ] Systeme de calques de carte (relief, frontieres, couches thematiques) avec bascule clavier et compatibilite clustering.
+- [ ] Recherche avancee multi filtres (types, tags, presence de quetes, statut d'evenement) partagee entre panneau exploration, API et tests.
+- [ ] Factoriser la normalisation et les validations des lieux entre `DataService` et `UiController` pour eviter les divergences front/back.
+- [ ] Solidifier `server.js` (routes modulees, validation schema, verrous d'ecriture, journalisation) afin de supporter temps reel et annotations.
 
-### UX & Accessibilite
-- [x] Completer les controles ARIA, libelles et annonces vocales (navigation clavier exhaustive).
-- [x] Finaliser le responsive < 1024?px : layout mobile, repositionnement des controles et gestuelles tactiles.
-- [x] Ajouter une aide contextuelle (infobulles ou onboarding leger) pour les favoris et le clustering.
-- [x] Obtention des coordonees x et y en px via clique sur la carte et resultat afficher dans la console du navigateur.
-- [x] Ajouter un outil de mesure des distances (conversion pixels ? kilometres) pour faciliter lestimation des trajets.
-- [x] Ajouter un outil d'obtention des coordonnees a cote de l'outil de mesure des distances.
+### P1 - Haute valeur
+- [ ] Quetes interactives sur la carte (progression, jalons visuels, transitions d'etat) pilotees par le backend.
+- [x] Gestion d'evenements temporaires avec decompte visible et expiration automatique des marqueurs et panneaux d'information.
+- [x] Possibilite d'ajouter des marqueurs personnalises/annotations directement sur la carte (persistance utilisateur, partage admin).
+- [ ] Palette de couleurs et styles de marqueurs par type de lieu (coherence UI, legendes, compatibilite clustering).
+- [ ] Liens interactifs dans le panneau d'information vers lieux proches, evenements lies et suggestions de quetes.
+- [x] Tableau de bord des evenements en direct (journal temps reel, metrics pour monitorer websocket/polling).
 
-### Qualite des donnees
-- [x] Etendre le pipeline `tools/validate_assets.py` : verification des images/audio manquants, coherence des PNJ et quetes.
-- [x] Introduire la gestion officielle des titres video dans `assets/locations.json` avec harmonisation des champs.
-- [x] Preparer des jeux dessai alleges pour la recette et les tests automatises.
+### P2 - Differenciants
+- [ ] Indicateur de position du joueur ou marqueur temporaire partageable (mode guide ou live session).
+- [ ] Carte chronologique pour rejouer l'evolution des lieux et evenements (filtre par periode, playback).
+- [ ] Export et partage des annotations/parcours (JSON et capture visuelle) pour preparer sessions et debriefs.
 
-### Industrialisation
-- [x] Ajouter une batterie de tests UI (Playwright/Cypress) couvrant la selection de lieux, le clustering et la galerie media.
-- [x] Mettre en place un workflow CI (GitHub Actions) pour lint, build statique et validation des donnees.
-- [x] Corriger les encodages UTF-8 des donnees (ex. Nikaius).
-- [x] Instrumenter les performances (logs ou metriques) autour du cluster et du chargement initial.
+### P3 - Hygiene et dette
+- [ ] Modulariser `UiController` (~100 Ko) en sous-modules alignes sur `ui/` (chargement lazy, couverture unitaire ciblee).
+- [ ] Nettoyer les fichiers legacies (`legacy-script.js`, `tmp_locationEditor.js`, dossiers `test-results/`) et documenter les artefacts conserves.
+- [ ] Harmoniser les encodages (UTF-8 sans BOM) sur les fichiers texte (`docs/remote-sync.md`, `js/i18n.js`, assets JSON) et ajouter un lint dedie.
 
-### Edition in-app
-- [x] Support de l'upload (clic ou glisser-deposer) pour les images et fichiers audio depuis l'editeur, avec copie automatique dans `assets/images/` et `assets/audio/`.
-- [x] Validation et renommage automatique des fichiers importes (taille, extension, slug).
-- [x] Suppression d'un lieu depuis le mode "Modifier un lieu".
-
-## 4. Initiatives moyen terme (H1 2026)
-- [x] Connecter les enregistrements a une couche persistante distante (API/export) pour synchronisation et sauvegarde.
-- [x] **Edition in-app des lieux** : finaliser le workflow (upload medias, validations avancees, audit/logs).
-- [x] Experience collaborative : roles admin/utilisateur (Bearer tokens) et API CRUD securisee (lieux/PNJ/quetes).
-- [x] Configuration du serveur distant (REMOTE_SYNC_*, mock local et documentation).
-- [x] Authentification OAuth (Discord) cote serveur
-- [x] Gestion des sessions cote serveur (cookies signes, maintien deroles)
-- [x] Interface de connexion (login/logout, affichage du profil)
-- [x] Migration des routes REST vers une base utilisateurs/roles
-- [x] Interface d'administration integrée (gestion des utilisateurs/roles depuis la carte).
-- [ ] Mise en ligne de la carte (hebergement Node + configuration reverse proxy/HTTPS).
-- **Architecture UI modulaire** : decouper `UiController` en sous-modules testables, couverture unitaire ciblee.
+## 4. Initiatives moyen terme (H2 2026)
+- [ ] Mise en ligne de la carte (hebergement Node, reverse proxy/HTTPS, supervision des erreurs).
+- [ ] Mode hors-ligne et snapshots (export alluge des donnees + packaging media pour usage table).
+- [ ] Renforcement de la synchronisation distante (file de retries, diff incremental, alerting grafcet).
+- [ ] Observabilite unifiee (metrics serveur, traces client, dashboards temps reel).
+- [ ] Support multi-langue complet (chargement dynamique, extraction i18n, qualite traduction).
 
 ## 5. Risques & parades
 - **Volume de donnees croissant** : prevoir pagination cote backend ou moteur de recherche dedie.

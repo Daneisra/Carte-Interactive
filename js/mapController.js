@@ -32,6 +32,8 @@ export class MapController {
         this.entries = [];
         this.selectedEntry = null;
         this.markerLayer = L.layerGroup().addTo(this.map);
+        this.annotationLayer = L.layerGroup().addTo(this.map);
+        this.annotationMarkers = new Map();
         this.clusterGroup = null;
         this.clusteringEnabled = false;
         this.mapStateListeners = new Set();
@@ -397,6 +399,80 @@ export class MapController {
         const x = Math.round(coords.x);
         const y = Math.round(coords.y);
         console.info(`Carte · coordonnées px → x: ${x}, y: ${y}`);
+    }
+
+    setAnnotations(annotations = []) {
+        this.clearAnnotations();
+        if (!Array.isArray(annotations)) {
+            return;
+        }
+        annotations.forEach(annotation => {
+            this.addAnnotation(annotation);
+        });
+    }
+
+    addAnnotation(annotation) {
+        if (!annotation || typeof annotation !== 'object') {
+            return null;
+        }
+        if (!annotation.id || !Number.isFinite(annotation.x) || !Number.isFinite(annotation.y)) {
+            return null;
+        }
+        const latlng = [annotation.y, annotation.x];
+        const color = annotation.color || '#ff8a00';
+        const existing = this.annotationMarkers.get(annotation.id);
+        if (existing) {
+            existing.setLatLng(latlng);
+            existing.setStyle({
+                color,
+                fillColor: color
+            });
+            if (existing.getTooltip()) {
+                existing.setTooltipContent(annotation.label || 'Annotation');
+            }
+            existing.annotation = annotation;
+            return existing;
+        }
+        const marker = L.circleMarker(latlng, {
+            radius: 6,
+            color,
+            fillColor: color,
+            fillOpacity: 0.85,
+            weight: 2,
+            opacity: 1,
+            bubblingMouseEvents: true
+        });
+        marker.annotation = annotation;
+        marker.bindTooltip(annotation.label || 'Annotation', {
+            direction: 'top',
+            offset: [0, -8],
+            sticky: true,
+            className: 'annotation-tooltip'
+        });
+        marker.on('click', () => {
+            this.map.flyTo(latlng, Math.max(this.map.getZoom(), this.maxZoom - 1), { animate: true, duration: 0.6 });
+        });
+        this.annotationLayer.addLayer(marker);
+        this.annotationMarkers.set(annotation.id, marker);
+        return marker;
+    }
+
+    removeAnnotation(annotationId) {
+        if (!annotationId) {
+            return;
+        }
+        const marker = this.annotationMarkers.get(annotationId);
+        if (marker) {
+            this.annotationLayer.removeLayer(marker);
+            this.annotationMarkers.delete(annotationId);
+        }
+    }
+
+    clearAnnotations() {
+        this.annotationMarkers.forEach(marker => {
+            this.annotationLayer.removeLayer(marker);
+        });
+        this.annotationMarkers.clear();
     }
 
     createClusterIcon(cluster) {

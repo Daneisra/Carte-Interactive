@@ -1,4 +1,4 @@
-﻿﻿﻿﻿const STRINGS = {
+const STRINGS = {
     fr: {
         sidebar: {
             title: 'Exploration',

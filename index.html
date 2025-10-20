@@ -127,16 +127,31 @@
     </div>
 
     <!-- 📜 Historique modernisé en bas à gauche -->
-    <div id="history-container">
-        <p id="history-title">Historique</p>
-        <div id="history-list"></div> <!-- Les éléments de l'historique seront insérés ici -->
-        <button id="history-back" type="button">Retour</button> <!-- Bouton Retour placé sous l'historique -->
-    </div>
+        <div id="history-container">
+            <p id="history-title">Historique</p>
+            <div id="history-list"></div> <!-- Les éléments de l'historique seront insérés ici -->
+            <button id="history-back" type="button">Retour</button> <!-- Bouton Retour placé sous l'historique -->
+        </div>
 
-    <!-- 🗺️ Conteneur de la carte -->
-    <div class="map-wrapper">
-        <div id="map"></div>
-    </div>
+        <div id="events-feed" aria-live="polite" aria-atomic="false">
+            <div class="feed-header">
+                <h4 id="events-feed-title">Flux temps réel</h4>
+                <label for="events-filter" class="sr-only">Filtrer les événements</label>
+                <select id="events-filter">
+                    <option value="all">Tous</option>
+                    <option value="annotations">Annotations</option>
+                    <option value="quests">Quêtes</option>
+                    <option value="sync">Synchronisations</option>
+                </select>
+            </div>
+            <div id="events-feed-empty">Aucun événement pour le moment.</div>
+            <ul id="events-feed-list"></ul>
+        </div>
+
+        <!-- 🗺️ Conteneur de la carte -->
+        <div class="map-wrapper">
+            <div id="map"></div>
+        </div>
 
     <!-- 🎛️ Barre de contrôle en bas à droite -->
     <div id="map-controls">
@@ -146,6 +161,7 @@
         <button id="fullscreen-map" aria-label="Plein écran" type="button" title="Plein écran"><span aria-hidden="true">&#x2922;</span></button>
         <button id="measure-distance" class="map-control-button" type="button" aria-label="Mesurer une distance" aria-pressed="false" title="Mesurer une distance"><span aria-hidden="true">&#x1F4CF;</span></button>
         <button id="capture-coordinates" class="map-control-button" type="button" aria-label="Obtenir les coordonnées" aria-pressed="false" title="Obtenir les coordonnées"><span aria-hidden="true">&#x1F4CD;</span></button>
+        <button id="annotation-mode" class="map-control-button" type="button" aria-label="Ajouter une annotation" aria-pressed="false" title="Ajouter une annotation"><span aria-hidden="true">&#x1F58C;</span></button>
         <div id="theme-toggle" class="theme-toggle" role="group" aria-label="Mode d'affichage">
             <button type="button" class="theme-toggle-option active" data-theme="dark" aria-pressed="true" title="Mode sombre">
                 <span aria-hidden="true">&#x1F319;</span>

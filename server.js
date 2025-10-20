@@ -42,6 +42,8 @@ const AUDIO_DIR = path.join(ASSETS_PATH, 'audio');
 const AUDIT_DIR = path.join(ASSETS_PATH, 'logs');
 const AUDIT_FILE = path.join(AUDIT_DIR, 'locations-audit.jsonl');
 const USERS_FILE = path.join(ASSETS_PATH, 'users.json');
+const ANNOTATIONS_FILE = path.join(ASSETS_PATH, 'annotations.json');
+const QUEST_EVENTS_FILE = path.join(ASSETS_PATH, 'questEvents.json');
 const REMOTE_SYNC_URL = (process.env.REMOTE_SYNC_URL || '').trim();
 const REMOTE_SYNC_TOKEN = (process.env.REMOTE_SYNC_TOKEN || '').trim();
 const rawRemoteSyncMethod = (process.env.REMOTE_SYNC_METHOD || 'POST').trim().toUpperCase();
@@ -61,6 +63,81 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8'
 };
+
+const SSE_HEARTBEAT_MS = 30_000;
+const sseClients = new Set();
+
+const broadcastSse = (eventName, payload) => {
+  if (!sseClients.size) {
+    return;
+  }
+  const serialized = typeof payload === 'string' ? payload : JSON.stringify(payload);
+  sseClients.forEach(client => {
+    if (!client.res || client.res.writableEnded) {
+      return;
+    }
+    try {
+      client.res.write(`event: ${eventName}\ndata: ${serialized}\n\n`);
+    } catch (error) {
+      console.warn('[sse] write failed', error);
+    }
+  });
+};
+
+const registerSseClient = (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive'
+  });
+
+  res.write(`event: connected\ndata: ${JSON.stringify({ timestamp: new Date().toISOString() })}\n\n`);
+
+  const client = { res, heartbeat: null };
+
+  client.heartbeat = setInterval(() => {
+    if (res.writableEnded) {
+      clearInterval(client.heartbeat);
+      return;
+    }
+    try {
+      res.write(`event: heartbeat\ndata: ${Date.now()}\n\n`);
+    } catch (error) {
+      clearInterval(client.heartbeat);
+    }
+  }, SSE_HEARTBEAT_MS);
+
+  const cleanup = () => {
+    clearInterval(client.heartbeat);
+    sseClients.delete(client);
+  };
+
+  req.on('close', cleanup);
+  res.on('close', cleanup);
+
+  sseClients.add(client);
+};
+
+const readJsonFile = async (targetPath, fallback) => {
+  try {
+    const raw = await fs.promises.readFile(targetPath, 'utf-8');
+    return JSON.parse(raw);
+  } catch (error) {
+    return Array.isArray(fallback) || typeof fallback === 'object' ? JSON.parse(JSON.stringify(fallback)) : fallback;
+  }
+};
+
+const writeJsonFile = async (targetPath, data) => {
+  const directory = path.dirname(targetPath);
+  await fs.promises.mkdir(directory, { recursive: true });
+  await fs.promises.writeFile(targetPath, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+};
+
+const readAnnotationsFile = async () => readJsonFile(ANNOTATIONS_FILE, []);
+const writeAnnotationsFile = async annotations => writeJsonFile(ANNOTATIONS_FILE, annotations);
+
+const readQuestEventsFile = async () => readJsonFile(QUEST_EVENTS_FILE, []);
+const writeQuestEventsFile = async events => writeJsonFile(QUEST_EVENTS_FILE, events.slice(-200));
 
 const send = (res, status, body = '', headers = {}) => {
   res.writeHead(status, headers);
@@ -956,6 +1033,141 @@ const persistLocations = async payload => {
 const server = http.createServer(async (req, res) => {
   try {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    if (req.method === 'GET' && urlObj.pathname === '/api/events/stream') {
+      registerSseClient(req, res);
+      return;
+    }
+    if (req.method === 'GET' && urlObj.pathname === '/api/annotations') {
+      const annotations = await readAnnotationsFile();
+      send(res, 200, JSON.stringify({ status: 'ok', annotations }), { 'Content-Type': 'application/json' });
+      return;
+    }
+    if (req.method === 'POST' && urlObj.pathname === '/api/annotations') {
+      if (!(await ensureAuthorized(req, res, 'user'))) {
+        return;
+      }
+      const rawBody = await collectBody(req);
+      let payload;
+      try {
+        payload = JSON.parse(rawBody || '{}');
+      } catch (error) {
+        send(res, 400, 'Invalid JSON');
+        return;
+      }
+
+      const rawX = payload?.x ?? payload?.coords?.x;
+      const rawY = payload?.y ?? payload?.coords?.y;
+      const x = Number(rawX);
+      const y = Number(rawY);
+      const label = normalizeString(payload?.label);
+      if (!Number.isFinite(x) || !Number.isFinite(y) || !label) {
+        send(res, 400, JSON.stringify({ status: 'error', message: 'Annotation invalide: champs x, y et label requis.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      const color = normalizeString(payload?.color) || '#ff8a00';
+      const icon = normalizeString(payload?.icon) || null;
+      const scope = normalizeString(payload?.scope) || 'public';
+      const expiresAt = payload?.expiresAt ? new Date(payload.expiresAt).toISOString() : null;
+      const metadata = payload?.metadata && typeof payload.metadata === 'object' ? payload.metadata : {};
+      const now = new Date().toISOString();
+
+      const annotation = {
+        id: payload?.id && normalizeString(payload.id) ? normalizeString(payload.id) : `ann_${crypto.randomUUID()}`,
+        x,
+        y,
+        label,
+        color,
+        icon,
+        scope,
+        locationName: normalizeString(payload?.locationName) || null,
+        metadata,
+        author: req.auth?.user?.username || req.auth?.session?.username || 'system',
+        createdAt: now,
+        updatedAt: now,
+        expiresAt
+      };
+
+      const annotations = await readAnnotationsFile();
+      annotations.push(annotation);
+      await writeAnnotationsFile(annotations);
+      broadcastSse('annotation.created', { annotation });
+      send(res, 201, JSON.stringify({ status: 'ok', annotation }), { 'Content-Type': 'application/json' });
+      return;
+    }
+    const annotationIdMatch = urlObj.pathname.match(/^\/api\/annotations\/([^/]+)$/);
+    if (annotationIdMatch) {
+      const annotationId = annotationIdMatch[1];
+      if (req.method === 'DELETE') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const annotations = await readAnnotationsFile();
+        const next = annotations.filter(item => item?.id !== annotationId);
+        if (next.length === annotations.length) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'Annotation introuvable.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        await writeAnnotationsFile(next);
+        broadcastSse('annotation.deleted', { id: annotationId });
+        send(res, 204, null);
+        return;
+      }
+    }
+    if (urlObj.pathname === '/api/quest-events') {
+      if (req.method === 'GET') {
+        if (!(await ensureAuthorized(req, res, 'user'))) {
+          return;
+        }
+        const events = await readQuestEventsFile();
+        send(res, 200, JSON.stringify({ status: 'ok', events }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      if (req.method === 'POST') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const rawBody = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(rawBody || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const questId = normalizeString(payload?.questId);
+        const locationName = normalizeString(payload?.locationName);
+        const status = normalizeString(payload?.status);
+        const milestone = normalizeString(payload?.milestone);
+        if (!questId || !locationName || !status) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'Champs questId, locationName et status requis.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const progress = payload?.progress && typeof payload.progress === 'object'
+          ? {
+              current: Number(payload.progress.current) || 0,
+              max: Number(payload.progress.max) || null
+            }
+          : null;
+        const note = normalizeString(payload?.note) || '';
+        const event = {
+          id: payload?.id && normalizeString(payload.id) ? normalizeString(payload.id) : `quest_${crypto.randomUUID()}`,
+          questId,
+          locationName,
+          status,
+          milestone: milestone || null,
+          progress,
+          note,
+          updatedAt: new Date().toISOString()
+        };
+        const events = await readQuestEventsFile();
+        events.push(event);
+        await writeQuestEventsFile(events);
+        broadcastSse('quest.updated', { event });
+        send(res, 201, JSON.stringify({ status: 'ok', event }), { 'Content-Type': 'application/json' });
+        return;
+      }
+    }
     if (req.method === 'POST' && urlObj.pathname === '/api/upload') {
       if (!(await ensureAuthorized(req, res, 'admin'))) {
         return;
@@ -1013,6 +1225,19 @@ const server = http.createServer(async (req, res) => {
       await persistLocations(dataset);
       await appendAuditLog({ dataset, diff });
       const syncResult = await sendRemoteSync({ dataset, diff });
+      const totals = {
+        continents: Object.keys(dataset || {}).length,
+        locations: Object.values(dataset || {}).reduce(
+          (acc, list) => acc + (Array.isArray(list) ? list.length : 0),
+          0
+        )
+      };
+      broadcastSse('locations.sync', {
+        timestamp: new Date().toISOString(),
+        diff,
+        totals,
+        sync: syncResult.status
+      });
       if (syncResult.status === 'error') {
         const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
         console.error('[sync] remote export failed', details);
