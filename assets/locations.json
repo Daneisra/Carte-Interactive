@@ -99,6 +99,20 @@
       "quests": "",
       "lore": "",
       "pnjs": []
+    },
+    {
+      "name": "L'escale",
+      "type": "default",
+      "x": 5431,
+      "y": 2457,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
     }
   ],
   "Dipovia": [
@@ -182,6 +196,20 @@
       "pnjs": []
     },
     {
+      "name": "Brume-Sombre",
+      "type": "default",
+      "x": 7461,
+      "y": 1000,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
       "name": "Brumeport",
       "type": "Large City Stone Wall + Towers",
       "x": 7606,
@@ -249,6 +277,20 @@
       "pnjs": []
     },
     {
+      "name": "Dents de Pierres",
+      "type": "default",
+      "x": 8097,
+      "y": 1045,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
       "name": "Divinum Lumen",
       "type": "Castle Ruin",
       "x": 7832,
@@ -257,6 +299,48 @@
       "images": [],
       "videos": [],
       "audio": "assets/audio/sanctus_imperator_ambiance.mp3",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "Domptefer",
+      "type": "default",
+      "x": 7893,
+      "y": 1286,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "Drumlow Woods",
+      "type": "default",
+      "x": 7464,
+      "y": 1522,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "Forgepierre",
+      "type": "default",
+      "x": 8070,
+      "y": 2898,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
       "history": "",
       "quests": "",
       "lore": "",
@@ -302,7 +386,8 @@
       "history": "Cette ville était la jumelle de Valerius Primus, rivalisant de grandeur et d’architecture. Sa population a toujours témoigné d’une culture différente et d'une identité très forte.",
       "quests": [
         "Tuer l'Hôte démoniaque",
-        "Purifier et libérer Imossa"
+        "Purifier et libérer Imossa",
+        "[LIVE] QST-Imossa - en cours - 0/2 - Tuer l'Hôte démoniaque\nPurifier et libérer Imossa - @ Imossa"
       ],
       "lore": [
         "Imossa était une cité-état unique en son genre, située sur une île au cœur du continent de Vruliwen. Isolée par sa géographie insulaire, elle a prospéré pendant des siècles en cultivant un modèle politique et économique différent de celui des autres royaumes, faisant d’elle l'une des cités les plus avancées et influentes.",
@@ -330,6 +415,90 @@
       "images": [],
       "videos": [],
       "audio": "assets/audio/sanctus_imperator_ambiance.mp3",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "Irohazy Woods",
+      "type": "default",
+      "x": 7945,
+      "y": 3690,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "Jade Forest",
+      "type": "default",
+      "x": 7908,
+      "y": 2428,
+      "description": "Y parait qu'un dragon s-y trouve..",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "L'Aiguille du Crépuscule",
+      "type": "default",
+      "x": 7443,
+      "y": 4263,
+      "description": "Sur le continent de Vruliwen, au nord, s'élevait majestueusement L'Aiguille du Crépuscule, une masse colossale de roche et de mystère qui perçait les cieux comme un titan endormi. Son sommet touchait les nuages, et ses flancs escarpés étaient constamment voilés dans un halo sombre et énigmatique.\n\nDepuis des temps immémoriaux, les peuples de Vruliwen racontaient des histoires sur cette montagne énigmatique. On disait que des âmes perdues erraient dans ses cavernes profondes, gémissant dans l'obscurité et traçant des chemins sinueux à travers les ténèbres. Mais aucune âme vivante n'avait jamais osé s'aventurer assez loin pour en découvrir la vérité.\n\nLes légendes de L'Aiguille du Crépuscule se transmettaient de génération en génération, imprégnant l'air de mystère et de crainte. Certains croyaient qu'elle était habitée par des esprits maléfiques, des démons qui se repaissaient des âmes imprudentes qui osaient s'aventurer sur ses flancs. D'autres prétendaient que c'était le repaire d'anciens dieux oubliés, veillant sur leurs trésors perdus depuis des éons.\n\nPourtant, malgré les histoires et les avertissements, certains cherchaient toujours à percer les secrets de L'Aiguille du Crépuscule. Des explorateurs intrépides gravissaient ses pentes escarpées, bravant les tempêtes et les dangers pour découvrir ce qui se cachait au sommet. Mais aucun ne revenait jamais pour raconter ce qu'ils avaient vu.\n\nLes rumeurs se propageaient comme des feux follets dans la nuit, alimentant les peurs et les superstitions des habitants de Vruliwen. Certains prétendaient avoir entendu des cris déchirants emporter par les vents nocturnes, tandis que d'autres affirmaient avoir vu des lumières étranges danser sur les sommets de la montagne. Mais personne ne pouvait dire avec certitude ce qui se cachait derrière le voile de mystère qui enveloppait L'Aiguille du Crépuscule.\n\nEt ainsi, elle demeurait là, un monument de secrets perdus et de légendes oubliées, veillant silencieusement sur le continent de Vruliwen, attendant que quelqu'un ose percer son mystère et révéler la vérité cachée dans ses profondeurs ténébreuses.",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "Mines de Mandrake",
+      "type": "default",
+      "x": 7579,
+      "y": 3140,
+      "description": "Les Mines de Mandrake, sous le joug de Gaël Rouget, les mineurs vivent dans la peur. Des rumeurs parlent d’esclavage, de créatures tapies dans les galeries et d’expériences interdites. Qui contrôle vraiment les profondeurs ?",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "Les Mines de Mandrake, dirigées par Gaël Rouget. Ces mines, censées être une source de richesse pour l'Empire de Vruliwen, sont en réalité des lieux de souffrance et de mort. Les ouvriers y sont traités comme des esclaves, forcés de travailler dans des conditions inhumaines. Des créatures monstrueuses, errent dans les tunnels, causant des accidents mortels.",
+      "pnjs": []
+    },
+    {
+      "name": "Montiris",
+      "type": "default",
+      "x": 8042,
+      "y": 3521,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "Monts Brumeux",
+      "type": "default",
+      "x": 7544,
+      "y": 996,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
       "history": "",
       "quests": "",
       "lore": "",
@@ -366,6 +535,20 @@
           "title": "One-Shot - La Défense de Nikaïus Part.2"
         }
       ],
+      "audio": "assets/audio/tabletop-audio-battle-of-the-amazons-128-ytshorts.savetube.me.mp3",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "Nocturna",
+      "type": "default",
+      "x": 7844,
+      "y": 4542,
+      "description": "Île située à l'extrême nord du continent de Vruliwen, elle a été par le passé connue pour son hostilité et son instabilité.\nNul ne pouvait compter ou identifier les malédictions qui y régnaient comme celle des Blood Brothers. De plus, les environs étaient propices pour les ingérences des forces obscures.\nCependant suite à l'action de Vulkan et le rattachement de l'île au continent et à l'Empire, ces terres se sont pacifiées et sont plus que jamais fidèles à l'Empereur",
+      "images": [],
+      "videos": [],
       "audio": "",
       "history": "",
       "quests": "",
@@ -387,10 +570,52 @@
       "pnjs": []
     },
     {
+      "name": "Pas du Roc",
+      "type": "default",
+      "x": 7818,
+      "y": 945,
+      "description": "# **__Le Pas-du-Roc, le Goulet des Âmes__**\n\nLa vallée du Pas-du-Roc, étroite et sinueuse, est le seul passage entre les montagnes qui séparent le Nord et les terres du Sud. Coincée entre deux chaînes de montagnes aux pics acérés, cette vallée semble avoir été taillée dans la pierre par les dragons eux-mêmes, une vallée où la nature montre toute sa puissance brute. Les montagnes qui l'encadrent se dressent comme des murailles naturelles, leurs sommets enneigés se perdant dans les nuages, tandis que leurs flancs abrupts sont parsemés de forêts sombres et impénétrables, où les ombres semblent prendre vie. Les batailles qui ont ravagé cette vallée au fil des siècles y ont laissé bien plus que des cicatrices de guerre ; elles y ont ancré une puissance mystique, un écho éternel des sorts jetés et des vies arrachées.\n\nLorsque la brume descend sur la vallée, elle n'est pas seulement faite d'humidité et de froid ; c'est un voile du passé. Une mer de souvenirs animés par la magie ancienne qui imprègne le sol. Ceux qui s'y aventurent sont témoins des évènements passés. D'abord, on y perçoit simplement des formes, des cris, des chants et des incantations. Plus le temps passe, mieux on en discerne le sens. Les spectateurs peuvent y voir l'engouement des troupes, leur courage et leur fin tragique. Même les créatures de la vallée semblent respecter ces moments de mémoire en restant passives les jours de brumes. Le danger réside dans l'attention que portent les voyageurs à ces souvenirs, rester trop longtemps dans la brume c'est se retrouver dans des recoins sombres et dangereux lorsqu'elle se lève.\n\nLes trois rivières qui traversent le Pas-du-Roc: la Frémissante, l’Oubliée, et la Sombre-Courant; ne sont pas des cours d'eau ordinaires. Elles ont été marquées par la magie au point qu'elles défient les lois naturelles. Parfois, sans avertissement, leurs lits se déplacent, modifiant le paysage en un instant, comme si une force invisible les dirigeait. Ces changements soudains et imprévisibles transforment la vallée en un labyrinthe mouvant, ajoutant au mystère et au danger du lieu. Ces rivières sont sources de vies tant pour les créatures dont les nymphes, la faune plus ou moins dangereuse, ou les hommes vivants et traversant les lieux. En effet, elles apportent à la fois les éléments vitaux à la survie mais constituent aussi un véritable boussole malgré leur nature imprévisible et changeante.\n\nLa faune du Pas-du-Roc est aussi étrange que ses rivières. Des créatures y rôdent, nées de la magie résiduelle qui imprègne chaque recoin. Des ombres ailées traversent le ciel nocturne, des bêtes aux yeux incandescents guettent dans l'obscurité des sous-bois, des êtres faits de brume, de pierres et de ronces. Les Valdefer, gardiens de ce passage millénaire, veillent à la conservation de ce qui y vit et de ce qui y a vécu. De plus, contrôler la traversée de la vallée est leur mission sacrée.\n\nLes phénomènes inexplicables qui surviennent dans la vallée ne sont pas limités aux créatures et aux cours d'eau. Des feux follets apparaissent sans prévenir, dansant au-dessus des rivières et des pierres, guidant parfois les voyageurs égarés vers une mort certaine ou, plus rarement, vers une sortie salvatrice.",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
       "name": "Rafdell",
       "type": "Large City Stone Wall + Towers",
       "x": 8070,
       "y": 1174,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "Rochebrume",
+      "type": "default",
+      "x": 8123,
+      "y": 2866,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
+    {
+      "name": "Sanctuarium",
+      "type": "default",
+      "x": 7921,
+      "y": 2700,
       "description": "",
       "images": [],
       "videos": [],
@@ -454,6 +679,31 @@
       "pnjs": []
     },
     {
+      "name": "Vardanys",
+      "type": "default",
+      "x": 7688,
+      "y": 2583,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": [
+        "# **__Vardanys, le Reflux d’Imossa__**",
+        "Vardanys fut la première cité à accueillir les réfugiés d’Imossa après la Chute.",
+        "De ce fait, elle devint rapidement un refuge pour les anciens citoyens de la cité perdue, une “petite Imossa” où l’on parlait encore avec fierté le dialecte imossien et où la mémoire des Primarques était entretenue comme un culte.",
+        "Au fil des décennies, la ville devint le principal bastion continental de la Garde d’Imossa, un lieu de recrutement, de mémoire et d’entraînement.",
+        "Mais depuis la guerre contre Dipovia, la situation s’est tendue :",
+        "- L’Empire exige que la Garde se joigne à la Croisade.",
+        "- La Garde refuse de se battre sous la bannière de l’Église, qu’elle considère responsable de la Chute d’Imossa.",
+        "- Les tensions entre les officiers impériaux et les Primarques s’enveniment.",
+        "- Les habitants de Vardanys, descendants d’Imossa, se sentent trahis par le trône.",
+        "> Aujourd’hui, Vardanys est une ville au bord de l’insurrection. Ses quais bruissent de murmures, les drapeaux impériaux sont souillés d’eau de mer, et les cloches du port résonnent comme un glas."
+      ],
+      "pnjs": []
+    },
+    {
       "name": "Wimborne",
       "type": "Large City Stone Wall + Towers",
       "x": 7798,
@@ -469,6 +719,20 @@
     }
   ],
   "Zemantis": [
+    {
+      "name": "Camp O.E",
+      "type": "default",
+      "x": 1977,
+      "y": 1453,
+      "description": "",
+      "images": [],
+      "videos": [],
+      "audio": "",
+      "history": "",
+      "quests": "",
+      "lore": "",
+      "pnjs": []
+    },
     {
       "name": "Vyktyskar",
       "type": "Castle",

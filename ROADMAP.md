@@ -24,7 +24,8 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 
 ### P0 - Essentiels
 - [x] Actualisation en temps reel des evenements (websocket/polling leger) pour synchroniser marqueurs, quetes et alertes entre clients.
-- [x] Marqueurs evolutifs selon le temps ou les actions des joueurs (etats, couleurs, contenus du panneau info).
+- [ ] Dans le panneau information, dans Créer un lieu et dans modifier également, je veux la gestion complète des textes avec titres, gras, italique saut de ligne etc... pour que ça soit lisible et que je puisse formater les textes exactement comme je le souhaite.
+- [ ] Marqueurs evolutifs selon le temps ou les actions des joueurs (etats, couleurs, contenus du panneau info).
 - [ ] Systeme de calques de carte (relief, frontieres, couches thematiques) avec bascule clavier et compatibilite clustering.
 - [ ] Recherche avancee multi filtres (types, tags, presence de quetes, statut d'evenement) partagee entre panneau exploration, API et tests.
 - [ ] Factoriser la normalisation et les validations des lieux entre `DataService` et `UiController` pour eviter les divergences front/back.
@@ -32,7 +33,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 
 ### P1 - Haute valeur
 - [ ] Quetes interactives sur la carte (progression, jalons visuels, transitions d'etat) pilotees par le backend.
-- [x] Gestion d'evenements temporaires avec decompte visible et expiration automatique des marqueurs et panneaux d'information.
+- [ ] Gestion d'evenements temporaires avec decompte visible et expiration automatique des marqueurs et panneaux d'information.
 - [x] Possibilite d'ajouter des marqueurs personnalises/annotations directement sur la carte (persistance utilisateur, partage admin).
 - [ ] Palette de couleurs et styles de marqueurs par type de lieu (coherence UI, legendes, compatibilite clustering).
 - [ ] Liens interactifs dans le panneau d'information vers lieux proches, evenements lies et suggestions de quetes.
