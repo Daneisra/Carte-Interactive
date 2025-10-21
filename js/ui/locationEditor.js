@@ -1,4 +1,5 @@
 import { createElement, clearElement } from './dom.js';
+import { renderMarkdown } from './markdown.js';
 
 const DEFAULT_LOCATION = {
     name: '',
@@ -199,6 +200,11 @@ export class LocationEditor {
         this.typeSelect = this.form?.querySelector('#editor-type') || null;
         this.imageDropZone = this.form?.querySelector('[data-drop-zone="image"]') || null;
         this.audioDropZone = this.form?.querySelector('[data-drop-zone="audio"]') || null;
+        this.descriptionInput = this.form?.elements?.description || null;
+        this.descriptionToolbar = this.form?.querySelector('[data-role="description-toolbar"]') || null;
+        this.descriptionPreview = this.form?.querySelector('[data-preview="description-markdown"]') || null;
+        this.descriptionPreviewBody = this.form?.querySelector('[data-role="description-preview-body"]') || null;
+        this.descriptionPreviewEmpty = this.descriptionPreview?.querySelector('.markdown-preview-empty') || null;
         this.questEventsContainer = this.form?.querySelector('[data-role="quest-events"]') || null;
         this.questEventsList = this.form?.querySelector('[data-role="quest-events-list"]') || null;
         this.questEventsEmpty = this.form?.querySelector('[data-role="quest-events-empty"]') || null;
@@ -232,6 +238,13 @@ export class LocationEditor {
         this.isOpen = false;
         this.questEvents = [];
         this.isSubmittingQuestEvent = false;
+        if (this.descriptionPreviewBody) {
+            this.descriptionPreviewBody.hidden = true;
+        }
+        this.descriptionToolbarButtons = this.descriptionToolbar ? Array.from(this.descriptionToolbar.querySelectorAll('[data-md]')) : [];
+
+        this.updateDescriptionPreview();
+
 
         if (this.deleteButton) {
             this.deleteButton.hidden = true;
@@ -245,6 +258,15 @@ export class LocationEditor {
     }
 
     registerEvents() {
+        if (this.descriptionInput) {
+            this.descriptionInput.addEventListener('input', () => this.updateDescriptionPreview());
+        }
+        if (this.descriptionToolbarButtons && this.descriptionToolbarButtons.length) {
+            this.descriptionToolbarButtons.forEach(button => {
+                button.addEventListener('click', () => this.insertMarkdownSnippet(button.dataset.md || ''));
+            });
+        }
+
         this.form.addEventListener('submit', event => {
             event.preventDefault();
             this.handleSubmit();
@@ -509,7 +531,10 @@ export class LocationEditor {
         }
         this.form.elements.x.value = Number.isFinite(location.x) ? Math.round(location.x) : '';
         this.form.elements.y.value = Number.isFinite(location.y) ? Math.round(location.y) : '';
-        this.form.elements.description.value = location.description || '';
+        if (this.descriptionInput) {
+            this.descriptionInput.value = location.description || '';
+            this.updateDescriptionPreview();
+        }
         this.form.elements.audio.value = location.audio || '';
         this.form.elements.history.value = (location.history || []).join('\n');
         this.form.elements.quests.value = (location.quests || []).join('\n');
@@ -540,6 +565,63 @@ export class LocationEditor {
         this.updateVideoPreview();
         this.updatePnjPreview();
 
+    }
+
+    updateDescriptionPreview() {
+        if (!this.descriptionPreview || !this.descriptionInput) {
+            return;
+        }
+        const value = this.descriptionInput.value || '';
+        const html = renderMarkdown(value);
+        if (!html.trim()) {
+            if (this.descriptionPreviewBody) {
+                this.descriptionPreviewBody.innerHTML = '';
+                this.descriptionPreviewBody.hidden = true;
+            } else {
+                this.descriptionPreview.innerHTML = '';
+            }
+            if (this.descriptionPreviewEmpty) {
+                this.descriptionPreviewEmpty.hidden = false;
+                if (!this.descriptionPreview.contains(this.descriptionPreviewEmpty)) {
+                    this.descriptionPreview.appendChild(this.descriptionPreviewEmpty);
+                }
+            }
+            return;
+        }
+        if (this.descriptionPreviewEmpty) {
+            this.descriptionPreviewEmpty.hidden = true;
+        }
+        if (this.descriptionPreviewBody) {
+            this.descriptionPreviewBody.hidden = false;
+            this.descriptionPreviewBody.innerHTML = html;
+        } else {
+            this.descriptionPreview.innerHTML = html;
+        }
+    }
+
+    insertMarkdownSnippet(snippet) {
+        if (!this.descriptionInput || !snippet) {
+            return;
+        }
+        const textarea = this.descriptionInput;
+        const start = textarea.selectionStart ?? textarea.value.length;
+        const end = textarea.selectionEnd ?? start;
+        const placeholderIndex = snippet.indexOf('|');
+        let insertText = snippet;
+        let caretPosition = start;
+        if (placeholderIndex !== -1) {
+            insertText = snippet.replace('|', '');
+            caretPosition = start + placeholderIndex;
+        } else {
+            caretPosition = start + insertText.length;
+        }
+        const before = textarea.value.slice(0, start);
+        const after = textarea.value.slice(end);
+        textarea.value = before + insertText + after;
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = caretPosition;
+        this.updateDescriptionPreview();
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
     setQuestEvents(events = []) {

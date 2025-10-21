@@ -1,5 +1,6 @@
 import { clearElement, createElement, qsa } from './dom.js';
 import { getString } from '../i18n.js';
+import { renderMarkdown } from './markdown.js';
 
 export class InfoPanel {
     constructor({
@@ -96,7 +97,9 @@ export class InfoPanel {
             this.titleElement.textContent = location.name;
         }
         if (this.descriptionElement) {
-            this.descriptionElement.textContent = location.description || getString('info.noDescription');
+            this.descriptionElement.classList.add('markdown-content');
+            const description = location.description || getString('info.noDescription');
+            this.descriptionElement.innerHTML = renderMarkdown(description);
         }
 
         this.renderSection(this.historySection, location.history, 'info.history');
@@ -203,7 +206,9 @@ export class InfoPanel {
         }
         clearElement(sectionElement);
 
-        if (!items || !items.length) {
+        const normalizedItems = Array.isArray(items) ? items : [items];
+        const visibleItems = normalizedItems.filter(value => Boolean(value));
+        if (!visibleItems.length) {
             sectionElement.hidden = true;
             return;
         }
@@ -214,11 +219,10 @@ export class InfoPanel {
         sectionElement.appendChild(title);
 
         const list = createElement('ul');
-        items.forEach(item => {
-            if (item) {
-                const li = createElement('li', { text: String(item) });
-                list.appendChild(li);
-            }
+        visibleItems.forEach(item => {
+            const li = createElement('li', { className: 'markdown-content' });
+            li.innerHTML = renderMarkdown(item);
+            list.appendChild(li);
         });
         sectionElement.appendChild(list);
     }
@@ -430,7 +434,8 @@ export class InfoPanel {
                 item.appendChild(document.createTextNode(` - ${pnj.role}`));
             }
             if (pnj.description) {
-                const desc = createElement('p', { text: pnj.description });
+                const desc = createElement('p', { className: 'markdown-content' });
+                desc.innerHTML = renderMarkdown(pnj.description);
                 item.appendChild(desc);
             }
             list.appendChild(item);

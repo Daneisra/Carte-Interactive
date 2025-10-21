@@ -218,7 +218,20 @@
                         </div>
                         <div class="form-row">
                             <label for="editor-description">Description</label>
-                            <textarea id="editor-description" name="description" rows="3"></textarea>
+                            <div class="markdown-toolbar" data-role="description-toolbar">
+                                <button type="button" class="toolbar-button" data-md="**|**" aria-label="Texte gras"><span>G</span></button>
+                                <button type="button" class="toolbar-button" data-md="*|*" aria-label="Texte italique"><span>I</span></button>
+                                <button type="button" class="toolbar-button" data-md="### |" aria-label="Titre niveau 3"><span>H3</span></button>
+                                <button type="button" class="toolbar-button" data-md="- |" aria-label="Liste"><span>•</span></button>
+                                <button type="button" class="toolbar-button" data-md="> |" aria-label="Citation"><span>&gt;</span></button>
+                                <button type="button" class="toolbar-button" data-md="[texte](url)" aria-label="Lien">🔗</button>
+                                <span class="toolbar-hint">Markdown</span>
+                            </div>
+                            <textarea id="editor-description" name="description" rows="6"></textarea>
+                            <div class="markdown-preview" data-preview="description-markdown">
+                                <p class="markdown-preview-empty">Previsualisation en direct du rendu Markdown.</p>
+                                <div class="markdown-preview-body markdown-content" data-role="description-preview-body" hidden></div>
+                            </div>
                             <p class="form-error" data-error-for="description"></p>
                         </div>
                         <div class="form-row">
@@ -337,6 +350,8 @@
     </div>
 
     <!-- ⚙️ Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.3/dist/purify.min.js" defer></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <script type="module" src="js/main.js"></script>
