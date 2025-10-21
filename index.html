@@ -273,6 +273,54 @@
                             <textarea id="editor-lore" name="lore" rows="3"></textarea>
                         </div>
                     </fieldset>
+
+                    <fieldset class="editor-section" id="quest-events-section">
+                        <legend>Événements de quête</legend>
+                        <div class="quest-events-disabled" data-role="quest-events-disabled" hidden>
+                            Enregistrez le lieu pour gérer les événements de quête.
+                        </div>
+                        <div class="quest-events-list-wrapper" data-role="quest-events" hidden>
+                            <p class="quest-events-empty" data-role="quest-events-empty">Aucun événement enregistré pour ce lieu.</p>
+                            <ul class="quest-events-list" data-role="quest-events-list"></ul>
+                        </div>
+                        <div class="quest-event-form" data-role="quest-event-form">
+                            <div class="form-grid">
+                                <div class="form-row">
+                                    <label for="quest-event-id">Identifiant de quête</label>
+                                    <input id="quest-event-id" name="quest-event-id" type="text" data-role="quest-event-quest-id" placeholder="ex: QST-012" />
+                                </div>
+                                <div class="form-row">
+                                    <label for="quest-event-status">Statut</label>
+                                    <select id="quest-event-status" name="quest-event-status" data-role="quest-event-status">
+                                        <option value="planifie">Planifiée</option>
+                                        <option value="en cours" selected>En cours</option>
+                                        <option value="termine">Terminée</option>
+                                        <option value="bloque">Bloquée</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <label for="quest-event-milestone">Jalon</label>
+                                    <input id="quest-event-milestone" name="quest-event-milestone" type="text" data-role="quest-event-milestone" placeholder="Étape ou objectif" />
+                                </div>
+                                <div class="form-row">
+                                    <label for="quest-event-progress-current">Progression</label>
+                                    <div class="input-inline">
+                                        <input id="quest-event-progress-current" name="quest-event-progress-current" type="number" min="0" data-role="quest-event-progress-current" placeholder="Actuel" />
+                                        <span class="input-separator">/</span>
+                                        <input id="quest-event-progress-max" name="quest-event-progress-max" type="number" min="0" data-role="quest-event-progress-max" placeholder="Total" />
+                                    </div>
+                                </div>
+                                <div class="form-row form-row-wide">
+                                    <label for="quest-event-note">Notes complémentaires</label>
+                                    <textarea id="quest-event-note" name="quest-event-note" rows="2" data-role="quest-event-note" placeholder="Informations additionnelles (optionnel)"></textarea>
+                                </div>
+                            </div>
+                            <div class="editor-actions-row quest-event-actions">
+                                <button type="button" class="secondary-button" data-action="quest-event-submit">Enregistrer un événement</button>
+                            </div>
+                            <p class="form-error" data-error-for="quest-events"></p>
+                        </div>
+                    </fieldset>
                 </div>
                 <input type="file" id="editor-image-upload" accept="image/*" hidden />
                 <input type="file" id="editor-audio-upload" accept="audio/*" hidden />

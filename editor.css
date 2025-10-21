@@ -270,6 +270,105 @@ body[data-theme="light"] .form-row select {
     flex: 1.25;
 }
 
+.input-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.input-inline input {
+    flex: 1;
+    min-width: 0;
+}
+
+.input-separator {
+    font-weight: 600;
+    opacity: 0.6;
+}
+
+.quest-events-disabled {
+    padding: 12px;
+    border-radius: 10px;
+    background: rgba(148, 163, 184, 0.12);
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.quest-events-list-wrapper {
+    margin-bottom: 18px;
+}
+
+.quest-events-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.quest-events-item {
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: rgba(15, 23, 42, 0.35);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.quest-events-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.quest-events-item-status {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(59, 130, 246, 0.18);
+    color: #bfdbfe;
+}
+
+.quest-events-item-meta {
+    font-size: 12px;
+    opacity: 0.75;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.quest-events-item-note {
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+.quest-events-empty {
+    font-style: italic;
+    font-size: 13px;
+    opacity: 0.7;
+    margin: 0;
+}
+
+.quest-event-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.quest-event-form .form-row-wide textarea {
+    min-height: 60px;
+}
+
+.quest-event-actions {
+    justify-content: flex-end;
+}
+
 .media-preview {
     display: grid;
     gap: 14px;
@@ -290,6 +389,21 @@ body[data-theme="light"] .form-row select {
 body[data-theme="light"] .preview-card {
     background: rgba(255, 255, 255, 0.8);
     box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.25);
+}
+
+body[data-theme="light"] .quest-events-disabled {
+    background: rgba(226, 232, 240, 0.75);
+    color: #1f2937;
+}
+
+body[data-theme="light"] .quest-events-item {
+    background: rgba(248, 250, 252, 0.9);
+    border-color: rgba(148, 163, 184, 0.35);
+}
+
+body[data-theme="light"] .quest-events-item-status {
+    background: rgba(59, 130, 246, 0.16);
+    color: #1d4ed8;
 }
 
 .preview-card img {

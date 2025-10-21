@@ -612,7 +612,8 @@ export class UiController {
             types: this.typeData,
             onCreate: payload => this.handleCreateLocation(payload),
             onUpdate: payload => this.handleUpdateLocation(payload),
-            onDelete: payload => this.handleDeleteLocation(payload)
+            onDelete: payload => this.handleDeleteLocation(payload),
+            onCreateQuestEvent: payload => this.createQuestEvent(payload)
         });
         this.locationEditor.setTypes(this.typeData);
         if (this.dom.addLocation) {
@@ -750,6 +751,26 @@ export class UiController {
         return names;
     }
 
+    getQuestEventsForLocation(locationName) {
+        const key = sanitizeString(locationName).toLowerCase();
+        if (!key) {
+            return [];
+        }
+        const events = [];
+        this.questEvents.forEach(event => {
+            const target = sanitizeString(event?.locationName).toLowerCase();
+            if (target === key) {
+                events.push(event);
+            }
+        });
+        events.sort((a, b) => {
+            const left = new Date(b?.updatedAt || b?.timestamp || b?.createdAt || 0).getTime();
+            const right = new Date(a?.updatedAt || a?.timestamp || a?.createdAt || 0).getTime();
+            return left - right;
+        });
+        return events;
+    }
+
     openCreateLocation() {
         if (!this.locationEditor) {
             return;
@@ -763,7 +784,8 @@ export class UiController {
             mode: 'create',
             location: null,
             continent: '',
-            disallowedNames: disallowed
+            disallowedNames: disallowed,
+            questEvents: []
         });
     }
 
@@ -781,7 +803,8 @@ export class UiController {
             mode: 'edit',
             location: entry.location,
             continent: entry.continent,
-            disallowedNames: disallowed
+            disallowedNames: disallowed,
+            questEvents: this.getQuestEventsForLocation(entry.location.name)
         });
     }
 
@@ -1951,6 +1974,60 @@ export class UiController {
         }
     }
 
+    async createQuestEvent({ locationName, questId, status, milestone, progress, note }) {
+        if (!this.isAdmin()) {
+            throw new Error('Droits administrateur requis pour créer un événement de quête.');
+        }
+        const payload = {
+            locationName,
+            questId,
+            status,
+            milestone: milestone || undefined,
+            note: note || undefined
+        };
+        if (progress && typeof progress === 'object') {
+            const normalized = {};
+            if (Number.isFinite(progress.current)) {
+                normalized.current = Number(progress.current);
+            }
+            if (Number.isFinite(progress.max)) {
+                normalized.max = Number(progress.max);
+            }
+            if (Object.keys(normalized).length) {
+                payload.progress = normalized;
+            }
+        }
+
+        try {
+            const response = await fetch('/api/quest-events', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                let message = `HTTP ${response.status}`;
+                try {
+                    const errorPayload = await response.json();
+                    if (errorPayload?.message) {
+                        message = errorPayload.message;
+                    }
+                } catch (error) {
+                    // ignore parse errors
+                }
+                throw new Error(message);
+            }
+            const result = await response.json();
+            if (result?.event) {
+                this.handleQuestUpdated({ event: result.event });
+            }
+            return result;
+        } catch (error) {
+            console.error('[quest-event] creation failed', error);
+            throw error;
+        }
+    }
+
     showControlMessage({ button, tooltip, message, duration = 4000, placement = 'top' }) {
         if (!button || !tooltip || !message) {
             return;
@@ -2215,6 +2292,7 @@ export class UiController {
                 questId: event.questId || null
             });
         });
+        this.syncLocationEditorQuestEvents();
     }
 
     handleQuestUpdated(payload) {
@@ -2246,6 +2324,7 @@ export class UiController {
             timestamp: event.updatedAt || new Date().toISOString(),
             questId: event.questId || null
         });
+        this.syncLocationEditorQuestEvents();
     }
 
     formatQuestEventLabel(event) {
@@ -2306,6 +2385,18 @@ export class UiController {
         }
     }
 
+    syncLocationEditorQuestEvents() {
+        if (!this.locationEditor?.isOpen || typeof this.locationEditor.getLocationName !== 'function') {
+            return;
+        }
+        const name = this.locationEditor.getLocationName();
+        if (!name) {
+            return;
+        }
+        const events = this.getQuestEventsForLocation(name);
+        this.locationEditor.setQuestEvents(events);
+    }
+
     async handleLocationsSync(payload) {
         if (!payload || payload.sync === 'error') {
             return;
@@ -2346,6 +2437,7 @@ export class UiController {
             }
             this.questEvents.forEach(event => this.applyQuestEventToLocation(event));
             this.mapController.setAnnotations(Array.from(this.annotations.values()));
+            this.syncLocationEditorQuestEvents();
         } catch (error) {
             console.warn('[realtime] Impossible de rafraichir le dataset', error);
         }
