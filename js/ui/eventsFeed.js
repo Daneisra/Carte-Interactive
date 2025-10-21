@@ -99,7 +99,7 @@ export class EventsFeed {
         const entry = {
             id: event.id || `evt_${Date.now()}_${Math.random().toString(16).slice(2)}`,
             type: event.type || 'generic',
-            title: event.title || 'Événement',
+            title: event.title || 'Evenement',
             description: event.description || '',
             timestamp: event.timestamp || new Date().toISOString(),
             annotationId: event.annotationId || null,
@@ -188,7 +188,7 @@ export class EventsFeed {
                 return 'Annotation';
             case 'quests':
             case 'quest':
-                return 'Quête';
+                return 'Quete';
             case 'sync':
                 return 'Sync';
             default:

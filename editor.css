@@ -348,6 +348,18 @@ body[data-theme="light"] .form-row select {
     opacity: 0.85;
 }
 
+.quest-events-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.quest-events-item-actions button {
+    font-size: 12px;
+    padding: 4px 10px;
+}
+
 .quest-events-empty {
     font-style: italic;
     font-size: 13px;

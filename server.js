@@ -1158,13 +1158,92 @@ const server = http.createServer(async (req, res) => {
           milestone: milestone || null,
           progress,
           note,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString()
         };
         const events = await readQuestEventsFile();
         events.push(event);
         await writeQuestEventsFile(events);
         broadcastSse('quest.updated', { event });
         send(res, 201, JSON.stringify({ status: 'ok', event }), { 'Content-Type': 'application/json' });
+        return;
+      }
+    }
+    const questEventMatch = urlObj.pathname.match(/^\/api\/quest-events\/([^/]+)$/);
+    if (questEventMatch) {
+      const questEventId = questEventMatch[1];
+      if (req.method === 'PATCH') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const rawBody = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(rawBody || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const events = await readQuestEventsFile();
+        const index = events.findIndex(event => event?.id === questEventId);
+        if (index === -1) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'Evenement de quete introuvable.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const current = events[index];
+        const partial = typeof payload === 'object' ? payload : {};
+        const questId = normalizeString(partial.questId) || current.questId;
+        const locationName = normalizeString(partial.locationName) || current.locationName;
+        const status = normalizeString(partial.status) || current.status;
+        if (!questId || !locationName || !status) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'Champs questId, locationName et status requis.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const milestone = normalizeString(partial.milestone);
+        const note = normalizeString(partial.note);
+        let progress = null;
+        if (partial.progress && typeof partial.progress === 'object') {
+          const currentValue = Number(partial.progress.current);
+          const maxValue = Number(partial.progress.max);
+          progress = {
+            current: Number.isFinite(currentValue) ? currentValue : null,
+            max: Number.isFinite(maxValue) ? maxValue : null
+          };
+        } else if (partial.progress === null) {
+          progress = null;
+        } else {
+          progress = current.progress || null;
+        }
+        const updated = {
+          ...current,
+          questId,
+          locationName,
+          status,
+          milestone: milestone !== undefined ? milestone || null : current.milestone || null,
+          note: note !== undefined ? note || '' : current.note || '',
+          progress,
+          updatedAt: new Date().toISOString()
+        };
+        events[index] = updated;
+        await writeQuestEventsFile(events);
+        broadcastSse('quest.updated', { event: updated });
+        send(res, 200, JSON.stringify({ status: 'ok', event: updated }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      if (req.method === 'DELETE') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const events = await readQuestEventsFile();
+        const next = events.filter(event => event?.id !== questEventId);
+        if (next.length === events.length) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'Evenement de quete introuvable.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        await writeQuestEventsFile(next);
+        broadcastSse('quest.deleted', { id: questEventId });
+        send(res, 204, null);
         return;
       }
     }

@@ -613,7 +613,9 @@ export class UiController {
             onCreate: payload => this.handleCreateLocation(payload),
             onUpdate: payload => this.handleUpdateLocation(payload),
             onDelete: payload => this.handleDeleteLocation(payload),
-            onCreateQuestEvent: payload => this.createQuestEvent(payload)
+            onCreateQuestEvent: payload => this.createQuestEvent(payload),
+            onUpdateQuestEvent: payload => this.updateQuestEvent(payload),
+            onDeleteQuestEvent: eventId => this.deleteQuestEvent(eventId)
         });
         this.locationEditor.setTypes(this.typeData);
         if (this.dom.addLocation) {
@@ -1642,7 +1644,7 @@ export class UiController {
         const roundedX = Math.round(coords.x);
         const roundedY = Math.round(coords.y);
         this.measurement.points.push({ x: coords.x, y: coords.y });
-        console.info(`Mesure · point ${this.measurement.points.length} → x: ${roundedX}, y: ${roundedY}`);
+        console.info(`Mesure - point ${this.measurement.points.length} -> x: ${roundedX}, y: ${roundedY}`);
 
         if (this.measurement.points.length === 1) {
             const message = localized('distance.pointStored', `Point de depart enregistre : x ${roundedX}, y ${roundedY}.`, { x: roundedX, y: roundedY });
@@ -1666,7 +1668,7 @@ export class UiController {
             `Distance : ${distanceKm.toFixed(1)} km (${distancePx.toFixed(1)} px).`,
             { distance: distanceKm.toFixed(1), pixels: distancePx.toFixed(1) }
         );
-        console.info(`Mesure · distance = ${distancePx.toFixed(2)} px (${distanceKm.toFixed(2)} km)`);
+        console.info(`Mesure - distance = ${distancePx.toFixed(2)} px (${distanceKm.toFixed(2)} km)`);
         this.announcer?.polite(message);
         this.showControlMessage({
             button: this.dom.measureDistance,
@@ -1765,7 +1767,7 @@ export class UiController {
         }
         const roundedX = Math.round(coords.x);
         const roundedY = Math.round(coords.y);
-        console.info(`Coordonnees · x: ${roundedX}, y: ${roundedY}`);
+        console.info(`Coordonnees - x: ${roundedX}, y: ${roundedY}`);
         const message = localized('coords.result', `Coordonnees : x ${roundedX} px, y ${roundedY} px.`, { x: roundedX, y: roundedY });
         this.announcer?.polite(message);
         this.showControlMessage({
@@ -1976,7 +1978,7 @@ export class UiController {
 
     async createQuestEvent({ locationName, questId, status, milestone, progress, note }) {
         if (!this.isAdmin()) {
-            throw new Error('Droits administrateur requis pour créer un événement de quête.');
+            throw new Error('Droits administrateur requis pour creer un evenement de quete.');
         }
         const payload = {
             locationName,
@@ -2026,6 +2028,135 @@ export class UiController {
             console.error('[quest-event] creation failed', error);
             throw error;
         }
+    }
+
+    async updateQuestEvent({ id, locationName, questId, status, milestone, progress, note }) {
+        if (!this.isAdmin()) {
+            throw new Error('Droits administrateur requis pour modifier un evenement de quete.');
+        }
+        if (!id) {
+            throw new Error('Identifiant de evenement requis.');
+        }
+        const payload = {
+            questId,
+            locationName,
+            status,
+            milestone: milestone || undefined,
+            note: note || undefined
+        };
+        if (progress && typeof progress === 'object') {
+            const normalized = {};
+            if (Number.isFinite(progress.current)) {
+                normalized.current = Number(progress.current);
+            }
+            if (Number.isFinite(progress.max)) {
+                normalized.max = Number(progress.max);
+            }
+            if (Object.keys(normalized).length) {
+                payload.progress = normalized;
+            }
+        }
+        try {
+            const response = await fetch(`/api/quest-events/${encodeURIComponent(id)}`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                let message = `HTTP ${response.status}`;
+                try {
+                    const errorPayload = await response.json();
+                    if (errorPayload?.message) {
+                        message = errorPayload.message;
+                    }
+                } catch (error) {
+                    // ignore parse errors
+                }
+                throw new Error(message);
+            }
+            const result = await response.json();
+            if (result?.event) {
+                this.handleQuestUpdated({ event: result.event });
+            }
+            return result;
+        } catch (error) {
+            console.error('[quest-event] update failed', error);
+            throw error;
+        }
+    }
+
+    async deleteQuestEvent(eventId) {
+        if (!this.isAdmin()) {
+            throw new Error('Droits administrateur requis pour supprimer un evenement de quete.');
+        }
+        if (!eventId) {
+            return;
+        }
+        const existing = this.questEvents.get(eventId) || null;
+        const response = await fetch(`/api/quest-events/${encodeURIComponent(eventId)}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (!response.ok && response.status !== 204) {
+            let message = `HTTP ${response.status}`;
+            try {
+                const errorPayload = await response.json();
+                if (errorPayload?.message) {
+                    message = errorPayload.message;
+                }
+            } catch (error) {
+                // ignore parse errors
+            }
+            throw new Error(message);
+        }
+        if (existing) {
+            this.questEvents.delete(existing.id);
+            this.removeQuestEventFromLocation(existing);
+            this.eventsFeed.addEvent({
+                id: `quest-delete-${existing.id}-${Date.now()}`,
+                type: 'quests',
+                title: 'Quete supprimee',
+                description: existing.questId ? `Quete ${existing.questId} retiree.` : 'Quete retiree.',
+                timestamp: new Date().toISOString(),
+                questId: existing.questId || null
+            });
+        }
+        this.syncLocationEditorQuestEvents();
+    }
+
+    removeQuestEventFromLocation(event) {
+        const locationName = sanitizeString(event?.locationName);
+        if (!locationName) {
+            return;
+        }
+        this.rebuildQuestSummariesForLocation(locationName);
+    }
+
+    rebuildQuestSummariesForLocation(locationName) {
+        const normalizedTarget = sanitizeString(locationName).toLowerCase();
+        if (!normalizedTarget) {
+            return;
+        }
+        Object.values(this.locationsData || {}).forEach(list => {
+            list?.forEach(location => {
+                if (sanitizeString(location.name).toLowerCase() !== normalizedTarget) {
+                    return;
+                }
+                const base = Array.isArray(location.quests) ? location.quests : [];
+                location.quests = base.filter(entry => !entry.startsWith('[LIVE]'));
+            });
+        });
+        const entry = this.entries.find(candidate => sanitizeString(candidate.location.name).toLowerCase() === normalizedTarget);
+        if (entry) {
+            const base = Array.isArray(entry.location.quests) ? entry.location.quests : [];
+            entry.location.quests = base.filter(item => !item.startsWith('[LIVE]'));
+        }
+        const relevant = Array.from(this.questEvents.values()).filter(event => sanitizeString(event.locationName).toLowerCase() === normalizedTarget);
+        relevant
+            .slice()
+            .sort((a, b) => new Date(a?.updatedAt || a?.createdAt || 0).getTime() - new Date(b?.updatedAt || b?.createdAt || 0).getTime())
+            .forEach(event => this.applyQuestEventToLocation(event));
     }
 
     showControlMessage({ button, tooltip, message, duration = 4000, placement = 'top' }) {
@@ -2211,7 +2342,7 @@ export class UiController {
             locationLabel ? `@ ${locationLabel}` : null
         ].filter(Boolean);
         if (messageParts.length) {
-            this.announcer?.polite(messageParts.join(' · '));
+            this.announcer?.polite(messageParts.join(' - '));
         }
         const descriptionParts = [
             locationLabel ? `@ ${locationLabel}` : null,
@@ -2224,7 +2355,7 @@ export class UiController {
             id: `annotation-${annotation.id}-${annotation.updatedAt || annotation.createdAt || Date.now()}`,
             type: 'annotations',
             title: annotation.label || 'Annotation ajoutee',
-            description: descriptionParts.join(' · ') || 'Annotation creee.',
+            description: descriptionParts.join(' - ') || 'Annotation creee.',
             timestamp: annotation.updatedAt || annotation.createdAt || new Date().toISOString(),
             annotationId: annotation.id
         });
@@ -2250,7 +2381,7 @@ export class UiController {
             id: `annotation-delete-${annotationId}-${Date.now()}`,
             type: 'annotations',
             title: 'Annotation supprimee',
-            description: descriptionParts.join(' · ') || 'Annotation retiree de la carte.',
+            description: descriptionParts.join(' - ') || 'Annotation retiree de la carte.',
             timestamp: new Date().toISOString(),
             annotationId
         });
@@ -2312,7 +2443,7 @@ export class UiController {
                     ? `${event.progress.current}/${event.progress.max}`
                     : `${event.progress.current}`)
                 : null
-        ].filter(Boolean).join(' · ');
+        ].filter(Boolean).join(' - ');
         if (message) {
             this.announcer?.polite(message);
         }
@@ -2323,6 +2454,28 @@ export class UiController {
             description: event.note || `Quete ${event.questId || 'inconnue'} mise a jour.`,
             timestamp: event.updatedAt || new Date().toISOString(),
             questId: event.questId || null
+        });
+        this.syncLocationEditorQuestEvents();
+    }
+
+    handleQuestDeleted(payload) {
+        const id = payload?.id;
+        if (!id) {
+            return;
+        }
+        const existing = this.questEvents.get(id);
+        if (!existing) {
+            return;
+        }
+        this.questEvents.delete(id);
+        this.removeQuestEventFromLocation(existing);
+        this.eventsFeed.addEvent({
+            id: `quest-delete-${id}-${Date.now()}`,
+            type: 'quests',
+            title: 'Quete supprimee',
+            description: existing.questId ? `Quete ${existing.questId} retiree.` : 'Quete retiree.',
+            timestamp: new Date().toISOString(),
+            questId: existing.questId || null
         });
         this.syncLocationEditorQuestEvents();
     }
@@ -2343,7 +2496,7 @@ export class UiController {
             event.note,
             event.locationName ? `@ ${event.locationName}` : null
         ].filter(Boolean);
-        return parts.length ? `[LIVE] ${parts.join(' · ')}` : '[LIVE] Mise a jour de quete';
+        return parts.length ? `[LIVE] ${parts.join(' - ')}` : '[LIVE] Mise a jour de quete';
     }
 
     applyQuestEventToLocation(event) {
@@ -2408,7 +2561,7 @@ export class UiController {
             id: `sync-${payload?.timestamp || Date.now()}`,
             type: 'sync',
             title: 'Donnees synchronisees',
-            description: `Creees: ${created} · Modifiees: ${updated} · Supprimees: ${deleted}`,
+            description: `Creees: ${created} - Modifiees: ${updated} - Supprimees: ${deleted}`,
             timestamp: payload?.timestamp || new Date().toISOString()
         });
         await this.refreshLocationsDataset();
@@ -2530,11 +2683,24 @@ export class UiController {
                 }
             };
 
+            const handleQuestDeleted = event => {
+                if (!event?.data) {
+                    return;
+                }
+                try {
+                    const payload = JSON.parse(event.data);
+                    this.handleQuestDeleted(payload);
+                } catch (error) {
+                    console.warn('[sse] Quest deleted invalide', error);
+                }
+            };
+
             source.addEventListener('connected', handleConnected);
             source.addEventListener('locations.sync', handleLocationsSync);
             source.addEventListener('annotation.created', handleAnnotationCreated);
             source.addEventListener('annotation.deleted', handleAnnotationDeleted);
             source.addEventListener('quest.updated', handleQuestUpdated);
+            source.addEventListener('quest.deleted', handleQuestDeleted);
             source.addEventListener('heartbeat', () => {});
             source.onerror = error => {
                 console.warn('[sse] Flux temps reel en erreur, EventSource gere la reconnexion automatique.', error?.message || error);
@@ -2552,6 +2718,7 @@ export class UiController {
                 source.removeEventListener('annotation.created', handleAnnotationCreated);
                 source.removeEventListener('annotation.deleted', handleAnnotationDeleted);
                 source.removeEventListener('quest.updated', handleQuestUpdated);
+                source.removeEventListener('quest.deleted', handleQuestDeleted);
             };
         } catch (error) {
             console.error('[sse] Impossible d\'ouvrir le flux SSE', error);

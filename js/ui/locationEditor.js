@@ -171,7 +171,9 @@ export class LocationEditor {
         onCreate = null,
         onUpdate = null,
         onDelete = null,
-        onCreateQuestEvent = null
+        onCreateQuestEvent = null,
+        onUpdateQuestEvent = null,
+        onDeleteQuestEvent = null
     } = {}) {
         this.container = container;
         this.dialog = container?.querySelector('.editor-dialog') || null;
@@ -210,8 +212,17 @@ export class LocationEditor {
         this.questEventProgressCurrent = this.form?.querySelector('[data-role="quest-event-progress-current"]') || null;
         this.questEventProgressMax = this.form?.querySelector('[data-role="quest-event-progress-max"]') || null;
         this.questEventNote = this.form?.querySelector('[data-role="quest-event-note"]') || null;
+        this.questEventCancelButton = this.form?.querySelector('[data-action="quest-event-cancel"]') || null;
+        this.editingQuestEventId = null;
 
-        this.callbacks = { onCreate, onUpdate, onDelete, onCreateQuestEvent };
+        this.callbacks = {
+            onCreate,
+            onUpdate,
+            onDelete,
+            onCreateQuestEvent,
+            onUpdateQuestEvent,
+            onDeleteQuestEvent
+        };
         this.types = types || {};
         this.mode = 'create';
         this.currentContext = null;
@@ -300,6 +311,9 @@ export class LocationEditor {
 
         if (this.questEventSubmitButton) {
             this.questEventSubmitButton.addEventListener('click', () => this.handleQuestEventSubmit());
+        }
+        if (this.questEventCancelButton) {
+            this.questEventCancelButton.addEventListener('click', () => this.cancelQuestEventEdit());
         }
 
         if (this.imageUploadInput) {
@@ -437,10 +451,10 @@ export class LocationEditor {
         this.updateQuestEventsSection();
 
         if (this.headerTitle) {
-            this.headerTitle.textContent = mode === 'edit' ? 'Modifier un lieu' : 'Créer un lieu';
+            this.headerTitle.textContent = mode === 'edit' ? 'Modifier un lieu' : 'Creer un lieu';
         }
         if (this.submitButton) {
-            this.submitButton.textContent = mode === 'edit' ? 'Enregistrer' : 'Créer';
+            this.submitButton.textContent = mode === 'edit' ? 'Enregistrer' : 'Creer';
         }
 
         this.previousFocus = document.activeElement;
@@ -476,6 +490,8 @@ export class LocationEditor {
         this.currentContext = null;
         this.disallowedNames.clear();
         this.questEvents = [];
+        this.clearQuestEventForm();
+        this.setQuestEventError('');
         this.previousFocus?.focus?.();
         this.previousFocus = null;
     }
@@ -577,14 +593,14 @@ export class LocationEditor {
         }
 
         events.forEach(event => {
-            const questId = sanitizeText(event?.questId) || 'Quête';
+            const questId = sanitizeText(event?.questId) || 'Quete';
             const status = sanitizeText(event?.status);
             const milestone = sanitizeText(event?.milestone);
             const progressLabel = formatQuestProgress(event?.progress);
             const timestamp = formatQuestTimestamp(event?.updatedAt || event?.timestamp || event?.createdAt);
             const note = sanitizeText(event?.note);
 
-            const item = createElement('li', { className: 'quest-events-item' });
+            const item = createElement('li', { className: 'quest-events-item', dataset: { eventId: event?.id || '' } });
             const header = createElement('div', { className: 'quest-events-item-header' });
             header.appendChild(createElement('span', { text: questId }));
             if (status) {
@@ -617,11 +633,90 @@ export class LocationEditor {
                 }));
             }
 
+            const actions = createElement('div', { className: 'quest-events-item-actions' });
+            const editButton = createElement('button', {
+                className: 'secondary-button',
+                text: 'Modifier',
+                attributes: { type: 'button' }
+            });
+            editButton.addEventListener('click', () => this.loadQuestEventForEdit(event));
+            actions.appendChild(editButton);
+
+            if (typeof this.callbacks.onDeleteQuestEvent === 'function') {
+                const deleteButton = createElement('button', {
+                    className: 'danger-button',
+                    text: 'Supprimer',
+                    attributes: { type: 'button' }
+                });
+                deleteButton.addEventListener('click', () => this.handleQuestEventDelete(event));
+                actions.appendChild(deleteButton);
+            }
+            item.appendChild(actions);
+
             this.questEventsList.appendChild(item);
         });
     }
 
+    loadQuestEventForEdit(event) {
+        if (!event || !event.id) {
+            return;
+        }
+        this.editingQuestEventId = event.id;
+        if (this.questEventQuestId) {
+            this.questEventQuestId.value = sanitizeText(event.questId);
+        }
+        if (this.questEventStatus) {
+            this.questEventStatus.value = sanitizeText(event.status) || 'en cours';
+        }
+        if (this.questEventMilestone) {
+            this.questEventMilestone.value = sanitizeText(event.milestone);
+        }
+        if (this.questEventProgressCurrent) {
+            this.questEventProgressCurrent.value = event.progress && Number.isFinite(event.progress.current) ? event.progress.current : '';
+        }
+        if (this.questEventProgressMax) {
+            this.questEventProgressMax.value = event.progress && Number.isFinite(event.progress.max) ? event.progress.max : '';
+        }
+        if (this.questEventNote) {
+            this.questEventNote.value = sanitizeText(event.note);
+        }
+        if (this.questEventSubmitButton) {
+            this.questEventSubmitButton.textContent = 'Mettre a jour l\'evenement';
+        }
+        if (this.questEventCancelButton) {
+            this.questEventCancelButton.hidden = false;
+        }
+        this.setQuestEventError('');
+    }
+
+    cancelQuestEventEdit() {
+        this.clearQuestEventForm();
+        this.setQuestEventError('');
+    }
+
+    async handleQuestEventDelete(event) {
+        if (!event?.id || typeof this.callbacks.onDeleteQuestEvent !== 'function') {
+            return;
+        }
+        const confirmed = window.confirm('Supprimer cet evenement de quete ?');
+        if (!confirmed) {
+            return;
+        }
+        try {
+            await this.callbacks.onDeleteQuestEvent(event.id);
+            this.questEvents = Array.isArray(this.questEvents) ? this.questEvents.filter(item => item?.id !== event.id) : [];
+            this.renderQuestEvents();
+            if (this.editingQuestEventId === event.id) {
+                this.clearQuestEventForm();
+            }
+        } catch (error) {
+            console.error('[quest-event] suppression impossible', error);
+            this.setQuestEventError(error?.message || 'Suppression impossible.');
+        }
+    }
+
     clearQuestEventForm() {
+        this.editingQuestEventId = null;
         if (this.questEventQuestId) {
             this.questEventQuestId.value = '';
         }
@@ -639,6 +734,12 @@ export class LocationEditor {
         }
         if (this.questEventNote) {
             this.questEventNote.value = '';
+        }
+        if (this.questEventSubmitButton) {
+            this.questEventSubmitButton.textContent = 'Enregistrer un evenement';
+        }
+        if (this.questEventCancelButton) {
+            this.questEventCancelButton.hidden = true;
         }
     }
 
@@ -661,25 +762,25 @@ export class LocationEditor {
             return sanitizeText(fallback);
         }
         return sanitizeText(formName || fallback);
-    }
-
-    async handleQuestEventSubmit() {
+    }    async handleQuestEventSubmit() {
         if (this.mode !== 'edit' || this.isSubmittingQuestEvent) {
             return;
         }
-        if (typeof this.callbacks.onCreateQuestEvent !== 'function') {
+        const isEditing = Boolean(this.editingQuestEventId);
+        const callback = isEditing ? this.callbacks.onUpdateQuestEvent : this.callbacks.onCreateQuestEvent;
+        if (typeof callback !== 'function') {
             return;
         }
 
         const locationName = this.getLocationName();
         if (!locationName) {
-            this.setQuestEventError('Impossible de déterminer le lieu cible.');
+            this.setQuestEventError('Impossible de determiner le lieu cible.');
             return;
         }
 
         const questId = sanitizeText(this.questEventQuestId?.value);
         if (!questId) {
-            this.setQuestEventError('Identifiant de quête requis.');
+            this.setQuestEventError('Identifiant de quete requis.');
             this.questEventQuestId?.focus();
             return;
         }
@@ -715,18 +816,22 @@ export class LocationEditor {
         this.isSubmittingQuestEvent = true;
         if (this.questEventSubmitButton) {
             this.questEventSubmitButton.disabled = true;
-            this.questEventSubmitButton.textContent = 'Enregistrement...';
+            this.questEventSubmitButton.textContent = isEditing ? 'Mise a jour...' : 'Enregistrement...';
         }
 
         try {
-            const result = await this.callbacks.onCreateQuestEvent({
+            const payload = {
                 locationName,
                 questId,
                 status,
                 milestone,
                 progress,
                 note
-            });
+            };
+            if (isEditing) {
+                payload.id = this.editingQuestEventId;
+            }
+            const result = await callback(payload);
             this.clearQuestEventForm();
             this.setQuestEventError('');
             if (result?.event) {
@@ -735,13 +840,13 @@ export class LocationEditor {
                 this.setQuestEvents(next);
             }
         } catch (error) {
-            console.error('[quest-event] creation failed', error);
-            this.setQuestEventError(error?.message || 'Impossible de créer l’événement de quête.');
+            console.error('[quest-event] submit failed', error);
+            this.setQuestEventError(error?.message || 'Impossible de traiter l\'evenement de quete.');
         } finally {
             this.isSubmittingQuestEvent = false;
             if (this.questEventSubmitButton) {
                 this.questEventSubmitButton.disabled = false;
-                this.questEventSubmitButton.textContent = 'Enregistrer un événement';
+                this.questEventSubmitButton.textContent = isEditing ? 'Mettre a jour l\'evenement' : 'Enregistrer un evenement';
             }
         }
     }
@@ -850,7 +955,7 @@ export class LocationEditor {
         });
 
         if (!result.valid) {
-            this.showError('form', 'Merci de corriger les champs indiqués avant de continuer.');
+            this.showError('form', 'Merci de corriger les champs indiques avant de continuer.');
             return;
         }
 
@@ -891,9 +996,9 @@ export class LocationEditor {
         if (!name) {
             errors.name = 'Le nom est obligatoire.';
         } else if (this.mode === 'create' && this.disallowedNames.has(name.toLowerCase())) {
-            errors.name = 'Un lieu avec ce nom existe déjà.';
+            errors.name = 'Un lieu avec ce nom existe deja.';
         } else if (this.mode === 'edit' && name.toLowerCase() !== (this.currentContext?.originalName || '').toLowerCase() && this.disallowedNames.has(name.toLowerCase())) {
-            errors.name = 'Un lieu avec ce nom existe déjà.';
+            errors.name = 'Un lieu avec ce nom existe deja.';
         }
 
         if (!continent) {
@@ -901,14 +1006,14 @@ export class LocationEditor {
         }
 
         if (!this.types[type]) {
-            errors.type = 'Sélectionnez un type valide.';
+            errors.type = 'Selectionnez un type valide.';
         }
 
         if (!Number.isFinite(x)) {
-            errors.x = 'Coordonnée invalide.';
+            errors.x = 'Coordonnee invalide.';
         }
         if (!Number.isFinite(y)) {
-            errors.y = 'Coordonnée invalide.';
+            errors.y = 'Coordonnee invalide.';
         }
 
         if (audio && !isValidUrl(audio)) {
@@ -917,13 +1022,13 @@ export class LocationEditor {
 
         const images = this.collectImages();
         if (images.some(image => !isValidUrl(image))) {
-            errors.images = 'Toutes les images doivent être des URLs valides ou des chemins commençant par assets/.';
+            errors.images = 'Toutes les images doivent etre des URLs valides ou des chemins commençant par assets/.';
         }
 
         const videos = this.collectVideos();
         const invalidVideos = videos.filter(video => video.url && !isValidUrl(video.url));
         if (invalidVideos.length || videos.some(video => !video.url && video.title)) {
-            errors.videos = 'Chaque vidéo doit avoir une URL valide.';
+            errors.videos = 'Chaque video doit avoir une URL valide.';
         }
 
         const pnjs = this.collectPnjs();
@@ -997,9 +1102,9 @@ export class LocationEditor {
             if (!value) {
                 this.showError('name', 'Le nom est obligatoire.');
             } else if (this.mode === 'create' && this.disallowedNames.has(value.toLowerCase())) {
-                this.showError('name', 'Un lieu avec ce nom existe déjà.');
+                this.showError('name', 'Un lieu avec ce nom existe deja.');
             } else if (this.mode === 'edit' && value.toLowerCase() !== (this.currentContext?.originalName || '').toLowerCase() && this.disallowedNames.has(value.toLowerCase())) {
-                this.showError('name', 'Un lieu avec ce nom existe déjà.');
+                this.showError('name', 'Un lieu avec ce nom existe deja.');
             } else {
                 this.clearError('name');
             }
@@ -1017,7 +1122,7 @@ export class LocationEditor {
         if (name === 'type' && this.typeSelect) {
             const value = this.typeSelect.value;
             if (!this.types[value]) {
-                this.showError('type', 'Sélectionnez un type valide.');
+                this.showError('type', 'Selectionnez un type valide.');
             } else {
                 this.clearError('type');
             }
@@ -1028,12 +1133,12 @@ export class LocationEditor {
         const x = Number(this.form.elements.x.value);
         const y = Number(this.form.elements.y.value);
         if (!Number.isFinite(x)) {
-            this.showError('x', 'Coordonnée invalide.');
+            this.showError('x', 'Coordonnee invalide.');
         } else {
             this.clearError('x');
         }
         if (!Number.isFinite(y)) {
-            this.showError('y', 'Coordonnée invalide.');
+            this.showError('y', 'Coordonnee invalide.');
         } else {
             this.clearError('y');
         }
@@ -1047,7 +1152,7 @@ export class LocationEditor {
         }
         const hasInvalid = images.some(url => !isValidUrl(url));
         if (hasInvalid) {
-            this.showError('images', 'Chaque image doit être une URL valide ou un chemin assets/.');
+            this.showError('images', 'Chaque image doit etre une URL valide ou un chemin assets/.');
         } else {
             this.clearError('images');
         }
@@ -1128,7 +1233,7 @@ export class LocationEditor {
                 })
             });
         } catch (error) {
-            throw new Error('Serveur indisponible pendant le téléversement.');
+            throw new Error('Serveur indisponible pendant le televersement.');
         }
         let payload = {};
         try {
@@ -1137,7 +1242,7 @@ export class LocationEditor {
             // ignore
         }
         if (!response.ok || payload.status !== 'ok' || !payload.path) {
-            throw new Error(payload?.message || 'Téléversement échoué.');
+            throw new Error(payload?.message || 'Televersement echoue.');
         }
         return payload.path;
     }
@@ -1216,7 +1321,7 @@ export class LocationEditor {
         }
         const hasInvalid = videos.some(video => video.url && !isValidUrl(video.url));
         if (hasInvalid) {
-            this.showError('videos', 'Chaque vidéo doit avoir une URL valide.');
+            this.showError('videos', 'Chaque video doit avoir une URL valide.');
         } else {
             this.clearError('videos');
         }
@@ -1252,7 +1357,7 @@ export class LocationEditor {
         clearElement(this.imagePreview);
         const images = this.collectImages();
         if (!images.length) {
-            const empty = createElement('p', { className: 'preview-empty', text: 'Ajoutez une image pour la prévisualiser.' });
+            const empty = createElement('p', { className: 'preview-empty', text: 'Ajoutez une image pour la previsualiser.' });
             this.imagePreview.appendChild(empty);
             return;
         }
@@ -1274,7 +1379,7 @@ export class LocationEditor {
         clearElement(this.videoPreview);
         const videos = this.collectVideos().filter(video => video.url);
         if (!videos.length) {
-            const empty = createElement('p', { className: 'preview-empty', text: 'Ajoutez une vidéo pour la prévisualiser.' });
+            const empty = createElement('p', { className: 'preview-empty', text: 'Ajoutez une video pour la previsualiser.' });
             this.videoPreview.appendChild(empty);
             return;
         }
@@ -1287,7 +1392,7 @@ export class LocationEditor {
                 const iframe = createElement('iframe', {
                     attributes: {
                         src: `https://www.youtube.com/embed/${youtubeId}`,
-                        title: video.title || 'Aperçu vidéo',
+                        title: video.title || 'Aperçu video',
                         allowfullscreen: 'true'
                     }
                 });
@@ -1306,7 +1411,7 @@ export class LocationEditor {
         clearElement(this.pnjPreview);
         const pnjs = this.collectPnjs();
         if (!pnjs.length) {
-            const empty = createElement('p', { className: 'preview-empty', text: 'Ajoutez un PNJ pour le prévisualiser.' });
+            const empty = createElement('p', { className: 'preview-empty', text: 'Ajoutez un PNJ pour le previsualiser.' });
             this.pnjPreview.appendChild(empty);
             return;
         }
