@@ -1,6 +1,101 @@
 import { createElement, clearElement } from './dom.js';
 import { renderMarkdown } from './markdown.js';
 
+const DRAFT_STORAGE_KEY_PREFIX = 'interactive-map-markdown-draft';
+const DRAFT_STORAGE_VERSION = 1;
+const DRAFT_STORAGE_TTL = 1000 * 60 * 60 * 24 * 7;
+const DRAFT_SAVE_DEBOUNCE = 400;
+
+const canUseDraftStorage = () => {
+    try {
+        return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+    } catch (error) {
+        return false;
+    }
+};
+
+const normalizeDraftIdentifier = value => (value ?? '').toString().trim().toLowerCase();
+
+const formatDraftTimestamp = value => {
+    if (!Number.isFinite(value)) {
+        return '';
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
+    return date.toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
+const readDraftRecord = key => {
+    if (!key || !canUseDraftStorage()) {
+        return null;
+    }
+    try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) {
+            return null;
+        }
+        const payload = JSON.parse(raw);
+        if (!payload || typeof payload !== 'object' || typeof payload.value !== 'string') {
+            window.localStorage.removeItem(key);
+            return null;
+        }
+        const updatedAt = Number(payload.updatedAt);
+        if (!Number.isFinite(updatedAt)) {
+            window.localStorage.removeItem(key);
+            return null;
+        }
+        if (payload.version !== DRAFT_STORAGE_VERSION) {
+            window.localStorage.removeItem(key);
+            return null;
+        }
+        if (DRAFT_STORAGE_TTL > 0 && Date.now() - updatedAt > DRAFT_STORAGE_TTL) {
+            window.localStorage.removeItem(key);
+            return null;
+        }
+        return {
+            value: payload.value,
+            updatedAt
+        };
+    } catch (error) {
+        return null;
+    }
+};
+
+const writeDraftRecord = (key, value) => {
+    if (!key || !canUseDraftStorage()) {
+        return null;
+    }
+    try {
+        const payload = {
+            version: DRAFT_STORAGE_VERSION,
+            value,
+            updatedAt: Date.now()
+        };
+        window.localStorage.setItem(key, JSON.stringify(payload));
+        return payload.updatedAt;
+    } catch (error) {
+        return null;
+    }
+};
+
+const removeDraftRecord = key => {
+    if (!key || !canUseDraftStorage()) {
+        return;
+    }
+    try {
+        window.localStorage.removeItem(key);
+    } catch (error) {
+        // ignore storage errors
+    }
+};
+
 const DEFAULT_LOCATION = {
     name: '',
     type: 'default',
@@ -205,6 +300,10 @@ export class LocationEditor {
         this.descriptionPreview = this.form?.querySelector('[data-preview="description-markdown"]') || null;
         this.descriptionPreviewBody = this.form?.querySelector('[data-role="description-preview-body"]') || null;
         this.descriptionPreviewEmpty = this.descriptionPreview?.querySelector('.markdown-preview-empty') || null;
+        this.descriptionDraftStatus = this.form?.querySelector('[data-role="description-draft-status"]') || null;
+        this.descriptionDraftMessage = this.form?.querySelector('[data-role="description-draft-message"]') || null;
+        this.descriptionDraftTimestamp = this.form?.querySelector('[data-role="description-draft-timestamp"]') || null;
+        this.descriptionDraftClearButton = this.form?.querySelector('[data-action="clear-description-draft"]') || null;
         this.questEventsContainer = this.form?.querySelector('[data-role="quest-events"]') || null;
         this.questEventsList = this.form?.querySelector('[data-role="quest-events-list"]') || null;
         this.questEventsEmpty = this.form?.querySelector('[data-role="quest-events-empty"]') || null;
@@ -238,6 +337,13 @@ export class LocationEditor {
         this.isOpen = false;
         this.questEvents = [];
         this.isSubmittingQuestEvent = false;
+        this.descriptionDraftKey = null;
+        this.lastSavedDescriptionDraft = '';
+        this.lastDraftSavedAt = null;
+        this.descriptionDraftSkipOnce = false;
+        this.draftSaveTimeout = null;
+        this.draftStatusHideTimeout = null;
+        this.boundBeforeUnload = null;
         if (this.descriptionPreviewBody) {
             this.descriptionPreviewBody.hidden = true;
         }
@@ -255,11 +361,30 @@ export class LocationEditor {
             this.registerEvents();
             this.renderTypeOptions();
         }
+
+        if (typeof window !== 'undefined') {
+            this.boundBeforeUnload = () => {
+                if (this.isOpen) {
+                    this.flushDescriptionDraftSave();
+                }
+            };
+            window.addEventListener('beforeunload', this.boundBeforeUnload);
+        }
     }
 
     registerEvents() {
         if (this.descriptionInput) {
-            this.descriptionInput.addEventListener('input', () => this.updateDescriptionPreview());
+            this.descriptionInput.addEventListener('input', () => {
+                this.updateDescriptionPreview();
+                this.scheduleDescriptionDraftSave();
+            });
+            this.descriptionInput.addEventListener('blur', () => this.flushDescriptionDraftSave());
+        }
+
+        if (this.descriptionDraftClearButton) {
+            this.descriptionDraftClearButton.addEventListener('click', () => {
+                this.clearDescriptionDraft({ showMessage: true });
+            });
         }
         if (this.descriptionToolbarButtons && this.descriptionToolbarButtons.length) {
             this.descriptionToolbarButtons.forEach(button => {
@@ -453,6 +578,10 @@ export class LocationEditor {
             originalName: location?.name || ''
         };
         this.questEvents = Array.isArray(questEvents) ? [...questEvents] : [];
+        this.descriptionDraftKey = this.buildDescriptionDraftKey();
+        this.descriptionDraftSkipOnce = false;
+        this.lastSavedDescriptionDraft = '';
+        this.lastDraftSavedAt = null;
 
         if (this.deleteButton) {
             const isEditMode = mode === 'edit';
@@ -471,6 +600,7 @@ export class LocationEditor {
         this.updateVideoPreview();
         this.updatePnjPreview();
         this.updateQuestEventsSection();
+        this.restoreDescriptionDraft();
 
         if (this.headerTitle) {
             this.headerTitle.textContent = mode === 'edit' ? 'Modifier un lieu' : 'Creer un lieu';
@@ -497,6 +627,11 @@ export class LocationEditor {
         if (!this.container || !this.isOpen) {
             return;
         }
+        this.flushDescriptionDraftSave();
+        if (this.draftStatusHideTimeout) {
+            clearTimeout(this.draftStatusHideTimeout);
+            this.draftStatusHideTimeout = null;
+        }
         this.container.classList.remove('open');
         this.container.hidden = true;
         if (this.boundKeyHandler) {
@@ -509,6 +644,11 @@ export class LocationEditor {
             this.deleteButton.removeAttribute('aria-label');
         }
         this.isOpen = false;
+        this.descriptionDraftKey = null;
+        this.lastSavedDescriptionDraft = '';
+        this.lastDraftSavedAt = null;
+        this.descriptionDraftSkipOnce = false;
+        this.setDescriptionDraftStatus(null);
         this.currentContext = null;
         this.disallowedNames.clear();
         this.questEvents = [];
@@ -622,6 +762,180 @@ export class LocationEditor {
         textarea.selectionStart = textarea.selectionEnd = caretPosition;
         this.updateDescriptionPreview();
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    buildDescriptionDraftKey() {
+        const base = `${DRAFT_STORAGE_KEY_PREFIX}:${this.mode === 'edit' ? 'edit' : 'create'}`;
+        if (this.mode === 'edit') {
+            const name = normalizeDraftIdentifier(this.currentContext?.originalName);
+            if (name) {
+                return `${base}:${name}`;
+            }
+            return `${base}:unnamed`;
+        }
+        return base;
+    }
+
+    restoreDescriptionDraft() {
+        if (!this.descriptionInput || !canUseDraftStorage()) {
+            this.setDescriptionDraftStatus(null);
+            return;
+        }
+        const key = this.descriptionDraftKey || this.buildDescriptionDraftKey();
+        if (!key) {
+            this.setDescriptionDraftStatus(null);
+            return;
+        }
+        const draft = readDraftRecord(key);
+        if (!draft) {
+            this.lastSavedDescriptionDraft = '';
+            this.lastDraftSavedAt = null;
+            this.setDescriptionDraftStatus(null);
+            return;
+        }
+        this.descriptionDraftKey = key;
+        this.lastSavedDescriptionDraft = draft.value;
+        this.lastDraftSavedAt = draft.updatedAt;
+        const currentValue = typeof this.descriptionInput.value === 'string' ? this.descriptionInput.value : '';
+        const shouldRestore = draft.value !== currentValue;
+        if (shouldRestore) {
+            this.descriptionInput.value = draft.value;
+            this.updateDescriptionPreview();
+        }
+        this.setDescriptionDraftStatus(draft.updatedAt, { restored: shouldRestore });
+    }
+
+    scheduleDescriptionDraftSave() {
+        if (!this.descriptionInput || !canUseDraftStorage() || !this.isOpen) {
+            return;
+        }
+        if (!this.descriptionDraftKey) {
+            this.descriptionDraftKey = this.buildDescriptionDraftKey();
+        }
+        if (this.draftSaveTimeout) {
+            clearTimeout(this.draftSaveTimeout);
+        }
+        this.draftSaveTimeout = setTimeout(() => {
+            this.draftSaveTimeout = null;
+            this.saveDescriptionDraft();
+        }, DRAFT_SAVE_DEBOUNCE);
+    }
+
+    flushDescriptionDraftSave() {
+        if (this.draftSaveTimeout) {
+            clearTimeout(this.draftSaveTimeout);
+            this.draftSaveTimeout = null;
+        }
+        if (!this.descriptionInput || !canUseDraftStorage() || !this.isOpen) {
+            return;
+        }
+        if (this.descriptionDraftSkipOnce) {
+            this.descriptionDraftSkipOnce = false;
+            return;
+        }
+        this.saveDescriptionDraft();
+    }
+
+    saveDescriptionDraft() {
+        if (!this.descriptionInput || !canUseDraftStorage()) {
+            return;
+        }
+        if (!this.descriptionDraftKey) {
+            this.descriptionDraftKey = this.buildDescriptionDraftKey();
+        }
+        const key = this.descriptionDraftKey;
+        if (!key) {
+            return;
+        }
+        const rawValue = typeof this.descriptionInput.value === 'string'
+            ? this.descriptionInput.value
+            : (this.descriptionInput.value ?? '').toString();
+        if (!rawValue.trim()) {
+            this.clearDescriptionDraft();
+            return;
+        }
+        if (rawValue === this.lastSavedDescriptionDraft) {
+            if (this.lastDraftSavedAt) {
+                this.setDescriptionDraftStatus(this.lastDraftSavedAt);
+            }
+            return;
+        }
+        const savedAt = writeDraftRecord(key, rawValue);
+        if (Number.isFinite(savedAt)) {
+            this.lastSavedDescriptionDraft = rawValue;
+            this.lastDraftSavedAt = savedAt;
+            this.setDescriptionDraftStatus(savedAt);
+        }
+    }
+
+    clearDescriptionDraft({ showMessage = false } = {}) {
+        if (this.descriptionDraftKey && canUseDraftStorage()) {
+            removeDraftRecord(this.descriptionDraftKey);
+        }
+        this.descriptionDraftSkipOnce = true;
+        this.lastSavedDescriptionDraft = '';
+        this.lastDraftSavedAt = null;
+        if (this.draftSaveTimeout) {
+            clearTimeout(this.draftSaveTimeout);
+            this.draftSaveTimeout = null;
+        }
+        if (this.draftStatusHideTimeout) {
+            clearTimeout(this.draftStatusHideTimeout);
+            this.draftStatusHideTimeout = null;
+        }
+        if (showMessage && this.descriptionDraftStatus) {
+            if (this.descriptionDraftMessage) {
+                this.descriptionDraftMessage.textContent = 'Brouillon supprime';
+            }
+            if (this.descriptionDraftTimestamp) {
+                this.descriptionDraftTimestamp.textContent = '';
+            }
+            this.descriptionDraftStatus.hidden = false;
+            this.descriptionDraftStatus.dataset.state = 'cleared';
+            this.draftStatusHideTimeout = setTimeout(() => {
+                if (this.descriptionDraftStatus) {
+                    this.descriptionDraftStatus.hidden = true;
+                    this.descriptionDraftStatus.dataset.state = '';
+                }
+                this.draftStatusHideTimeout = null;
+            }, 2400);
+        } else {
+            this.setDescriptionDraftStatus(null);
+        }
+    }
+
+    setDescriptionDraftStatus(timestamp, { restored = false } = {}) {
+        if (!this.descriptionDraftStatus) {
+            return;
+        }
+        if (this.draftStatusHideTimeout) {
+            clearTimeout(this.draftStatusHideTimeout);
+            this.draftStatusHideTimeout = null;
+        }
+        if (!timestamp) {
+            this.descriptionDraftStatus.hidden = true;
+            this.descriptionDraftStatus.dataset.state = '';
+            if (this.descriptionDraftMessage) {
+                this.descriptionDraftMessage.textContent = '';
+            }
+            if (this.descriptionDraftTimestamp) {
+                this.descriptionDraftTimestamp.textContent = '';
+            }
+            return;
+        }
+        const formatted = formatDraftTimestamp(timestamp);
+        if (this.descriptionDraftMessage) {
+            this.descriptionDraftMessage.textContent = restored ? 'Brouillon restaure' : 'Brouillon enregistre';
+        }
+        if (this.descriptionDraftTimestamp) {
+            this.descriptionDraftTimestamp.textContent = formatted ? `- ${formatted}` : '';
+        }
+        this.descriptionDraftStatus.hidden = false;
+        if (restored) {
+            this.descriptionDraftStatus.dataset.state = 'restored';
+        } else {
+            this.descriptionDraftStatus.dataset.state = 'saved';
+        }
     }
 
     setQuestEvents(events = []) {
@@ -1057,6 +1371,7 @@ export class LocationEditor {
             });
         }
 
+        this.clearDescriptionDraft();
         this.close();
     }
 
@@ -1392,6 +1707,7 @@ export class LocationEditor {
                 originalName: originalName
             });
         }
+        this.clearDescriptionDraft();
         this.close();
     }
 

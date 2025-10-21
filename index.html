@@ -227,6 +227,14 @@
                                 <button type="button" class="toolbar-button" data-md="[texte](url)" aria-label="Lien">🔗</button>
                                 <span class="toolbar-hint">Markdown</span>
                             </div>
+                            <div class="markdown-draft-status" data-role="description-draft-status" hidden>
+                                <span class="draft-pip" aria-hidden="true"></span>
+                                <span class="draft-text">
+                                    <span data-role="description-draft-message"></span>
+                                    <span data-role="description-draft-timestamp"></span>
+                                </span>
+                                <button type="button" class="draft-clear-button" data-action="clear-description-draft">Effacer le brouillon</button>
+                            </div>
                             <textarea id="editor-description" name="description" rows="6"></textarea>
                             <div class="markdown-preview" data-preview="description-markdown">
                                 <p class="markdown-preview-empty">Previsualisation en direct du rendu Markdown.</p>
