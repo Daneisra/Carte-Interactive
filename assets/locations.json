@@ -689,18 +689,7 @@
       "audio": "",
       "history": "",
       "quests": "",
-      "lore": [
-        "# **__Vardanys, le Reflux d’Imossa__**",
-        "Vardanys fut la première cité à accueillir les réfugiés d’Imossa après la Chute.",
-        "De ce fait, elle devint rapidement un refuge pour les anciens citoyens de la cité perdue, une “petite Imossa” où l’on parlait encore avec fierté le dialecte imossien et où la mémoire des Primarques était entretenue comme un culte.",
-        "Au fil des décennies, la ville devint le principal bastion continental de la Garde d’Imossa, un lieu de recrutement, de mémoire et d’entraînement.",
-        "Mais depuis la guerre contre Dipovia, la situation s’est tendue :",
-        "- L’Empire exige que la Garde se joigne à la Croisade.",
-        "- La Garde refuse de se battre sous la bannière de l’Église, qu’elle considère responsable de la Chute d’Imossa.",
-        "- Les tensions entre les officiers impériaux et les Primarques s’enveniment.",
-        "- Les habitants de Vardanys, descendants d’Imossa, se sentent trahis par le trône.",
-        "> Aujourd’hui, Vardanys est une ville au bord de l’insurrection. Ses quais bruissent de murmures, les drapeaux impériaux sont souillés d’eau de mer, et les cloches du port résonnent comme un glas."
-      ],
+      "lore": "# **Vardanys, le Reflux d’Imossa**\n\nVardanys fut la première cité à accueillir les réfugiés d’Imossa après la Chute.\nDe ce fait, elle devint rapidement un refuge pour les anciens citoyens de la cité perdue, une “petite Imossa” où l’on parlait encore avec fierté le dialecte imossien et où la mémoire des Primarques était entretenue comme un culte.\n\nAu fil des décennies, la ville devint le principal bastion continental de la Garde d’Imossa, un lieu de recrutement, de mémoire et d’entraînement.\nMais depuis la guerre contre Dipovia, la situation s’est tendue :\n\n- L’Empire exige que la Garde se joigne à la Croisade.\n\n- La Garde refuse de se battre sous la bannière de l’Église, qu’elle considère responsable de la Chute d’Imossa.\n\n- Les tensions entre les officiers impériaux et les Primarques s’enveniment.\n\n- Les habitants de Vardanys, descendants d’Imossa, se sentent trahis par le trône.\n\n> Aujourd’hui, Vardanys est une ville au bord de l’insurrection. Ses quais bruissent de murmures, les drapeaux impériaux sont souillés d’eau de mer, et les cloches du port résonnent comme un glas.",
       "pnjs": []
     },
     {

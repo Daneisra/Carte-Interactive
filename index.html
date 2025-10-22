@@ -281,17 +281,20 @@
 
                     <fieldset class="editor-section">
                         <legend>Détails supplémentaires</legend>
-                        <div class="form-row">
-                            <label for="editor-history">Historique<br><span class="hint">(une entrée par ligne)</span></label>
-                            <textarea id="editor-history" name="history" rows="3"></textarea>
+                        <div class="form-row markdown-list-row">
+                            <label id="editor-history-label">Historique<br><span class="hint">(Markdown - un bloc par element)</span></label>
+                            <div class="markdown-list" data-role="history-list" role="group" aria-labelledby="editor-history-label"></div>
+                            <button type="button" class="secondary-button markdown-list-add" data-action="add-history-entry">Ajouter un historique</button>
                         </div>
-                        <div class="form-row">
-                            <label for="editor-quests">Quêtes<br><span class="hint">(une entrée par ligne)</span></label>
-                            <textarea id="editor-quests" name="quests" rows="3"></textarea>
+                        <div class="form-row markdown-list-row">
+                            <label id="editor-quests-label">Quetes<br><span class="hint">(Markdown - un bloc par element)</span></label>
+                            <div class="markdown-list" data-role="quests-list" role="group" aria-labelledby="editor-quests-label"></div>
+                            <button type="button" class="secondary-button markdown-list-add" data-action="add-quests-entry">Ajouter une quete</button>
                         </div>
-                        <div class="form-row">
-                            <label for="editor-lore">Lore<br><span class="hint">(une entrée par ligne)</span></label>
-                            <textarea id="editor-lore" name="lore" rows="3"></textarea>
+                        <div class="form-row markdown-list-row">
+                            <label id="editor-lore-label">Lore<br><span class="hint">(Markdown - un bloc par element)</span></label>
+                            <div class="markdown-list" data-role="lore-list" role="group" aria-labelledby="editor-lore-label"></div>
+                            <button type="button" class="secondary-button markdown-list-add" data-action="add-lore-entry">Ajouter un element de lore</button>
                         </div>
                     </fieldset>
 

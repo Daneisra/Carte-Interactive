@@ -96,6 +96,26 @@ const removeDraftRecord = key => {
     }
 };
 
+const MARKDOWN_SECTION_CONFIG = {
+    history: {
+        placeholder: 'Entree historique (Markdown)',
+        emptyText: 'Previsualisation de cet historique.',
+        removeLabel: 'Supprimer cet historique'
+    },
+    quests: {
+        placeholder: 'Entree de quete (Markdown)',
+        emptyText: 'Previsualisation de cette quete.',
+        removeLabel: 'Supprimer cette entree de quete'
+    },
+    lore: {
+        placeholder: 'Entree de lore (Markdown)',
+        emptyText: 'Previsualisation de cet element de lore.',
+        removeLabel: 'Supprimer cet element de lore'
+    }
+};
+
+const MARKDOWN_SECTION_TYPES = Object.keys(MARKDOWN_SECTION_CONFIG);
+
 const DEFAULT_LOCATION = {
     name: '',
     type: 'default',
@@ -143,11 +163,6 @@ const isValidUrl = value => {
         return false;
     }
 };
-
-const splitLines = value => (value || '')
-    .split(/\r?\n/)
-    .map(entry => entry.trim())
-    .filter(Boolean);
 
 const partitionFilesByType = (files = [], uploadType) => {
     const rule = UPLOAD_FILE_RULES[uploadType];
@@ -304,6 +319,16 @@ export class LocationEditor {
         this.descriptionDraftMessage = this.form?.querySelector('[data-role="description-draft-message"]') || null;
         this.descriptionDraftTimestamp = this.form?.querySelector('[data-role="description-draft-timestamp"]') || null;
         this.descriptionDraftClearButton = this.form?.querySelector('[data-action="clear-description-draft"]') || null;
+        this.markdownLists = {
+            history: this.form?.querySelector('[data-role="history-list"]') || null,
+            quests: this.form?.querySelector('[data-role="quests-list"]') || null,
+            lore: this.form?.querySelector('[data-role="lore-list"]') || null
+        };
+        this.markdownAddButtons = {
+            history: this.form?.querySelector('[data-action="add-history-entry"]') || null,
+            quests: this.form?.querySelector('[data-action="add-quests-entry"]') || null,
+            lore: this.form?.querySelector('[data-action="add-lore-entry"]') || null
+        };
         this.questEventsContainer = this.form?.querySelector('[data-role="quest-events"]') || null;
         this.questEventsList = this.form?.querySelector('[data-role="quest-events-list"]') || null;
         this.questEventsEmpty = this.form?.querySelector('[data-role="quest-events-empty"]') || null;
@@ -344,6 +369,10 @@ export class LocationEditor {
         this.draftSaveTimeout = null;
         this.draftStatusHideTimeout = null;
         this.boundBeforeUnload = null;
+        this.markdownSections = [...MARKDOWN_SECTION_TYPES];
+        this.markdownSectionConfig = MARKDOWN_SECTION_CONFIG;
+        this.markdownEntryCounters = {};
+        this.resetMarkdownEntryCounters();
         if (this.descriptionPreviewBody) {
             this.descriptionPreviewBody.hidden = true;
         }
@@ -426,6 +455,9 @@ export class LocationEditor {
             if (target.name === 'audio') {
                 this.validateAudio();
             }
+            if (target.dataset?.role === 'markdown-entry-input') {
+                this.updateMarkdownEntryPreview(target);
+            }
         });
 
         if (this.addImageButton) {
@@ -447,6 +479,38 @@ export class LocationEditor {
                 this.validatePnjs();
             });
         }
+
+        const handleMarkdownListClick = event => {
+            const button = event.target?.closest('[data-action="remove-markdown-entry"]');
+            if (!button) {
+                return;
+            }
+            event.preventDefault();
+            this.handleRemoveMarkdownEntry(button);
+        };
+
+        this.markdownSections.forEach(type => {
+            const addButton = this.markdownAddButtons[type];
+            if (addButton) {
+                addButton.addEventListener('click', () => {
+                    const row = this.addMarkdownEntry(type, '');
+                    const textarea = row?.querySelector('textarea[data-role="markdown-entry-input"]');
+                    if (textarea) {
+                        textarea.focus();
+                        const length = textarea.value.length;
+                        try {
+                            textarea.setSelectionRange(length, length);
+                        } catch (error) {
+                            // ignore selection errors (e.g., non-supported inputs)
+                        }
+                    }
+                });
+            }
+            const list = this.markdownLists[type];
+            if (list) {
+                list.addEventListener('click', handleMarkdownListClick);
+            }
+        });
 
         if (this.uploadImageButton && this.imageUploadInput) {
             this.uploadImageButton.addEventListener('click', () => this.imageUploadInput.click());
@@ -676,9 +740,10 @@ export class LocationEditor {
             this.updateDescriptionPreview();
         }
         this.form.elements.audio.value = location.audio || '';
-        this.form.elements.history.value = (location.history || []).join('\n');
-        this.form.elements.quests.value = (location.quests || []).join('\n');
-        this.form.elements.lore.value = (location.lore || []).join('\n');
+        this.resetMarkdownEntryCounters();
+        this.setMarkdownEntries('history', location.history);
+        this.setMarkdownEntries('quests', location.quests);
+        this.setMarkdownEntries('lore', location.lore);
 
         if (this.imageList) {
             clearElement(this.imageList);
@@ -936,6 +1001,163 @@ export class LocationEditor {
         } else {
             this.descriptionDraftStatus.dataset.state = 'saved';
         }
+    }
+
+    resetMarkdownEntryCounters() {
+        if (!this.markdownEntryCounters) {
+            this.markdownEntryCounters = {};
+        }
+        (this.markdownSections || []).forEach(type => {
+            this.markdownEntryCounters[type] = 0;
+        });
+    }
+
+    getMarkdownConfig(type) {
+        return this.markdownSectionConfig?.[type] || {};
+    }
+
+    getMarkdownList(type) {
+        return this.markdownLists?.[type] || null;
+    }
+
+    addMarkdownEntry(type, value = '') {
+        const list = this.getMarkdownList(type);
+        if (!list) {
+            return null;
+        }
+        if (typeof this.markdownEntryCounters[type] !== 'number') {
+            this.markdownEntryCounters[type] = 0;
+        }
+        const index = this.markdownEntryCounters[type]++;
+        const row = this.createMarkdownEntryRow(type, value, index);
+        list.appendChild(row);
+        const textarea = row.querySelector('textarea[data-role="markdown-entry-input"]');
+        if (textarea) {
+            this.updateMarkdownEntryPreview(textarea);
+        }
+        return row;
+    }
+
+    createMarkdownEntryRow(type, value = '', index = 0) {
+        const config = this.getMarkdownConfig(type);
+        const row = createElement('div', {
+            className: 'markdown-entry-row',
+            dataset: { entryType: type }
+        });
+        const actions = createElement('div', { className: 'markdown-entry-actions' });
+        const removeButton = createElement('button', {
+            className: 'tertiary-button markdown-entry-remove',
+            text: 'Supprimer',
+            dataset: { action: 'remove-markdown-entry', entryType: type },
+            attributes: {
+                type: 'button',
+                'aria-label': config.removeLabel || 'Supprimer cet element'
+            }
+        });
+        actions.appendChild(removeButton);
+        row.appendChild(actions);
+        const textarea = createElement('textarea', {
+            className: 'markdown-entry-input',
+            dataset: { role: 'markdown-entry-input', entryType: type },
+            attributes: {
+                id: `${type}-entry-${index}`,
+                rows: 4,
+                placeholder: config.placeholder || 'Texte Markdown...'
+            }
+        });
+        textarea.value = value || '';
+        row.appendChild(textarea);
+        const preview = createElement('div', {
+            className: 'markdown-preview',
+            dataset: { role: 'markdown-entry-preview' }
+        });
+        const empty = createElement('p', {
+            className: 'markdown-preview-empty',
+            text: config.emptyText || 'Previsualisation Markdown.',
+            dataset: { role: 'markdown-entry-preview-empty' }
+        });
+        const body = createElement('div', {
+            className: 'markdown-preview-body markdown-content',
+            dataset: { role: 'markdown-entry-preview-body' },
+            attributes: { hidden: '' }
+        });
+        preview.appendChild(empty);
+        preview.appendChild(body);
+        row.appendChild(preview);
+        return row;
+    }
+
+    setMarkdownEntries(type, entries) {
+        const list = this.getMarkdownList(type);
+        if (!list) {
+            return;
+        }
+        clearElement(list);
+        const values = Array.isArray(entries) && entries.length ? entries : [''];
+        values.forEach(value => {
+            this.addMarkdownEntry(type, value);
+        });
+    }
+
+    collectMarkdownEntries(type) {
+        const list = this.getMarkdownList(type);
+        if (!list) {
+            return [];
+        }
+        const rows = Array.from(list.querySelectorAll('.markdown-entry-row'));
+        return rows
+            .filter(row => (row.dataset?.entryType || '') === type)
+            .map(row => {
+                const textarea = row.querySelector('textarea[data-role="markdown-entry-input"]');
+                return (textarea?.value || '').trim();
+            })
+            .filter(value => value.length);
+    }
+
+    updateMarkdownEntryPreview(input) {
+        if (!input) {
+            return;
+        }
+        const row = input.closest('.markdown-entry-row');
+        if (!row) {
+            return;
+        }
+        const previewBody = row.querySelector('[data-role="markdown-entry-preview-body"]');
+        const previewEmpty = row.querySelector('[data-role="markdown-entry-preview-empty"]');
+        if (!previewBody || !previewEmpty) {
+            return;
+        }
+        const value = input.value || '';
+        const html = renderMarkdown(value);
+        if (!html.trim()) {
+            previewBody.innerHTML = '';
+            previewBody.hidden = true;
+            previewEmpty.hidden = false;
+        } else {
+            previewBody.innerHTML = html;
+            previewBody.hidden = false;
+            previewEmpty.hidden = true;
+        }
+    }
+
+    handleRemoveMarkdownEntry(button) {
+        if (!button) {
+            return;
+        }
+        const row = button.closest('.markdown-entry-row');
+        const type = button.dataset?.entryType || row?.dataset?.entryType;
+        if (!row || !type) {
+            return;
+        }
+        const list = this.getMarkdownList(type);
+        const nextRow = row.nextElementSibling || row.previousElementSibling || null;
+        row.remove();
+        let focusTarget = nextRow?.querySelector?.('textarea[data-role="markdown-entry-input"]') || null;
+        if (list && !list.querySelector('.markdown-entry-row')) {
+            const replacement = this.addMarkdownEntry(type, '');
+            focusTarget = replacement?.querySelector('textarea[data-role="markdown-entry-input"]') || focusTarget;
+        }
+        focusTarget?.focus?.();
     }
 
     setQuestEvents(events = []) {
@@ -1443,9 +1665,9 @@ export class LocationEditor {
         location.images = images.filter(Boolean);
         location.videos = videos.filter(video => video.url);
         location.pnjs = pnjs;
-        location.history = splitLines(this.form.elements.history.value);
-        location.quests = splitLines(this.form.elements.quests.value);
-        location.lore = splitLines(this.form.elements.lore.value);
+        location.history = this.collectMarkdownEntries('history');
+        location.quests = this.collectMarkdownEntries('quests');
+        location.lore = this.collectMarkdownEntries('lore');
 
         const valid = Object.keys(errors).length === 0;
         return {

@@ -330,6 +330,54 @@ body[data-theme="light"] .markdown-preview {
     opacity: 0.65;
 }
 
+.markdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.markdown-list-row label {
+    font-weight: 600;
+}
+
+.markdown-list-add {
+    align-self: flex-start;
+}
+
+.markdown-entry-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.4);
+}
+
+body[data-theme="light"] .markdown-entry-row {
+    background: rgba(248, 250, 252, 0.92);
+    border-color: rgba(148, 163, 184, 0.35);
+}
+
+.markdown-entry-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.markdown-entry-remove {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.markdown-entry-remove:hover,
+.markdown-entry-remove:focus-visible {
+    background: rgba(148, 163, 184, 0.2);
+}
+
+.markdown-entry-row .markdown-preview {
+    margin-top: 0;
+}
+
 .markdown-draft-status {
     display: flex;
     align-items: center;

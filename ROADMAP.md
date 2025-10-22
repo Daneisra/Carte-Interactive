@@ -26,7 +26,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [x] Actualisation en temps reel des evenements (websocket/polling leger) pour synchroniser marqueurs, quetes et alertes entre clients.
 - [x] Dans le panneau information, dans Creer un lieu et dans modifier egalement, je veux la gestion complete des textes avec titres, gras, italique saut de ligne etc... pour que ca soit lisible et que je puisse formater les textes exactement comme je le souhaite.
 - [x] Ajouter une sauvegarde automatique/restauration du brouillon Markdown dans l’éditeur.
-- [ ] Étendre le rendu Markdown aux sections “Historique/Quêtes/Lore” côté édition (interface par éléments au lieu d’un textarea).
+- [x] Étendre le rendu Markdown aux sections “Historique/Quêtes/Lore” côté édition (interface par éléments au lieu d’un textarea).
 - [ ] Marqueurs evolutifs selon le temps ou les actions des joueurs (etats, couleurs, contenus du panneau info).
 - [ ] Systeme de calques de carte (relief, frontieres, couches thematiques) avec bascule clavier et compatibilite clustering.
 - [ ] Recherche avancee multi filtres (types, tags, presence de quetes, statut d'evenement) partagee entre panneau exploration, API et tests.
