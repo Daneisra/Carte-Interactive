@@ -788,6 +788,13 @@ textarea {
     touch-action: pan-x pan-y pinch-zoom;
 }
 
+.leaflet-image-layer,
+.leaflet-tile-pane img {
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: -webkit-optimize-contrast;
+}
+
 .map-wrapper:-webkit-full-screen,
 .map-wrapper:-moz-full-screen,
 .map-wrapper:-ms-fullscreen,

@@ -89,7 +89,16 @@ export class MapControlsManager {
         if (!this.zoomDisplay) {
             return;
         }
-        const bounded = Math.max(0, Math.min(100, Math.round(percentage)));
-        this.zoomDisplay.textContent = `${bounded}%`;
+        if (!Number.isFinite(percentage)) {
+            this.zoomDisplay.textContent = '—';
+            return;
+        }
+        let displayValue = percentage;
+        if (percentage < 10) {
+            displayValue = Math.round(percentage * 10) / 10;
+        } else {
+            displayValue = Math.round(percentage);
+        }
+        this.zoomDisplay.textContent = `${displayValue}%`;
     }
 }

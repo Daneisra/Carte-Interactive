@@ -1,15 +1,1 @@
-[
-  {
-    "id": "quest_9d85f8d2-f916-44ec-b70d-2e84da3b4487",
-    "questId": "QST-Imossa",
-    "locationName": "Imossa",
-    "status": "en cours",
-    "milestone": null,
-    "progress": {
-      "current": 0,
-      "max": 2
-    },
-    "note": "Tuer l'Hôte démoniaque\nPurifier et libérer Imossa",
-    "updatedAt": "2025-10-21T00:23:36.129Z"
-  }
-]
+[]

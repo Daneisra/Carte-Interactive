@@ -4,6 +4,9 @@ const DEFAULT_BOUNDS = [[0, 0], [6144, 8192]];
 const DEFAULT_IMAGE = 'assets/map.png';
 const DEFAULT_POSITION = [3072, 4096];
 const DEFAULT_ZOOM = -3;
+const DEFAULT_MIN_ZOOM = -5;
+const DEFAULT_MAX_ZOOM = 0;
+const DEFAULT_NATIVE_ZOOM = 0;
 
 export class MapController {
     constructor({
@@ -12,22 +15,31 @@ export class MapController {
         imageUrl = DEFAULT_IMAGE,
         initialPosition = DEFAULT_POSITION,
         initialZoom = DEFAULT_ZOOM,
-        minZoom = -3,
-        maxZoom = 3
+        minZoom = DEFAULT_MIN_ZOOM,
+        maxZoom = DEFAULT_MAX_ZOOM,
+        nativeZoom = DEFAULT_NATIVE_ZOOM
     } = {}) {
+        this.bounds = bounds;
+        this.minZoom = Number.isFinite(minZoom) ? minZoom : DEFAULT_MIN_ZOOM;
+
+        const sanitizedMaxZoom = Number.isFinite(maxZoom) ? maxZoom : DEFAULT_MAX_ZOOM;
+        this.maxZoom = Math.max(this.minZoom, sanitizedMaxZoom);
+
+        const normalizedNativeZoom = Number.isFinite(nativeZoom) ? nativeZoom : DEFAULT_NATIVE_ZOOM;
+        this.nativeZoom = Math.max(this.minZoom, Math.min(this.maxZoom, normalizedNativeZoom));
+
+        this.initialPosition = initialPosition;
+        const safeInitialZoom = Number.isFinite(initialZoom) ? initialZoom : DEFAULT_ZOOM;
+        this.initialZoom = this.clampZoom(safeInitialZoom);
+
         this.map = L.map(mapId, {
             crs: L.CRS.Simple,
-            minZoom,
-            maxZoom,
+            minZoom: this.minZoom,
+            maxZoom: this.maxZoom,
             maxBounds: bounds,
             maxBoundsViscosity: 1.0
         });
 
-        this.bounds = bounds;
-        this.initialPosition = initialPosition;
-        this.initialZoom = initialZoom;
-        this.minZoom = minZoom;
-        this.maxZoom = maxZoom;
         this.typeData = {};
         this.entries = [];
         this.selectedEntry = null;
@@ -255,7 +267,7 @@ export class MapController {
                     showCoverageOnHover: false,
                     spiderfyOnMaxZoom: true,
                     maxClusterRadius: 80,
-                    disableClusteringAtZoom: this.maxZoom - 1,
+                    disableClusteringAtZoom: Math.max(this.minZoom, this.maxZoom - 1),
                     iconCreateFunction: cluster => this.createClusterIcon(cluster)
                 });
             } else {
@@ -319,11 +331,12 @@ export class MapController {
         const hasObjectCenter = center && typeof center.lat === 'number' && typeof center.lng === 'number';
         const targetCenter = hasArrayCenter ? center : hasObjectCenter ? [center.lat, center.lng] : null;
         const targetZoom = typeof zoom === 'number' ? zoom : null;
+        const clampedZoom = targetZoom !== null ? this.clampZoom(targetZoom) : null;
 
         if (targetCenter) {
-            this.map.setView([targetCenter[0], targetCenter[1]], targetZoom ?? this.map.getZoom(), { animate: false });
-        } else if (targetZoom !== null) {
-            this.map.setZoom(targetZoom, { animate: false });
+            this.map.setView([targetCenter[0], targetCenter[1]], clampedZoom ?? this.map.getZoom(), { animate: false });
+        } else if (clampedZoom !== null) {
+            this.map.setZoom(clampedZoom, { animate: false });
         }
     }
 
@@ -353,7 +366,7 @@ export class MapController {
             ? [this.initialPosition[0], this.initialPosition[1]]
             : [defaultCenter.lat, defaultCenter.lng];
         const targetZoom = typeof this.initialZoom === 'number' ? this.initialZoom : this.map.getZoom();
-        this.map.flyTo([targetCenter[0], targetCenter[1]], targetZoom, { animate, duration });
+        this.map.flyTo([targetCenter[0], targetCenter[1]], this.clampZoom(targetZoom), { animate, duration });
     }
 
     onMapClick(callback) {
@@ -375,13 +388,19 @@ export class MapController {
     }
 
     getZoomPercentage() {
-        if (typeof this.minZoom !== 'number' || typeof this.maxZoom !== 'number' || this.maxZoom === this.minZoom) {
+        const currentZoom = this.map.getZoom();
+        const scale = this.map.getZoomScale(currentZoom, this.nativeZoom);
+        if (!Number.isFinite(scale)) {
             return 100;
         }
-        const zoom = this.map.getZoom();
-        const ratio = (zoom - this.minZoom) / (this.maxZoom - this.minZoom);
-        const clamped = Math.max(0, Math.min(1, ratio));
-        return clamped * 100;
+        return scale * 100;
+    }
+
+    clampZoom(zoom) {
+        if (!Number.isFinite(zoom)) {
+            return this.map ? this.map.getZoom() : this.nativeZoom;
+        }
+        return Math.max(this.minZoom, Math.min(this.maxZoom, zoom));
     }
 
     toPixelCoordinates(latlng) {
@@ -450,7 +469,8 @@ export class MapController {
             className: 'annotation-tooltip'
         });
         marker.on('click', () => {
-            this.map.flyTo(latlng, Math.max(this.map.getZoom(), this.maxZoom - 1), { animate: true, duration: 0.6 });
+            const desiredZoom = Math.max(this.map.getZoom(), this.maxZoom - 1);
+            this.map.flyTo(latlng, this.clampZoom(Math.min(this.maxZoom, desiredZoom)), { animate: true, duration: 0.6 });
         });
         this.annotationLayer.addLayer(marker);
         this.annotationMarkers.set(annotation.id, marker);

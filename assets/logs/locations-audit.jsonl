@@ -26,3 +26,6 @@
 {"timestamp":"2025-10-21T15:34:58.375Z","totals":{"continents":6,"locations":47},"changes":{"created":{"count":1,"items":[{"continent":"Zemantis","name":"Camp O.E"}]},"updated":{"count":0,"items":[]},"deleted":{"count":0,"items":[]}}}
 {"timestamp":"2025-10-21T15:38:52.719Z","totals":{"continents":6,"locations":48},"changes":{"created":{"count":1,"items":[{"continent":"Vruliwen","name":"Pas du Roc"}]},"updated":{"count":0,"items":[]},"deleted":{"count":0,"items":[]}}}
 {"timestamp":"2025-10-22T00:32:20.544Z","totals":{"continents":6,"locations":48},"changes":{"created":{"count":0,"items":[]},"updated":{"count":1,"items":[{"continent":"Vruliwen","name":"Vardanys"}]},"deleted":{"count":0,"items":[]}}}
+{"timestamp":"2025-10-28T22:32:29.155Z","totals":{"continents":6,"locations":48},"changes":{"created":{"count":0,"items":[]},"updated":{"count":0,"items":[]},"deleted":{"count":0,"items":[]}}}
+{"timestamp":"2025-10-28T22:32:45.771Z","totals":{"continents":6,"locations":48},"changes":{"created":{"count":0,"items":[]},"updated":{"count":1,"items":[{"continent":"Vruliwen","name":"Imossa"}]},"deleted":{"count":0,"items":[]}}}
+{"timestamp":"2025-10-28T22:33:01.735Z","totals":{"continents":6,"locations":48},"changes":{"created":{"count":0,"items":[]},"updated":{"count":0,"items":[]},"deleted":{"count":0,"items":[]}}}

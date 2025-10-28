@@ -1,4 +1,4 @@
-# Carte Interactive  Roadmap 2025
+﻿# Carte Interactive  Roadmap 2025
 
 ## 1. Vision
 Creer une carte narrative immersive, fiable et maintenable servant a la fois de support de jeu et de referentiel vivant de l'univers. Pour 2025, les priorites se structurent autour de trois axes : qualite des donnees, excellence UX et industrialisation.
@@ -25,13 +25,14 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 ### P0 - Essentiels
 - [x] Actualisation en temps reel des evenements (websocket/polling leger) pour synchroniser marqueurs, quetes et alertes entre clients.
 - [x] Dans le panneau information, dans Creer un lieu et dans modifier egalement, je veux la gestion complete des textes avec titres, gras, italique saut de ligne etc... pour que ca soit lisible et que je puisse formater les textes exactement comme je le souhaite.
-- [x] Ajouter une sauvegarde automatique/restauration du brouillon Markdown dans l’éditeur.
-- [x] Étendre le rendu Markdown aux sections “Historique/Quêtes/Lore” côté édition (interface par éléments au lieu d’un textarea).
-- [ ] Marqueurs evolutifs selon le temps ou les actions des joueurs (etats, couleurs, contenus du panneau info).
+- [x] Ajouter une sauvegarde automatique/restauration du brouillon Markdown dans lâ€™Ã©diteur.
+- [x] Ã‰tendre le rendu Markdown aux sections â€œHistorique/QuÃªtes/Loreâ€ cÃ´tÃ© Ã©dition (interface par Ã©lÃ©ments au lieu dâ€™un textarea).
 - [ ] Systeme de calques de carte (relief, frontieres, couches thematiques) avec bascule clavier et compatibilite clustering.
 - [ ] Recherche avancee multi filtres (types, tags, presence de quetes, statut d'evenement) partagee entre panneau exploration, API et tests.
 - [ ] Factoriser la normalisation et les validations des lieux entre `DataService` et `UiController` pour eviter les divergences front/back.
 - [ ] Solidifier `server.js` (routes modulees, validation schema, verrous d'ecriture, journalisation) afin de supporter temps reel et annotations.
+- [x] Intégrer résolution complète de la carte 8k.
+- [ ] Dans types.json basculer les chiffres de zoom en pourcentage pour correspondre au controler de la carte 
 
 ### P1 - Haute valeur
 - [ ] Quetes interactives sur la carte (progression, jalons visuels, transitions d'etat) pilotees par le backend.
@@ -45,6 +46,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [ ] Indicateur de position du joueur ou marqueur temporaire partageable (mode guide ou live session).
 - [ ] Carte chronologique pour rejouer l'evolution des lieux et evenements (filtre par periode, playback).
 - [ ] Export et partage des annotations/parcours (JSON et capture visuelle) pour preparer sessions et debriefs.
+- [ ] Marqueurs evolutifs selon le temps ou les actions des joueurs (etats, couleurs, contenus du panneau info).
 
 ### P3 - Hygiene et dette
 - [ ] Modulariser `UiController` (~100 Ko) en sous-modules alignes sur `ui/` (chargement lazy, couverture unitaire ciblee).
@@ -68,3 +70,5 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - Backlog detaille : `idees.txt`
 - Jeux de donnees : `assets/locations.json`, `assets/types.json`
 - Modules front : `js/`
+
+
