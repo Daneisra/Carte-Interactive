@@ -1,4 +1,4 @@
-﻿# Carte Interactive  Roadmap 2025
+# Carte Interactive  Roadmap 2025
 
 ## 1. Vision
 Creer une carte narrative immersive, fiable et maintenable servant a la fois de support de jeu et de referentiel vivant de l'univers. Pour 2025, les priorites se structurent autour de trois axes : qualite des donnees, excellence UX et industrialisation.
@@ -32,7 +32,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [ ] Factoriser la normalisation et les validations des lieux entre `DataService` et `UiController` pour eviter les divergences front/back.
 - [ ] Solidifier `server.js` (routes modulees, validation schema, verrous d'ecriture, journalisation) afin de supporter temps reel et annotations.
 - [x] Intégrer résolution complète de la carte 8k.
-- [ ] Dans types.json basculer les chiffres de zoom en pourcentage pour correspondre au controler de la carte 
+- [x] Dans types.json basculer les chiffres de zoom en pourcentage pour correspondre au controler de la carte.
 
 ### P1 - Haute valeur
 - [ ] Quetes interactives sur la carte (progression, jalons visuels, transitions d'etat) pilotees par le backend.
@@ -70,5 +70,3 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - Backlog detaille : `idees.txt`
 - Jeux de donnees : `assets/locations.json`, `assets/types.json`
 - Modules front : `js/`
-
-

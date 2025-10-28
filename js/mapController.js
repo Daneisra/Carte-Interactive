@@ -41,6 +41,7 @@ export class MapController {
         });
 
         this.typeData = {};
+        this.typeZoomCache = new Map();
         this.entries = [];
         this.selectedEntry = null;
         this.markerLayer = L.layerGroup().addTo(this.map);
@@ -60,10 +61,45 @@ export class MapController {
 
     setTypeData(typeData) {
         this.typeData = typeData || {};
+        this.typeZoomCache = new Map();
+        this.entries.forEach(entry => {
+            const type = entry?.location?.type;
+            entry.zoomPercentage = this.getZoomPercentageForType(type);
+            entry.preferredZoom = this.getZoomLevelForType(type);
+        });
         if (this.clusterGroup) {
             this.clusterGroup.options.iconCreateFunction = cluster => this.createClusterIcon(cluster);
             this.clusterGroup.refreshClusters();
         }
+    }
+
+    getZoomPercentageForType(type) {
+        const payload = (type && this.typeData?.[type]) || this.typeData?.default;
+        const value = Number(payload?.zoom);
+        if (!Number.isFinite(value) || value <= 0) {
+            return null;
+        }
+        return Math.max(1, value);
+    }
+
+    getZoomLevelForType(type) {
+        if (!type) {
+            return null;
+        }
+        if (!this.typeZoomCache) {
+            this.typeZoomCache = new Map();
+        }
+        if (this.typeZoomCache.has(type)) {
+            return this.typeZoomCache.get(type);
+        }
+        const percentage = this.getZoomPercentageForType(type);
+        if (!Number.isFinite(percentage)) {
+            this.typeZoomCache.set(type, null);
+            return null;
+        }
+        const zoomLevel = this.zoomFromPercentage(percentage);
+        this.typeZoomCache.set(type, zoomLevel);
+        return zoomLevel;
     }
 
     createEntry({ location, continent, onSelect, onHover, onLeave }) {
@@ -81,11 +117,16 @@ export class MapController {
             className: 'marker-tooltip'
         });
 
+        const zoomPercentage = this.getZoomPercentageForType(location.type);
+        const preferredZoom = this.getZoomLevelForType(location.type);
+
         const entry = {
             location,
             continent,
             marker,
-            visible: true
+            visible: true,
+            zoomPercentage,
+            preferredZoom
         };
 
         marker.on('click', () => {
@@ -130,11 +171,20 @@ export class MapController {
         entry.visible = Boolean(isVisible);
     }
 
-    focusOnEntry(entry, { zoom = 1.5, animate = true, duration = 1.5 } = {}) {
+    focusOnEntry(entry, { zoom = null, zoomPercentage = null, animate = true, duration = 1.5 } = {}) {
         if (!entry || !entry.marker) {
             return;
         }
-        this.map.flyTo([entry.location.y, entry.location.x], zoom, { animate, duration });
+        let targetZoom = null;
+        if (Number.isFinite(zoom)) {
+            targetZoom = this.clampZoom(zoom);
+        } else if (Number.isFinite(zoomPercentage)) {
+            targetZoom = this.zoomFromPercentage(zoomPercentage);
+        } else if (Number.isFinite(entry?.preferredZoom)) {
+            targetZoom = this.clampZoom(entry.preferredZoom);
+        }
+        const resolvedZoom = Number.isFinite(targetZoom) ? targetZoom : this.map.getZoom();
+        this.map.flyTo([entry.location.y, entry.location.x], resolvedZoom, { animate, duration });
     }
 
     animateEntry(entry) {
@@ -394,6 +444,25 @@ export class MapController {
             return 100;
         }
         return scale * 100;
+    }
+
+    zoomFromPercentage(percentage) {
+        const numeric = Number(percentage);
+        if (!Number.isFinite(numeric) || numeric <= 0) {
+            return null;
+        }
+        const scale = numeric / 100;
+        if (!Number.isFinite(scale) || scale <= 0) {
+            return null;
+        }
+        const logarithm = typeof Math.log2 === 'function'
+            ? Math.log2(scale)
+            : Math.log(scale) / Math.LN2;
+        if (!Number.isFinite(logarithm)) {
+            return null;
+        }
+        const zoom = this.nativeZoom + logarithm;
+        return this.clampZoom(zoom);
     }
 
     clampZoom(zoom) {

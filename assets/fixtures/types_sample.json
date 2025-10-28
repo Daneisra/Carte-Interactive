@@ -1,30 +1,32 @@
 {
   "Castle": {
-    "zoom": 3,
+    "zoom": 100,
     "icon": "assets/icons/Castle.png"
   },
   "Large City Stone Wall + Towers": {
-    "zoom": 3,
+    "zoom": 100,
     "icon": "assets/icons/Large City Stone Wall + Towers.png"
   },
   "Town": {
-    "zoom": 3,
+    "zoom": 100,
     "icon": "assets/icons/Town.png"
   },
   "Village": {
-    "zoom": 3,
+    "zoom": 100,
     "icon": "assets/icons/Village.png"
   },
   "Crater": {
-    "zoom": 1,
+    "zoom": 33,
     "icon": "assets/icons/Crater.png"
   },
   "continent": {
     "icon": "assets/icons/default.png",
-    "zoom": 3
+    "zoom": 100
   },
   "default": {
-    "zoom": 3,
+    "zoom": 100,
     "icon": "assets/icons/Camp.png"
   }
 }
+
+

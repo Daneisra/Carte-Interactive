@@ -37,6 +37,8 @@ def validate_types(types: Dict[str, Dict[str, Any]], *, check_media: bool) -> Li
             issues.append(f"Type '{type_name}': champ 'zoom' manquant")
         elif not isinstance(zoom, (int, float)):
             issues.append(f"Type '{type_name}': champ 'zoom' doit etre numerique (actuel: {zoom!r})")
+        elif zoom <= 0:
+            issues.append(f"Type '{type_name}': champ 'zoom' doit etre strictement positif (actuel: {zoom})")
     return issues
 
 

@@ -1,198 +1,199 @@
 {
     "Camp":  {
-                 "zoom":  3,
+                 "zoom":  100,
                  "icon":  "assets/icons/Camp.png"
              },
     "Castle Ruin":  {
-                        "zoom":  3,
+                        "zoom":  100,
                         "icon":  "assets/icons/Castle Ruin.png"
                     },
     "Castle":  {
-                   "zoom":  3,
+                   "zoom":  100,
                    "icon":  "assets/icons/Castle.png"
                },
     "Cathedral Ruin":  {
-                           "zoom":  3,
+                           "zoom":  100,
                            "icon":  "assets/icons/Cathedral Ruin.png"
                        },
     "Cathedral":  {
-                      "zoom":  3,
+                      "zoom":  100,
                       "icon":  "assets/icons/Cathedral.png"
                   },
     "Clocktower":  {
-                       "zoom":  3,
+                       "zoom":  100,
                        "icon":  "assets/icons/Clocktower.png"
                    },
     "Crater":  {
-                   "zoom":  1,
+                   "zoom":  33,
                    "icon":  "assets/icons/Crater.png"
                },
     "Dark Tower":  {
-                       "zoom":  3,
+                       "zoom":  100,
                        "icon":  "assets/icons/Dark Tower.png"
                    },
     "Dwarven Building Ruin":  {
-                                  "zoom":  3,
+                                  "zoom":  100,
                                   "icon":  "assets/icons/Dwarven Building Ruin.png"
                               },
     "Dwarven Building":  {
-                             "zoom":  3,
+                             "zoom":  100,
                              "icon":  "assets/icons/Dwarven Building.png"
                          },
     "Fortified Tower Ruin":  {
-                                 "zoom":  3,
+                                 "zoom":  100,
                                  "icon":  "assets/icons/Fortified Tower Ruin.png"
                              },
     "Fortified Tower":  {
-                            "zoom":  3,
+                            "zoom":  100,
                             "icon":  "assets/icons/Fortified Tower.png"
                         },
     "Fortress":  {
-                     "zoom":  3,
+                     "zoom":  100,
                      "icon":  "assets/icons/Fortress.png"
                  },
     "House":  {
-                  "zoom":  3,
+                  "zoom":  100,
                   "icon":  "assets/icons/House.png"
               },
     "Hut":  {
-                "zoom":  3,
+                "zoom":  100,
                 "icon":  "assets/icons/Hut.png"
             },
     "Keep":  {
-                 "zoom":  3,
+                 "zoom":  100,
                  "icon":  "assets/icons/Keep.png"
              },
     "Large City Stone Wall + Towers":  {
-                                           "zoom":  3,
+                                           "zoom":  100,
                                            "icon":  "assets/icons/Large City Stone Wall + Towers.png"
                                        },
     "Large City Stone Wall":  {
-                                  "zoom":  3,
+                                  "zoom":  100,
                                   "icon":  "assets/icons/Large City Stone Wall.png"
                               },
     "Large City":  {
-                       "zoom":  3,
+                       "zoom":  100,
                        "icon":  "assets/icons/Large City.png"
                    },
     "Large Stone Wall":  {
-                             "zoom":  3,
+                             "zoom":  100,
                              "icon":  "assets/icons/Large Stone Wall.png"
                          },
     "Mill":  {
-                 "zoom":  3,
+                 "zoom":  100,
                  "icon":  "assets/icons/Mill.png"
              },
     "Mine Ruin":  {
-                      "zoom":  3,
+                      "zoom":  100,
                       "icon":  "assets/icons/Mine Ruin.png"
                   },
     "Mine":  {
-                 "zoom":  3,
+                 "zoom":  100,
                  "icon":  "assets/icons/Mine.png"
              },
     "Monster Town":  {
-                         "zoom":  3,
+                         "zoom":  100,
                          "icon":  "assets/icons/Monster Town.png"
                      },
     "Monster Village":  {
-                            "zoom":  3,
+                            "zoom":  100,
                             "icon":  "assets/icons/Monster Village.png"
                         },
     "Orc Camp":  {
-                     "zoom":  3,
+                     "zoom":  100,
                      "icon":  "assets/icons/Orc Camp.png"
                  },
     "Small City Stone Wall \u0026 Towers":  {
-                                                "zoom":  3,
+                                                "zoom":  100,
                                                 "icon":  "assets/icons/Small City Stone Wall \u0026 Towers.png"
                                             },
     "Small City Stone Wall":  {
-                                  "zoom":  3,
+                                  "zoom":  100,
                                   "icon":  "assets/icons/Small City Stone Wall.png"
                               },
     "Small City":  {
-                       "zoom":  3,
+                       "zoom":  100,
                        "icon":  "assets/icons/Small City.png"
                    },
     "Small Stone Wall":  {
-                             "zoom":  3,
+                             "zoom":  100,
                              "icon":  "assets/icons/Small Stone Wall.png"
                          },
     "Small Tower":  {
-                        "zoom":  3,
+                        "zoom":  100,
                         "icon":  "assets/icons/Small Tower.png"
                     },
     "Strange Castle":  {
-                           "zoom":  3,
+                           "zoom":  100,
                            "icon":  "assets/icons/Strange Castle.png"
                        },
     "Tavern Ruin":  {
-                        "zoom":  3,
+                        "zoom":  100,
                         "icon":  "assets/icons/Tavern Ruin.png"
                     },
     "Tavern":  {
-                   "zoom":  3,
+                   "zoom":  100,
                    "icon":  "assets/icons/Tavern.png"
                },
     "Town Ruin":  {
-                      "zoom":  3,
+                      "zoom":  100,
                       "icon":  "assets/icons/Town Ruin.png"
                   },
     "Town Stone Wall":  {
-                            "zoom":  3,
+                            "zoom":  100,
                             "icon":  "assets/icons/Town Stone Wall.png"
                         },
     "Town Wood Wall":  {
-                           "zoom":  3,
+                           "zoom":  100,
                            "icon":  "assets/icons/Town Wood Wall.png"
                        },
     "Town":  {
-                 "zoom":  3,
+                 "zoom":  100,
                  "icon":  "assets/icons/Town.png"
              },
     "Townhouse":  {
-                      "zoom":  3,
+                      "zoom":  100,
                       "icon":  "assets/icons/Townhouse.png"
                   },
     "Village Ruin":  {
-                         "zoom":  3,
+                         "zoom":  100,
                          "icon":  "assets/icons/Village Ruin.png"
                      },
     "Village Stone Wal Ruin":  {
-                                   "zoom":  3,
+                                   "zoom":  100,
                                    "icon":  "assets/icons/Village Stone Wal Ruin.png"
                                },
     "Village Stone Wall":  {
-                               "zoom":  3,
+                               "zoom":  100,
                                "icon":  "assets/icons/Village Stone Wall.png"
                            },
     "Village Wood Wall":  {
-                              "zoom":  3,
+                              "zoom":  100,
                               "icon":  "assets/icons/Village Wood Wall.png"
                           },
     "Village":  {
-                    "zoom":  3,
+                    "zoom":  100,
                     "icon":  "assets/icons/Village.png"
                 },
     "Witches Hut":  {
-                        "zoom":  3,
+                        "zoom":  100,
                         "icon":  "assets/icons/Witches Hut.png"
                     },
     "Wooden Gate":  {
-                        "zoom":  3,
+                        "zoom":  100,
                         "icon":  "assets/icons/Wooden Gate.png"
                     },
     "Wooden Wall":  {
-                        "zoom":  3,
+                        "zoom":  100,
                         "icon":  "assets/icons/Wooden Wall.png"
                     },
     "continent":  {
                       "icon":  "assets/icons/default.png",
-                      "zoom":  3
+                      "zoom":  100
                   },
     "default":  {
                     "icon":  "assets/icons/default.png",
-                    "zoom":  3
+                    "zoom":  100
                 }
 }
+
