@@ -12,7 +12,11 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": [
+        "mer",
+        "exploration"
+      ]
     },
     {
       "name": "La Mer d'Ivoire",
@@ -26,7 +30,11 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": [
+        "mer",
+        "commerce"
+      ]
     },
     {
       "name": "Les Eaux Obscures",
@@ -40,7 +48,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     }
   ],
   "Archipel Trekrerith": [
@@ -56,7 +65,11 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": [
+        "caravane",
+        "commerce"
+      ]
     },
     {
       "name": "Brisant",
@@ -70,7 +83,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Eneris",
@@ -84,7 +98,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Kitha",
@@ -96,9 +111,15 @@
       "videos": [],
       "audio": "",
       "history": "",
-      "quests": "",
+      "quests": [
+        "[LIVE] QST-Kitha - Route des marchands - completed - 2/2 - Les caravanes ont repris la route."
+      ],
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": [
+        "commerce",
+        "port"
+      ]
     },
     {
       "name": "L'escale",
@@ -112,7 +133,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     }
   ],
   "Dipovia": [
@@ -128,7 +150,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     }
   ],
   "Doprouria": [
@@ -144,7 +167,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Lisboa",
@@ -158,7 +182,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     }
   ],
   "Vruliwen": [
@@ -179,7 +204,8 @@
         "Le cœur d’Aguilar, cependant, est son donjon, une tour imposante qui s’élève au-dessus des autres bâtiments, symbole de la puissance et de la résilience des Valdefer. C’est là que le seigneur siège, entouré de ses conseillers, et c’est là que se trouve l’armurerie, un trésor de lames, de boucliers et de cuirasses forgés dans les riches mines de la région. Les forgerons d’Aguilar, réputés dans tout le royaume, travaillent jour et nuit pour produire des armes aussi solides que les montagnes elles-mêmes.",
         "Aguilar n’est pas seulement une forteresse ; c’est une déclaration, une promesse de la Maison Valdefer à ses ennemis. Tant que ses murs tiendront, aucune armée ne franchira le Pas-du-Roc. Les Valdefer ont toujours vécu dans l’ombre de cette citadelle, sachant que leur destin est lié à celui de la forteresse. Et tandis que le faucon d'or flotte fièrement au-dessus de ses remparts, Aguilar reste un bastion inviolé, un symbole de la ténacité et de la force d'une maison qui ne ploie jamais devant l'adversité."
       ],
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Ayrith",
@@ -193,7 +219,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Brume-Sombre",
@@ -207,7 +234,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Brumeport",
@@ -221,7 +249,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Caevorum",
@@ -246,7 +275,8 @@
         "Aujourd'hui, Caevorum est en ruines, mais elle conserve une aura de mystère et de puissance. Les rares sorceleurs survivants y retournent parfois pour méditer, s'entraîner ou se remémorer leur passé. Les murs écroulés et les salles abandonnées sont des témoins silencieux d'une époque révolue, mais l'esprit de Caevorum perdure.",
         "Thorin, ayant survécu au massacre, porte en lui la mémoire de ses frères et sœurs d'armes. Sa mission est non seulement de venger la chute de Caevorum mais aussi de préserver les connaissances et les traditions des sorceleurs. Il cherche à transmettre cet héritage aux générations futures, espérant un jour voir renaître l'ordre des sorceleurs."
       ],
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Carleone",
@@ -260,7 +290,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Crawen",
@@ -274,7 +305,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Dents de Pierres",
@@ -288,7 +320,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Divinum Lumen",
@@ -302,7 +335,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Domptefer",
@@ -316,7 +350,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Drumlow Woods",
@@ -330,7 +365,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Forgepierre",
@@ -344,7 +380,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Gloria",
@@ -358,7 +395,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Heraclea",
@@ -372,7 +410,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Imossa",
@@ -386,7 +425,8 @@
       "history": "Cette ville était la jumelle de Valerius Primus, rivalisant de grandeur et d’architecture. Sa population a toujours témoigné d’une culture différente et d'une identité très forte.",
       "quests": [
         "Tuer l'Hôte démoniaque",
-        "Purifier et libérer Imossa"
+        "Purifier et libérer Imossa",
+        "[LIVE] QST-Imossa - Purge du temple - active - 1/3 - Les h�tes d�moniaques ont �t� repouss�s. - @ Imossa"
       ],
       "lore": [
         "Imossa était une cité-état unique en son genre, située sur une île au cœur du continent de Vruliwen. Isolée par sa géographie insulaire, elle a prospéré pendant des siècles en cultivant un modèle politique et économique différent de celui des autres royaumes, faisant d’elle l'une des cités les plus avancées et influentes.",
@@ -403,6 +443,10 @@
           "role": "test",
           "description": "test"
         }
+      ],
+      "tags": [
+        "forteresse",
+        "quete"
       ]
     },
     {
@@ -417,7 +461,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Irohazy Woods",
@@ -431,7 +476,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Jade Forest",
@@ -445,7 +491,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "L'Aiguille du Crépuscule",
@@ -459,7 +506,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Mines de Mandrake",
@@ -473,7 +521,8 @@
       "history": "",
       "quests": "",
       "lore": "Les Mines de Mandrake, dirigées par Gaël Rouget. Ces mines, censées être une source de richesse pour l'Empire de Vruliwen, sont en réalité des lieux de souffrance et de mort. Les ouvriers y sont traités comme des esclaves, forcés de travailler dans des conditions inhumaines. Des créatures monstrueuses, errent dans les tunnels, causant des accidents mortels.",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Montiris",
@@ -487,7 +536,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Monts Brumeux",
@@ -501,7 +551,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Montségur",
@@ -515,7 +566,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Nikaïus",
@@ -538,7 +590,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Nocturna",
@@ -552,7 +605,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Olmedum",
@@ -566,7 +620,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Pas du Roc",
@@ -580,7 +635,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Rafdell",
@@ -594,7 +650,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Rochebrume",
@@ -608,7 +665,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Sanctuarium",
@@ -622,7 +680,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Sanctus Imperator",
@@ -640,7 +699,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "test",
@@ -661,7 +721,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Valerius Primus",
@@ -675,7 +736,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Vardanys",
@@ -689,7 +751,8 @@
       "history": "",
       "quests": "",
       "lore": "# **Vardanys, le Reflux d’Imossa**\n\nVardanys fut la première cité à accueillir les réfugiés d’Imossa après la Chute.\nDe ce fait, elle devint rapidement un refuge pour les anciens citoyens de la cité perdue, une “petite Imossa” où l’on parlait encore avec fierté le dialecte imossien et où la mémoire des Primarques était entretenue comme un culte.\n\nAu fil des décennies, la ville devint le principal bastion continental de la Garde d’Imossa, un lieu de recrutement, de mémoire et d’entraînement.\nMais depuis la guerre contre Dipovia, la situation s’est tendue :\n\n- L’Empire exige que la Garde se joigne à la Croisade.\n\n- La Garde refuse de se battre sous la bannière de l’Église, qu’elle considère responsable de la Chute d’Imossa.\n\n- Les tensions entre les officiers impériaux et les Primarques s’enveniment.\n\n- Les habitants de Vardanys, descendants d’Imossa, se sentent trahis par le trône.\n\n> Aujourd’hui, Vardanys est une ville au bord de l’insurrection. Ses quais bruissent de murmures, les drapeaux impériaux sont souillés d’eau de mer, et les cloches du port résonnent comme un glas.",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Wimborne",
@@ -703,7 +766,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     }
   ],
   "Zemantis": [
@@ -719,7 +783,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     },
     {
       "name": "Vyktyskar",
@@ -733,7 +798,8 @@
       "history": "",
       "quests": "",
       "lore": "",
-      "pnjs": []
+      "pnjs": [],
+      "tags": []
     }
   ]
 }

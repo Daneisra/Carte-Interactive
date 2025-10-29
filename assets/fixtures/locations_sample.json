@@ -21,7 +21,11 @@
       "history": "",
       "quests": [],
       "pnjs": [],
-      "lore": []
+      "lore": [],
+      "tags": [
+        "port",
+        "defense"
+      ]
     },
     {
       "name": "Valerius Primus",
@@ -35,7 +39,11 @@
       "history": "",
       "quests": [],
       "pnjs": [],
-      "lore": []
+      "lore": [],
+      "tags": [
+        "capital",
+        "politique"
+      ]
     }
   ],
   "Dipovia": [

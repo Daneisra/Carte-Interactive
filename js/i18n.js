@@ -23,7 +23,23 @@ const STRINGS = {
             randomAria: 'Choisir un lieu aléatoire',
             randomHint: 'Sélectionner un lieu aléatoire.',
             randomDisabledFavorites: 'Aucun favori ne correspond aux filtres actuels.',
-            randomDisabledDefault: 'Aucun lieu ne correspond aux filtres actuels.'
+            randomDisabledDefault: 'Aucun lieu ne correspond aux filtres actuels.',
+            advancedShow: 'Filtres avancés',
+            advancedHide: 'Masquer les filtres',
+            typesLabel: 'Types',
+            tagsLabel: 'Tags',
+            statusesLabel: "Statuts d'évènement",
+            questsLabel: 'Présence de quêtes',
+            quests: {
+                any: 'Toutes ({count})',
+                with: 'Avec quêtes ({count})',
+                without: 'Sans quête ({count})'
+            },
+            empty: {
+                types: 'Aucun type disponible',
+                tags: 'Aucun tag disponible',
+                statuses: 'Aucun statut disponible'
+            }
         },
         favorites: {
             add: 'Ajouter aux favoris',

@@ -1,13 +1,12 @@
+import { normalizeFilterState } from '../shared/searchFilters.mjs';
+
 export class UiState {
     constructor({
-        filters = { text: '', type: 'all' },
+        filters = {},
         favorites = [],
         theme = 'dark'
     } = {}) {
-        this.filters = {
-            text: (filters.text || '').trim().toLowerCase(),
-            type: filters.type || 'all'
-        };
+        this.filters = normalizeFilterState(filters);
         this.favorites = new Set(
             Array.isArray(favorites)
                 ? favorites.filter(name => typeof name === 'string' && name.trim())
@@ -19,13 +18,9 @@ export class UiState {
         this.mapState = null;
     }
 
-    setFilters({ text, type }) {
-        if (typeof text === 'string') {
-            this.filters.text = text.trim().toLowerCase();
-        }
-        if (typeof type === 'string') {
-            this.filters.type = type || 'all';
-        }
+    setFilters(patch = {}) {
+        const merged = { ...this.filters, ...(patch || {}) };
+        this.filters = normalizeFilterState(merged);
     }
 
     getFilters() {

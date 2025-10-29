@@ -85,7 +85,20 @@ const normalizeLocation = rawLocation => {
         history: collectTextArray(rawLocation.history),
         quests: collectTextArray(rawLocation.quests),
         lore: collectTextArray(rawLocation.lore),
-        pnjs: normalizePnjList(rawLocation.pnjs)
+        pnjs: normalizePnjList(rawLocation.pnjs),
+        tags: (() => {
+            if (Array.isArray(rawLocation.tags)) {
+                return rawLocation.tags.map(sanitizeString).filter(Boolean);
+            }
+            const single = sanitizeString(rawLocation.tags);
+            if (!single) {
+                return [];
+            }
+            return single
+                .split(/[,;]+/)
+                .map(sanitizeString)
+                .filter(Boolean);
+        })()
     };
 
     if (!Number.isFinite(normalized.x)) {

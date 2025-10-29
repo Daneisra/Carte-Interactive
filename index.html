@@ -46,9 +46,43 @@
         </div>
 
         <div id="filters-container">
-            <select id="type-filter" aria-label="Filtrer par type de lieu">
-                <option value="all">Tous les types</option>
-            </select>
+            <button id="filters-advanced-toggle" class="secondary-button" type="button" aria-expanded="false" aria-controls="advanced-filters-panel">
+                Filtres avancés
+            </button>
+            <div id="advanced-filters-panel" hidden>
+                <fieldset class="filter-section" data-filter-section="types">
+                    <legend id="filter-types-label">Types</legend>
+                    <div id="filter-types" class="filter-choice-group" role="group" aria-labelledby="filter-types-label"></div>
+                    <p class="filter-empty" data-empty="types" hidden>Aucun type disponible</p>
+                </fieldset>
+                <fieldset class="filter-section" data-filter-section="tags">
+                    <legend id="filter-tags-label">Tags</legend>
+                    <div id="filter-tags" class="filter-choice-group" role="group" aria-labelledby="filter-tags-label"></div>
+                    <p class="filter-empty" data-empty="tags" hidden>Aucun tag disponible</p>
+                </fieldset>
+                <fieldset class="filter-section" data-filter-section="quests">
+                    <legend id="filter-quests-label">Présence de quêtes</legend>
+                    <div class="filter-radio-group" role="radiogroup" aria-labelledby="filter-quests-label">
+                        <label class="filter-radio">
+                            <input type="radio" name="filter-quests" value="any" checked>
+                            <span>Toutes</span>
+                        </label>
+                        <label class="filter-radio">
+                            <input type="radio" name="filter-quests" value="with">
+                            <span>Avec quêtes</span>
+                        </label>
+                        <label class="filter-radio">
+                            <input type="radio" name="filter-quests" value="without">
+                            <span>Sans quête</span>
+                        </label>
+                    </div>
+                </fieldset>
+                <fieldset class="filter-section" data-filter-section="statuses">
+                    <legend id="filter-statuses-label">Statuts d'évènement</legend>
+                    <div id="filter-statuses" class="filter-choice-group" role="group" aria-labelledby="filter-statuses-label"></div>
+                    <p class="filter-empty" data-empty="statuses" hidden>Aucun statut disponible</p>
+                </fieldset>
+            </div>
             <button id="reset-filters" class="icon-button" aria-label="Réinitialiser les filtres" type="button">↺</button>
             <button id="random-location" class="icon-button" type="button" aria-label="Choisir un lieu aléatoire">🎲</button>
         </div>

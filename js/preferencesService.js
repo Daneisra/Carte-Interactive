@@ -1,7 +1,10 @@
-﻿const STORAGE_KEY = 'interactive-map-preferences';
+import { normalizeFilterState } from './shared/searchFilters.mjs';
+
+const STORAGE_KEY = 'interactive-map-preferences';
+const DEFAULT_FILTERS = normalizeFilterState();
 
 const SAFE_DEFAULT = {
-    filters: { text: '', type: 'all' },
+    filters: DEFAULT_FILTERS,
     clustering: false,
     markerScale: 100,
     favorites: [],
@@ -31,11 +34,12 @@ export class PreferencesService {
     }
 
     getFilters() {
-        return { ...SAFE_DEFAULT.filters, ...(this.state.filters || {}) };
+        return { ...DEFAULT_FILTERS, ...normalizeFilterState(this.state.filters) };
     }
 
     setFilters(filters) {
-        this.state.filters = { ...this.getFilters(), ...(filters || {}) };
+        const merged = { ...this.getFilters(), ...(filters || {}) };
+        this.state.filters = normalizeFilterState(merged);
         this.#write();
     }
 
@@ -159,7 +163,9 @@ export class PreferencesService {
                 return { ...SAFE_DEFAULT };
             }
             const parsed = JSON.parse(raw);
-            return { ...SAFE_DEFAULT, ...(parsed || {}) };
+            const next = { ...SAFE_DEFAULT, ...(parsed || {}) };
+            next.filters = normalizeFilterState(parsed?.filters);
+            return next;
         } catch (error) {
             return { ...SAFE_DEFAULT };
         }
@@ -172,9 +178,8 @@ export class PreferencesService {
         try {
             window.localStorage.setItem(this.storageKey, JSON.stringify(this.state));
         } catch (error) {
-            // storage might be full or denied – silently ignore
+            // storage might be full or denied - silently ignore
         }
     }
 }
-
 

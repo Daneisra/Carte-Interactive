@@ -4,7 +4,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { URL } = require('url');
+const { URL, pathToFileURL } = require('url');
 
 const loadEnvFile = filePath => {
   try {
@@ -55,6 +55,7 @@ const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
+  '.mjs': 'application/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -138,6 +139,16 @@ const writeAnnotationsFile = async annotations => writeJsonFile(ANNOTATIONS_FILE
 
 const readQuestEventsFile = async () => readJsonFile(QUEST_EVENTS_FILE, []);
 const writeQuestEventsFile = async events => writeJsonFile(QUEST_EVENTS_FILE, events.slice(-200));
+
+let searchFiltersModulePromise = null;
+const loadSearchFiltersModule = () => {
+  if (!searchFiltersModulePromise) {
+    const modulePath = pathToFileURL(path.join(__dirname, 'js', 'shared', 'searchFilters.mjs')).href;
+    searchFiltersModulePromise = import(modulePath);
+  }
+  return searchFiltersModulePromise;
+};
+
 
 const send = (res, status, body = '', headers = {}) => {
   res.writeHead(status, headers);
@@ -437,6 +448,23 @@ const loadTypeMap = async () => {
 };
 
 const normalizeString = value => (value ?? '').toString().trim();
+const parseListParam = (searchParams, key) => {
+  const rawValues = searchParams.getAll(key) || [];
+  const collected = [];
+  rawValues.forEach(entry => {
+    if (typeof entry !== 'string') {
+      return;
+    }
+    entry.split(/[,;]+/).forEach(chunk => {
+      const normalized = normalizeString(chunk);
+      if (normalized) {
+        collected.push(normalized);
+      }
+    });
+  });
+  return collected;
+};
+
 
 const isHttpUrl = value => {
   if (!value || typeof value !== 'string') {
@@ -1035,6 +1063,103 @@ const server = http.createServer(async (req, res) => {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
     if (req.method === 'GET' && urlObj.pathname === '/api/events/stream') {
       registerSseClient(req, res);
+      return;
+    }
+    if (req.method === 'GET' && urlObj.pathname === '/api/locations/search') {
+      try {
+        const {
+          normalizeFilterState,
+          buildLocationIndex,
+          prepareFilters,
+          locationMatchesFilters,
+          buildFilterFacets
+        } = await loadSearchFiltersModule();
+
+        const [locationsData, questEvents, typeData] = await Promise.all([
+          readLocationsFile(),
+          readQuestEventsFile(),
+          readJsonFile(TYPES_FILE, {})
+        ]);
+
+        const questEventsByLocation = new Map();
+        questEvents.forEach(event => {
+          const key = normalizeString(event?.locationName).toLowerCase();
+          if (!key) {
+            return;
+          }
+          if (!questEventsByLocation.has(key)) {
+            questEventsByLocation.set(key, []);
+          }
+          questEventsByLocation.get(key).push(event);
+        });
+
+        const entries = [];
+        Object.entries(locationsData || {}).forEach(([continent, rawLocations]) => {
+          if (!Array.isArray(rawLocations)) {
+            return;
+          }
+          rawLocations.forEach(location => {
+            const nameKey = normalizeString(location?.name).toLowerCase();
+            const relatedEvents = nameKey ? questEventsByLocation.get(nameKey) || [] : [];
+            const index = buildLocationIndex(location, { continent, questEvents: relatedEvents });
+            entries.push({
+              location,
+              continent,
+              index,
+              questEvents: relatedEvents
+            });
+          });
+        });
+
+        const filters = normalizeFilterState({
+          text: urlObj.searchParams.get('text') || '',
+          types: parseListParam(urlObj.searchParams, 'types'),
+          tags: parseListParam(urlObj.searchParams, 'tags'),
+          statuses: parseListParam(urlObj.searchParams, 'statuses'),
+          quests: urlObj.searchParams.get('quests') || undefined
+        });
+
+        const prepared = prepareFilters(filters);
+        const matchedEntries = entries.filter(entry => locationMatchesFilters(entry.index, prepared));
+
+        const limitParam = Number(urlObj.searchParams.get('limit')) || 100;
+        const limit = Math.max(0, Math.min(250, limitParam));
+        const sliced = matchedEntries.slice(0, limit);
+
+        const typeLabels = new Map(Object.entries(typeData || {}));
+        const datasetFacets = buildFilterFacets(entries.map(entry => entry.index), { typeLabels });
+        const matchedFacets = buildFilterFacets(matchedEntries.map(entry => entry.index), { typeLabels });
+
+        const results = sliced.map(entry => ({
+          name: entry.index.name,
+          type: entry.index.type,
+          continent: entry.index.continent,
+          tags: entry.index.tags,
+          hasQuests: entry.index.hasQuests,
+          eventStatuses: entry.index.eventStatuses,
+          coordinates: entry.index.coords,
+          quests: Array.isArray(entry.location.quests) ? entry.location.quests : [],
+          questEvents: entry.questEvents,
+          location: entry.location
+        }));
+
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          filters,
+          total: entries.length,
+          matched: matchedEntries.length,
+          count: results.length,
+          limit,
+          facets: {
+            dataset: datasetFacets,
+            matched: matchedFacets
+          },
+          results
+        }), { 'Content-Type': 'application/json' });
+      } catch (error) {
+        console.error('[search] failed', error);
+        send(res, 500, JSON.stringify({ status: 'error', message: 'Recherche indisponible.' }), { 'Content-Type': 'application/json' });
+      }
       return;
     }
     if (req.method === 'GET' && urlObj.pathname === '/api/annotations') {

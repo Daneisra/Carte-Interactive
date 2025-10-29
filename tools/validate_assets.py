@@ -140,6 +140,18 @@ def validate_locations(dataset: Dict[str, Any], types: Dict[str, Any], *, check_
                 else:
                     issues.append(f"{name}: champ quests doit etre une liste ou une chaine")
 
+            tags = entry.get("tags")
+            if tags is not None:
+                if isinstance(tags, list):
+                    for tag_index, tag in enumerate(tags):
+                        if not isinstance(tag, str) or not tag.strip():
+                            issues.append(f"{name}: tags[{tag_index}] invalide ({tag!r})")
+                elif isinstance(tags, str):
+                    if not tags.strip():
+                        issues.append(f"{name}: champ tags vide")
+                else:
+                    issues.append(f"{name}: champ tags doit etre une liste ou une chaine")
+
             pnjs = entry.get("pnjs") or []
             if isinstance(pnjs, list):
                 for pnj_index, pnj in enumerate(pnjs):

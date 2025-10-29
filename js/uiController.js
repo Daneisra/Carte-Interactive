@@ -19,6 +19,13 @@ import {
     serializeVideos,
     serializePnjs
 } from './shared/locationSchema.js';
+import {
+    buildLocationIndex,
+    prepareFilters,
+    locationMatchesFilters,
+    buildFilterFacets,
+    normalizeFilterState
+} from './shared/searchFilters.mjs';
 
 const PAGE_SIZE = 8;
 const KM_PER_PIXEL = 10;
@@ -69,7 +76,11 @@ export class UiController {
         sidebarId = 'sidebar',
         searchBarId = 'search-bar',
         clearSearchId = 'clear-search',
-        typeFilterId = 'type-filter',
+        filtersToggleId = 'filters-advanced-toggle',
+        filtersPanelId = 'advanced-filters-panel',
+        filterTypesId = 'filter-types',
+        filterTagsId = 'filter-tags',
+        filterStatusesId = 'filter-statuses',
         resetFiltersId = 'reset-filters',
         toggleAllButtonId = 'toggle-all-continents',
         infoSidebarId = 'info-sidebar',
@@ -95,7 +106,11 @@ export class UiController {
             sidebar: document.getElementById(sidebarId),
             searchBar: document.getElementById(searchBarId),
             clearSearch: document.getElementById(clearSearchId),
-            typeFilter: document.getElementById(typeFilterId),
+            filtersToggle: document.getElementById(filtersToggleId),
+            filtersPanel: document.getElementById(filtersPanelId),
+            filterTypes: document.getElementById(filterTypesId),
+            filterTags: document.getElementById(filterTagsId),
+            filterStatuses: document.getElementById(filterStatusesId),
             resetFilters: document.getElementById(resetFiltersId),
             toggleAll: document.getElementById(toggleAllButtonId),
             resultsBadge: document.getElementById('search-results-count'),
@@ -179,6 +194,7 @@ export class UiController {
         this.realtimeCleanup = null;
         this.annotations = new Map();
         this.questEvents = new Map();
+        this.filterFacets = { types: [], tags: [], statuses: [], quests: { with: 0, without: 0 } };
         this.annotationTool = {
             active: false,
             clickUnsubscribe: null
@@ -253,9 +269,13 @@ export class UiController {
             state: this.state,
             searchInput: this.dom.searchBar,
             clearButton: this.dom.clearSearch,
-            typeSelect: this.dom.typeFilter,
             resetButton: this.dom.resetFilters,
             resultsBadge: this.dom.resultsBadge,
+            advancedToggle: this.dom.filtersToggle,
+            advancedPanel: this.dom.filtersPanel,
+            typeContainer: this.dom.filterTypes,
+            tagContainer: this.dom.filterTags,
+            statusContainer: this.dom.filterStatuses,
             onFiltersChanged: filters => {
                 if (this.preferences?.setFilters) {
                     this.preferences.setFilters(filters);
@@ -499,11 +519,11 @@ export class UiController {
         this.bindMapKeyboardShortcuts();
         this.bindMapBackgroundDismissal();
 
-        this.populateTypeFilterOptions();
         this.setupLocationEditor();
         this.setupUserAdminPanel();
         this.updateAuthUI();
         this.buildSidebar(this.locationsData);
+        this.refreshFilterMetadata({ reapply: false });
         this.restoreMapState();
 
         this.state.sidebarView = 'all';
@@ -553,6 +573,41 @@ export class UiController {
             this.dom.tabFavorites.setAttribute('aria-label', label);
         }
 
+        if (this.dom.filtersToggle) {
+            const label = localized('filters.advancedShow', this.dom.filtersToggle.textContent || 'Filtres avancés');
+            this.dom.filtersToggle.textContent = label;
+        }
+
+        const typesLegend = document.getElementById('filter-types-label');
+        if (typesLegend) {
+            typesLegend.textContent = localized('filters.typesLabel', typesLegend.textContent || 'Types');
+        }
+        const tagsLegend = document.getElementById('filter-tags-label');
+        if (tagsLegend) {
+            tagsLegend.textContent = localized('filters.tagsLabel', tagsLegend.textContent || 'Tags');
+        }
+        const questsLegend = document.getElementById('filter-quests-label');
+        if (questsLegend) {
+            questsLegend.textContent = localized('filters.questsLabel', questsLegend.textContent || 'Présence de quêtes');
+        }
+        const statusesLegend = document.getElementById('filter-statuses-label');
+        if (statusesLegend) {
+            statusesLegend.textContent = localized('filters.statusesLabel', statusesLegend.textContent || "Statuts d'évènement");
+        }
+
+        const typesEmpty = this.dom.filtersPanel?.querySelector('[data-empty="types"]');
+        if (typesEmpty) {
+            typesEmpty.textContent = localized('filters.empty.types', typesEmpty.textContent || 'Aucun type disponible');
+        }
+        const tagsEmpty = this.dom.filtersPanel?.querySelector('[data-empty="tags"]');
+        if (tagsEmpty) {
+            tagsEmpty.textContent = localized('filters.empty.tags', tagsEmpty.textContent || 'Aucun tag disponible');
+        }
+        const statusesEmpty = this.dom.filtersPanel?.querySelector('[data-empty="statuses"]');
+        if (statusesEmpty) {
+            statusesEmpty.textContent = localized('filters.empty.statuses', statusesEmpty.textContent || 'Aucun statut disponible');
+        }
+
         if (this.dom.randomButton) {
             const icon = localized('icons.random', this.dom.randomButton.textContent || '?');
             this.dom.randomButton.textContent = icon;
@@ -572,37 +627,6 @@ export class UiController {
         this.updateMeasurementButton();
         this.updateCoordinateButton();
     }
-
-    populateTypeFilterOptions() {
-        if (!this.dom.typeFilter) {
-            return;
-        }
-        const fragment = document.createDocumentFragment();
-        fragment.appendChild(createElement('option', {
-            text: localized('filters.allTypes', 'Tous les types'),
-            attributes: { value: 'all' }
-        }));
-
-        Object.entries(this.typeData)
-            .sort(([, left], [, right]) => {
-                const a = (left?.label || '').toLowerCase();
-                const b = (right?.label || '').toLowerCase();
-                return a.localeCompare(b, 'fr');
-            })
-            .forEach(([value, meta]) => {
-                fragment.appendChild(createElement('option', {
-                    text: meta?.label || value,
-                    attributes: { value }
-                }));
-            });
-
-        clearElement(this.dom.typeFilter);
-        this.dom.typeFilter.appendChild(fragment);
-
-        const currentType = this.state.filters.type || 'all';
-        this.dom.typeFilter.value = currentType;
-    }
-
     setupLocationEditor() {
         if (!this.dom.locationEditor) {
             return;
@@ -666,7 +690,8 @@ export class UiController {
             history: serializeTextGroup(normalized.history),
             quests: serializeTextGroup(normalized.quests),
             lore: serializeTextGroup(normalized.lore),
-            pnjs: serializePnjs(normalized.pnjs)
+            pnjs: serializePnjs(normalized.pnjs),
+            tags: normalized.tags
         };
     }
 
@@ -731,6 +756,41 @@ export class UiController {
     }
 
 
+
+    buildFilterIndexForEntry(entry) {
+        if (!entry || !entry.location) {
+            return null;
+        }
+        const questEvents = this.getQuestEventsForLocation(entry.location.name);
+        return buildLocationIndex(entry.location, {
+            continent: entry.continent,
+            questEvents
+        });
+    }
+
+    refreshFilterMetadata({ reapply = false } = {}) {
+        if (!Array.isArray(this.entries) || !this.entries.length) {
+            if (this.filtersManager?.setAvailableFilters) {
+                this.filtersManager.setAvailableFilters({ types: [], tags: [], statuses: [], quests: { with: 0, without: 0 } });
+            }
+            return;
+        }
+        const typeLabels = new Map(Object.entries(this.typeData || {}));
+        const indices = [];
+        this.entries.forEach(entry => {
+            entry.filterIndex = this.buildFilterIndexForEntry(entry);
+            if (entry.filterIndex) {
+                indices.push(entry.filterIndex);
+            }
+        });
+        this.filterFacets = buildFilterFacets(indices, { typeLabels });
+        if (this.filtersManager?.setAvailableFilters) {
+            this.filtersManager.setAvailableFilters(this.filterFacets);
+        }
+        if (reapply) {
+            this.applyFilters();
+        }
+    }
 
     collectExistingNames(exceptName = null) {
         const names = [];
@@ -909,6 +969,7 @@ export class UiController {
     refreshLocations({ focusName } = {}) {
         this.sortStateDataset();
         this.buildSidebar(this.locationsData);
+        this.refreshFilterMetadata({ reapply: false });
         this.state.sidebarView = 'all';
         this.applyFilters();
         this.renderFavoritesView();
@@ -1068,6 +1129,7 @@ export class UiController {
             onLeave: () => element.classList.remove('hover')
         });
 
+        entry.filterIndex = this.buildFilterIndexForEntry(entry);
         this.entries.push(entry);
         return entry;
     }
@@ -2423,6 +2485,7 @@ export class UiController {
                 questId: event.questId || null
             });
         });
+        this.refreshFilterMetadata({ reapply: true });
         this.syncLocationEditorQuestEvents();
     }
 
@@ -2455,6 +2518,7 @@ export class UiController {
             timestamp: event.updatedAt || new Date().toISOString(),
             questId: event.questId || null
         });
+        this.refreshFilterMetadata({ reapply: true });
         this.syncLocationEditorQuestEvents();
     }
 
@@ -2477,6 +2541,7 @@ export class UiController {
             timestamp: new Date().toISOString(),
             questId: existing.questId || null
         });
+        this.refreshFilterMetadata({ reapply: true });
         this.syncLocationEditorQuestEvents();
     }
 
@@ -2581,6 +2646,7 @@ export class UiController {
             const previousSelection = this.activeEntry?.location?.name || null;
             this.locationsData = normalizeSharedDataset(payload.locations, { sanitizeKeys: true });
             this.buildSidebar(this.locationsData);
+            this.refreshFilterMetadata({ reapply: false });
             this.applyFilters();
             this.updateSidebarView();
             this.updateClusteringMetrics();
@@ -2726,19 +2792,17 @@ export class UiController {
     }
 
     applyFilters() {
-        const { text, type } = this.state.getFilters();
-        const query = (text || '').trim().toLowerCase();
-        const selectedType = type || 'all';
-        const hasQuery = query.length > 0;
-        const hasType = selectedType !== 'all';
+        const filters = this.state.getFilters();
+        const prepared = prepareFilters(filters);
 
         let visibleCount = 0;
 
         this.continents.forEach(section => {
             const visibleEntries = section.entries.filter(entry => {
-                const matchesText = !hasQuery || this.entryMatchesQuery(entry, query);
-                const matchesType = !hasType || entry.location.type === selectedType;
-                const matches = matchesText && matchesType;
+                if (!entry.filterIndex) {
+                    entry.filterIndex = this.buildFilterIndexForEntry(entry);
+                }
+                const matches = locationMatchesFilters(entry.filterIndex, prepared);
                 entry.matchesFilters = matches;
 
                 if (entry.element) {
@@ -2762,11 +2826,9 @@ export class UiController {
             this.renderContinentEntries(visibleEntries, section.pagination, section.content);
         });
 
-        const filtersActive = hasQuery || hasType;
         this.filtersManager.updateResults({
             visibleCount,
-            totalCount: this.entries.length,
-            filtersActive
+            totalCount: this.entries.length
         });
 
         if (this.activeEntry && !this.activeEntry.matchesFilters) {
@@ -2781,23 +2843,6 @@ export class UiController {
         this.updateRandomButtonState();
     }
 
-    entryMatchesQuery(entry, query) {
-        if (!entry || !entry.location || !query) {
-            return true;
-        }
-        const { location } = entry;
-        const candidates = [
-            location.name,
-            location.description,
-            ...(location.history || []),
-            ...(location.quests || []),
-            ...(location.lore || []),
-            ...(Array.isArray(location.pnjs)
-                ? location.pnjs.map(pnj => `${pnj.name || ''} ${pnj.role || ''} ${pnj.description || ''}`)
-                : [])
-        ];
-        return candidates.some(value => typeof value === 'string' && value.toLowerCase().includes(query));
-    }
     renderFavoritesView() {
         const container = this.dom.favoritesContainer;
         if (!container) {
@@ -2952,10 +2997,10 @@ export class UiController {
             ? localized('clustering.tooltipBaseSingle', `${visible} lieu visible sur ${total}`, { visible, total })
             : localized('clustering.tooltipBasePlural', `${visible} lieux visibles sur ${total}`, { visible, total });
 
-        const filters = this.state.getFilters();
+        const filters = normalizeFilterState(this.state.getFilters());
         const parts = [baseTooltip];
 
-        if ((filters.text && filters.text.length) || (filters.type && filters.type !== 'all')) {
+        if ((filters.text && filters.text.trim()) || filters.types.length || filters.tags.length || filters.statuses.length || filters.quests !== 'any') {
             parts.push(localized('clustering.tooltipFilters', 'filtres actifs'));
         }
 

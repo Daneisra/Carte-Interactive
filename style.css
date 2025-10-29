@@ -231,6 +231,111 @@ textarea {
     flex: 0 0 auto;
 }
 
+#filters-advanced-toggle {
+    flex: 0 0 auto;
+}
+
+#advanced-filters-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+#advanced-filters-panel[hidden] {
+    display: none;
+}
+
+.filter-section {
+    border: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-section > legend {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.filter-choice-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.filter-chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.filter-chip-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: inherit;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.filter-chip-label small {
+    opacity: 0.7;
+    font-size: 0.75rem;
+}
+
+.filter-chip input:focus-visible + .filter-chip-label {
+    outline: 2px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 2px;
+}
+
+.filter-chip input:checked + .filter-chip-label {
+    background: rgba(61, 139, 253, 0.25);
+    border-color: #3d8bfd;
+    color: #fff;
+}
+
+.filter-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.filter-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+.filter-radio input {
+    accent-color: #3d8bfd;
+}
+
+.filter-empty {
+    margin: 0;
+    font-size: 0.8rem;
+    opacity: 0.65;
+}
+
 /* Theme toggle */
 .theme-toggle {
     display: inline-flex;

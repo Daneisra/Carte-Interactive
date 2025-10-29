@@ -187,9 +187,9 @@
                         "zoom":  100,
                         "icon":  "assets/icons/Wooden Wall.png"
                     },
-    "continent":  {
+    "Continent":  {
                       "icon":  "assets/icons/default.png",
-                      "zoom":  100
+                      "zoom":  33
                   },
     "default":  {
                     "icon":  "assets/icons/default.png",

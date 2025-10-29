@@ -16,7 +16,7 @@ const expandAllContinents = async page => {
 
 const waitForAppReady = async page => {
   await page.goto('/');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await expandAllContinents(page);
   await page.waitForSelector('.location:visible');
 };
