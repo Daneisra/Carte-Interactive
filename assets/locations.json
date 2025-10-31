@@ -2,7 +2,7 @@
   "🌊 Mers et Océans 🌊": [
     {
       "name": "L'Abysse Polaire",
-      "type": "continent",
+      "type": "Continent",
       "x": 1112,
       "y": 5408,
       "description": "",
@@ -20,7 +20,7 @@
     },
     {
       "name": "La Mer d'Ivoire",
-      "type": "continent",
+      "type": "Continent",
       "x": 6112,
       "y": 4168,
       "description": "",
@@ -38,7 +38,7 @@
     },
     {
       "name": "Les Eaux Obscures",
-      "type": "continent",
+      "type": "Continent",
       "x": 3336,
       "y": 2872,
       "description": "",
@@ -111,9 +111,7 @@
       "videos": [],
       "audio": "",
       "history": "",
-      "quests": [
-        "[LIVE] QST-Kitha - Route des marchands - completed - 2/2 - Les caravanes ont repris la route."
-      ],
+      "quests": "[LIVE] QST-Kitha - Route des marchands - completed - 2/2 - Les caravanes ont repris la route.",
       "lore": "",
       "pnjs": [],
       "tags": [
@@ -425,8 +423,7 @@
       "history": "Cette ville était la jumelle de Valerius Primus, rivalisant de grandeur et d’architecture. Sa population a toujours témoigné d’une culture différente et d'une identité très forte.",
       "quests": [
         "Tuer l'Hôte démoniaque",
-        "Purifier et libérer Imossa",
-        "[LIVE] QST-Imossa - Purge du temple - active - 1/3 - Les h�tes d�moniaques ont �t� repouss�s. - @ Imossa"
+        "Purifier et libérer Imossa"
       ],
       "lore": [
         "Imossa était une cité-état unique en son genre, située sur une île au cœur du continent de Vruliwen. Isolée par sa géographie insulaire, elle a prospéré pendant des siècles en cultivant un modèle politique et économique différent de celui des autres royaumes, faisant d’elle l'une des cités les plus avancées et influentes.",
@@ -437,11 +434,6 @@
           "name": "Aden Khenan",
           "role": "Hôtes Démoniaques",
           "description": "Un warlock suspecté d’appartenir à une organisation clandestine."
-        },
-        {
-          "name": "test",
-          "role": "test",
-          "description": "test"
         }
       ],
       "tags": [

@@ -194,6 +194,7 @@ export class UiController {
         this.realtimeCleanup = null;
         this.annotations = new Map();
         this.questEvents = new Map();
+        this.questEventsLoaded = false;
         this.filterFacets = { types: [], tags: [], statuses: [], quests: { with: 0, without: 0 } };
         this.annotationTool = {
             active: false,
@@ -713,16 +714,33 @@ export class UiController {
             const response = await fetch('/api/locations', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ locations: payload })
             });
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                let message = `HTTP ${response.status}`;
+                try {
+                    const errorPayload = await response.json();
+                    if (Array.isArray(errorPayload?.errors) && errorPayload.errors.length) {
+                        message = errorPayload.errors.join('\n');
+                    } else if (errorPayload?.message) {
+                        message = errorPayload.message;
+                    }
+                } catch (parseError) {
+                    // ignore parse failures
+                }
+                const error = new Error(message);
+                error.status = response.status;
+                throw error;
             }
             console.info('Sauvegarde des lieux terminee.');
         } catch (error) {
             console.error('Erreur lors de la sauvegarde des lieux :', error);
             if (this.announcer) {
-                this.announcer.assertive('Erreur lors de la sauvegarde des donnees.');
+                this.announcer.assertive(error?.message || 'Erreur lors de la sauvegarde des donnees.');
+            }
+            if (this.locationEditor?.showError) {
+                this.locationEditor.showError('form', error?.message || 'Erreur lors de la sauvegarde des donnees.');
             }
         }
     }
@@ -1257,6 +1275,7 @@ export class UiController {
     }
 
     setAuthState({ authenticated = false, role = 'guest', username = '' } = {}) {
+        const previouslyAuthenticated = Boolean(this.auth?.authenticated);
         if (!this.authRequired) {
             if (authenticated) {
                 this.auth = { authenticated: true, role: 'admin', username: username || this.auth.username || '' };
@@ -1269,6 +1288,26 @@ export class UiController {
                 role: (role || 'guest').toLowerCase(),
                 username: username || ''
             };
+        }
+        const nowAuthenticated = Boolean(this.auth?.authenticated);
+        if (this.authRequired && !nowAuthenticated) {
+            if (this.questEvents.size) {
+                const affectedLocations = new Set();
+                this.questEvents.forEach(event => {
+                    const name = sanitizeString(event?.locationName);
+                    if (name) {
+                        affectedLocations.add(name);
+                    }
+                });
+                this.questEvents.clear();
+                affectedLocations.forEach(name => this.rebuildQuestSummariesForLocation(name));
+                this.refreshFilterMetadata({ reapply: true });
+                this.syncLocationEditorQuestEvents();
+            }
+            this.questEventsLoaded = false;
+        }
+        if (this.authRequired && !previouslyAuthenticated && nowAuthenticated && !this.questEventsLoaded) {
+            this.fetchQuestEvents();
         }
         this.updateAuthUI();
     }
@@ -2450,6 +2489,9 @@ export class UiController {
     }
 
     async fetchQuestEvents() {
+        if (this.authRequired && !this.auth?.authenticated) {
+            return;
+        }
         try {
             const response = await fetch('/api/quest-events', { cache: 'no-store', credentials: 'include' });
             if (!response.ok) {
@@ -2460,6 +2502,7 @@ export class UiController {
                 return;
             }
             this.applyQuestEventBootstrap(payload.events);
+            this.questEventsLoaded = true;
         } catch (error) {
             console.warn('[realtime] Impossible de charger les evenements de quete', error);
         }
@@ -2473,6 +2516,7 @@ export class UiController {
             }
         });
         this.questEvents = registry;
+        this.questEventsLoaded = true;
         registry.forEach(event => this.applyQuestEventToLocation(event));
         const recent = events.slice(-5);
         recent.forEach(event => {

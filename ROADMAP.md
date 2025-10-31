@@ -27,7 +27,6 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [x] Dans le panneau information, dans Creer un lieu et dans modifier egalement, je veux la gestion complete des textes avec titres, gras, italique saut de ligne etc... pour que ca soit lisible et que je puisse formater les textes exactement comme je le souhaite.
 - [x] Ajouter une sauvegarde automatique/restauration du brouillon Markdown dans lâ€™Ã©diteur.
 - [x] Ã‰tendre le rendu Markdown aux sections â€œHistorique/QuÃªtes/Loreâ€ cÃ´tÃ© Ã©dition (interface par Ã©lÃ©ments au lieu dâ€™un textarea).
-- [ ] Systeme de calques de carte (relief, frontieres, couches thematiques) avec bascule clavier et compatibilite clustering.
 - [x] Recherche avancee multi filtres (types, tags, presence de quetes, statut d'evenement) partagee entre panneau exploration, API et tests.
 - [ ] Factoriser la normalisation et les validations des lieux entre `DataService` et `UiController` pour eviter les divergences front/back.
 - [ ] Solidifier `server.js` (routes modulees, validation schema, verrous d'ecriture, journalisation) afin de supporter temps reel et annotations.
@@ -47,6 +46,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [ ] Carte chronologique pour rejouer l'evolution des lieux et evenements (filtre par periode, playback).
 - [ ] Export et partage des annotations/parcours (JSON et capture visuelle) pour preparer sessions et debriefs.
 - [ ] Marqueurs evolutifs selon le temps ou les actions des joueurs (etats, couleurs, contenus du panneau info).
+- [ ] Systeme de calques de carte (relief, frontieres, couches thematiques) avec bascule clavier et compatibilite clustering.
 
 ### P3 - Hygiene et dette
 - [ ] Modulariser `UiController` (~100 Ko) en sous-modules alignes sur `ui/` (chargement lazy, couverture unitaire ciblee).
