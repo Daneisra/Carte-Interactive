@@ -1,5 +1,4 @@
-
-import { normalizeDataset } from './shared/locationSchema.js';
+import { validateDataset } from './shared/locationValidation.mjs';
 
 const DEFAULT_TYPES_URL = 'assets/types.json';
 const DEFAULT_LOCATIONS_URL = 'assets/locations.json';
@@ -16,8 +15,8 @@ export class DataService {
             this.fetchJson(this.locationsUrl)
         ]);
 
-        const locationsData = normalizeDataset(rawLocations);
-        this.validateDatasets(locationsData, typeData);
+        const { normalized: locationsData, issues } = validateDataset(rawLocations, { typeMap: typeData });
+        this.reportDatasetIssues(issues);
 
         return { typeData, locationsData };
     }
@@ -30,47 +29,16 @@ export class DataService {
         return response.json();
     }
 
-    validateDatasets(locationsByContinent, registeredTypes) {
-        const issues = [];
-        const seenNames = new Set();
-
-        Object.entries(locationsByContinent).forEach(([continent, locations]) => {
-            locations.forEach((location, index) => {
-                if (!location.name || location.name === 'Lieu inconnu') {
-                    issues.push(`${continent} index ${index} : nom manquant`);
-                }
-
-                if (!Number.isFinite(location.x) || !Number.isFinite(location.y)) {
-                    issues.push(`${location.name} : coordonnées invalides`);
-                }
-
-                if (!registeredTypes[location.type] && location.type !== 'default') {
-                    issues.push(`${location.name} : type inconnu "${location.type}"`);
-                }
-
-                if (seenNames.has(location.name)) {
-                    issues.push(`${location.name} : doublon détecté`);
-                }
-
-                seenNames.add(location.name);
-
-                const invalidImages = location.images.filter(src => typeof src === 'string' && !src.startsWith('assets/'));
-                if (invalidImages.length > 0) {
-                    issues.push(`${location.name} : images avec chemin non valide (${invalidImages.join(', ')})`);
-                }
-
-                if (location.audio && typeof location.audio === 'string' && !location.audio.startsWith('assets/')) {
-                    issues.push(`${location.name} : audio avec chemin non valide (${location.audio})`);
-                }
-            });
-        });
-
-        if (issues.length) {
-            console.group('Validation des données de carte');
-            issues.forEach(issue => console.warn(issue));
-            console.groupEnd();
-        } else {
+    reportDatasetIssues(issues = []) {
+        if (!issues.length) {
             console.info('Validation des données de carte : OK');
+            return;
         }
+        const errors = issues.filter(issue => issue.level === 'error');
+        const warnings = issues.filter(issue => issue.level === 'warning');
+        console.group('Validation des données de carte');
+        errors.forEach(issue => console.error(issue.message));
+        warnings.forEach(issue => console.warn(issue.message));
+        console.groupEnd();
     }
 }

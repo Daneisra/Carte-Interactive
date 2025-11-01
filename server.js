@@ -149,6 +149,15 @@ const loadSearchFiltersModule = () => {
   return searchFiltersModulePromise;
 };
 
+let locationValidationModulePromise = null;
+const loadLocationValidationModule = () => {
+  if (!locationValidationModulePromise) {
+    const modulePath = pathToFileURL(path.join(__dirname, 'js', 'shared', 'locationValidation.mjs')).href;
+    locationValidationModulePromise = import(modulePath);
+  }
+  return locationValidationModulePromise;
+};
+
 
 const send = (res, status, body = '', headers = {}) => {
   res.writeHead(status, headers);
@@ -552,78 +561,50 @@ const readLocationsFile = async () => {
   }
 };
 
-const validateLocationsDataset = async dataset => {
-  const errors = [];
-  if (!dataset || typeof dataset !== 'object' || Array.isArray(dataset)) {
-    return { valid: false, errors: ['Le payload \"locations\" doit etre un objet { continent: lieux[] }.'] };
-  }
-  const typeMap = await loadTypeMap();
-  const knownTypes = new Set(Object.keys(typeMap || {}));
-  knownTypes.add('default');
-  const seenNames = new Map();
-  const assetChecks = [];
+const formatAssetLabel = (continent, index, name) => {
+  const safeContinent = normalizeString(continent) || continent || 'Continent inconnu';
+  const position = Number.isInteger(index) ? `${safeContinent}[${index + 1}]` : safeContinent;
+  return name ? `${position} - ${name}` : position;
+};
 
-  Object.entries(dataset).forEach(([continentName, locations]) => {
-    const continent = normalizeString(continentName);
-    if (!continent) {
-      errors.push('Nom de continent manquant ou vide.');
+const validateLocationsDataset = async dataset => {
+  const { validateDataset } = await loadLocationValidationModule();
+  const typeMap = await loadTypeMap();
+  const { normalized, issues } = validateDataset(dataset, { typeMap, sanitizeKeys: false });
+
+  const errors = [];
+  const warnings = [];
+  issues.forEach(issue => {
+    if (issue.level === 'error') {
+      errors.push(issue.message);
+    } else if (issue.level === 'warning') {
+      warnings.push(issue.message);
     }
+  });
+
+  const assetChecks = [];
+  Object.entries(normalized).forEach(([continent, locations]) => {
     if (!Array.isArray(locations)) {
-      errors.push(`La valeur du continent "${continentName}" doit etre une liste.`);
       return;
     }
     locations.forEach((location, index) => {
-      const context = `${continent || continentName}#${index + 1}`;
-      if (!location || typeof location !== 'object') {
-        errors.push(`Entree invalide pour ${context} (objet attendu).`);
-        return;
-      }
-      const name = normalizeString(location.name);
-      if (!name) {
-        errors.push(`Nom manquant pour ${context}.`);
-      } else {
-        const key = name.toLowerCase();
-        if (seenNames.has(key)) {
-          errors.push(`Nom duplique "${name}" (deja dans ${seenNames.get(key)}).`);
+      const label = formatAssetLabel(continent, index, location?.name);
+      const audio = normalizeString(location?.audio);
+      if (audio && audio.startsWith('assets/')) {
+        const ext = path.extname(audio).toLowerCase();
+        if (!AUDIO_EXTENSIONS.has(ext)) {
+          errors.push(`Extension audio non supportee (${audio}) pour ${label}.`);
         } else {
-          seenNames.set(key, context);
-        }
-      }
-
-      const type = normalizeString(location.type) || 'default';
-      if (type !== 'default' && !knownTypes.has(type)) {
-        errors.push(`Type inconnu "${type}" pour ${context}.`);
-      }
-
-      const x = Number(location.x);
-      const y = Number(location.y);
-      if (!Number.isFinite(x) || !Number.isFinite(y)) {
-        errors.push(`Coordonnees invalides pour ${context}.`);
-      }
-
-      const audio = normalizeString(location.audio);
-      if (audio) {
-        if (audio.startsWith('assets/')) {
-          const ext = path.extname(audio).toLowerCase();
-          if (!AUDIO_EXTENSIONS.has(ext)) {
-            errors.push(`Extension audio non supportee (${audio}) pour ${context}.`);
+          const resolved = resolveAssetPath(audio);
+          if (!resolved) {
+            errors.push(`Chemin audio hors assets (${audio}) pour ${label}.`);
           } else {
-            const resolved = resolveAssetPath(audio);
-            if (!resolved) {
-              errors.push(`Chemin audio hors assets (${audio}) pour ${context}.`);
-            } else {
-              assetChecks.push({ path: resolved, original: audio, context });
-            }
+            assetChecks.push({ path: resolved, original: audio, context: label });
           }
-        } else if (!isHttpUrl(audio)) {
-          errors.push(`Audio invalide (${audio}) pour ${context}.`);
         }
       }
 
-      const images = Array.isArray(location.images) ? location.images : [];
-      if (!Array.isArray(location.images)) {
-        errors.push(`Le champ images doit etre une liste pour ${context}.`);
-      }
+      const images = Array.isArray(location?.images) ? location.images : [];
       images.forEach((entry, imageIndex) => {
         const value = normalizeString(entry);
         if (!value) {
@@ -632,67 +613,19 @@ const validateLocationsDataset = async dataset => {
         if (value.startsWith('assets/')) {
           const ext = path.extname(value).toLowerCase();
           if (!IMAGE_EXTENSIONS.has(ext)) {
-        errors.push(`Extension d'image non supportee (${value}) pour ${context}.`);
+            errors.push(`Extension d'image non supportee (${value}) pour ${label}.`);
           } else {
             const resolved = resolveAssetPath(value);
             if (!resolved) {
-              errors.push(`Chemin image hors assets (${value}) pour ${context}.`);
+              errors.push(`Chemin image hors assets (${value}) pour ${label}.`);
             } else {
-              assetChecks.push({ path: resolved, original: value, context });
+              assetChecks.push({ path: resolved, original: value, context: label });
             }
           }
         } else if (!isHttpUrl(value)) {
-          errors.push(`Image invalide (${value}) pour ${context} [index ${imageIndex + 1}].`);
+          errors.push(`Image invalide (${value}) pour ${label} [index ${imageIndex + 1}].`);
         }
       });
-
-      const videos = Array.isArray(location.videos) ? location.videos : [];
-      if (location.videos && !Array.isArray(location.videos)) {
-        errors.push(`Le champ videos doit etre une liste pour ${context}.`);
-      }
-      videos.forEach((video, videoIndex) => {
-        if (!video || typeof video !== 'object') {
-          errors.push(`Video invalide pour ${context} [index ${videoIndex + 1}].`);
-          return;
-        }
-        const url = normalizeString(video.url);
-        if (url && !isHttpUrl(url) && !url.startsWith('assets/')) {
-          errors.push(`URL video invalide (${url}) pour ${context} [index ${videoIndex + 1}].`);
-        }
-      });
-
-      const ensureArrayOrStringList = (value, field) => {
-        if (!value) {
-          return;
-        }
-        if (Array.isArray(value)) {
-          const hasInvalid = value.some(entry => typeof entry !== 'string');
-          if (hasInvalid) {
-            errors.push(`Le champ ${field} de ${context} doit contenir uniquement des chaines.`);
-          }
-        } else if (typeof value !== 'string') {
-          errors.push(`Le champ ${field} de ${context} doit etre une chaine ou une liste.`);
-        }
-      };
-
-      ensureArrayOrStringList(location.history, 'history');
-      ensureArrayOrStringList(location.quests, 'quests');
-      ensureArrayOrStringList(location.lore, 'lore');
-
-      if (location.pnjs && !Array.isArray(location.pnjs)) {
-        errors.push(`Le champ pnjs doit etre une liste pour ${context}.`);
-      } else if (Array.isArray(location.pnjs)) {
-        location.pnjs.forEach((pnj, pnjIndex) => {
-          if (!pnj || typeof pnj !== 'object') {
-            errors.push(`PNJ invalide pour ${context} [index ${pnjIndex + 1}].`);
-            return;
-          }
-          const pnjName = normalizeString(pnj.name);
-          if (!pnjName) {
-            errors.push(`PNJ sans nom pour ${context} [index ${pnjIndex + 1}].`);
-          }
-        });
-      }
     });
   });
 
@@ -709,7 +642,12 @@ const validateLocationsDataset = async dataset => {
     }
   }
 
-  return { valid: errors.length === 0, errors };
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings,
+    normalized
+  };
 };
 
 const flattenLocations = dataset => {
@@ -1423,15 +1361,16 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      const normalizedDataset = validation.normalized;
       const previous = await readLocationsFile();
-      const diff = computeLocationsDiff(previous, dataset);
+      const diff = computeLocationsDiff(previous, normalizedDataset);
 
-      await persistLocations(dataset);
-      await appendAuditLog({ dataset, diff });
-      const syncResult = await sendRemoteSync({ dataset, diff });
+      await persistLocations(normalizedDataset);
+      await appendAuditLog({ dataset: normalizedDataset, diff });
+      const syncResult = await sendRemoteSync({ dataset: normalizedDataset, diff });
       const totals = {
-        continents: Object.keys(dataset || {}).length,
-        locations: Object.values(dataset || {}).reduce(
+        continents: Object.keys(normalizedDataset || {}).length,
+        locations: Object.values(normalizedDataset || {}).reduce(
           (acc, list) => acc + (Array.isArray(list) ? list.length : 0),
           0
         )
@@ -1515,10 +1454,11 @@ const server = http.createServer(async (req, res) => {
           return;
         }
 
-        const diff = computeLocationsDiff(previous, dataset);
-        await persistLocations(dataset);
-        await appendAuditLog({ dataset, diff });
-        const syncResult = await sendRemoteSync({ dataset, diff });
+        const normalizedDataset = validation.normalized;
+        const diff = computeLocationsDiff(previous, normalizedDataset);
+        await persistLocations(normalizedDataset);
+        await appendAuditLog({ dataset: normalizedDataset, diff });
+        const syncResult = await sendRemoteSync({ dataset: normalizedDataset, diff });
         if (syncResult.status === 'error') {
           const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
           console.error('[sync] remote export failed', details);
@@ -1592,10 +1532,11 @@ const server = http.createServer(async (req, res) => {
           return;
         }
 
-        const diff = computeLocationsDiff(previous, dataset);
-        await persistLocations(dataset);
-        await appendAuditLog({ dataset, diff });
-        const syncResult = await sendRemoteSync({ dataset, diff });
+        const normalizedDataset = validation.normalized;
+        const diff = computeLocationsDiff(previous, normalizedDataset);
+        await persistLocations(normalizedDataset);
+        await appendAuditLog({ dataset: normalizedDataset, diff });
+        const syncResult = await sendRemoteSync({ dataset: normalizedDataset, diff });
         if (syncResult.status === 'error') {
           const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
           console.error('[sync] remote export failed', details);
@@ -1654,10 +1595,11 @@ const server = http.createServer(async (req, res) => {
           return;
         }
 
-        const diff = computeLocationsDiff(previous, dataset);
-        await persistLocations(dataset);
-        await appendAuditLog({ dataset, diff });
-        const syncResult = await sendRemoteSync({ dataset, diff });
+        const normalizedDataset = validation.normalized;
+        const diff = computeLocationsDiff(previous, normalizedDataset);
+        await persistLocations(normalizedDataset);
+        await appendAuditLog({ dataset: normalizedDataset, diff });
+        const syncResult = await sendRemoteSync({ dataset: normalizedDataset, diff });
         if (syncResult.status === 'error') {
           const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
           console.error('[sync] remote export failed', details);

@@ -18,7 +18,7 @@ import {
     serializeTextGroup,
     serializeVideos,
     serializePnjs
-} from './shared/locationSchema.js';
+} from './shared/locationSchema.mjs';
 import {
     buildLocationIndex,
     prepareFilters,
