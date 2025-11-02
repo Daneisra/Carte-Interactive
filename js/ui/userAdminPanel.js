@@ -75,15 +75,45 @@ export class UserAdminPanel {
 
         const addSection = createElement('div', { className: 'user-admin-add' });
         addSection.appendChild(createElement('h4', { text: 'Ajouter un utilisateur (manuel)' }));
-        this.addForm = createElement('form', { className: 'user-admin-add-form' });
-        this.addForm.appendChild(createElement('input', {
-            attributes: { type: 'text', name: 'username', placeholder: 'Nom affiche' }
+        const usernameFieldId = 'user-admin-add-username';
+        const roleFieldId = 'user-admin-add-role';
+
+        this.addForm = createElement('form', {
+            className: 'user-admin-add-form',
+            attributes: { autocomplete: 'off' }
+        });
+
+        const usernameGroup = createElement('div', { className: 'user-admin-field' });
+        usernameGroup.appendChild(createElement('label', {
+            text: 'Nom affiche',
+            attributes: { for: usernameFieldId }
         }));
-        const roleSelect = createElement('select', { attributes: { name: 'role' } });
+        const usernameInput = createElement('input', {
+            attributes: {
+                type: 'text',
+                id: usernameFieldId,
+                name: 'username',
+                placeholder: 'Nom affiche',
+                autocomplete: 'username'
+            }
+        });
+        usernameGroup.appendChild(usernameInput);
+        this.addForm.appendChild(usernameGroup);
+
+        const roleGroup = createElement('div', { className: 'user-admin-field' });
+        roleGroup.appendChild(createElement('label', {
+            text: 'Role',
+            attributes: { for: roleFieldId }
+        }));
+        const roleSelect = createElement('select', {
+            attributes: { id: roleFieldId, name: 'role', autocomplete: 'off' }
+        });
         ['admin', 'user'].forEach(role => {
             roleSelect.appendChild(createElement('option', { text: ROLE_LABELS[role], attributes: { value: role } }));
         });
-        this.addForm.appendChild(roleSelect);
+        roleGroup.appendChild(roleSelect);
+        this.addForm.appendChild(roleGroup);
+
         this.addForm.appendChild(createElement('button', {
             className: 'primary-button',
             attributes: { type: 'submit' },

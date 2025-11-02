@@ -29,7 +29,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [x] Ã‰tendre le rendu Markdown aux sections â€œHistorique/QuÃªtes/Loreâ€ cÃ´tÃ© Ã©dition (interface par Ã©lÃ©ments au lieu dâ€™un textarea).
 - [x] Recherche avancee multi filtres (types, tags, presence de quetes, statut d'evenement) partagee entre panneau exploration, API et tests.
 - [x] Factoriser la normalisation et les validations des lieux entre `DataService` et `UiController` pour eviter les divergences front/back.
-- [ ] Solidifier `server.js` (routes modulees, validation schema, verrous d'ecriture, journalisation) afin de supporter temps reel et annotations.
+- [x] Solidifier `server.js` (routes modulees, validation schema, verrous d'ecriture, journalisation) afin de supporter temps reel et annotations.
 - [x] Intégrer résolution complète de la carte 8k.
 - [x] Dans types.json basculer les chiffres de zoom en pourcentage pour correspondre au controler de la carte.
 

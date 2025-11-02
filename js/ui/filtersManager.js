@@ -12,6 +12,19 @@ const localize = (key, fallback, params = undefined) => {
 
 const DEFAULT_FILTERS = normalizeFilterState();
 
+const slugifyFilterValue = (value, fallback) => {
+    const base = (value ?? '')
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    if (base) {
+        return base;
+    }
+    return fallback ? fallback.toString() : 'option';
+};
+
 export class FiltersManager {
     constructor({
         state,
@@ -69,7 +82,11 @@ export class FiltersManager {
 
         if (this.searchInput) {
             this.searchInput.value = filters.text || '';
-            this.searchInput.placeholder = localize('search.placeholder', this.searchInput.placeholder || 'Rechercher un lieu...');
+            const placeholder = localize('search.placeholder', this.searchInput.placeholder || 'Rechercher un lieu...');
+            const ariaLabel = localize('search.inputAria', 'Rechercher un lieu');
+            this.searchInput.placeholder = placeholder;
+            this.searchInput.setAttribute('aria-label', ariaLabel);
+            this.searchInput.autocomplete = 'off';
             this.searchInput.addEventListener('input', () => this.handleSearchInput());
         }
 
@@ -269,6 +286,7 @@ export class FiltersManager {
             return;
         }
         container.innerHTML = '';
+        const groupName = container.dataset.filterGroup || 'filters';
         const emptyIndicator = this.getEmptyIndicatorForContainer(container);
         if (!items.length) {
             if (emptyIndicator) {
@@ -279,18 +297,25 @@ export class FiltersManager {
         if (emptyIndicator) {
             emptyIndicator.hidden = true;
         }
-        items.forEach(item => {
+        items.forEach((item, index) => {
             const label = document.createElement('label');
             label.className = 'filter-chip';
             const input = document.createElement('input');
             input.type = 'checkbox';
             input.value = item.value;
+            const slug = slugifyFilterValue(item.value, `item-${index}`);
+            const optionId = `filter-${groupName}-${index}-${slug}`;
+            const labelId = `${optionId}-label`;
+            input.id = optionId;
+            input.name = `${groupName}[]`;
             input.checked = selectedSet.has(item.value);
             input.setAttribute('aria-pressed', String(input.checked));
+            input.setAttribute('aria-labelledby', labelId);
 
             const span = document.createElement('span');
             span.className = 'filter-chip-label';
             span.textContent = item.label || item.value;
+            span.id = labelId;
             if (Number.isFinite(item.count)) {
                 const counter = document.createElement('small');
                 counter.textContent = String(item.count);
@@ -299,6 +324,7 @@ export class FiltersManager {
 
             label.appendChild(input);
             label.appendChild(span);
+            label.htmlFor = optionId;
             label.classList.toggle('filter-chip-active', input.checked);
             container.appendChild(label);
         });

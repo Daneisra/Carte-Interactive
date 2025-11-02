@@ -1034,7 +1034,26 @@ const context = {
   collectBody,
   readAnnotationsFile,
   writeAnnotationsFile,
-  writeQuestEventsFile
+  writeQuestEventsFile,
+  authRequired,
+  discordOauth: {
+    enabled: DISCORD_OAUTH_ENABLED,
+    clientId: DISCORD_CLIENT_ID,
+    clientSecret: DISCORD_CLIENT_SECRET,
+    redirectUri: DISCORD_REDIRECT_URI
+  },
+  oauthStateStore,
+  oauthStateTtlMs: OAUTH_STATE_TTL_MS,
+  createSession,
+  getSession,
+  sendSessionCookie,
+  clearSessionCookie,
+  destroySession,
+  findUserById,
+  sanitizeRole,
+  sanitizeUserRecord,
+  upsertDiscordUser,
+  fetchJson
 };
 
 const router = createRouter(context);
@@ -1044,20 +1063,6 @@ const server = http.createServer(async (req, res) => {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
     if (req.method === 'GET' && urlObj.pathname === '/api/events/stream') {
       registerSseClient(req, res);
-      return;
-    }
-    if (req.method === 'GET' && urlObj.pathname === '/auth/session') {
-      json(res, 200, {
-        status: 'ok',
-        authenticated: false,
-        role: 'guest',
-        username: '',
-        authRequired: false
-      });
-      return;
-    }
-    if (req.method === 'POST' && urlObj.pathname === '/auth/logout') {
-      json(res, 204, null);
       return;
     }
     const handled = await router(req, res, urlObj);
@@ -1262,3 +1267,5 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   logger.info(`Running at http://${HOST}:${PORT}`);
 });
+
+

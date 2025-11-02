@@ -1,4 +1,5 @@
 const registerLocationRoutes = require('./locations');
+const registerAuthRoutes = require('./auth');
 const registerAnnotationRoutes = require('./annotations');
 const registerQuestEventRoutes = require('./questEvents');
 
@@ -30,6 +31,7 @@ module.exports = function createRouter(context) {
     };
 
     registerLocationRoutes(register, context);
+    registerAuthRoutes(register, context);
     registerAnnotationRoutes(register, context);
     registerQuestEventRoutes(register, context);
 
