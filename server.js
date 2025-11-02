@@ -5,6 +5,9 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { URL, pathToFileURL } = require('url');
+const logger = require('./server/utils/logger');
+const { withFileLock } = require('./server/utils/fileLock');
+const createRouter = require('./server/routes');
 
 const loadEnvFile = filePath => {
   try {
@@ -80,7 +83,7 @@ const broadcastSse = (eventName, payload) => {
     try {
       client.res.write(`event: ${eventName}\ndata: ${serialized}\n\n`);
     } catch (error) {
-      console.warn('[sse] write failed', error);
+      logger.warn('[sse] write failed', { error: error.message });
     }
   });
 };
@@ -129,9 +132,11 @@ const readJsonFile = async (targetPath, fallback) => {
 };
 
 const writeJsonFile = async (targetPath, data) => {
-  const directory = path.dirname(targetPath);
-  await fs.promises.mkdir(directory, { recursive: true });
-  await fs.promises.writeFile(targetPath, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+  await withFileLock(targetPath, async () => {
+    const directory = path.dirname(targetPath);
+    await fs.promises.mkdir(directory, { recursive: true });
+    await fs.promises.writeFile(targetPath, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+  });
 };
 
 const readAnnotationsFile = async () => readJsonFile(ANNOTATIONS_FILE, []);
@@ -166,6 +171,15 @@ const send = (res, status, body = '', headers = {}) => {
   } else {
     res.end(body);
   }
+};
+
+const json = (res, status, payload = null) => {
+  const headers = { 'Content-Type': 'application/json' };
+  if (payload === null) {
+    send(res, status, null, headers);
+    return;
+  }
+  send(res, status, JSON.stringify(payload), headers);
 };
 
 const serveStatic = (req, res, urlObj) => {
@@ -543,7 +557,9 @@ const persistUploadedFile = async ({ type, filename, data }) => {
   const safeName = sanitizeFileName(path.basename(filename, ext));
   await fs.promises.mkdir(rules.directory, { recursive: true });
   const targetPath = await ensureUniqueFilePath(rules.directory, safeName, ext);
-  await fs.promises.writeFile(targetPath, buffer);
+  await withFileLock(targetPath, async () => {
+    await fs.promises.writeFile(targetPath, buffer);
+  });
   const relative = path.relative(ROOT, targetPath).split(path.sep).join('/');
   return relative;
 };
@@ -693,12 +709,12 @@ const readUsersFile = async () => {
   return [];
 };
 
-const writeUsersFile = async users => {
+const writeUsersFile = async users => withFileLock(USERS_FILE, async () => {
   const directory = path.dirname(USERS_FILE);
   await fs.promises.mkdir(directory, { recursive: true });
   const json = JSON.stringify(users, null, 2) + '\n';
   await fs.promises.writeFile(USERS_FILE, json, 'utf-8');
-};
+});
 
 const sanitizeRole = value => (value && value.toLowerCase() === 'admin') ? 'admin' : 'user';
 
@@ -887,32 +903,34 @@ const computeLocationsDiff = (previous, next) => {
 };
 
 const appendAuditLog = async ({ dataset, diff }) => {
+  const totalContinents = Object.keys(dataset || {}).length;
+  const totalLocations = Object.values(dataset || {}).reduce(
+    (acc, list) => acc + (Array.isArray(list) ? list.length : 0),
+    0
+  );
+  const summarize = entries => ({
+    count: entries.length,
+    items: entries.slice(0, 10)
+  });
+  const entry = {
+    timestamp: new Date().toISOString(),
+    totals: {
+      continents: totalContinents,
+      locations: totalLocations
+    },
+    changes: {
+      created: summarize(diff.created),
+      updated: summarize(diff.updated),
+      deleted: summarize(diff.deleted)
+    }
+  };
   try {
-    await fs.promises.mkdir(AUDIT_DIR, { recursive: true });
-    const totalContinents = Object.keys(dataset || {}).length;
-    const totalLocations = Object.values(dataset || {}).reduce(
-      (acc, list) => acc + (Array.isArray(list) ? list.length : 0),
-      0
-    );
-    const summarize = entries => ({
-      count: entries.length,
-      items: entries.slice(0, 10)
+    await withFileLock(AUDIT_FILE, async () => {
+      await fs.promises.mkdir(AUDIT_DIR, { recursive: true });
+      await fs.promises.appendFile(AUDIT_FILE, JSON.stringify(entry) + '\n', 'utf-8');
     });
-    const entry = {
-      timestamp: new Date().toISOString(),
-      totals: {
-        continents: totalContinents,
-        locations: totalLocations
-      },
-      changes: {
-        created: summarize(diff.created),
-        updated: summarize(diff.updated),
-        deleted: summarize(diff.deleted)
-      }
-    };
-    await fs.promises.appendFile(AUDIT_FILE, JSON.stringify(entry) + '\n', 'utf-8');
   } catch (error) {
-    console.error('[audit] unable to append log', error);
+    logger.error('[audit] unable to append log', { error: error.message });
   }
 };
 
@@ -989,12 +1007,37 @@ const collectBody = req => new Promise((resolve, reject) => {
   req.on('error', reject);
 });
 
-const persistLocations = async payload => {
+const persistLocations = async payload => withFileLock(LOCATIONS_FILE, async () => {
   const directory = path.dirname(LOCATIONS_FILE);
   await fs.promises.mkdir(directory, { recursive: true });
   const json = JSON.stringify(payload, null, 2) + '\n';
   await fs.promises.writeFile(LOCATIONS_FILE, json, 'utf-8');
+});
+
+const context = {
+  logger,
+  json,
+  send,
+  ensureAuthorized,
+  normalizeString,
+  parseListParam,
+  loadSearchFiltersModule,
+  readLocationsFile,
+  readQuestEventsFile,
+  loadTypeMap,
+  validateLocationsDataset,
+  persistLocations,
+  computeLocationsDiff,
+  appendAuditLog,
+  sendRemoteSync,
+  broadcastSse,
+  collectBody,
+  readAnnotationsFile,
+  writeAnnotationsFile,
+  writeQuestEventsFile
 };
+
+const router = createRouter(context);
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -1003,313 +1046,25 @@ const server = http.createServer(async (req, res) => {
       registerSseClient(req, res);
       return;
     }
-    if (req.method === 'GET' && urlObj.pathname === '/api/locations/search') {
-      try {
-        const {
-          normalizeFilterState,
-          buildLocationIndex,
-          prepareFilters,
-          locationMatchesFilters,
-          buildFilterFacets
-        } = await loadSearchFiltersModule();
-
-        const [locationsData, questEvents, typeData] = await Promise.all([
-          readLocationsFile(),
-          readQuestEventsFile(),
-          readJsonFile(TYPES_FILE, {})
-        ]);
-
-        const questEventsByLocation = new Map();
-        questEvents.forEach(event => {
-          const key = normalizeString(event?.locationName).toLowerCase();
-          if (!key) {
-            return;
-          }
-          if (!questEventsByLocation.has(key)) {
-            questEventsByLocation.set(key, []);
-          }
-          questEventsByLocation.get(key).push(event);
-        });
-
-        const entries = [];
-        Object.entries(locationsData || {}).forEach(([continent, rawLocations]) => {
-          if (!Array.isArray(rawLocations)) {
-            return;
-          }
-          rawLocations.forEach(location => {
-            const nameKey = normalizeString(location?.name).toLowerCase();
-            const relatedEvents = nameKey ? questEventsByLocation.get(nameKey) || [] : [];
-            const index = buildLocationIndex(location, { continent, questEvents: relatedEvents });
-            entries.push({
-              location,
-              continent,
-              index,
-              questEvents: relatedEvents
-            });
-          });
-        });
-
-        const filters = normalizeFilterState({
-          text: urlObj.searchParams.get('text') || '',
-          types: parseListParam(urlObj.searchParams, 'types'),
-          tags: parseListParam(urlObj.searchParams, 'tags'),
-          statuses: parseListParam(urlObj.searchParams, 'statuses'),
-          quests: urlObj.searchParams.get('quests') || undefined
-        });
-
-        const prepared = prepareFilters(filters);
-        const matchedEntries = entries.filter(entry => locationMatchesFilters(entry.index, prepared));
-
-        const limitParam = Number(urlObj.searchParams.get('limit')) || 100;
-        const limit = Math.max(0, Math.min(250, limitParam));
-        const sliced = matchedEntries.slice(0, limit);
-
-        const typeLabels = new Map(Object.entries(typeData || {}));
-        const datasetFacets = buildFilterFacets(entries.map(entry => entry.index), { typeLabels });
-        const matchedFacets = buildFilterFacets(matchedEntries.map(entry => entry.index), { typeLabels });
-
-        const results = sliced.map(entry => ({
-          name: entry.index.name,
-          type: entry.index.type,
-          continent: entry.index.continent,
-          tags: entry.index.tags,
-          hasQuests: entry.index.hasQuests,
-          eventStatuses: entry.index.eventStatuses,
-          coordinates: entry.index.coords,
-          quests: Array.isArray(entry.location.quests) ? entry.location.quests : [],
-          questEvents: entry.questEvents,
-          location: entry.location
-        }));
-
-        send(res, 200, JSON.stringify({
-          status: 'ok',
-          filters,
-          total: entries.length,
-          matched: matchedEntries.length,
-          count: results.length,
-          limit,
-          facets: {
-            dataset: datasetFacets,
-            matched: matchedFacets
-          },
-          results
-        }), { 'Content-Type': 'application/json' });
-      } catch (error) {
-        console.error('[search] failed', error);
-        send(res, 500, JSON.stringify({ status: 'error', message: 'Recherche indisponible.' }), { 'Content-Type': 'application/json' });
-      }
+    if (req.method === 'GET' && urlObj.pathname === '/auth/session') {
+      json(res, 200, {
+        status: 'ok',
+        authenticated: false,
+        role: 'guest',
+        username: '',
+        authRequired: false
+      });
       return;
     }
-    if (req.method === 'GET' && urlObj.pathname === '/api/annotations') {
-      const annotations = await readAnnotationsFile();
-      send(res, 200, JSON.stringify({ status: 'ok', annotations }), { 'Content-Type': 'application/json' });
+    if (req.method === 'POST' && urlObj.pathname === '/auth/logout') {
+      json(res, 204, null);
       return;
     }
-    if (req.method === 'POST' && urlObj.pathname === '/api/annotations') {
-      if (!(await ensureAuthorized(req, res, 'user'))) {
-        return;
-      }
-      const rawBody = await collectBody(req);
-      let payload;
-      try {
-        payload = JSON.parse(rawBody || '{}');
-      } catch (error) {
-        send(res, 400, 'Invalid JSON');
-        return;
-      }
-
-      const rawX = payload?.x ?? payload?.coords?.x;
-      const rawY = payload?.y ?? payload?.coords?.y;
-      const x = Number(rawX);
-      const y = Number(rawY);
-      const label = normalizeString(payload?.label);
-      if (!Number.isFinite(x) || !Number.isFinite(y) || !label) {
-        send(res, 400, JSON.stringify({ status: 'error', message: 'Annotation invalide: champs x, y et label requis.' }), { 'Content-Type': 'application/json' });
-        return;
-      }
-
-      const color = normalizeString(payload?.color) || '#ff8a00';
-      const icon = normalizeString(payload?.icon) || null;
-      const scope = normalizeString(payload?.scope) || 'public';
-      const expiresAt = payload?.expiresAt ? new Date(payload.expiresAt).toISOString() : null;
-      const metadata = payload?.metadata && typeof payload.metadata === 'object' ? payload.metadata : {};
-      const now = new Date().toISOString();
-
-      const annotation = {
-        id: payload?.id && normalizeString(payload.id) ? normalizeString(payload.id) : `ann_${crypto.randomUUID()}`,
-        x,
-        y,
-        label,
-        color,
-        icon,
-        scope,
-        locationName: normalizeString(payload?.locationName) || null,
-        metadata,
-        author: req.auth?.user?.username || req.auth?.session?.username || 'system',
-        createdAt: now,
-        updatedAt: now,
-        expiresAt
-      };
-
-      const annotations = await readAnnotationsFile();
-      annotations.push(annotation);
-      await writeAnnotationsFile(annotations);
-      broadcastSse('annotation.created', { annotation });
-      send(res, 201, JSON.stringify({ status: 'ok', annotation }), { 'Content-Type': 'application/json' });
+    const handled = await router(req, res, urlObj);
+    if (handled) {
       return;
     }
-    const annotationIdMatch = urlObj.pathname.match(/^\/api\/annotations\/([^/]+)$/);
-    if (annotationIdMatch) {
-      const annotationId = annotationIdMatch[1];
-      if (req.method === 'DELETE') {
-        if (!(await ensureAuthorized(req, res, 'admin'))) {
-          return;
-        }
-        const annotations = await readAnnotationsFile();
-        const next = annotations.filter(item => item?.id !== annotationId);
-        if (next.length === annotations.length) {
-          send(res, 404, JSON.stringify({ status: 'error', message: 'Annotation introuvable.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        await writeAnnotationsFile(next);
-        broadcastSse('annotation.deleted', { id: annotationId });
-        send(res, 204, null);
-        return;
-      }
-    }
-    if (urlObj.pathname === '/api/quest-events') {
-      if (req.method === 'GET') {
-        if (!(await ensureAuthorized(req, res, 'user'))) {
-          return;
-        }
-        const events = await readQuestEventsFile();
-        send(res, 200, JSON.stringify({ status: 'ok', events }), { 'Content-Type': 'application/json' });
-        return;
-      }
-      if (req.method === 'POST') {
-        if (!(await ensureAuthorized(req, res, 'admin'))) {
-          return;
-        }
-        const rawBody = await collectBody(req);
-        let payload;
-        try {
-          payload = JSON.parse(rawBody || '{}');
-        } catch (error) {
-          send(res, 400, 'Invalid JSON');
-          return;
-        }
-        const questId = normalizeString(payload?.questId);
-        const locationName = normalizeString(payload?.locationName);
-        const status = normalizeString(payload?.status);
-        const milestone = normalizeString(payload?.milestone);
-        if (!questId || !locationName || !status) {
-          send(res, 400, JSON.stringify({ status: 'error', message: 'Champs questId, locationName et status requis.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        const progress = payload?.progress && typeof payload.progress === 'object'
-          ? {
-              current: Number(payload.progress.current) || 0,
-              max: Number(payload.progress.max) || null
-            }
-          : null;
-        const note = normalizeString(payload?.note) || '';
-        const event = {
-          id: payload?.id && normalizeString(payload.id) ? normalizeString(payload.id) : `quest_${crypto.randomUUID()}`,
-          questId,
-          locationName,
-          status,
-          milestone: milestone || null,
-          progress,
-          note,
-          updatedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        };
-        const events = await readQuestEventsFile();
-        events.push(event);
-        await writeQuestEventsFile(events);
-        broadcastSse('quest.updated', { event });
-        send(res, 201, JSON.stringify({ status: 'ok', event }), { 'Content-Type': 'application/json' });
-        return;
-      }
-    }
-    const questEventMatch = urlObj.pathname.match(/^\/api\/quest-events\/([^/]+)$/);
-    if (questEventMatch) {
-      const questEventId = questEventMatch[1];
-      if (req.method === 'PATCH') {
-        if (!(await ensureAuthorized(req, res, 'admin'))) {
-          return;
-        }
-        const rawBody = await collectBody(req);
-        let payload;
-        try {
-          payload = JSON.parse(rawBody || '{}');
-        } catch (error) {
-          send(res, 400, 'Invalid JSON');
-          return;
-        }
-        const events = await readQuestEventsFile();
-        const index = events.findIndex(event => event?.id === questEventId);
-        if (index === -1) {
-          send(res, 404, JSON.stringify({ status: 'error', message: 'Evenement de quete introuvable.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        const current = events[index];
-        const partial = typeof payload === 'object' ? payload : {};
-        const questId = normalizeString(partial.questId) || current.questId;
-        const locationName = normalizeString(partial.locationName) || current.locationName;
-        const status = normalizeString(partial.status) || current.status;
-        if (!questId || !locationName || !status) {
-          send(res, 400, JSON.stringify({ status: 'error', message: 'Champs questId, locationName et status requis.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        const milestone = normalizeString(partial.milestone);
-        const note = normalizeString(partial.note);
-        let progress = null;
-        if (partial.progress && typeof partial.progress === 'object') {
-          const currentValue = Number(partial.progress.current);
-          const maxValue = Number(partial.progress.max);
-          progress = {
-            current: Number.isFinite(currentValue) ? currentValue : null,
-            max: Number.isFinite(maxValue) ? maxValue : null
-          };
-        } else if (partial.progress === null) {
-          progress = null;
-        } else {
-          progress = current.progress || null;
-        }
-        const updated = {
-          ...current,
-          questId,
-          locationName,
-          status,
-          milestone: milestone !== undefined ? milestone || null : current.milestone || null,
-          note: note !== undefined ? note || '' : current.note || '',
-          progress,
-          updatedAt: new Date().toISOString()
-        };
-        events[index] = updated;
-        await writeQuestEventsFile(events);
-        broadcastSse('quest.updated', { event: updated });
-        send(res, 200, JSON.stringify({ status: 'ok', event: updated }), { 'Content-Type': 'application/json' });
-        return;
-      }
 
-      if (req.method === 'DELETE') {
-        if (!(await ensureAuthorized(req, res, 'admin'))) {
-          return;
-        }
-        const events = await readQuestEventsFile();
-        const next = events.filter(event => event?.id !== questEventId);
-        if (next.length === events.length) {
-          send(res, 404, JSON.stringify({ status: 'error', message: 'Evenement de quete introuvable.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        await writeQuestEventsFile(next);
-        broadcastSse('quest.deleted', { id: questEventId });
-        send(res, 204, null);
-        return;
-      }
-    }
     if (req.method === 'POST' && urlObj.pathname === '/api/upload') {
       if (!(await ensureAuthorized(req, res, 'admin'))) {
         return;
@@ -1330,417 +1085,9 @@ const server = http.createServer(async (req, res) => {
         });
         send(res, 200, JSON.stringify({ status: 'ok', path: relativePath }), { 'Content-Type': 'application/json' });
       } catch (error) {
-        console.error('[upload] error', error);
+        logger.error('[upload] error', { error: error.message });
         send(res, 400, JSON.stringify({ status: 'error', message: error.message }), { 'Content-Type': 'application/json' });
       }
-      return;
-    }
-
-    if (req.method === 'POST' && urlObj.pathname === '/api/locations') {
-      if (!(await ensureAuthorized(req, res, 'admin'))) {
-        return;
-      }
-      const body = await collectBody(req);
-      let data;
-      try {
-        data = JSON.parse(body || '{}');
-      } catch (error) {
-        send(res, 400, 'Invalid JSON');
-        return;
-      }
-      if (!data || typeof data !== 'object' || typeof data.locations !== 'object') {
-        send(res, 400, JSON.stringify({ status: 'error', errors: ['Payload must contain a "locations" object.'] }), { 'Content-Type': 'application/json' });
-        return;
-      }
-
-      const dataset = data.locations;
-      const validation = await validateLocationsDataset(dataset);
-      if (!validation.valid) {
-        const errors = validation.errors.slice(0, 50);
-        send(res, 400, JSON.stringify({ status: 'error', errors }), { 'Content-Type': 'application/json' });
-        return;
-      }
-
-      const normalizedDataset = validation.normalized;
-      const previous = await readLocationsFile();
-      const diff = computeLocationsDiff(previous, normalizedDataset);
-
-      await persistLocations(normalizedDataset);
-      await appendAuditLog({ dataset: normalizedDataset, diff });
-      const syncResult = await sendRemoteSync({ dataset: normalizedDataset, diff });
-      const totals = {
-        continents: Object.keys(normalizedDataset || {}).length,
-        locations: Object.values(normalizedDataset || {}).reduce(
-          (acc, list) => acc + (Array.isArray(list) ? list.length : 0),
-          0
-        )
-      };
-      broadcastSse('locations.sync', {
-        timestamp: new Date().toISOString(),
-        diff,
-        totals,
-        sync: syncResult.status
-      });
-      if (syncResult.status === 'error') {
-        const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
-        console.error('[sync] remote export failed', details);
-      }
-
-      send(res, 200, JSON.stringify({
-        status: 'ok',
-        changes: {
-          created: diff.created.length,
-          updated: diff.updated.length,
-          deleted: diff.deleted.length
-        },
-        sync: syncResult.status,
-        syncStatusCode: syncResult.statusCode ?? null,
-        syncError: syncResult.status === 'error'
-          ? ((syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`)
-          : null
-      }), { 'Content-Type': 'application/json' });
-      return;
-    }
-
-    if (urlObj.pathname === '/api/admin/locations') {
-      if (req.method === 'GET') {
-        if (!(await ensureAuthorized(req, res, 'user'))) {
-          return;
-        }
-        const dataset = await readLocationsFile();
-        send(res, 200, JSON.stringify({ status: 'ok', locations: dataset }), { 'Content-Type': 'application/json' });
-        return;
-      }
-
-      if (req.method === 'POST') {
-        if (!(await ensureAuthorized(req, res, 'admin'))) {
-          return;
-        }
-        const body = await collectBody(req);
-        let payload;
-        try {
-          payload = JSON.parse(body || '{}');
-        } catch (error) {
-          send(res, 400, 'Invalid JSON');
-          return;
-        }
-        const continentRaw = normalizeString(payload?.continent);
-        const location = payload?.location;
-        if (!continentRaw || !location || typeof location !== 'object') {
-          send(res, 400, JSON.stringify({ status: 'error', message: 'continent and location are required.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        const name = normalizeString(location.name);
-        if (!name) {
-          send(res, 400, JSON.stringify({ status: 'error', message: 'location.name is required.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        const previous = await readLocationsFile();
-        const dataset = cloneDataset(previous);
-        const continent = continentRaw;
-        const targetList = Array.isArray(dataset[continent]) ? [...dataset[continent]] : [];
-        const nameKey = name.toLowerCase();
-        if (targetList.some(entry => normalizeString(entry?.name).toLowerCase() === nameKey)) {
-          send(res, 409, JSON.stringify({ status: 'error', message: 'Location already exists in this continent.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        targetList.push(location);
-        dataset[continent] = targetList;
-
-        const validation = await validateLocationsDataset(dataset);
-        if (!validation.valid) {
-          const errors = validation.errors.slice(0, 50);
-          send(res, 400, JSON.stringify({ status: 'error', errors }), { 'Content-Type': 'application/json' });
-          return;
-        }
-
-        const normalizedDataset = validation.normalized;
-        const diff = computeLocationsDiff(previous, normalizedDataset);
-        await persistLocations(normalizedDataset);
-        await appendAuditLog({ dataset: normalizedDataset, diff });
-        const syncResult = await sendRemoteSync({ dataset: normalizedDataset, diff });
-        if (syncResult.status === 'error') {
-          const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
-          console.error('[sync] remote export failed', details);
-        }
-        send(res, 201, JSON.stringify({
-          status: 'ok',
-          continent,
-          location,
-          changes: diff,
-          sync: syncResult.status,
-          syncStatusCode: syncResult.statusCode ?? null,
-          syncError: syncResult.status === 'error'
-            ? ((syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`)
-            : null
-        }), { 'Content-Type': 'application/json' });
-        return;
-      }
-
-      if (req.method === 'PATCH' || req.method === 'PUT') {
-        if (!(await ensureAuthorized(req, res, 'admin'))) {
-          return;
-        }
-        const body = await collectBody(req);
-        let payload;
-        try {
-          payload = JSON.parse(body || '{}');
-        } catch (error) {
-          send(res, 400, 'Invalid JSON');
-          return;
-        }
-        const originalContinent = normalizeString(payload?.originalContinent);
-        const originalName = normalizeString(payload?.originalName);
-        const newContinent = normalizeString(payload?.continent) || originalContinent;
-        const location = payload?.location;
-        if (!originalContinent || !originalName || !location || typeof location !== 'object') {
-          send(res, 400, JSON.stringify({ status: 'error', message: 'originalContinent, originalName et location sont requis.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        const newName = normalizeString(location.name);
-        if (!newName) {
-          send(res, 400, JSON.stringify({ status: 'error', message: 'location.name est requis.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        const previous = await readLocationsFile();
-        const dataset = cloneDataset(previous);
-        const sourceList = Array.isArray(dataset[originalContinent]) ? [...dataset[originalContinent]] : [];
-        const sourceIndex = sourceList.findIndex(entry => normalizeString(entry?.name).toLowerCase() === originalName.toLowerCase());
-        if (sourceIndex === -1) {
-          send(res, 404, JSON.stringify({ status: 'error', message: 'Location not found.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        sourceList.splice(sourceIndex, 1);
-        if (sourceList.length) {
-          dataset[originalContinent] = sourceList;
-        } else {
-          delete dataset[originalContinent];
-        }
-        const targetList = Array.isArray(dataset[newContinent]) ? [...dataset[newContinent]] : [];
-        const newNameKey = newName.toLowerCase();
-        if (targetList.some(entry => normalizeString(entry?.name).toLowerCase() === newNameKey)) {
-          send(res, 409, JSON.stringify({ status: 'error', message: 'Location already exists in target continent.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        targetList.push(location);
-        dataset[newContinent] = targetList;
-
-        const validation = await validateLocationsDataset(dataset);
-        if (!validation.valid) {
-          const errors = validation.errors.slice(0, 50);
-          send(res, 400, JSON.stringify({ status: 'error', errors }), { 'Content-Type': 'application/json' });
-          return;
-        }
-
-        const normalizedDataset = validation.normalized;
-        const diff = computeLocationsDiff(previous, normalizedDataset);
-        await persistLocations(normalizedDataset);
-        await appendAuditLog({ dataset: normalizedDataset, diff });
-        const syncResult = await sendRemoteSync({ dataset: normalizedDataset, diff });
-        if (syncResult.status === 'error') {
-          const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
-          console.error('[sync] remote export failed', details);
-        }
-        send(res, 200, JSON.stringify({
-          status: 'ok',
-          continent: newContinent,
-          location,
-          changes: diff,
-          sync: syncResult.status,
-          syncStatusCode: syncResult.statusCode ?? null,
-          syncError: syncResult.status === 'error'
-            ? ((syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`)
-            : null
-        }), { 'Content-Type': 'application/json' });
-        return;
-      }
-
-      if (req.method === 'DELETE') {
-        if (!(await ensureAuthorized(req, res, 'admin'))) {
-          return;
-        }
-        const body = await collectBody(req);
-        let payload;
-        try {
-          payload = JSON.parse(body || '{}');
-        } catch (error) {
-          send(res, 400, 'Invalid JSON');
-          return;
-        }
-        const continent = normalizeString(payload?.continent);
-        const name = normalizeString(payload?.name);
-        if (!continent || !name) {
-          send(res, 400, JSON.stringify({ status: 'error', message: 'continent et name sont requis.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        const previous = await readLocationsFile();
-        const dataset = cloneDataset(previous);
-        const list = Array.isArray(dataset[continent]) ? [...dataset[continent]] : [];
-        const index = list.findIndex(entry => normalizeString(entry?.name).toLowerCase() === name.toLowerCase());
-        if (index === -1) {
-          send(res, 404, JSON.stringify({ status: 'error', message: 'Location not found.' }), { 'Content-Type': 'application/json' });
-          return;
-        }
-        const removed = list.splice(index, 1)[0];
-        if (list.length) {
-          dataset[continent] = list;
-        } else {
-          delete dataset[continent];
-        }
-
-        const validation = await validateLocationsDataset(dataset);
-        if (!validation.valid) {
-          const errors = validation.errors.slice(0, 50);
-          send(res, 400, JSON.stringify({ status: 'error', errors }), { 'Content-Type': 'application/json' });
-          return;
-        }
-
-        const normalizedDataset = validation.normalized;
-        const diff = computeLocationsDiff(previous, normalizedDataset);
-        await persistLocations(normalizedDataset);
-        await appendAuditLog({ dataset: normalizedDataset, diff });
-        const syncResult = await sendRemoteSync({ dataset: normalizedDataset, diff });
-        if (syncResult.status === 'error') {
-          const details = (syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`;
-          console.error('[sync] remote export failed', details);
-        }
-        send(res, 200, JSON.stringify({
-          status: 'ok',
-          continent,
-          removed,
-          changes: diff,
-          sync: syncResult.status,
-          syncStatusCode: syncResult.statusCode ?? null,
-          syncError: syncResult.status === 'error'
-            ? ((syncResult.error || syncResult.body) || `HTTP ${syncResult.statusCode || 'unknown'}`)
-            : null
-        }), { 'Content-Type': 'application/json' });
-        return;
-      }
-
-      send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET,POST,PATCH,PUT,DELETE' });
-      return;
-    }
-
-    if (urlObj.pathname === '/auth/session') {
-      if (!DISCORD_OAUTH_ENABLED) {
-        const response = authEnabled
-          ? { status: 'ok', authenticated: false, role: 'guest', username: '', authRequired: false }
-          : { status: 'ok', authenticated: true, role: 'admin', username: '', authRequired: false };
-        send(res, 200, JSON.stringify(response), { 'Content-Type': 'application/json' });
-        return;
-      }
-      const session = getSession(req);
-      if (session?.data) {
-        const payload = session.data;
-        send(res, 200, JSON.stringify({
-          status: 'ok',
-          authenticated: true,
-          role: payload.role || 'user',
-          username: payload.username || '',
-          authRequired: true
-        }), { 'Content-Type': 'application/json' });
-      } else {
-        send(res, 200, JSON.stringify({ status: 'ok', authenticated: false, role: 'guest', username: '', authRequired: true }), { 'Content-Type': 'application/json' });
-      }
-      return;
-    }
-
-    if (urlObj.pathname === '/auth/discord/login') {
-      if (!DISCORD_OAUTH_ENABLED) {
-        send(res, 503, JSON.stringify({ status: 'error', message: 'Discord OAuth not configured.' }), { 'Content-Type': 'application/json' });
-        return;
-      }
-      const state = crypto.randomUUID();
-      const now = Date.now();
-      oauthStateStore.set(state, now + OAUTH_STATE_TTL_MS);
-      for (const [key, value] of oauthStateStore.entries()) {
-        if (value <= now) {
-          oauthStateStore.delete(key);
-        }
-      }
-      const params = new URLSearchParams({
-        client_id: DISCORD_CLIENT_ID,
-        response_type: 'code',
-        scope: 'identify',
-        redirect_uri: DISCORD_REDIRECT_URI,
-        state
-      });
-      const url = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
-      send(res, 302, '', { Location: url });
-      return;
-    }
-
-    if (urlObj.pathname === '/auth/discord/callback') {
-      if (!DISCORD_OAUTH_ENABLED) {
-        send(res, 503, JSON.stringify({ status: 'error', message: 'Discord OAuth not configured.' }), { 'Content-Type': 'application/json' });
-        return;
-      }
-      const code = urlObj.searchParams.get('code');
-      const state = urlObj.searchParams.get('state');
-      if (!code) {
-        send(res, 400, JSON.stringify({ status: 'error', message: 'Missing code parameter.' }), { 'Content-Type': 'application/json' });
-        return;
-      }
-      if (!state || !oauthStateStore.has(state)) {
-        send(res, 400, JSON.stringify({ status: 'error', message: 'Invalid state parameter.' }), { 'Content-Type': 'application/json' });
-        return;
-      }
-      const stateExpiry = oauthStateStore.get(state);
-      oauthStateStore.delete(state);
-      if (stateExpiry <= Date.now()) {
-        send(res, 400, JSON.stringify({ status: 'error', message: 'Expired state parameter.' }), { 'Content-Type': 'application/json' });
-        return;
-      }
-      try {
-        const tokenResponse = await fetchJson('https://discord.com/api/oauth2/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            client_id: DISCORD_CLIENT_ID,
-            client_secret: DISCORD_CLIENT_SECRET,
-            grant_type: 'authorization_code',
-            code,
-            redirect_uri: DISCORD_REDIRECT_URI
-          }).toString()
-        });
-        const accessToken = tokenResponse?.access_token;
-        if (!accessToken) {
-          throw new Error('Missing access_token from Discord response.');
-        }
-        const userProfile = await fetchJson('https://discord.com/api/users/@me', {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        const discordId = userProfile?.id;
-        if (!discordId) {
-          throw new Error('Unable to resolve Discord user id.');
-        }
-        const displayName = userProfile?.global_name || userProfile?.username || '';
-        const user = await upsertDiscordUser({
-          discordId,
-          username: displayName,
-          roleHint: DISCORD_ADMIN_IDS.length === 0 || DISCORD_ADMIN_IDS.includes(discordId) ? 'admin' : null
-        });
-        const signedId = createSession({
-          userId: user.id,
-          role: user.role,
-          username: user.username || displayName,
-          discordId
-        });
-        sendSessionCookie(res, signedId);
-        send(res, 302, '', { Location: '/' });
-      } catch (error) {
-        console.error('[auth] discord callback error', error);
-        send(res, 500, JSON.stringify({ status: 'error', message: 'Discord OAuth failed.' }), { 'Content-Type': 'application/json' });
-      }
-      return;
-    }
-
-    if (urlObj.pathname === '/auth/logout') {
-      destroySession(req);
-      clearSessionCookie(res);
-      send(res, 204, null);
       return;
     }
 
@@ -1903,7 +1250,7 @@ const server = http.createServer(async (req, res) => {
 
     serveStatic(req, res, urlObj);
   } catch (error) {
-    console.error('[server] Error:', error);
+    logger.error('Unhandled server error', { error: error.message });
     if (!res.headersSent) {
       send(res, 500, 'Internal Server Error');
     } else {
@@ -1913,5 +1260,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`[server] Running at http://${HOST}:${PORT}`);
+  logger.info(`Running at http://${HOST}:${PORT}`);
 });
