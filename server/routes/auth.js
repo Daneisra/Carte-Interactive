@@ -1,9 +1,5 @@
 const crypto = require('crypto');
 
-const DISCORD_API_VERSION = 'v10';
-const DISCORD_AUTHORIZE_URL = 'https://discord.com/oauth2/authorize';
-const DISCORD_TOKEN_URL = 'https://discord.com/api/oauth2/token';
-const DISCORD_USER_URL = `https://discord.com/api/${DISCORD_API_VERSION}/users/@me`;
 const DEFAULT_REDIRECT_PATH = '/';
 const SCOPE = 'identify';
 
@@ -40,8 +36,13 @@ module.exports = (register, context) => {
         sanitizeUserRecord,
         upsertDiscordUser,
         normalizeString,
-        fetchJson
+        fetchJson,
+        discordEndpoints = {}
     } = context;
+
+    const authorizeUrl = (discordEndpoints?.authorizeUrl || 'https://discord.com/oauth2/authorize');
+    const tokenUrl = (discordEndpoints?.tokenUrl || 'https://discord.com/api/oauth2/token');
+    const userUrl = (discordEndpoints?.userUrl || 'https://discord.com/api/v10/users/@me');
 
     const log = logger.child('[auth]');
     const discordEnabled = Boolean(
@@ -161,16 +162,16 @@ module.exports = (register, context) => {
     };
 
     const buildAuthorizeUrl = (state, prompt = null) => {
-        const authorizeUrl = new URL(DISCORD_AUTHORIZE_URL);
-        authorizeUrl.searchParams.set('client_id', discordOauth.clientId);
-        authorizeUrl.searchParams.set('response_type', 'code');
-        authorizeUrl.searchParams.set('scope', SCOPE);
-        authorizeUrl.searchParams.set('state', state);
-        authorizeUrl.searchParams.set('redirect_uri', discordOauth.redirectUri);
+        const redirectUrl = new URL(authorizeUrl);
+        redirectUrl.searchParams.set('client_id', discordOauth.clientId);
+        redirectUrl.searchParams.set('response_type', 'code');
+        redirectUrl.searchParams.set('scope', SCOPE);
+        redirectUrl.searchParams.set('state', state);
+        redirectUrl.searchParams.set('redirect_uri', discordOauth.redirectUri);
         if (prompt) {
-            authorizeUrl.searchParams.set('prompt', prompt);
+            redirectUrl.searchParams.set('prompt', prompt);
         }
-        return authorizeUrl.toString();
+        return redirectUrl.toString();
     };
 
     const requestDiscordTokens = async code => {
@@ -181,7 +182,7 @@ module.exports = (register, context) => {
             code,
             redirect_uri: discordOauth.redirectUri
         }).toString();
-        return await fetchJson(DISCORD_TOKEN_URL, {
+        return await fetchJson(tokenUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -191,7 +192,7 @@ module.exports = (register, context) => {
     };
 
     const fetchDiscordProfile = async accessToken => {
-        return await fetchJson(DISCORD_USER_URL, {
+        return await fetchJson(userUrl, {
             headers: {
                 Authorization: `Bearer ${accessToken}`
             }
@@ -308,7 +309,7 @@ module.exports = (register, context) => {
                 'Cache-Control': 'no-store'
             });
         } catch (error) {
-            log.error('Discord OAuth callback failed', { error: error.message });
+            log.error('Discord OAuth callback failed', { error: error.message, stack: error.stack });
             clearSessionCookie(res);
             send(res, 500, '<!DOCTYPE html><html><body><p>Impossible de terminer la connexion Discord. Veuillez reessayer.</p></body></html>', {
                 'Content-Type': 'text/html; charset=utf-8'

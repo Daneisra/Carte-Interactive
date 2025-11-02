@@ -1,37 +1,44 @@
-﻿# Carte Interactive  Roadmap 2025
+# Carte Interactive Roadmap 2025
 
 ## 1. Vision
 Creer une carte narrative immersive, fiable et maintenable servant a la fois de support de jeu et de referentiel vivant de l'univers. Pour 2025, les priorites se structurent autour de trois axes : qualite des donnees, excellence UX et industrialisation.
 
 ## 2. Realisations recentes (T4 2025)
 - Modules `DataService`, `MapController`, `UiController` stabilises et orchestres par `main.js`.
-- Validation centralisee des datasets (coordonnees, types, doublons, chemins assets) + nettoyage exhaustif des contenus.
+- Validation centralisee des datasets (coordonnees, types, doublons, chemins assets) et nettoyage exhaustif des contenus.
 - Galerie media enrichie : miniatures video cliquables avec titres, gestion robuste des images et fallback propre.
-- Lecteur audio reinitialise automatiquement avec gestion des cas dautoplay bloques et bouton fallback.
+- Lecteur audio reinitialise automatiquement avec gestion des cas d'autoplay bloques et bouton fallback.
 - Fermeture automatique du panneau d'information hors interaction et synchronisation avec les marqueurs.
 - Persistance locale avancee (`PreferencesService`) : filtres, vue carte, dernier lieu et favoris utilisateurs.
 - Clustering Leaflet configure avec indicateurs de visibilite, pagination par continent et badge de resultats de recherche.
-- Mode sombre/clair persistant, reglage taille des marqueurs, favoris et bouton Lieu aleatoire.
+- Mode sombre/clair persistant, reglage de la taille des marqueurs, favoris et bouton Lieu aleatoire.
 - Editeur in-app : creation/modification d'un lieu avec sauvegarde directe dans `assets/locations.json` (tri auto par continent/nom).
-- Historique de navigation operationnel et scripts dassainissement (`tools/validate_assets.py`).
+- Historique de navigation operationnel et scripts d'assainissement (`tools/validate_assets.py`).
 - Upload direct d'images et d'audio depuis l'editeur (clic ou glisser-deposer) avec copie automatique dans `assets/images/` et `assets/audio/`.
 - Validation/renommage automatique des fichiers importes (taille, extension, slug) et suppression d'un lieu depuis l'editeur.
-- Synchronisation distante optionnelle : export JSON vers un endpoint configurable (REMOTE_SYNC_URL) avec audit JSONL.
+- Synchronisation distante optionnelle : export JSON vers un endpoint configurable (`REMOTE_SYNC_URL`) avec audit JSONL.
 - Authentification Discord (OAuth2) avec sessions signees et interface de connexion/deconnexion.
 - Base utilisateurs/roles (JSON) avec API d'administration (GET/POST/PATCH/DELETE) pour la gestion des comptes.
 
 ## 3. Chantiers prioritaires (H1 2026)
 
-### P0 - Essentiels
+### P0 - Essentiels (pre-P1)
 - [x] Actualisation en temps reel des evenements (websocket/polling leger) pour synchroniser marqueurs, quetes et alertes entre clients.
-- [x] Dans le panneau information, dans Creer un lieu et dans modifier egalement, je veux la gestion complete des textes avec titres, gras, italique saut de ligne etc... pour que ca soit lisible et que je puisse formater les textes exactement comme je le souhaite.
-- [x] Ajouter une sauvegarde automatique/restauration du brouillon Markdown dans lâ€™Ã©diteur.
-- [x] Ã‰tendre le rendu Markdown aux sections â€œHistorique/QuÃªtes/Loreâ€ cÃ´tÃ© Ã©dition (interface par Ã©lÃ©ments au lieu dâ€™un textarea).
-- [x] Recherche avancee multi filtres (types, tags, presence de quetes, statut d'evenement) partagee entre panneau exploration, API et tests.
-- [x] Factoriser la normalisation et les validations des lieux entre `DataService` et `UiController` pour eviter les divergences front/back.
-- [x] Solidifier `server.js` (routes modulees, validation schema, verrous d'ecriture, journalisation) afin de supporter temps reel et annotations.
-- [x] Intégrer résolution complète de la carte 8k.
-- [x] Dans types.json basculer les chiffres de zoom en pourcentage pour correspondre au controler de la carte.
+- [x] Gestion complete des textes (titres, gras, italique, sauts de ligne) dans la fiche lieu et l'editeur.
+- [x] Sauvegarde automatique/restauration du brouillon Markdown dans l'editeur.
+- [x] Edition modulaire des sections Historique/Quetes/Lore avec rendu Markdown.
+- [x] Recherche avancee multi filtres partagee entre UI, API et tests.
+- [x] Normalisation/validation unifiees entre `DataService` et `UiController`.
+- [x] Refactor `server.js` en routes modulees avec verrous, schemas et journalisation.
+- [x] Exploitation complete de la carte 8k et zooms percentuels dans `types.json`.
+- [x] Pipeline CI restaure (validation assets + tests).
+- [x] Ajouter des tests d'integration couvrant `/auth/session`, `/auth/discord/*` et les routes admin protegees.
+- [ ] Persister ou documenter le magasin OAuth/session pour eviter les connexions perdues apres redemarrage.
+- [ ] Renforcer `tools/validate_assets.py` (champs requis, warnings) et exposer les alertes dans l'UI admin.
+- [ ] Couvrir `renderMarkdown` et les filtres avances via tests unitaires/Playwright.
+- [ ] Ajouter retours visuels et gestion d'erreurs dans le panneau admin (CRUD utilisateurs) avec telemetry serveur.
+- [ ] Documenter la configuration OAuth (env vars, redirect) et ajouter un healthcheck pour CI/production.
+- [ ] Mutualiser ou mettre en cache l'installation Playwright dans la CI pour reduire le temps de pipeline.
 
 ### P1 - Haute valeur
 - [ ] Quetes interactives sur la carte (progression, jalons visuels, transitions d'etat) pilotees par le backend.
@@ -52,6 +59,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [ ] Modulariser `UiController` (~100 Ko) en sous-modules alignes sur `ui/` (chargement lazy, couverture unitaire ciblee).
 - [ ] Nettoyer les fichiers legacies (`legacy-script.js`, `tmp_locationEditor.js`, dossiers `test-results/`) et documenter les artefacts conserves.
 - [ ] Harmoniser les encodages (UTF-8 sans BOM) sur les fichiers texte (`docs/remote-sync.md`, `js/i18n.js`, assets JSON) et ajouter un lint dedie.
+- [ ] Eliminer les helpers ou exports non utilises et documenter les conventions de code partagees.
 
 ## 4. Initiatives moyen terme (H2 2026)
 - [ ] Mise en ligne de la carte (hebergement Node, reverse proxy/HTTPS, supervision des erreurs).
@@ -62,9 +70,9 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 
 ## 5. Risques & parades
 - **Volume de donnees croissant** : prevoir pagination cote backend ou moteur de recherche dedie.
-- **Blocage audio/autoplay** : conserver bouton manuel + message contextuel, surveiller les politiques navigateurs.
+- **Blocage audio/autoplay** : conserver bouton manuel et message contextuel, surveiller les politiques navigateurs.
 - **Dette historique CSS/HTML** : suivi Lighthouse (performance/accessibilite) et plan de refactor progressif.
-- **Absence de CI** : risque de regressions silencieuses  prioriser la mise en place du pipeline de tests.
+- **Montee en charge de la CI** : optimiser l'installation Playwright, surveiller la duree des tests et securiser le cache npm.
 
 ## 6. Annexes
 - Backlog detaille : `idees.txt`

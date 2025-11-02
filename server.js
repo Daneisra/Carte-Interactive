@@ -267,7 +267,18 @@ const DISCORD_ADMIN_IDS = (process.env.DISCORD_ADMIN_IDS || '')
   .split(',')
   .map(id => id.trim())
   .filter(Boolean);
+const DISCORD_API_VERSION = 'v10';
+const DEFAULT_DISCORD_API_ORIGIN = 'https://discord.com';
+const rawDiscordApiOrigin = (process.env.DISCORD_API_ORIGIN || DEFAULT_DISCORD_API_ORIGIN).trim();
+const DISCORD_API_ORIGIN = rawDiscordApiOrigin ? rawDiscordApiOrigin.replace(/\/+$/, '') : DEFAULT_DISCORD_API_ORIGIN;
+const DISCORD_AUTHORIZE_URL = `${DISCORD_API_ORIGIN}/oauth2/authorize`;
+const DISCORD_TOKEN_URL = `${DISCORD_API_ORIGIN}/api/oauth2/token`;
+const DISCORD_USER_URL = `${DISCORD_API_ORIGIN}/api/${DISCORD_API_VERSION}/users/@me`;
 const authRequired = authEnabled || DISCORD_OAUTH_ENABLED;
+logger.info('Discord OAuth configuration', {
+  enabled: DISCORD_OAUTH_ENABLED,
+  origin: DISCORD_API_ORIGIN
+});
 
 const sessionStore = new Map();
 const SESSION_COOKIE_NAME = 'map_session';
@@ -1041,6 +1052,12 @@ const context = {
     clientId: DISCORD_CLIENT_ID,
     clientSecret: DISCORD_CLIENT_SECRET,
     redirectUri: DISCORD_REDIRECT_URI
+  },
+  discordEndpoints: {
+    origin: DISCORD_API_ORIGIN,
+    authorizeUrl: DISCORD_AUTHORIZE_URL,
+    tokenUrl: DISCORD_TOKEN_URL,
+    userUrl: DISCORD_USER_URL
   },
   oauthStateStore,
   oauthStateTtlMs: OAUTH_STATE_TTL_MS,
