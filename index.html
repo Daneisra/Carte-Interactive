@@ -46,6 +46,12 @@
             <button id="user-admin-button" class="secondary-button" type="button" hidden>Gestion utilisateurs</button>
         </div>
 
+        <div id="validation-warnings" class="validation-warnings" aria-live="polite" hidden>
+            <h3 class="validation-warnings-title">Alertes de validation</h3>
+            <ul id="validation-warnings-list" class="validation-warnings-list"></ul>
+            <p id="validation-warnings-footnote" class="validation-warnings-footnote" hidden></p>
+        </div>
+
         <div id="filters-container">
             <button id="filters-advanced-toggle" class="secondary-button" type="button" aria-expanded="false" aria-controls="advanced-filters-panel">
                 Filtres avancés
@@ -221,6 +227,11 @@
                 <button id="location-editor-close" class="editor-close" type="button" aria-label="Fermer">×</button>
             </header>
             <form id="location-editor-form" novalidate autocomplete="off">
+                <div class="form-warning-panel" data-role="validation-warnings" aria-live="polite" hidden>
+                    <strong class="form-warning-title">Alertes de validation</strong>
+                    <ul class="form-warning-list" data-role="validation-warnings-list"></ul>
+                    <p class="form-warning-footnote" data-role="validation-warnings-footnote" hidden></p>
+                </div>
                 <div class="editor-content">
                     <fieldset class="editor-section" data-drop-zone="audio">
                         <legend>Informations générales</legend>

@@ -249,6 +249,48 @@ body[data-theme="light"] .markdown-preview {
     display: none;
 }
 
+.form-warning-panel {
+    margin: 12px 0 20px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(252, 211, 77, 0.35);
+    background: rgba(252, 211, 77, 0.12);
+    color: #fcd34d;
+    font-size: 14px;
+}
+
+body[data-theme="light"] .form-warning-panel {
+    background: rgba(252, 211, 77, 0.18);
+    border-color: rgba(231, 161, 48, 0.45);
+    color: #92400e;
+}
+
+.form-warning-panel[hidden] {
+    display: none;
+}
+
+.form-warning-title {
+    display: block;
+    font-weight: 600;
+    margin: 0 0 6px;
+}
+
+.form-warning-list {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.4;
+}
+
+.form-warning-list li {
+    margin-bottom: 4px;
+}
+
+.form-warning-footnote {
+    margin: 8px 0 0;
+    font-size: 12px;
+    opacity: 0.75;
+}
+
 .hint {
     font-size: 12px;
     opacity: 0.65;

@@ -159,7 +159,10 @@ export class UiController {
             eventsFeed: document.getElementById('events-feed'),
             eventsFeedList: document.getElementById('events-feed-list'),
             eventsFilter: document.getElementById('events-filter'),
-            eventsFeedEmpty: document.getElementById('events-feed-empty')
+            eventsFeedEmpty: document.getElementById('events-feed-empty'),
+            validationWarnings: document.getElementById('validation-warnings'),
+            validationWarningsList: document.getElementById('validation-warnings-list'),
+            validationWarningsFootnote: document.getElementById('validation-warnings-footnote')
         };
 
         this.announcer = new AriaAnnouncer({
@@ -200,6 +203,7 @@ export class UiController {
             active: false,
             clickUnsubscribe: null
         };
+        this.latestValidationWarnings = [];
 
         this.historyManager = new HistoryManager({
             container: this.dom.historyContainer,
@@ -490,10 +494,21 @@ export class UiController {
         this.showTooltip(this.dom.favoriteToggle, this.favoriteOnboardingTooltip, { placement: 'left', persistent: true });
     }
 
-    initialize({ typeData, locationsData }) {
+    initialize({ typeData, locationsData, issues = [] }) {
         this.typeData = typeData || {};
         this.mapController.setTypeData(this.typeData);
         this.locationsData = normalizeSharedDataset(locationsData || {}, { sanitizeKeys: true });
+        const warningMessages = Array.isArray(issues)
+            ? issues
+                .filter(issue => issue?.level === 'warning')
+                .map(issue => issue.message)
+                .filter(Boolean)
+            : [];
+        if (warningMessages.length) {
+            this.updateValidationWarnings(warningMessages);
+        } else {
+            this.updateValidationWarnings([]);
+        }
 
         this.applyLocalization();
         this.themeManager.initialize();
@@ -643,6 +658,9 @@ export class UiController {
             onDeleteQuestEvent: eventId => this.deleteQuestEvent(eventId)
         });
         this.locationEditor.setTypes(this.typeData);
+        if (this.latestValidationWarnings.length) {
+            this.locationEditor.showWarnings(this.latestValidationWarnings);
+        }
         if (this.dom.addLocation) {
             this.dom.addLocation.addEventListener('click', () => {
                 if (!this.isAdmin()) {
@@ -717,22 +735,27 @@ export class UiController {
                 credentials: 'include',
                 body: JSON.stringify({ locations: payload })
             });
+            let payloadResponse = null;
+            try {
+                payloadResponse = await response.json();
+            } catch (parseError) {
+                payloadResponse = null;
+            }
             if (!response.ok) {
                 let message = `HTTP ${response.status}`;
-                try {
-                    const errorPayload = await response.json();
-                    if (Array.isArray(errorPayload?.errors) && errorPayload.errors.length) {
-                        message = errorPayload.errors.join('\n');
-                    } else if (errorPayload?.message) {
-                        message = errorPayload.message;
+                if (payloadResponse) {
+                    if (Array.isArray(payloadResponse?.errors) && payloadResponse.errors.length) {
+                        message = payloadResponse.errors.join('\n');
+                    } else if (payloadResponse?.message) {
+                        message = payloadResponse.message;
                     }
-                } catch (parseError) {
-                    // ignore parse failures
                 }
                 const error = new Error(message);
                 error.status = response.status;
                 throw error;
             }
+            const warnings = Array.isArray(payloadResponse?.warnings) ? payloadResponse.warnings : [];
+            this.updateValidationWarnings(warnings);
             console.info('Sauvegarde des lieux terminee.');
         } catch (error) {
             console.error('Erreur lors de la sauvegarde des lieux :', error);
@@ -1017,6 +1040,73 @@ export class UiController {
         }
         this.dom.editLocation.disabled = false;
         this.dom.editLocation.setAttribute('aria-label', `Modifier ${location.name}`);
+    }
+
+    updateValidationWarnings(warnings = []) {
+        const normalized = Array.isArray(warnings)
+            ? warnings
+                .map(item => (typeof item === 'string' ? item : (item?.message ?? '')))
+                .map(item => item.trim())
+                .filter(Boolean)
+            : [];
+        const unique = Array.from(new Set(normalized));
+        const previousKey = this.latestValidationWarnings.join('\n');
+        const nextKey = unique.join('\n');
+        const changed = previousKey !== nextKey;
+        this.latestValidationWarnings = unique;
+
+        const isAdmin = this.isAdmin();
+
+        if (!isAdmin) {
+            if (this.dom.validationWarnings) {
+                this.dom.validationWarnings.hidden = true;
+                this.dom.validationWarnings.setAttribute('aria-hidden', 'true');
+            }
+            if (this.dom.validationWarningsList) {
+                clearElement(this.dom.validationWarningsList);
+            }
+            if (this.dom.validationWarningsFootnote) {
+                this.dom.validationWarningsFootnote.textContent = '';
+                this.dom.validationWarningsFootnote.hidden = true;
+            }
+            if (this.locationEditor?.showWarnings) {
+                this.locationEditor.showWarnings([]);
+            }
+            return;
+        }
+
+        if (this.dom.validationWarningsList) {
+            clearElement(this.dom.validationWarningsList);
+            const MAX_WARNINGS = 8;
+            unique.slice(0, MAX_WARNINGS).forEach(message => {
+                this.dom.validationWarningsList.appendChild(createElement('li', { text: message }));
+            });
+            if (this.dom.validationWarningsFootnote) {
+                if (unique.length > MAX_WARNINGS) {
+                    const extra = unique.length - MAX_WARNINGS;
+                    this.dom.validationWarningsFootnote.textContent = `+ ${extra} avertissement(s) supplémentaire(s) masqué(s).`;
+                    this.dom.validationWarningsFootnote.hidden = false;
+                } else {
+                    this.dom.validationWarningsFootnote.textContent = '';
+                    this.dom.validationWarningsFootnote.hidden = true;
+                }
+            }
+        }
+
+        if (this.dom.validationWarnings) {
+            const hasWarnings = unique.length > 0;
+            this.dom.validationWarnings.hidden = !hasWarnings;
+            this.dom.validationWarnings.setAttribute('aria-hidden', hasWarnings ? 'false' : 'true');
+        }
+
+        if (this.locationEditor?.showWarnings) {
+            this.locationEditor.showWarnings(unique);
+        }
+
+        if (changed && unique.length && this.announcer?.polite) {
+            const label = unique.length > 1 ? `${unique.length} avertissements` : '1 avertissement';
+            this.announcer.polite(`${label} de validation detecte${unique.length > 1 ? 's' : ''}.`);
+        }
     }
     createContinentSection(continentName, locations, index) {
         const wrapper = createElement('section', {
@@ -1310,6 +1400,7 @@ export class UiController {
             this.fetchQuestEvents();
         }
         this.updateAuthUI();
+        this.updateValidationWarnings(this.latestValidationWarnings);
     }
 
     updateAuthUI() {

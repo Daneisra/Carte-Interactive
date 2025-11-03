@@ -343,6 +343,10 @@ export class LocationEditor {
         this.questEventProgressMax = this.form?.querySelector('[data-role="quest-event-progress-max"]') || null;
         this.questEventNote = this.form?.querySelector('[data-role="quest-event-note"]') || null;
         this.questEventCancelButton = this.form?.querySelector('[data-action="quest-event-cancel"]') || null;
+        this.warningsPanel = this.form?.querySelector('[data-role="validation-warnings"]') || null;
+        this.warningsList = this.form?.querySelector('[data-role="validation-warnings-list"]') || null;
+        this.warningsFootnote = this.form?.querySelector('[data-role="validation-warnings-footnote"]') || null;
+        this.latestWarnings = [];
         this.editingQuestEventId = null;
 
         this.callbacks = {
@@ -660,6 +664,7 @@ export class LocationEditor {
 
         this.populateForm();
         this.resetErrors();
+        this.renderWarnings();
         this.updateImagePreview();
         this.updateVideoPreview();
         this.updatePnjPreview();
@@ -2049,7 +2054,6 @@ export class LocationEditor {
         });
     }
 
-
     resetErrors() {
         if (!this.form) {
             return;
@@ -2075,5 +2079,44 @@ export class LocationEditor {
             target.textContent = '';
             target.hidden = true;
         }
+    }
+
+    renderWarnings() {
+        if (!this.warningsPanel || !this.warningsList) {
+            return;
+        }
+        const warnings = Array.isArray(this.latestWarnings) ? this.latestWarnings : [];
+        const LIMIT = 8;
+        clearElement(this.warningsList);
+        if (!warnings.length) {
+            this.warningsPanel.hidden = true;
+            if (this.warningsFootnote) {
+                this.warningsFootnote.textContent = '';
+                this.warningsFootnote.hidden = true;
+            }
+            return;
+        }
+        warnings.slice(0, LIMIT).forEach(message => {
+            this.warningsList.appendChild(createElement('li', { text: message }));
+        });
+        if (this.warningsFootnote) {
+            if (warnings.length > LIMIT) {
+                const extra = warnings.length - LIMIT;
+                this.warningsFootnote.textContent = `+ ${extra} avertissement(s) supplémentaire(s) masqué(s).`;
+                this.warningsFootnote.hidden = false;
+            } else {
+                this.warningsFootnote.textContent = '';
+                this.warningsFootnote.hidden = true;
+            }
+        }
+        this.warningsPanel.hidden = false;
+    }
+
+    showWarnings(warnings = []) {
+        const normalized = Array.isArray(warnings)
+            ? warnings.map(item => (typeof item === 'string' ? item : '')).map(item => item.trim()).filter(Boolean)
+            : [];
+        this.latestWarnings = Array.from(new Set(normalized));
+        this.renderWarnings();
     }
 }

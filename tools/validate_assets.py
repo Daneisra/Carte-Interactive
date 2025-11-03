@@ -5,7 +5,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Tuple
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS_DIR = ROOT / "assets"
@@ -52,8 +52,9 @@ def validate_media(path: Path) -> bool:
     return path.exists() and path.is_file()
 
 
-def validate_locations(dataset: Dict[str, Any], types: Dict[str, Any], *, check_media: bool) -> List[str]:
+def validate_locations(dataset: Dict[str, Any], types: Dict[str, Any], *, check_media: bool) -> Tuple[List[str], List[str]]:
     issues: List[str] = []
+    warnings: List[str] = []
     seen_names: Dict[str, str] = {}
 
     for continent, raw_locations in dataset.items():
@@ -128,6 +129,33 @@ def validate_locations(dataset: Dict[str, Any], types: Dict[str, Any], *, check_
             elif images:
                 issues.append(f"{name}: champ images doit etre une liste")
 
+            description = (entry.get("description") or "").strip()
+            if not description:
+                warnings.append(f"{name}: description absente ou vide.")
+
+            tags = entry.get("tags")
+            has_tags = False
+            if isinstance(tags, list):
+                has_tags = any(isinstance(tag, str) and tag.strip() for tag in tags)
+            elif isinstance(tags, str):
+                has_tags = bool(tags.strip())
+            if not has_tags:
+                warnings.append(f"{name}: aucun tag attribue.")
+
+            has_media = False
+            if isinstance(entry.get("images"), list):
+                has_media = any(isinstance(image, str) and image.strip() for image in entry["images"])
+            if isinstance(entry.get("videos"), list):
+                has_media = has_media or any(
+                    (isinstance(video, str) and video.strip()) or
+                    (isinstance(video, dict) and isinstance(video.get("url"), str) and video["url"].strip())
+                    for video in entry["videos"]
+                )
+            if isinstance(entry.get("audio"), str) and entry["audio"].strip():
+                has_media = True
+            if not has_media:
+                warnings.append(f"{name}: aucun media (image, video ou audio) associe.")
+
             quests = entry.get("quests")
             if quests:
                 if isinstance(quests, list):
@@ -169,7 +197,7 @@ def validate_locations(dataset: Dict[str, Any], types: Dict[str, Any], *, check_
                         issues.append(f"{name}: PNJ '{pnj_name or pnj_index + 1}' description invalide ({description!r})")
             elif pnjs:
                 issues.append(f"{name}: champ pnjs doit etre une liste")
-    return issues
+    return issues, warnings
 
 
 def collect_media(dataset: Dict[str, Any]) -> Iterable[str]:
@@ -223,8 +251,13 @@ def main() -> int:
 
     check_media = not args.no_files
     issues: List[str] = []
+    warnings: List[str] = []
     issues.extend(validate_types(types_data, check_media=check_media))
-    issues.extend(validate_locations(locations_data, types_data, check_media=check_media))
+    location_errors, location_warnings = validate_locations(locations_data, types_data, check_media=check_media)
+    issues.extend(location_errors)
+    warnings.extend(location_warnings)
+    if check_media:
+        warnings.extend(detect_unused_media(locations_data, types_data))
 
     if issues:
         print("\n[ERREUR] Problemes detectes :")
@@ -232,6 +265,11 @@ def main() -> int:
             print(f" - {entry}")
     else:
         print("[OK] Aucun probleme detecte")
+
+    if warnings:
+        print("\n[AVERTISSEMENTS] Points a verifier :")
+        for entry in dict.fromkeys(warnings):
+            print(f" - {entry}")
 
     total_locations = sum(len(v) for v in locations_data.values() if isinstance(v, list))
     print(f"\nResume : {len(types_data)} types, {total_locations} lieux analyses.")

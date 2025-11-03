@@ -34,7 +34,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [x] Pipeline CI restaure (validation assets + tests).
 - [x] Ajouter des tests d'integration couvrant `/auth/session`, `/auth/discord/*` et les routes admin protegees.
 - [x] Persister le magasin OAuth/session (stockage disque + debounce) pour eviter les connexions perdues apres redemarrage.
-- [ ] Renforcer `tools/validate_assets.py` (champs requis, warnings) et exposer les alertes dans l'UI admin.
+- [x] Renforcer `tools/validate_assets.py` (champs requis, warnings) et exposer les alertes dans l'UI admin.
 - [ ] Couvrir `renderMarkdown` et les filtres avances via tests unitaires/Playwright.
 - [ ] Ajouter retours visuels et gestion d'erreurs dans le panneau admin (CRUD utilisateurs) avec telemetry serveur.
 - [ ] Documenter la configuration OAuth (env vars, redirect) et ajouter un healthcheck pour CI/production.

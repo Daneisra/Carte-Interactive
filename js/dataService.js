@@ -18,7 +18,7 @@ export class DataService {
         const { normalized: locationsData, issues } = validateDataset(rawLocations, { typeMap: typeData });
         this.reportDatasetIssues(issues);
 
-        return { typeData, locationsData };
+        return { typeData, locationsData, issues };
     }
 
     async fetchJson(url) {

@@ -64,6 +64,12 @@ export function validateLocationRecord(rawLocation, {
 
     const normalized = normalizeLocation(rawLocation);
     const label = formatLocationLabel(continent, index, normalized?.name);
+    const pushWarning = (code, message) => issues.push(createIssue(
+        'warning',
+        code,
+        message,
+        { continent, index, name: normalized?.name || '' }
+    ));
 
     const rawName = sanitizeString(rawLocation?.name);
     if (!rawName) {
@@ -116,6 +122,23 @@ export function validateLocationRecord(rawLocation, {
                 { continent, index, name: normalized?.name || '' }
             ));
         }
+    }
+
+    if (!sanitizeString(rawLocation?.description)) {
+        pushWarning(
+            'location.description.empty',
+            `${label}: description absente ou vide.`
+        );
+    }
+
+    const hasImages = Array.isArray(normalized?.images) && normalized.images.length > 0;
+    const hasVideos = Array.isArray(normalized?.videos) && normalized.videos.length > 0;
+    const hasAudio = Boolean(audioRaw);
+    if (!hasImages && !hasVideos && !hasAudio) {
+        pushWarning(
+            'location.media.missing',
+            `${label}: aucun média (image, vidéo ou audio) associé.`
+        );
     }
 
     if (rawLocation?.images !== undefined) {
@@ -274,6 +297,13 @@ export function validateLocationRecord(rawLocation, {
                 { continent, index, name: normalized?.name || '' }
             ));
         }
+    }
+
+    if (!Array.isArray(normalized?.tags) || normalized.tags.length === 0) {
+        pushWarning(
+            'location.tags.empty',
+            `${label}: aucun tag attribué.`
+        );
     }
 
     return { normalized, issues };
