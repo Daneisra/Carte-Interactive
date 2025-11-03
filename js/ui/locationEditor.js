@@ -1,5 +1,5 @@
 import { createElement, clearElement } from './dom.js';
-import { renderMarkdown } from './markdown.js';
+import { renderMarkdown } from './markdown.mjs';
 
 const DRAFT_STORAGE_KEY_PREFIX = 'interactive-map-markdown-draft';
 const DRAFT_STORAGE_VERSION = 1;

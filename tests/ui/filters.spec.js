@@ -80,4 +80,43 @@ test.beforeEach(async ({ page }) => {
     expect(names).toContain('Imossa');
     expect(Array.isArray(data.facets?.dataset?.types)).toBeTruthy();
   });
+
+  test('les chips de filtres possèdent des attributs accessibles', async ({ page }) => {
+    await waitForAppReady(page);
+    await page.locator('#filters-advanced-toggle').click();
+
+    const metadata = await page.$$eval('#filter-tags input[type="checkbox"]', inputs =>
+      inputs.map(input => ({
+        id: input.id,
+        name: input.name,
+        labelledBy: input.getAttribute('aria-labelledby')
+      }))
+    );
+    expect(metadata.length).toBeGreaterThan(0);
+
+    const uniqueIds = new Set(metadata.map(item => item.id));
+    expect(uniqueIds.size).toBe(metadata.length);
+    metadata.forEach(item => {
+      expect(item.id).toMatch(/^filter-tags-/);
+      expect(item.name).toBe('tags[]');
+      expect(item.labelledBy).toBeTruthy();
+    });
+
+    const labelledElements = await page.$$eval('#filter-tags input[type="checkbox"]', inputs =>
+      inputs.map(input => {
+        const targetId = input.getAttribute('aria-labelledby');
+        const target = targetId ? document.getElementById(targetId) : null;
+        return Boolean(target && target.textContent.trim());
+      })
+    );
+    expect(labelledElements.every(Boolean)).toBeTruthy();
+
+    const firstChip = page.locator('#filter-tags label.filter-chip').first();
+    const firstInput = firstChip.locator('input[type="checkbox"]');
+    await firstChip.click();
+    await expect(firstChip).toHaveClass(/filter-chip-active/);
+    await expect(firstInput).toHaveAttribute('aria-pressed', 'true');
+    await firstChip.click();
+    await expect(firstInput).toHaveAttribute('aria-pressed', 'false');
+  });
 });

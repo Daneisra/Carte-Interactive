@@ -1,6 +1,6 @@
 import { clearElement, createElement, qsa } from './dom.js';
 import { getString } from '../i18n.js';
-import { renderMarkdown } from './markdown.js';
+import { renderMarkdown } from './markdown.mjs';
 
 export class InfoPanel {
     constructor({

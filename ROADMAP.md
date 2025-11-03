@@ -35,7 +35,7 @@ Creer une carte narrative immersive, fiable et maintenable servant a la fois de 
 - [x] Ajouter des tests d'integration couvrant `/auth/session`, `/auth/discord/*` et les routes admin protegees.
 - [x] Persister le magasin OAuth/session (stockage disque + debounce) pour eviter les connexions perdues apres redemarrage.
 - [x] Renforcer `tools/validate_assets.py` (champs requis, warnings) et exposer les alertes dans l'UI admin.
-- [ ] Couvrir `renderMarkdown` et les filtres avances via tests unitaires/Playwright.
+- [x] Couvrir `renderMarkdown` et les filtres avances via tests unitaires/Playwright.
 - [ ] Ajouter retours visuels et gestion d'erreurs dans le panneau admin (CRUD utilisateurs) avec telemetry serveur.
 - [ ] Documenter la configuration OAuth (env vars, redirect) et ajouter un healthcheck pour CI/production.
 - [ ] Mutualiser ou mettre en cache l'installation Playwright dans la CI pour reduire le temps de pipeline.
