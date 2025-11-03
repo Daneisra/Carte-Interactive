@@ -44,6 +44,7 @@ const IMAGES_DIR = path.join(ASSETS_PATH, 'images');
 const AUDIO_DIR = path.join(ASSETS_PATH, 'audio');
 const AUDIT_DIR = path.join(ASSETS_PATH, 'logs');
 const AUDIT_FILE = path.join(AUDIT_DIR, 'locations-audit.jsonl');
+const SESSION_STORE_FILE = path.join(AUDIT_DIR, 'sessions.json');
 const USERS_FILE = path.join(ASSETS_PATH, 'users.json');
 const ANNOTATIONS_FILE = path.join(ASSETS_PATH, 'annotations.json');
 const QUEST_EVENTS_FILE = path.join(ASSETS_PATH, 'questEvents.json');
@@ -286,6 +287,77 @@ const oauthStateStore = new Map();
 const OAUTH_STATE_TTL_MS = 5 * 60 * 1000;
 const SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.SESSION_TTL_MS) || (12 * 60 * 60 * 1000));
 const SESSION_SECRET = (process.env.SESSION_SECRET || 'dev-secret').padEnd(32, '0');
+const SESSION_PERSIST_DEBOUNCE_MS = 1_000;
+let sessionPersistTimer = null;
+
+const serializeSessionStore = () => {
+  const sessions = [];
+  sessionStore.forEach((value, key) => {
+    sessions.push({ id: key, ...value });
+  });
+  return sessions;
+};
+
+const persistSessionStore = async () => {
+  try {
+    const payload = serializeSessionStore();
+    await withFileLock(SESSION_STORE_FILE, async () => {
+      const directory = path.dirname(SESSION_STORE_FILE);
+      await fs.promises.mkdir(directory, { recursive: true });
+      await fs.promises.writeFile(SESSION_STORE_FILE, JSON.stringify(payload, null, 2) + '\n', 'utf-8');
+    });
+  } catch (error) {
+    logger.warn('[session] persist failed', { error: error.message });
+  }
+};
+
+const scheduleSessionPersist = () => {
+  if (sessionPersistTimer) {
+    return;
+  }
+  sessionPersistTimer = setTimeout(() => {
+    sessionPersistTimer = null;
+    persistSessionStore();
+  }, SESSION_PERSIST_DEBOUNCE_MS);
+  if (typeof sessionPersistTimer.unref === 'function') {
+    sessionPersistTimer.unref();
+  }
+};
+
+const hydrateSessionStoreFromDisk = async () => {
+  try {
+    const raw = await fs.promises.readFile(SESSION_STORE_FILE, 'utf-8');
+    const entries = JSON.parse(raw);
+    if (!Array.isArray(entries)) {
+      return;
+    }
+    const now = Date.now();
+    entries.forEach(entry => {
+      if (!entry || typeof entry !== 'object') {
+        return;
+      }
+      const id = typeof entry.id === 'string' ? entry.id : null;
+      if (!id) {
+        return;
+      }
+      const expiresAt = Number(entry.expiresAt) || 0;
+      if (expiresAt <= now) {
+        return;
+      }
+      const { id: _omit, ...data } = entry;
+      sessionStore.set(id, data);
+    });
+    if (sessionStore.size) {
+      logger.info('[session] hydrated persisted store', { count: sessionStore.size });
+    }
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      logger.warn('[session] hydrate failed', { error: error.message });
+    }
+  }
+};
+
+hydrateSessionStoreFromDisk();
 
 const parseCookies = header => {
   if (!header) {
@@ -334,6 +406,7 @@ const createSession = payload => {
   const sessionId = crypto.randomUUID();
   const expiresAt = Date.now() + SESSION_TTL_MS;
   sessionStore.set(sessionId, { ...payload, expiresAt });
+  scheduleSessionPersist();
   return signSessionId(sessionId);
 };
 
@@ -350,10 +423,12 @@ const getSession = req => {
   }
   if (record.expiresAt <= Date.now()) {
     sessionStore.delete(sessionId);
+    scheduleSessionPersist();
     return null;
   }
   record.expiresAt = Date.now() + SESSION_TTL_MS;
   sessionStore.set(sessionId, record);
+  scheduleSessionPersist();
   return { sessionId, data: record };
 };
 
@@ -361,8 +436,8 @@ const destroySession = req => {
   const cookies = parseCookies(req.headers?.cookie);
   const signed = cookies[SESSION_COOKIE_NAME];
   const sessionId = verifySessionId(signed);
-  if (sessionId) {
-    sessionStore.delete(sessionId);
+  if (sessionId && sessionStore.delete(sessionId)) {
+    scheduleSessionPersist();
   }
 };
 
@@ -768,19 +843,29 @@ const resolveTokenUser = async token => {
 };
 
 const updateSessionsForUser = (userId, updates = {}) => {
+  let changed = false;
   sessionStore.forEach((record, key) => {
     if (record.userId === userId) {
       sessionStore.set(key, { ...record, ...updates });
+      changed = true;
     }
   });
+  if (changed) {
+    scheduleSessionPersist();
+  }
 };
 
 const destroySessionsForUser = userId => {
+  let changed = false;
   sessionStore.forEach((record, key) => {
     if (record.userId === userId) {
       sessionStore.delete(key);
+      changed = true;
     }
   });
+  if (changed) {
+    scheduleSessionPersist();
+  }
 };
 
 const createManualUser = async ({ username = '', role = 'user', token = null }) => {

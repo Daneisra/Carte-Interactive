@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const USERS_PATH = path.resolve(__dirname, '../../assets/users.json');
+const SESSIONS_PATH = path.resolve(__dirname, '../../assets/logs/sessions.json');
 
 let usersSnapshot = null;
 
@@ -15,11 +16,25 @@ test.describe('Integration Auth API', () => {
         } catch (error) {
             usersSnapshot = null;
         }
+        try {
+            await fs.promises.unlink(SESSIONS_PATH);
+        } catch (error) {
+            if (error.code !== 'ENOENT') {
+                throw error;
+            }
+        }
     });
 
     test.afterAll(async () => {
         if (usersSnapshot !== null) {
             await fs.promises.writeFile(USERS_PATH, usersSnapshot, 'utf8');
+        }
+        try {
+            await fs.promises.unlink(SESSIONS_PATH);
+        } catch (error) {
+            if (error.code !== 'ENOENT') {
+                throw error;
+            }
         }
     });
 
