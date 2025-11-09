@@ -1,16 +1,17 @@
-name: Deploy to OVH - Carte Hesta
+name: Deploy to OVH
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Deploy via FTP to OVH
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -19,9 +20,4 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ${{ secrets.FTP_DIR }}
-          protocol: ftp
-          exclude: |
-            **/.git*
-            **/.github/**
-            **/README.md
-            **/.DS_Store
+          local-dir: .
