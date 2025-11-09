@@ -2,13 +2,12 @@ name: Deploy to OVH
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,5 +18,19 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_DIR }}
+          server-dir: ${{ secrets.FTP_DIR }}   # ex: /cartehesta/
           local-dir: ./
+          # On laisse les médias hors pipeline pour éviter les transferts tronqués
+          exclude: |
+            **/*.mp3
+            **/*.wav
+            **/*.mp4
+            **/*.mov
+            **/*.png
+            **/*.jpg
+            **/*.jpeg
+            **/*.gif
+            **/.git*
+            **/.github/**
+            **/.DS_Store
+            **/Thumbs.db
