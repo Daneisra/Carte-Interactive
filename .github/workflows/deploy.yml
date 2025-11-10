@@ -1,45 +1,71 @@
-name: Deploy Carte Hesta to VPS
+name: deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      # Synchronise tout le repo vers /srv/cartehesta/app (front + backend)
+    steps:
+      # 1) Checkout du repo + récupération des fichiers Git LFS (images/sons…)
+      - name: Checkout (with LFS)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      # Ceinture et bretelles (si LFS est présent dans le repo)
+      - name: LFS pull
+        run: git lfs pull || true
+
+      # 2) Sync des fichiers vers le VPS (on exclut ce qui ne doit pas partir)
       - name: Sync files to VPS
         uses: burnett01/rsync-deployments@5.2
         with:
-          switches: -avzr --delete --exclude=".git/" --exclude=".github/" --exclude="node_modules/"
+          switches: -azvr --delete --exclude=".git/" --exclude=".github/" --exclude="node_modules/" --exclude=".env"
           path: ./
           remote_path: ${{ secrets.VPS_APP_DIR }}
           remote_host: ${{ secrets.VPS_HOST }}
           remote_user: ${{ secrets.VPS_USER }}
-          remote_key:  ${{ secrets.VPS_KEY }}
+          remote_key: ${{ secrets.VPS_KEY }}
+          remote_port: 22
 
+      # 3) Installation des deps et (re)lancement de l'API via pm2
       - name: Install & reload API
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_KEY }}
+          port: 22
+          timeout: 30s
+          command_timeout: 10m
+          proxy_timeout: 30s
           script: |
-            # 1) nvm -> node/npm/pm2 dans le PATH
+            set -e
+
+            # Charger nvm pour avoir node/npm/pm2 dans le PATH
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
             nvm use --lts || nvm use 24
 
-            # 2) Aller dans l'app (*** dans les logs = masquage des secrets, c'est normal)
+            # Aller dans le dossier de l'app (le *** dans les logs est normal : secret masqué)
             cd "${{ secrets.VPS_APP_DIR }}"
 
-            # 3) Dépendances API
+            # Installer les dépendances (lockfile si présent, sinon install standard)
             npm ci --omit=dev || npm i --omit=dev
 
-            # 4) pm2 : installer si absent, puis (re)charger
+            # Installer pm2 si absent puis (re)charger le process
             if ! command -v pm2 >/dev/null 2>&1; then
               npm i -g pm2
             fi
