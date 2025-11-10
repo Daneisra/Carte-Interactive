@@ -28,18 +28,24 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_KEY }}
           script: |
-            # 1) Charger nvm (important pour que npm/pm2 soient dans le PATH)
+            # 1) nvm -> node/npm/pm2 dans le PATH
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-            # Utilise ta version (ou LTS)
             nvm use --lts || nvm use 24
 
-            # 2) Déployer / (ré)installer les deps
-            cd ${{ secrets.VPS_APP_DIR }}
+            # 2) Aller dans l'app (*** dans les logs = masquage des secrets, c'est normal)
+            cd "${{ secrets.VPS_APP_DIR }}"
+
+            # 3) Dépendances API
             npm ci --omit=dev || npm i --omit=dev
 
-            # 3) Redémarrer l'API avec pm2 (chemin explicite pour éviter les soucis de PATH)
-            PM2="$(npm root -g)/../.bin/pm2"
-            "$PM2" reload carte-api || "$PM2" start server.js --name carte-api
-            "$PM2" save
+            # 4) pm2 : installer si absent, puis (re)charger
+            if ! command -v pm2 >/dev/null 2>&1; then
+              npm i -g pm2
+            fi
 
+            pm2 describe carte-api >/dev/null 2>&1 \
+              && pm2 reload carte-api \
+              || pm2 start server.js --name carte-api
+
+            pm2 save
