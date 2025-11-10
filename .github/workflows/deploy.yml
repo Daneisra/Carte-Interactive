@@ -1,36 +1,35 @@
-name: Deploy to OVH
+name: Deploy Carte Hesta to VPS
 
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Deploy via FTP to OVH
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      # Synchronise tout le repo vers /srv/cartehesta/app (front + backend)
+      - name: Sync files to VPS
+        uses: burnett01/rsync-deployments@5.2
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_DIR }}   # ex: /cartehesta/
-          local-dir: ./
-          # On laisse les médias hors pipeline pour éviter les transferts tronqués
-          exclude: |
-            **/*.mp3
-            **/*.wav
-            **/*.mp4
-            **/*.mov
-            **/*.png
-            **/*.jpg
-            **/*.jpeg
-            **/*.gif
-            **/.git*
-            **/.github/**
-            **/.DS_Store
-            **/Thumbs.db
+          switches: -avzr --delete --exclude=".git/" --exclude=".github/" --exclude="node_modules/"
+          path: ./
+          remote_path: ${{ secrets.VPS_APP_DIR }}
+          remote_host: ${{ secrets.VPS_HOST }}
+          remote_user: ${{ secrets.VPS_USER }}
+          remote_key:  ${{ secrets.VPS_KEY }}
+
+      # Installe les deps API & reload PM2
+      - name: Install & reload API
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
+          script: |
+            cd ${{ secrets.VPS_APP_DIR }}
+            npm ci --omit=dev || npm i --omit=dev
+            pm2 reload carte-api || pm2 start server.js --name carte-api
+            pm2 save
