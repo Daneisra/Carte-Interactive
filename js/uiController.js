@@ -2554,15 +2554,15 @@ export class UiController {
     }
 
     handleAnnotationDeleted(payload) {
-        const annotationId = payload?.id;
-        if (!annotationId || !this.annotations.has(annotationId)) {
+        const annotationId = payload?.id || payload?.annotationId || payload?.annotation?.id;
+        if (!annotationId) {
             return;
         }
-        const previous = this.annotations.get(annotationId);
+        const previous = this.annotations.get(annotationId) || payload?.annotation || null;
         this.annotations.delete(annotationId);
         this.mapController.removeAnnotation(annotationId);
         const label = previous?.label ? ` "${previous.label}"` : '';
-        this.announcer?.polite(`Annotation${label} supprimee.`);
+        this.announcer?.polite(`Annotation${label || ''} supprimee.`);
         const descriptionParts = [
             previous?.locationName ? `@ ${sanitizeString(previous.locationName)}` : null,
             Number.isFinite(previous?.x) && Number.isFinite(previous?.y)
