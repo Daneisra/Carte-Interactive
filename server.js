@@ -223,7 +223,11 @@ const serveStatic = (req, res, urlObj) => {
 const streamFile = (filePath, req, res) => {
   const ext = path.extname(filePath).toLowerCase();
   const mime = MIME_TYPES[ext] || 'application/octet-stream';
-  res.writeHead(200, { 'Content-Type': mime });
+  const headers = { 'Content-Type': mime };
+  if (ext === '.json') {
+    headers['Cache-Control'] = 'no-store';
+  }
+  res.writeHead(200, headers);
   if (req.method === 'HEAD') {
     res.end();
     return;

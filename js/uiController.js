@@ -236,6 +236,7 @@ export class UiController {
             questsSection: qs('#quests-section'),
             pnjsSection: qs('#pnjs-section'),
             loreSection: qs('#lore-section'),
+            instancesSection: qs('#instances-section'),
             audioManager: this.audioManager,
             closeButton: qs('#close-info-sidebar'),
             lightbox: {
@@ -709,6 +710,7 @@ export class UiController {
             history: serializeTextGroup(normalized.history),
             quests: serializeTextGroup(normalized.quests),
             lore: serializeTextGroup(normalized.lore),
+            instances: serializeTextGroup(normalized.instances),
             pnjs: serializePnjs(normalized.pnjs),
             tags: normalized.tags
         };

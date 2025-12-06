@@ -111,6 +111,11 @@ const MARKDOWN_SECTION_CONFIG = {
         placeholder: 'Entree de lore (Markdown)',
         emptyText: 'Previsualisation de cet element de lore.',
         removeLabel: 'Supprimer cet element de lore'
+    },
+    instances: {
+        placeholder: 'Instance (Markdown)',
+        emptyText: 'Previsualisation de cette instance.',
+        removeLabel: 'Supprimer cette instance'
     }
 };
 
@@ -128,6 +133,7 @@ const DEFAULT_LOCATION = {
     history: [],
     quests: [],
     lore: [],
+    instances: [],
     pnjs: []
 };
 
@@ -216,6 +222,7 @@ const copyLocation = source => {
         history: Array.isArray(source.history) ? [...source.history] : [],
         quests: Array.isArray(source.quests) ? [...source.quests] : [],
         lore: Array.isArray(source.lore) ? [...source.lore] : [],
+        instances: Array.isArray(source.instances) ? [...source.instances] : [],
         pnjs: Array.isArray(source.pnjs) ? source.pnjs.map(pnj => ({ ...pnj })) : []
     };
 };
@@ -322,12 +329,14 @@ export class LocationEditor {
         this.markdownLists = {
             history: this.form?.querySelector('[data-role="history-list"]') || null,
             quests: this.form?.querySelector('[data-role="quests-list"]') || null,
-            lore: this.form?.querySelector('[data-role="lore-list"]') || null
+            lore: this.form?.querySelector('[data-role="lore-list"]') || null,
+            instances: this.form?.querySelector('[data-role="instances-list"]') || null
         };
         this.markdownAddButtons = {
             history: this.form?.querySelector('[data-action="add-history-entry"]') || null,
             quests: this.form?.querySelector('[data-action="add-quests-entry"]') || null,
-            lore: this.form?.querySelector('[data-action="add-lore-entry"]') || null
+            lore: this.form?.querySelector('[data-action="add-lore-entry"]') || null,
+            instances: this.form?.querySelector('[data-action="add-instances-entry"]') || null
         };
         this.questEventsContainer = this.form?.querySelector('[data-role="quest-events"]') || null;
         this.questEventsList = this.form?.querySelector('[data-role="quest-events-list"]') || null;
@@ -749,6 +758,7 @@ export class LocationEditor {
         this.setMarkdownEntries('history', location.history);
         this.setMarkdownEntries('quests', location.quests);
         this.setMarkdownEntries('lore', location.lore);
+        this.setMarkdownEntries('instances', location.instances);
 
         if (this.imageList) {
             clearElement(this.imageList);
@@ -1673,6 +1683,7 @@ export class LocationEditor {
         location.history = this.collectMarkdownEntries('history');
         location.quests = this.collectMarkdownEntries('quests');
         location.lore = this.collectMarkdownEntries('lore');
+        location.instances = this.collectMarkdownEntries('instances');
 
         const valid = Object.keys(errors).length === 0;
         return {

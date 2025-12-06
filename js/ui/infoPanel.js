@@ -13,6 +13,7 @@ export class InfoPanel {
         questsSection,
         pnjsSection,
         loreSection,
+        instancesSection,
         audioManager,
         closeButton,
         lightbox = null,
@@ -28,6 +29,7 @@ export class InfoPanel {
         this.questsSection = questsSection;
         this.pnjsSection = pnjsSection;
         this.loreSection = loreSection;
+        this.instancesSection = instancesSection;
         this.audioManager = audioManager;
         this.closeButton = closeButton;
         this.onClose = () => {};
@@ -105,6 +107,7 @@ export class InfoPanel {
         this.renderSection(this.historySection, location.history, 'info.history');
         this.renderSection(this.questsSection, location.quests, 'info.quests');
         this.renderSection(this.loreSection, location.lore, 'info.lore');
+        this.renderSection(this.instancesSection, location.instances, 'info.instances', 'Instances');
         this.renderPnjsSection(location.pnjs);
         this.renderGallery(location);
 
@@ -200,7 +203,7 @@ export class InfoPanel {
         }
     }
 
-    renderSection(sectionElement, items, titleKey) {
+    renderSection(sectionElement, items, titleKey, fallbackTitle = '') {
         if (!sectionElement) {
             return;
         }
@@ -215,7 +218,11 @@ export class InfoPanel {
 
         sectionElement.hidden = false;
         sectionElement.classList.add('extra-section');
-        const title = createElement('h4', { text: getString(`${titleKey}.title`) });
+        const localized = getString(`${titleKey}.title`);
+        const titleText = localized && localized !== `${titleKey}.title`
+            ? localized
+            : (fallbackTitle || localized || '');
+        const title = createElement('h4', { text: titleText });
         sectionElement.appendChild(title);
 
         const list = createElement('ul');

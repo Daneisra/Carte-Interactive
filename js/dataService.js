@@ -22,7 +22,7 @@ export class DataService {
     }
 
     async fetchJson(url) {
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' });
         if (!response.ok) {
             throw new Error(`Impossible de charger la ressource : ${url} (${response.status})`);
         }

@@ -85,6 +85,7 @@ const normalizeLocation = rawLocation => {
         history: collectTextArray(rawLocation.history),
         quests: collectTextArray(rawLocation.quests),
         lore: collectTextArray(rawLocation.lore),
+        instances: collectTextArray(rawLocation.instances),
         pnjs: normalizePnjList(rawLocation.pnjs),
         tags: (() => {
             if (Array.isArray(rawLocation.tags)) {
