@@ -69,6 +69,20 @@ const MIME_TYPES = {
   '.txt': 'text/plain; charset=utf-8'
 };
 
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': [
+    "default-src 'self' data: blob:",
+    "script-src 'self' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net",
+    "img-src 'self' data: blob: https://unpkg.com https://cdn.jsdelivr.net",
+    "font-src 'self' data: https://unpkg.com https://cdn.jsdelivr.net",
+    "media-src 'self' data: blob:",
+    "connect-src 'self'",
+    "frame-ancestors 'self'"
+  ].join('; '),
+  'X-Content-Type-Options': 'nosniff'
+};
+
 const SSE_HEARTBEAT_MS = 30_000;
 const sseClients = new Set();
 
@@ -91,6 +105,7 @@ const broadcastSse = (eventName, payload) => {
 
 const registerSseClient = (req, res) => {
   res.writeHead(200, {
+    ...SECURITY_HEADERS,
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache, no-transform',
     Connection: 'keep-alive'
@@ -166,7 +181,7 @@ const loadLocationValidationModule = () => {
 
 
 const send = (res, status, body = '', headers = {}) => {
-  res.writeHead(status, headers);
+  res.writeHead(status, { ...SECURITY_HEADERS, ...headers });
   if (body === null) {
     res.end();
   } else {
@@ -223,7 +238,7 @@ const serveStatic = (req, res, urlObj) => {
 const streamFile = (filePath, req, res) => {
   const ext = path.extname(filePath).toLowerCase();
   const mime = MIME_TYPES[ext] || 'application/octet-stream';
-  const headers = { 'Content-Type': mime };
+  const headers = { ...SECURITY_HEADERS, 'Content-Type': mime };
   if (ext === '.json') {
     headers['Cache-Control'] = 'no-store';
   }
