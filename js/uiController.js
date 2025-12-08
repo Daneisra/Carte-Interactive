@@ -2688,9 +2688,6 @@ export class UiController {
     }
 
     async fetchQuestEvents() {
-        if (this.authRequired && !this.auth?.authenticated) {
-            return;
-        }
         try {
             const response = await fetch('/api/quest-events', { cache: 'no-store', credentials: 'include' });
             if (!response.ok) {

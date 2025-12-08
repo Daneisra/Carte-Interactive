@@ -2,6 +2,7 @@ const registerLocationRoutes = require('./locations');
 const registerAuthRoutes = require('./auth');
 const registerAnnotationRoutes = require('./annotations');
 const registerQuestEventRoutes = require('./questEvents');
+const registerHealthRoutes = require('./health');
 
 const createMatcher = pattern => {
     if (typeof pattern === 'string') {
@@ -34,6 +35,7 @@ module.exports = function createRouter(context) {
     registerAuthRoutes(register, context);
     registerAnnotationRoutes(register, context);
     registerQuestEventRoutes(register, context);
+    registerHealthRoutes(register, context);
 
     return async (req, res, urlObj) => {
         for (const route of routes) {

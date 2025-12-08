@@ -28,10 +28,7 @@ module.exports = (register, context) => {
 
     const log = logger.child('[questEvents]');
 
-    register('GET', '/api/quest-events', async (req, res) => {
-        if (!(await ensureAuthorized(req, res, 'user'))) {
-            return;
-        }
+    register('GET', '/api/quest-events', async (_req, res) => {
         const events = await readQuestEventsFile();
         json(res, 200, { status: 'ok', events });
     });
