@@ -6,7 +6,7 @@
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed",
     "test:ui:update": "playwright test --update-snapshots",
-    "test:unit": "node --test \"tests/unit/**/*.mjs\"",
+    "test:unit": "node --test tests/unit",
     "lint": "echo \"No ESLint config\"",
     "lint:encoding": "node tools/lintEncoding.js",
     "build:static": "node -e \"console.log('Static build placeholder')\"",

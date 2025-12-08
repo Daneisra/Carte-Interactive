@@ -191,6 +191,8 @@ export class EventsFeed {
                 return 'Quete';
             case 'sync':
                 return 'Sync';
+            case 'telemetry':
+                return 'Erreur';
             default:
                 return 'Info';
         }

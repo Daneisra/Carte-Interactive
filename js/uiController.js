@@ -563,6 +563,34 @@ export class UiController {
         this.maybeShowClusteringOnboarding();
     }
 
+    logTelemetryEvent({ title = 'Erreur requete', description = '', route = '', method = '', status = null, meta = {} } = {}) {
+        if (!this.eventsFeed) {
+            return;
+        }
+        const details = [];
+        const normalizedMethod = method ? method.toUpperCase() : '';
+        if (normalizedMethod || route) {
+            details.push([normalizedMethod, route].filter(Boolean).join(' '));
+        }
+        if (status) {
+            details.push(`HTTP ${status}`);
+        }
+        const parts = [];
+        if (description) {
+            parts.push(description);
+        }
+        if (details.length) {
+            parts.push(details.join(' | '));
+        }
+        this.eventsFeed.addEvent({
+            type: 'telemetry',
+            title,
+            description: parts.join(' - ') || 'Incident admin',
+            timestamp: new Date().toISOString(),
+            meta: { ...meta, status, route, method: normalizedMethod }
+        });
+    }
+
     applyLocalization() {
         if (this.dom.sidebar) {
             const title = this.dom.sidebar.querySelector('h2');
@@ -754,6 +782,13 @@ export class UiController {
                 }
                 const error = new Error(message);
                 error.status = response.status;
+                this.logTelemetryEvent({
+                    title: 'Lieux - sauvegarde',
+                    description: message,
+                    route: '/api/locations',
+                    method: 'POST',
+                    status: response.status
+                });
                 throw error;
             }
             const warnings = Array.isArray(payloadResponse?.warnings) ? payloadResponse.warnings : [];
@@ -767,6 +802,13 @@ export class UiController {
             if (this.locationEditor?.showError) {
                 this.locationEditor.showError('form', error?.message || 'Erreur lors de la sauvegarde des donnees.');
             }
+            this.logTelemetryEvent({
+                title: 'Lieux - sauvegarde',
+                description: error?.message || 'Echec de sauvegarde',
+                route: '/api/locations',
+                method: 'POST',
+                status: error?.status || null
+            });
         }
     }
 
@@ -1538,7 +1580,16 @@ export class UiController {
     async fetchUsersList() {
         const response = await fetch('/api/admin/users', { credentials: 'include' });
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            const error = new Error(`HTTP ${response.status}`);
+            error.status = response.status;
+            this.logTelemetryEvent({
+                title: 'Admin users - chargement echoue',
+                description: error.message,
+                route: '/api/admin/users',
+                method: 'GET',
+                status: response.status
+            });
+            throw error;
         }
         const payload = await response.json();
         return Array.isArray(payload?.users) ? payload.users : [];
@@ -1557,7 +1608,16 @@ export class UiController {
                 })
             });
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                const error = new Error(`HTTP ${response.status}`);
+                error.status = response.status;
+                this.logTelemetryEvent({
+                    title: 'Admin users - creation',
+                    description: error.message,
+                    route: '/api/admin/users',
+                    method: 'POST',
+                    status: response.status
+                });
+                throw error;
             }
             const result = await response.json();
             if (result?.token) {
@@ -1569,6 +1629,13 @@ export class UiController {
         } catch (error) {
             console.error('[admin] create user failed', error);
             this.announcer?.assertive?.("Impossible de creer l'utilisateur.");
+            this.logTelemetryEvent({
+                title: 'Admin users - creation',
+                description: error?.message || 'Echec creation utilisateur',
+                route: '/api/admin/users',
+                method: 'POST',
+                status: error?.status || null
+            });
         }
     }
 
@@ -1581,7 +1648,16 @@ export class UiController {
                 body: JSON.stringify(payload)
             });
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                const error = new Error(`HTTP ${response.status}`);
+                error.status = response.status;
+                this.logTelemetryEvent({
+                    title: 'Admin users - mise a jour',
+                    description: error.message,
+                    route: '/api/admin/users',
+                    method: 'PATCH',
+                    status: response.status
+                });
+                throw error;
             }
             const result = await response.json();
             if (result?.token) {
@@ -1592,6 +1668,13 @@ export class UiController {
         } catch (error) {
             console.error('[admin] update user failed', error);
             this.announcer?.assertive?.('Mise a jour impossible.');
+            this.logTelemetryEvent({
+                title: 'Admin users - mise a jour',
+                description: error?.message || 'Echec mise a jour utilisateur',
+                route: '/api/admin/users',
+                method: 'PATCH',
+                status: error?.status || null
+            });
         }
     }
 
@@ -1608,13 +1691,29 @@ export class UiController {
                 body: JSON.stringify({ id: user.id })
             });
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                const error = new Error(`HTTP ${response.status}`);
+                error.status = response.status;
+                this.logTelemetryEvent({
+                    title: 'Admin users - suppression',
+                    description: error.message,
+                    route: '/api/admin/users',
+                    method: 'DELETE',
+                    status: response.status
+                });
+                throw error;
             }
             await this.refreshUserAdminPanel();
             this.announcer?.polite?.('Utilisateur supprime.');
         } catch (error) {
             console.error('[admin] delete user failed', error);
             this.announcer?.assertive?.('Suppression impossible.');
+            this.logTelemetryEvent({
+                title: 'Admin users - suppression',
+                description: error?.message || 'Echec suppression utilisateur',
+                route: '/api/admin/users',
+                method: 'DELETE',
+                status: error?.status || null
+            });
         }
     }
 
@@ -1628,6 +1727,13 @@ export class UiController {
         } catch (error) {
             console.error('[admin] fetch users failed', error);
             this.announcer?.assertive?.('Impossible de charger la liste des utilisateurs.');
+            this.logTelemetryEvent({
+                title: 'Admin users - chargement',
+                description: error?.message || 'Echec chargement utilisateurs',
+                route: '/api/admin/users',
+                method: 'GET',
+                status: error?.status || null
+            });
         }
     }
 
