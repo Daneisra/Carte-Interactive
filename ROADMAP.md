@@ -25,8 +25,8 @@
 - [x] Stockage persistant des sessions entre redémarrages.
 - [x] Workflows GitHub Actions : lint/tests + déploiement (rsync) + reload PM2.
 - [x] UI admin : retours d’erreurs & télémétrie (inclure 4XX/5XX des routes).
-- [ ] Doc OAuth/Discord “opinionated” + check-lists CI.
-- [ ] Job “pull-back”
+- [x] Doc OAuth/Discord “opinionated” + check-lists CI.
+- [x] Job “pull-back”
 
 ### P1 — Valeur
 - [ ] Quêtes interactives avec états visuels et transitions.

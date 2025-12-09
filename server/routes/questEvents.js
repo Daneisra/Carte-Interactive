@@ -122,14 +122,13 @@ module.exports = (register, context) => {
         const questEventId = params?.groups ? params.groups.id : params[1];
         const events = await readQuestEventsFile();
         const index = events.findIndex(event => event?.id === questEventId);
-        if (index === -1) {
-            json(res, 404, createErrorResponse('error', 'Evenement de quete introuvable.'));
-            return;
+        let removed = null;
+        if (index !== -1) {
+            removed = events[index];
+            events.splice(index, 1);
+            await writeQuestEventsFile(events);
         }
-        const existing = events[index];
-        events.splice(index, 1);
-        await writeQuestEventsFile(events);
         broadcastSse('quest.deleted', { id: questEventId });
-        json(res, 200, { status: 'ok', event: existing });
+        json(res, 200, { status: 'ok', event: removed });
     });
 };

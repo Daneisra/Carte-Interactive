@@ -1174,7 +1174,8 @@ const context = {
   sanitizeRole,
   sanitizeUserRecord,
   upsertDiscordUser,
-  fetchJson
+  fetchJson,
+  assetsPath: ASSETS_PATH
 };
 
 const router = createRouter(context);

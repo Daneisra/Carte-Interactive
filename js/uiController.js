@@ -119,6 +119,8 @@ export class UiController {
             authStatus: document.getElementById('auth-status'),
             loginButton: document.getElementById('login-button'),
             logoutButton: document.getElementById('logout-button'),
+            pullbackButton: document.getElementById('pullback-button'),
+            userAdminButton: document.getElementById('user-admin-button'),
             clusteringToggle: document.getElementById('clustering-toggle'),
             clusteringMetrics: document.getElementById('clustering-metrics'),
             markerScaleInput: document.getElementById('marker-size'),
@@ -1481,6 +1483,10 @@ export class UiController {
         if (this.dom.userAdminButton) {
             this.dom.userAdminButton.hidden = !isAdmin;
         }
+        if (this.dom.pullbackButton) {
+            this.dom.pullbackButton.hidden = !isAdmin;
+            this.dom.pullbackButton.disabled = !isAdmin;
+        }
         if (!isAdmin) {
             this.closeUserAdminPanel(true);
         }
@@ -1543,6 +1549,10 @@ export class UiController {
                 }
                 await this.fetchSession();
             });
+        }
+        if (this.dom.pullbackButton && !this.dom.pullbackButton.dataset.bound) {
+            this.dom.pullbackButton.addEventListener('click', () => this.runPullBack());
+            this.dom.pullbackButton.dataset.bound = 'true';
         }
         this.updateAuthUI();
         this.fetchSession();
@@ -1734,6 +1744,48 @@ export class UiController {
                 method: 'GET',
                 status: error?.status || null
             });
+        }
+    }
+
+    async runPullBack() {
+        if (!this.isAdmin()) {
+            this.announcer?.assertive?.('Pull-back reserve aux administrateurs.');
+            return;
+        }
+        if (this.dom.pullbackButton) {
+            this.dom.pullbackButton.disabled = true;
+        }
+        try {
+            const response = await fetch('/api/admin/pull-back', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            const payload = await response.json();
+            if (!response.ok || payload?.status !== 'ok') {
+                throw new Error(payload?.message || `HTTP ${response.status}`);
+            }
+            this.announcer?.polite?.('Pull-back termine.');
+            this.eventsFeed?.addEvent({
+                id: `pullback-${Date.now()}`,
+                type: 'sync',
+                title: 'Pull-back assets',
+                description: `Source: ${payload.source || 'inconnu'}`,
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error('[pull-back] failed', error);
+            this.announcer?.assertive?.(error?.message || 'Pull-back echoue.');
+            this.logTelemetryEvent({
+                title: 'Pull-back assets',
+                description: error?.message || 'Echec pull-back',
+                route: '/api/admin/pull-back',
+                method: 'POST',
+                status: error?.status || null
+            });
+        } finally {
+            if (this.dom.pullbackButton) {
+                this.dom.pullbackButton.disabled = false;
+            }
         }
     }
 
@@ -2398,7 +2450,14 @@ export class UiController {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (!response.ok && response.status !== 204) {
+        let payload = null;
+        if (response.ok || response.status === 204) {
+            try {
+                payload = await response.json();
+            } catch (error) {
+                payload = null;
+            }
+        } else {
             let message = `HTTP ${response.status}`;
             try {
                 const errorPayload = await response.json();
@@ -2410,16 +2469,18 @@ export class UiController {
             }
             throw new Error(message);
         }
-        if (existing) {
-            this.questEvents.delete(existing.id);
-            this.removeQuestEventFromLocation(existing);
+        const removed = existing || payload?.event || null;
+        const removedId = removed?.id || eventId;
+        if (removedId) {
+            this.questEvents.delete(removedId);
+            this.removeQuestEventFromLocation(removed || { id: removedId, locationName: '' });
             this.eventsFeed.addEvent({
-                id: `quest-delete-${existing.id}-${Date.now()}`,
+                id: `quest-delete-${removedId}-${Date.now()}`,
                 type: 'quests',
-                title: 'Quete supprimee',
-                description: existing.questId ? `Quete ${existing.questId} retiree.` : 'Quete retiree.',
+                title: removed ? this.formatQuestEventLabel(removed) : 'Quete supprimee',
+                description: 'Evenement de quete supprime.',
                 timestamp: new Date().toISOString(),
-                questId: existing.questId || null
+                questId: removed?.questId || null
             });
         }
         this.syncLocationEditorQuestEvents();
