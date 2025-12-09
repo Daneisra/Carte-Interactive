@@ -1759,15 +1759,11 @@ export class UiController {
             this.dom.downloadAssetsButton.disabled = true;
         }
         try {
-            const anchor = document.createElement('a');
-            anchor.href = '/api/admin/assets.zip';
-            anchor.download = 'assets.zip';
-            anchor.rel = 'noopener';
-            anchor.target = '_blank';
-            anchor.style.display = 'none';
-            document.body.appendChild(anchor);
-            anchor.click();
-            document.body.removeChild(anchor);
+            // Utilise la navigation pour garantir l'envoi de la requête (cookies inclus).
+            const opened = window.open('/api/admin/assets.zip', '_blank');
+            if (!opened) {
+                window.location.href = '/api/admin/assets.zip';
+            }
             this.announcer?.polite?.('Téléchargement des assets lancé (vérifie tes téléchargements).');
         } catch (error) {
             console.error('[admin] assets download failed', error);

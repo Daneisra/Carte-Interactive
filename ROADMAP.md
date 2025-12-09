@@ -27,6 +27,8 @@
 - [x] UI admin : retours d’erreurs & télémétrie (inclure 4XX/5XX des routes).
 - [x] Doc OAuth/Discord “opinionated” + check-lists CI.
 - [x] Bouton “Download ZIP”
+- [ ] Fix various error
+- [ ] Gros Polish UI
 
 ### P1 — Valeur
 - [ ] Quêtes interactives avec états visuels et transitions.
