@@ -120,10 +120,16 @@ module.exports = (register, context) => {
             return;
         }
         const questEventId = params?.groups ? params.groups.id : params[1];
+        const normalizedId = normalizeString(questEventId);
         const events = await readQuestEventsFile();
-        const index = events.findIndex(event => event?.id === questEventId);
+        const index = events.findIndex(event => {
+            const eventId = normalizeString(event?.id);
+            return event?.id === questEventId || (eventId && eventId === normalizedId);
+        });
         if (index === -1) {
-            json(res, 404, createErrorResponse('error', 'Evenement de quete introuvable.'));
+            // Idempotent: si l’élément n’existe pas, renvoyer OK pour éviter de bloquer l’UI.
+            broadcastSse('quest.deleted', { id: questEventId });
+            json(res, 200, { status: 'ok', missing: true, id: questEventId });
             return;
         }
         const existing = events[index];
