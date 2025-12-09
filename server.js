@@ -1223,9 +1223,10 @@ const server = http.createServer(async (req, res) => {
       if (!(await ensureAuthorized(req, res, 'admin'))) {
         return;
       }
-      const zipCommand = process.env.ZIP_COMMAND || 'zip';
       const filename = 'assets.zip';
       let tempDir = null;
+      let archivePath = null;
+      let methodUsed = null;
       const cleanup = async () => {
         if (tempDir) {
           try {
@@ -1235,10 +1236,9 @@ const server = http.createServer(async (req, res) => {
           }
         }
       };
-      try {
-        tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'assets-zip-'));
-        const archivePath = path.join(tempDir, filename);
-        const args = ['-r', archivePath, '.', '-x', 'logs/*'];
+      const createWithZipCmd = async targetPath => {
+        const zipCommand = process.env.ZIP_COMMAND || 'zip';
+        const args = ['-r', targetPath, '.', '-x', 'logs/*'];
         await new Promise((resolve, reject) => {
           execFile(zipCommand, args, { cwd: ASSETS_PATH }, (error, stdout, stderr) => {
             if (error) {
@@ -1249,10 +1249,47 @@ const server = http.createServer(async (req, res) => {
             return resolve();
           });
         });
+      };
+      const createWithPowershell = async targetPath => {
+        const command = [
+          'Compress-Archive',
+          '-Path', '*',
+          '-DestinationPath', `"${targetPath}"`,
+          '-Force',
+          '-CompressionLevel', 'Optimal',
+          '-Exclude', 'logs/*', 'icons/README.md'
+        ].join(' ');
+        await new Promise((resolve, reject) => {
+          execFile('powershell', ['-Command', command], { cwd: ASSETS_PATH }, (error, stdout, stderr) => {
+            if (error) {
+              const enriched = new Error(stderr?.toString().trim() || error.message || 'Compress-Archive failed');
+              enriched.code = error.code || error.errno;
+              return reject(enriched);
+            }
+            return resolve();
+          });
+        });
+      };
+      try {
+        tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'assets-zip-'));
+        archivePath = path.join(tempDir, filename);
+        try {
+          await createWithZipCmd(archivePath);
+          methodUsed = 'zip';
+        } catch (zipError) {
+          const missingZip = zipError?.code === 'ENOENT';
+          if (missingZip && process.platform === 'win32') {
+            await createWithPowershell(archivePath);
+            methodUsed = 'powershell';
+          } else {
+            throw zipError;
+          }
+        }
         res.writeHead(200, {
           ...SECURITY_HEADERS,
           'Content-Type': 'application/zip',
-          'Content-Disposition': `attachment; filename="${filename}"`
+          'Content-Disposition': `attachment; filename="${filename}"`,
+          'X-Archive-Method': methodUsed || 'unknown'
         });
         const stream = fs.createReadStream(archivePath);
         stream.on('error', async error => {
