@@ -4,7 +4,6 @@ const registerAnnotationRoutes = require('./annotations');
 const registerQuestEventRoutes = require('./questEvents');
 const registerHealthRoutes = require('./health');
 const registerPullbackRoutes = require('./pullback');
-const registerHealthRoutes = require('./health');
 
 const createMatcher = pattern => {
     if (typeof pattern === 'string') {
