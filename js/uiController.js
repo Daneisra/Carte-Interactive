@@ -1759,37 +1759,19 @@ export class UiController {
             this.dom.downloadAssetsButton.disabled = true;
         }
         try {
-            const response = await fetch('/api/admin/assets.zip', { credentials: 'include' });
-            if (!response.ok) {
-                let message = `HTTP ${response.status}`;
-                try {
-                    const payload = await response.json();
-                    if (payload?.message) {
-                        message = payload.message;
-                    }
-                } catch (e) {
-                    // ignore parse errors
-                }
-                const error = new Error(message);
-                error.status = response.status;
-                throw error;
-            }
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
             const anchor = document.createElement('a');
-            anchor.href = url;
-            const disposition = response.headers.get('Content-Disposition') || '';
-            const match = disposition.match(/filename=\"?([^\";]+)\"?/i);
-            anchor.download = match?.[1] || 'assets.zip';
+            anchor.href = '/api/admin/assets.zip';
+            anchor.download = 'assets.zip';
             anchor.rel = 'noopener';
+            anchor.target = '_blank';
+            anchor.style.display = 'none';
             document.body.appendChild(anchor);
             anchor.click();
             document.body.removeChild(anchor);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            this.announcer?.polite?.('Archive assets telechargee.');
+            this.announcer?.polite?.('Téléchargement des assets lancé (vérifie tes téléchargements).');
         } catch (error) {
             console.error('[admin] assets download failed', error);
-            this.announcer?.assertive?.(error?.message || 'Telechargement echoue.');
+            this.announcer?.assertive?.(error?.message || 'Téléchargement échoué.');
             this.logTelemetryEvent({
                 title: 'Download assets',
                 description: error?.message || 'Echec telechargement assets',
@@ -1799,7 +1781,9 @@ export class UiController {
             });
         } finally {
             if (this.dom.downloadAssetsButton) {
-                this.dom.downloadAssetsButton.disabled = false;
+                setTimeout(() => {
+                    this.dom.downloadAssetsButton.disabled = false;
+                }, 800);
             }
         }
     }
