@@ -119,6 +119,7 @@ export class UiController {
             authStatus: document.getElementById('auth-status'),
             loginButton: document.getElementById('login-button'),
             logoutButton: document.getElementById('logout-button'),
+            downloadAssetsButton: document.getElementById('download-assets-button'),
             clusteringToggle: document.getElementById('clustering-toggle'),
             clusteringMetrics: document.getElementById('clustering-metrics'),
             markerScaleInput: document.getElementById('marker-size'),
@@ -538,6 +539,7 @@ export class UiController {
 
         this.setupLocationEditor();
         this.setupUserAdminPanel();
+        this.bindAssetsDownloadButton();
         this.updateAuthUI();
         this.buildSidebar(this.locationsData);
         this.refreshFilterMetadata({ reapply: false });
@@ -1481,6 +1483,9 @@ export class UiController {
         if (this.dom.userAdminButton) {
             this.dom.userAdminButton.hidden = !isAdmin;
         }
+        if (this.dom.downloadAssetsButton) {
+            this.dom.downloadAssetsButton.hidden = !isAdmin;
+        }
         if (!isAdmin) {
             this.closeUserAdminPanel(true);
         }
@@ -1575,6 +1580,14 @@ export class UiController {
             this.dom.userAdminOverlay.dataset.bound = 'true';
         }
         this.closeUserAdminPanel(true);
+    }
+
+    bindAssetsDownloadButton() {
+        if (!this.dom.downloadAssetsButton || this.dom.downloadAssetsButton.dataset.bound) {
+            return;
+        }
+        this.dom.downloadAssetsButton.addEventListener('click', () => this.downloadAssetsArchive());
+        this.dom.downloadAssetsButton.dataset.bound = 'true';
     }
 
     async fetchUsersList() {
@@ -1734,6 +1747,60 @@ export class UiController {
                 method: 'GET',
                 status: error?.status || null
             });
+        }
+    }
+
+    async downloadAssetsArchive() {
+        if (!this.isAdmin()) {
+            this.announcer?.assertive?.('Connexion administrateur requise.');
+            return;
+        }
+        if (this.dom.downloadAssetsButton) {
+            this.dom.downloadAssetsButton.disabled = true;
+        }
+        try {
+            const response = await fetch('/api/admin/assets.zip', { credentials: 'include' });
+            if (!response.ok) {
+                let message = `HTTP ${response.status}`;
+                try {
+                    const payload = await response.json();
+                    if (payload?.message) {
+                        message = payload.message;
+                    }
+                } catch (e) {
+                    // ignore parse errors
+                }
+                const error = new Error(message);
+                error.status = response.status;
+                throw error;
+            }
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            const disposition = response.headers.get('Content-Disposition') || '';
+            const match = disposition.match(/filename=\"?([^\";]+)\"?/i);
+            anchor.download = match?.[1] || 'assets.zip';
+            anchor.rel = 'noopener';
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            this.announcer?.polite?.('Archive assets telechargee.');
+        } catch (error) {
+            console.error('[admin] assets download failed', error);
+            this.announcer?.assertive?.(error?.message || 'Telechargement echoue.');
+            this.logTelemetryEvent({
+                title: 'Download assets',
+                description: error?.message || 'Echec telechargement assets',
+                route: '/api/admin/assets.zip',
+                method: 'GET',
+                status: error?.status || null
+            });
+        } finally {
+            if (this.dom.downloadAssetsButton) {
+                this.dom.downloadAssetsButton.disabled = false;
+            }
         }
     }
 

@@ -3,7 +3,9 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
+const { execFile } = require('child_process');
 const { URL, pathToFileURL } = require('url');
 const logger = require('./server/utils/logger');
 const { withFileLock } = require('./server/utils/fileLock');
@@ -1213,6 +1215,65 @@ const server = http.createServer(async (req, res) => {
       } catch (error) {
         logger.error('[upload] error', { error: error.message });
         send(res, 400, JSON.stringify({ status: 'error', message: error.message }), { 'Content-Type': 'application/json' });
+      }
+      return;
+    }
+
+    if (req.method === 'GET' && urlObj.pathname === '/api/admin/assets.zip') {
+      if (!(await ensureAuthorized(req, res, 'admin'))) {
+        return;
+      }
+      const zipCommand = process.env.ZIP_COMMAND || 'zip';
+      const filename = 'assets.zip';
+      let tempDir = null;
+      const cleanup = async () => {
+        if (tempDir) {
+          try {
+            await fs.promises.rm(tempDir, { recursive: true, force: true });
+          } catch (error) {
+            logger.warn('[assets-zip] cleanup failed', { error: error.message });
+          }
+        }
+      };
+      try {
+        tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'assets-zip-'));
+        const archivePath = path.join(tempDir, filename);
+        const args = ['-r', archivePath, '.', '-x', 'logs/*'];
+        await new Promise((resolve, reject) => {
+          execFile(zipCommand, args, { cwd: ASSETS_PATH }, (error, stdout, stderr) => {
+            if (error) {
+              const enriched = new Error(stderr?.toString().trim() || error.message || 'zip failed');
+              enriched.code = error.code || error.errno;
+              return reject(enriched);
+            }
+            return resolve();
+          });
+        });
+        res.writeHead(200, {
+          ...SECURITY_HEADERS,
+          'Content-Type': 'application/zip',
+          'Content-Disposition': `attachment; filename="${filename}"`
+        });
+        const stream = fs.createReadStream(archivePath);
+        stream.on('error', async error => {
+          logger.error('[assets-zip] stream error', { error: error.message });
+          if (!res.headersSent) {
+            send(res, 500, JSON.stringify({ status: 'error', message: 'Erreur lors du telechargement.' }), { 'Content-Type': 'application/json' });
+          } else {
+            res.destroy(error);
+          }
+          await cleanup();
+        });
+        stream.on('close', cleanup);
+        stream.pipe(res);
+      } catch (error) {
+        const isMissingZip = error?.code === 'ENOENT';
+        const message = isMissingZip
+          ? 'Outil \"zip\" introuvable sur le serveur. Installez-le ou configurez ZIP_COMMAND.'
+          : (error?.message || 'Echec de la generation de l’archive.');
+        logger.error('[assets-zip] generation failed', { error: message });
+        send(res, isMissingZip ? 501 : 500, JSON.stringify({ status: 'error', message }), { 'Content-Type': 'application/json' });
+        await cleanup();
       }
       return;
     }
