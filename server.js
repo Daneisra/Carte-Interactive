@@ -1270,6 +1270,19 @@ const server = http.createServer(async (req, res) => {
           });
         });
       };
+      const createWithTar = async targetPath => {
+        const args = ['-czf', targetPath, '--exclude=logs', '--exclude=icons/README.md', '.'];
+        await new Promise((resolve, reject) => {
+          execFile('tar', args, { cwd: ASSETS_PATH }, (error, stdout, stderr) => {
+            if (error) {
+              const enriched = new Error(stderr?.toString().trim() || error.message || 'tar failed');
+              enriched.code = error.code || error.errno;
+              return reject(enriched);
+            }
+            return resolve();
+          });
+        });
+      };
       try {
         tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'assets-zip-'));
         archivePath = path.join(tempDir, filename);
@@ -1281,13 +1294,18 @@ const server = http.createServer(async (req, res) => {
           if (missingZip && process.platform === 'win32') {
             await createWithPowershell(archivePath);
             methodUsed = 'powershell';
+          } else if (missingZip) {
+            filename = 'assets.tar.gz';
+            archivePath = path.join(tempDir, filename);
+            await createWithTar(archivePath);
+            methodUsed = 'tar';
           } else {
             throw zipError;
           }
         }
         res.writeHead(200, {
           ...SECURITY_HEADERS,
-          'Content-Type': 'application/zip',
+          'Content-Type': methodUsed === 'tar' ? 'application/gzip' : 'application/zip',
           'Content-Disposition': `attachment; filename="${filename}"`,
           'X-Archive-Method': methodUsed || 'unknown'
         });
@@ -1306,7 +1324,7 @@ const server = http.createServer(async (req, res) => {
       } catch (error) {
         const isMissingZip = error?.code === 'ENOENT';
         const message = isMissingZip
-          ? 'Outil \"zip\" introuvable sur le serveur. Installez-le ou configurez ZIP_COMMAND.'
+          ? 'Outil d’archivage introuvable (zip/tar). Installez zip ou tar, ou configurez ZIP_COMMAND.'
           : (error?.message || 'Echec de la generation de l’archive.');
         logger.error('[assets-zip] generation failed', { error: message });
         send(res, isMissingZip ? 501 : 500, JSON.stringify({ status: 'error', message }), { 'Content-Type': 'application/json' });
