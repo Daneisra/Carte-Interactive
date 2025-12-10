@@ -414,7 +414,7 @@
     </div>
 
     <div id="admin-overlay" class="admin-overlay" role="presentation" hidden>
-        <div class="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+        <div class="admin-dialog" id="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-title">
             <header class="admin-header">
                 <h2 id="admin-title">Administration</h2>
                 <button id="admin-close" class="admin-close" type="button" aria-label="Fermer le panneau admin">×</button>
@@ -429,7 +429,7 @@
                     <h3>Actions</h3>
                     <div class="admin-actions">
                         <button id="admin-user-button" class="secondary-button" type="button">Gestion utilisateurs</button>
-                        <a id="download-assets-button" class="secondary-button" href="/api/admin/assets.zip" download role="button">Télécharger assets</a>
+                        <button id="download-assets-button" class="secondary-button" type="button">Télécharger assets</button>
                     </div>
                 </section>
 
@@ -458,8 +458,6 @@
 
 </body>
 </html>
-
-
 
 
 

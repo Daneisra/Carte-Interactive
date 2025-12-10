@@ -1122,48 +1122,41 @@ export class UiController {
         const changed = previousKey !== nextKey;
         this.latestValidationWarnings = unique;
 
-        const isAdmin = this.isAdmin();
-
-        if (!isAdmin) {
-            if (this.dom.validationWarnings) {
-                this.dom.validationWarnings.hidden = true;
-                this.dom.validationWarnings.setAttribute('aria-hidden', 'true');
-            }
-            if (this.dom.validationWarningsList) {
-                clearElement(this.dom.validationWarningsList);
-            }
-            if (this.dom.validationWarningsFootnote) {
-                this.dom.validationWarningsFootnote.textContent = '';
-                this.dom.validationWarningsFootnote.hidden = true;
-            }
-            if (this.locationEditor?.showWarnings) {
-                this.locationEditor.showWarnings([]);
-            }
-            return;
+        // Sidebar: toujours masqué pour éviter le doublon avec le panneau admin.
+        if (this.dom.validationWarnings) {
+            this.dom.validationWarnings.hidden = true;
+            this.dom.validationWarnings.setAttribute('aria-hidden', 'true');
         }
-
         if (this.dom.validationWarningsList) {
             clearElement(this.dom.validationWarningsList);
-            const MAX_WARNINGS = 8;
+        }
+        if (this.dom.validationWarningsFootnote) {
+            this.dom.validationWarningsFootnote.textContent = '';
+            this.dom.validationWarningsFootnote.hidden = true;
+        }
+
+        // Admin panel rendering
+        if (this.adminDom.validationWarningsList) {
+            this.adminDom.validationWarningsList.innerHTML = '';
+            const MAX_WARNINGS = 24;
             unique.slice(0, MAX_WARNINGS).forEach(message => {
-                this.dom.validationWarningsList.appendChild(createElement('li', { text: message }));
+                this.adminDom.validationWarningsList.appendChild(createElement('li', { text: message }));
             });
-            if (this.dom.validationWarningsFootnote) {
+            if (this.adminDom.validationWarningsFootnote) {
                 if (unique.length > MAX_WARNINGS) {
                     const extra = unique.length - MAX_WARNINGS;
-                    this.dom.validationWarningsFootnote.textContent = `+ ${extra} avertissement(s) supplémentaire(s) masqué(s).`;
-                    this.dom.validationWarningsFootnote.hidden = false;
+                    this.adminDom.validationWarningsFootnote.textContent = `+ ${extra} avertissement(s) supplémentaire(s) masqué(s).`;
+                    this.adminDom.validationWarningsFootnote.hidden = false;
                 } else {
-                    this.dom.validationWarningsFootnote.textContent = '';
-                    this.dom.validationWarningsFootnote.hidden = true;
+                    this.adminDom.validationWarningsFootnote.textContent = '';
+                    this.adminDom.validationWarningsFootnote.hidden = true;
                 }
             }
         }
-
-        if (this.dom.validationWarnings) {
+        if (this.adminDom.validationWarnings) {
             const hasWarnings = unique.length > 0;
-            this.dom.validationWarnings.hidden = !hasWarnings;
-            this.dom.validationWarnings.setAttribute('aria-hidden', hasWarnings ? 'false' : 'true');
+            this.adminDom.validationWarnings.hidden = !hasWarnings;
+            this.adminDom.validationWarnings.setAttribute('aria-hidden', hasWarnings ? 'false' : 'true');
         }
 
         if (this.locationEditor?.showWarnings) {
@@ -1692,11 +1685,15 @@ export class UiController {
     }
 
     bindAssetsDownloadButton() {
-        if (!this.dom.downloadAssetsButton || this.dom.downloadAssetsButton.dataset.bound) {
+        const button = this.adminDom.downloadAssetsButton || this.dom.downloadAssetsButton;
+        if (!button || button.dataset.bound) {
             return;
         }
-        this.dom.downloadAssetsButton.addEventListener('click', () => this.downloadAssetsArchive());
-        this.dom.downloadAssetsButton.dataset.bound = 'true';
+        button.addEventListener('click', event => {
+            event.preventDefault();
+            this.downloadAssetsArchive();
+        });
+        button.dataset.bound = 'true';
     }
 
     async fetchUsersList() {
@@ -1864,15 +1861,12 @@ export class UiController {
             this.announcer?.assertive?.('Connexion administrateur requise.');
             return;
         }
-        if (this.dom.downloadAssetsButton) {
-            this.dom.downloadAssetsButton.disabled = true;
+        const button = this.adminDom.downloadAssetsButton || this.dom.downloadAssetsButton;
+        if (button) {
+            button.disabled = true;
         }
         try {
-            // Utilise la navigation pour garantir l'envoi de la requête (cookies inclus).
-            const opened = window.open('/api/admin/assets.zip', '_blank');
-            if (!opened) {
-                window.location.href = '/api/admin/assets.zip';
-            }
+            await this.triggerAssetsDownload();
             this.announcer?.polite?.('Téléchargement des assets lancé (vérifie tes téléchargements).');
         } catch (error) {
             console.error('[admin] assets download failed', error);
@@ -1885,12 +1879,24 @@ export class UiController {
                 status: error?.status || null
             });
         } finally {
-            if (this.dom.downloadAssetsButton) {
+            if (button) {
                 setTimeout(() => {
-                    this.dom.downloadAssetsButton.disabled = false;
+                    button.disabled = false;
                 }, 800);
             }
         }
+    }
+
+    async triggerAssetsDownload() {
+        // Crée un lien invisible et clique dessus pour n'envoyer qu'une requête.
+        const anchor = document.createElement('a');
+        anchor.href = '/api/admin/assets.zip';
+        anchor.download = 'assets.zip';
+        anchor.rel = 'noopener';
+        anchor.style.display = 'none';
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
     }
 
     async openUserAdminPanel() {

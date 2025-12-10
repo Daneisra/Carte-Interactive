@@ -28,13 +28,13 @@
 - [x] Doc OAuth/Discord “opinionated” + check-lists CI.
 - [x] Bouton “Download ZIP”
 - [x] Vrai panneau admin séparer avec centralisation de la Gestion utilisateurs, téléchargement assets, alerte de validation, erreurs, télémétrie etc
-- [ ] Fix various error, téléchargement de assets en double
 - [ ] Gros Polish UI
 
 ### P1 — Valeur
 - [ ] Quêtes interactives avec états visuels et transitions.
 - [ ] Markers thématiques/stylés par type + légende.
 - [ ] Tableau de bord live (compteurs SSE/latences) côté admin.
+- [ ] Narateur audio
 
 ### P2 — Différenciants
 - [ ] Carte chronologique (replay des lieux/événements).
