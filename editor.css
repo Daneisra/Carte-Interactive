@@ -143,6 +143,10 @@ body[data-theme="light"] .auth-panel .auth-status {
     z-index: 2000;
 }
 
+.admin-overlay[hidden] {
+    display: none !important;
+}
+
 .admin-dialog {
     width: 420px;
     max-width: 90vw;

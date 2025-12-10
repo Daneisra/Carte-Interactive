@@ -562,6 +562,7 @@ export class UiController {
         this.bindAdminPanel();
         this.bindAssetsDownloadButton();
         this.updateAuthUI();
+        this.closeAdminPanel(true);
         this.buildSidebar(this.locationsData);
         this.refreshFilterMetadata({ reapply: false });
         this.restoreMapState();
