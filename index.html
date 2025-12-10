@@ -37,13 +37,13 @@
             <span id="search-results-count" class="results-badge" data-state="all" aria-live="polite" aria-atomic="true">0 lieu</span>
         </div>
 
-        <button id="add-location" class="primary-button" type="button">Ajouter un lieu</button>
+        <button id="add-location" class="primary-button admin-locked" type="button">Ajouter un lieu</button>
 
         <div id="auth-panel" class="auth-panel" aria-live="polite">
             <p id="auth-status" class="auth-status">Connexion requise pour modifier les lieux.</p>
             <button id="login-button" class="secondary-button" type="button">Connexion Discord</button>
             <button id="logout-button" class="secondary-button" type="button" hidden>Se déconnecter</button>
-            <button id="admin-panel-button" class="secondary-button" type="button" hidden>Ouvrir le panneau admin</button>
+            <button id="admin-panel-button" class="secondary-button admin-locked" type="button" hidden>Ouvrir le panneau admin</button>
         </div>
 
         <div id="validation-warnings" class="validation-warnings" aria-live="polite" hidden>
@@ -468,6 +468,5 @@
 
 </body>
 </html>
-
 
 

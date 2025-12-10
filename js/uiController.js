@@ -1486,7 +1486,9 @@ export class UiController {
             this.dom.logoutButton.hidden = !this.authRequired || !authenticated;
         }
         if (this.dom.adminPanelButton) {
-            this.dom.adminPanelButton.hidden = !isAdmin;
+            const shouldHide = !isAdmin;
+            this.dom.adminPanelButton.hidden = shouldHide;
+            this.dom.adminPanelButton.classList.toggle('admin-locked', shouldHide);
         }
         if (this.adminDom.userButton) {
             this.adminDom.userButton.disabled = !isAdmin;
@@ -1499,8 +1501,11 @@ export class UiController {
             this.closeAdminPanel(true);
         }
         if (this.dom.addLocation) {
-            this.dom.addLocation.disabled = !isAdmin;
-            this.dom.addLocation.setAttribute('aria-disabled', String(!isAdmin));
+            const shouldHide = !isAdmin;
+            this.dom.addLocation.disabled = shouldHide;
+            this.dom.addLocation.hidden = shouldHide;
+            this.dom.addLocation.setAttribute('aria-disabled', String(shouldHide));
+            this.dom.addLocation.classList.toggle('admin-locked', shouldHide);
         }
         if (this.locationEditor?.deleteButton) {
             this.locationEditor.deleteButton.disabled = !isAdmin;
