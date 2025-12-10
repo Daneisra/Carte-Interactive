@@ -119,7 +119,7 @@ export class UiController {
             authStatus: document.getElementById('auth-status'),
             loginButton: document.getElementById('login-button'),
             logoutButton: document.getElementById('logout-button'),
-            downloadAssetsButton: document.getElementById('download-assets-button'),
+            adminPanelButton: document.getElementById('admin-panel-button'),
             clusteringToggle: document.getElementById('clustering-toggle'),
             clusteringMetrics: document.getElementById('clustering-metrics'),
             markerScaleInput: document.getElementById('marker-size'),
@@ -164,6 +164,20 @@ export class UiController {
             validationWarnings: document.getElementById('validation-warnings'),
             validationWarningsList: document.getElementById('validation-warnings-list'),
             validationWarningsFootnote: document.getElementById('validation-warnings-footnote')
+        };
+
+        this.adminDom = {
+            overlay: document.getElementById('admin-overlay'),
+            dialog: document.getElementById('admin-dialog'),
+            close: document.getElementById('admin-close'),
+            status: document.getElementById('admin-auth-status'),
+            userButton: document.getElementById('admin-user-button'),
+            downloadAssetsButton: document.getElementById('download-assets-button'),
+            validationWarnings: document.getElementById('admin-validation-warnings'),
+            validationWarningsList: document.getElementById('admin-validation-list'),
+            validationWarningsFootnote: document.getElementById('admin-validation-footnote'),
+            telemetryList: document.getElementById('admin-telemetry-list'),
+            telemetryEmpty: document.getElementById('admin-telemetry-empty')
         };
 
         this.announcer = new AriaAnnouncer({
@@ -545,6 +559,7 @@ export class UiController {
 
         this.setupLocationEditor();
         this.setupUserAdminPanel();
+        this.bindAdminPanel();
         this.bindAssetsDownloadButton();
         this.updateAuthUI();
         this.buildSidebar(this.locationsData);
@@ -1470,14 +1485,18 @@ export class UiController {
         if (this.dom.logoutButton) {
             this.dom.logoutButton.hidden = !this.authRequired || !authenticated;
         }
-        if (this.dom.userAdminButton) {
-            this.dom.userAdminButton.hidden = !isAdmin;
+        if (this.dom.adminPanelButton) {
+            this.dom.adminPanelButton.hidden = !isAdmin;
         }
-        if (this.dom.downloadAssetsButton) {
-            this.dom.downloadAssetsButton.hidden = !isAdmin;
+        if (this.adminDom.userButton) {
+            this.adminDom.userButton.disabled = !isAdmin;
+        }
+        if (this.adminDom.downloadAssetsButton) {
+            this.adminDom.downloadAssetsButton.hidden = !isAdmin;
         }
         if (!isAdmin) {
             this.closeUserAdminPanel(true);
+            this.closeAdminPanel(true);
         }
         if (this.dom.addLocation) {
             this.dom.addLocation.disabled = !isAdmin;
@@ -1539,6 +1558,10 @@ export class UiController {
                 await this.fetchSession();
             });
         }
+        if (this.dom.adminPanelButton && !this.dom.adminPanelButton.dataset.bound) {
+            this.dom.adminPanelButton.addEventListener('click', () => this.openAdminPanel());
+            this.dom.adminPanelButton.dataset.bound = 'true';
+        }
         this.updateAuthUI();
         this.fetchSession();
     }
@@ -1570,6 +1593,102 @@ export class UiController {
             this.dom.userAdminOverlay.dataset.bound = 'true';
         }
         this.closeUserAdminPanel(true);
+    }
+
+    openAdminPanel() {
+        if (!this.isAdmin()) {
+            this.announcer?.assertive?.('Connexion administrateur requise.');
+            return;
+        }
+        if (!this.adminDom.overlay) {
+            return;
+        }
+        this.syncAdminStatus();
+        this.syncAdminValidationWarnings();
+        this.syncAdminTelemetry();
+        this.adminDom.overlay.hidden = false;
+        this.adminDom.overlay.classList.add('open');
+    }
+
+    closeAdminPanel(force = false) {
+        if (!this.adminDom.overlay) {
+            return;
+        }
+        this.adminDom.overlay.classList.remove('open');
+        this.adminDom.overlay.hidden = true;
+        if (force && this.adminDom.overlay) {
+            this.adminDom.overlay.scrollTop = 0;
+        }
+    }
+
+    bindAdminPanel() {
+        if (!this.adminDom.overlay) {
+            return;
+        }
+        if (this.adminDom.close && !this.adminDom.close.dataset.bound) {
+            this.adminDom.close.addEventListener('click', () => this.closeAdminPanel(true));
+            this.adminDom.close.dataset.bound = 'true';
+        }
+        if (this.adminDom.userButton && !this.adminDom.userButton.dataset.bound) {
+            this.adminDom.userButton.addEventListener('click', () => this.openUserAdminPanel());
+            this.adminDom.userButton.dataset.bound = 'true';
+        }
+        if (this.adminDom.downloadAssetsButton && !this.adminDom.downloadAssetsButton.dataset.bound) {
+            this.adminDom.downloadAssetsButton.addEventListener('click', () => this.downloadAssetsArchive());
+            this.adminDom.downloadAssetsButton.dataset.bound = 'true';
+        }
+    }
+
+    syncAdminStatus() {
+        if (!this.adminDom.status) {
+            return;
+        }
+        const isAdmin = this.isAdmin();
+        const name = this.auth?.username ? ` (${this.auth.username})` : '';
+        this.adminDom.status.textContent = isAdmin
+            ? `Connecté en tant qu'administrateur${name}.`
+            : 'Connexion administrateur requise.';
+    }
+
+    syncAdminValidationWarnings() {
+        if (!this.adminDom.validationWarnings) {
+            return;
+        }
+        const warnings = Array.isArray(this.latestValidationWarnings) ? this.latestValidationWarnings : [];
+        const list = this.adminDom.validationWarningsList;
+        const foot = this.adminDom.validationWarningsFootnote;
+        if (list) {
+            list.innerHTML = '';
+            warnings.forEach(message => {
+                const li = document.createElement('li');
+                li.textContent = message;
+                list.appendChild(li);
+            });
+        }
+        if (this.adminDom.validationWarnings) {
+            this.adminDom.validationWarnings.hidden = warnings.length === 0;
+        }
+        if (foot) {
+            foot.hidden = true;
+        }
+    }
+
+    syncAdminTelemetry() {
+        if (!this.adminDom.telemetryList || !this.adminDom.telemetryEmpty) {
+            return;
+        }
+        const telemetry = Array.isArray(this.telemetryLog) ? this.telemetryLog.slice(-10) : [];
+        this.adminDom.telemetryList.innerHTML = '';
+        if (!telemetry.length) {
+            this.adminDom.telemetryEmpty.hidden = false;
+            return;
+        }
+        this.adminDom.telemetryEmpty.hidden = true;
+        telemetry.forEach(entry => {
+            const li = document.createElement('li');
+            li.textContent = entry?.description || entry?.title || 'Erreur/évènement';
+            this.adminDom.telemetryList.appendChild(li);
+        });
     }
 
     bindAssetsDownloadButton() {

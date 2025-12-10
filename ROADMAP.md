@@ -27,8 +27,8 @@
 - [x] UI admin : retours d’erreurs & télémétrie (inclure 4XX/5XX des routes).
 - [x] Doc OAuth/Discord “opinionated” + check-lists CI.
 - [x] Bouton “Download ZIP”
-- [ ] Vrai panneau admin séparer avec centralisation de la Gestion utilisateurs, téléchargement assets, alerte de validation, erreurs, télémétrie etc
-- [ ] Fix various error
+- [x] Vrai panneau admin séparer avec centralisation de la Gestion utilisateurs, téléchargement assets, alerte de validation, erreurs, télémétrie etc
+- [ ] Fix various error, téléchargement de assets en double
 - [ ] Gros Polish UI
 
 ### P1 — Valeur

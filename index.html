@@ -43,8 +43,7 @@
             <p id="auth-status" class="auth-status">Connexion requise pour modifier les lieux.</p>
             <button id="login-button" class="secondary-button" type="button">Connexion Discord</button>
             <button id="logout-button" class="secondary-button" type="button" hidden>Se déconnecter</button>
-            <button id="user-admin-button" class="secondary-button" type="button" hidden>Gestion utilisateurs</button>
-            <a id="download-assets-button" class="secondary-button" href="/api/admin/assets.zip" download role="button" hidden>Télécharger assets</a>
+            <button id="admin-panel-button" class="secondary-button" type="button" hidden>Ouvrir le panneau admin</button>
         </div>
 
         <div id="validation-warnings" class="validation-warnings" aria-live="polite" hidden>
@@ -414,6 +413,43 @@
         </div>
     </div>
 
+    <div id="admin-overlay" class="admin-overlay" role="presentation" hidden>
+        <div class="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+            <header class="admin-header">
+                <h2 id="admin-title">Administration</h2>
+                <button id="admin-close" class="admin-close" type="button" aria-label="Fermer le panneau admin">×</button>
+            </header>
+            <div class="admin-content">
+                <section class="admin-section" id="admin-section-status">
+                    <h3>Statut</h3>
+                    <p id="admin-auth-status">Connexion requise.</p>
+                </section>
+
+                <section class="admin-section" id="admin-section-actions">
+                    <h3>Actions</h3>
+                    <div class="admin-actions">
+                        <button id="admin-user-button" class="secondary-button" type="button">Gestion utilisateurs</button>
+                        <a id="download-assets-button" class="secondary-button" href="/api/admin/assets.zip" download role="button">Télécharger assets</a>
+                    </div>
+                </section>
+
+                <section class="admin-section" id="admin-section-alerts">
+                    <h3>Alertes de validation</h3>
+                    <div id="admin-validation-warnings" class="validation-warnings" aria-live="polite">
+                        <ul id="admin-validation-list" class="validation-warnings-list"></ul>
+                        <p id="admin-validation-footnote" class="validation-warnings-footnote" hidden></p>
+                    </div>
+                </section>
+
+                <section class="admin-section" id="admin-section-telemetry">
+                    <h3>Télémétrie / erreurs</h3>
+                    <ul id="admin-telemetry-list" class="telemetry-list"></ul>
+                    <p id="admin-telemetry-empty">Aucune erreur récente.</p>
+                </section>
+            </div>
+        </div>
+    </div>
+
     <!-- ⚙️ Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.3/dist/purify.min.js" defer></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -422,8 +458,6 @@
 
 </body>
 </html>
-
-
 
 
 
