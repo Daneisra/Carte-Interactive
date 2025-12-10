@@ -11,6 +11,42 @@ const collectTextArray = value => {
     return [];
 };
 
+const normalizeQuestEvents = (events = [], locationName = '') => {
+    if (!Array.isArray(events)) {
+        return [];
+    }
+    return events
+        .map(event => {
+            const id = sanitizeString(event?.id) || `quest_${Date.now()}`;
+            const questId = sanitizeString(event?.questId);
+            const status = sanitizeString(event?.status);
+            const milestone = sanitizeString(event?.milestone) || null;
+            const note = sanitizeString(event?.note) || '';
+            const locName = sanitizeString(event?.locationName) || sanitizeString(locationName);
+            let progress = null;
+            if (event?.progress && typeof event.progress === 'object') {
+                const current = Number(event.progress.current);
+                const max = event.progress.max !== undefined ? Number(event.progress.max) : null;
+                progress = {
+                    current: Number.isFinite(current) ? current : 0,
+                    max: Number.isFinite(max) ? max : null
+                };
+            }
+            return {
+                id,
+                questId,
+                locationName: locName,
+                status,
+                milestone,
+                progress,
+                note,
+                updatedAt: sanitizeString(event?.updatedAt) || null,
+                createdAt: sanitizeString(event?.createdAt) || null
+            };
+        })
+        .filter(event => event.id && event.questId && event.locationName && event.status);
+};
+
 const normalizePnjList = pnjs => {
     if (!Array.isArray(pnjs)) {
         return [];
@@ -99,7 +135,8 @@ const normalizeLocation = rawLocation => {
                 .split(/[,;]+/)
                 .map(sanitizeString)
                 .filter(Boolean);
-        })()
+        })(),
+        questEvents: normalizeQuestEvents(rawLocation.questEvents, sanitizeString(rawLocation.name))
     };
 
     if (!Number.isFinite(normalized.x)) {

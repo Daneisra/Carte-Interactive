@@ -49,7 +49,6 @@ const AUDIT_FILE = path.join(AUDIT_DIR, 'locations-audit.jsonl');
 const SESSION_STORE_FILE = path.join(AUDIT_DIR, 'sessions.json');
 const USERS_FILE = path.join(ASSETS_PATH, 'users.json');
 const ANNOTATIONS_FILE = path.join(ASSETS_PATH, 'annotations.json');
-const QUEST_EVENTS_FILE = path.join(ASSETS_PATH, 'questEvents.json');
 const REMOTE_SYNC_URL = (process.env.REMOTE_SYNC_URL || '').trim();
 const REMOTE_SYNC_TOKEN = (process.env.REMOTE_SYNC_TOKEN || '').trim();
 const rawRemoteSyncMethod = (process.env.REMOTE_SYNC_METHOD || 'POST').trim().toUpperCase();
@@ -159,9 +158,6 @@ const writeJsonFile = async (targetPath, data) => {
 
 const readAnnotationsFile = async () => readJsonFile(ANNOTATIONS_FILE, []);
 const writeAnnotationsFile = async annotations => writeJsonFile(ANNOTATIONS_FILE, annotations);
-
-const readQuestEventsFile = async () => readJsonFile(QUEST_EVENTS_FILE, []);
-const writeQuestEventsFile = async events => writeJsonFile(QUEST_EVENTS_FILE, events.slice(-200));
 
 let searchFiltersModulePromise = null;
 const loadSearchFiltersModule = () => {
@@ -1140,7 +1136,6 @@ const context = {
   parseListParam,
   loadSearchFiltersModule,
   readLocationsFile,
-  readQuestEventsFile,
   loadTypeMap,
   validateLocationsDataset,
   persistLocations,
@@ -1151,7 +1146,6 @@ const context = {
   collectBody,
   readAnnotationsFile,
   writeAnnotationsFile,
-  writeQuestEventsFile,
   authRequired,
   discordOauth: {
     enabled: DISCORD_OAUTH_ENABLED,

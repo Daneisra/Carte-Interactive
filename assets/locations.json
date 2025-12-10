@@ -117,6 +117,22 @@
       "tags": [
         "commerce",
         "port"
+      ],
+      "questEvents": [
+        {
+          "id": "quest_kitha_001",
+          "questId": "QST-KITHA-01",
+          "locationName": "Kitha",
+          "status": "completed",
+          "milestone": "Routes commerciales sécurisées",
+          "progress": {
+            "current": 5,
+            "max": 5
+          },
+          "note": "Port rouvert au commerce.",
+          "createdAt": "2025-01-02T00:00:00.000Z",
+          "updatedAt": "2025-01-02T00:00:00.000Z"
+        }
       ]
     },
     {
@@ -445,6 +461,22 @@
       "tags": [
         "forteresse",
         "quete"
+      ],
+      "questEvents": [
+        {
+          "id": "quest_imossa_001",
+          "questId": "QST-IMOSSA-01",
+          "locationName": "Imossa",
+          "status": "active",
+          "milestone": "Reconnaissance",
+          "progress": {
+            "current": 1,
+            "max": 3
+          },
+          "note": "En cours de pacification.",
+          "createdAt": "2025-01-01T00:00:00.000Z",
+          "updatedAt": "2025-01-01T00:00:00.000Z"
+        }
       ]
     },
     {

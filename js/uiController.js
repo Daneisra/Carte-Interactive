@@ -500,6 +500,7 @@ export class UiController {
         this.typeData = typeData || {};
         this.mapController.setTypeData(this.typeData);
         this.locationsData = normalizeSharedDataset(locationsData || {}, { sanitizeKeys: true });
+        const bootstrapQuestEvents = this.collectQuestEventsFromDataset();
         const warningMessages = Array.isArray(issues)
             ? issues
                 .filter(issue => issue?.level === 'warning')
@@ -510,6 +511,11 @@ export class UiController {
             this.updateValidationWarnings(warningMessages);
         } else {
             this.updateValidationWarnings([]);
+        }
+        if (bootstrapQuestEvents.length) {
+            this.applyQuestEventBootstrap(bootstrapQuestEvents);
+        } else {
+            this.questEventsLoaded = true;
         }
 
         this.applyLocalization();
@@ -1426,22 +1432,6 @@ export class UiController {
             };
         }
         const nowAuthenticated = Boolean(this.auth?.authenticated);
-        if (this.authRequired && !nowAuthenticated) {
-            if (this.questEvents.size) {
-                const affectedLocations = new Set();
-                this.questEvents.forEach(event => {
-                    const name = sanitizeString(event?.locationName);
-                    if (name) {
-                        affectedLocations.add(name);
-                    }
-                });
-                this.questEvents.clear();
-                affectedLocations.forEach(name => this.rebuildQuestSummariesForLocation(name));
-                this.refreshFilterMetadata({ reapply: true });
-                this.syncLocationEditorQuestEvents();
-            }
-            this.questEventsLoaded = false;
-        }
         if (this.authRequired && !previouslyAuthenticated && nowAuthenticated && !this.questEventsLoaded) {
             this.fetchQuestEvents();
         }
@@ -2774,6 +2764,26 @@ export class UiController {
         });
         this.refreshFilterMetadata({ reapply: true });
         this.syncLocationEditorQuestEvents();
+    }
+
+    collectQuestEventsFromDataset() {
+        const events = [];
+        Object.values(this.locationsData || {}).forEach(list => {
+            if (!Array.isArray(list)) {
+                return;
+            }
+            list.forEach(location => {
+                const baseName = sanitizeString(location?.name);
+                const questEvents = Array.isArray(location?.questEvents) ? location.questEvents : [];
+                questEvents.forEach(event => {
+                    events.push({
+                        ...event,
+                        locationName: event?.locationName || baseName
+                    });
+                });
+            });
+        });
+        return events;
     }
 
     handleQuestUpdated(payload) {

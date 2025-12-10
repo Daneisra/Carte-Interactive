@@ -13,7 +13,6 @@ module.exports = (register, context) => {
         parseListParam,
         loadSearchFiltersModule,
         readLocationsFile,
-        readQuestEventsFile,
         loadTypeMap,
         validateLocationsDataset,
         persistLocations,
@@ -36,23 +35,10 @@ module.exports = (register, context) => {
                 buildFilterFacets
             } = await loadSearchFiltersModule();
 
-            const [locationsData, questEvents, typeData] = await Promise.all([
+            const [locationsData, typeData] = await Promise.all([
                 readLocationsFile(),
-                readQuestEventsFile(),
                 loadTypeMap()
             ]);
-
-            const questEventsByLocation = new Map();
-            questEvents.forEach(event => {
-                const key = normalizeString(event?.locationName).toLowerCase();
-                if (!key) {
-                    return;
-                }
-                if (!questEventsByLocation.has(key)) {
-                    questEventsByLocation.set(key, []);
-                }
-                questEventsByLocation.get(key).push(event);
-            });
 
             const entries = [];
             Object.entries(locationsData || {}).forEach(([continent, rawLocations]) => {
@@ -61,7 +47,7 @@ module.exports = (register, context) => {
                 }
                 rawLocations.forEach(location => {
                     const nameKey = normalizeString(location?.name).toLowerCase();
-                    const relatedEvents = nameKey ? questEventsByLocation.get(nameKey) || [] : [];
+                    const relatedEvents = Array.isArray(location?.questEvents) ? location.questEvents : [];
                     const index = buildLocationIndex(location, { continent, questEvents: relatedEvents });
                     entries.push({
                         location,

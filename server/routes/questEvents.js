@@ -18,8 +18,8 @@ module.exports = (register, context) => {
     const {
         logger,
         ensureAuthorized,
-        readQuestEventsFile,
-        writeQuestEventsFile,
+        readLocationsFile,
+        persistLocations,
         collectBody,
         normalizeString,
         broadcastSse
@@ -34,8 +34,70 @@ module.exports = (register, context) => {
         res.end(payload === undefined ? null : JSON.stringify(payload));
     };
 
+    const findLocationByName = (locations, name) => {
+        const target = normalizeString(name).toLowerCase();
+        if (!target) {
+            return null;
+        }
+        for (const [continent, entries] of Object.entries(locations || {})) {
+            if (!Array.isArray(entries)) {
+                continue;
+            }
+            for (let idx = 0; idx < entries.length; idx += 1) {
+                const entry = entries[idx];
+                if (normalizeString(entry?.name).toLowerCase() === target) {
+                    return { continent, index: idx, entry };
+                }
+            }
+        }
+        return null;
+    };
+
+    const findEventById = (locations, questEventId) => {
+        const normalizedId = normalizeString(questEventId);
+        for (const [continent, entries] of Object.entries(locations || {})) {
+            if (!Array.isArray(entries)) {
+                continue;
+            }
+            for (let idx = 0; idx < entries.length; idx += 1) {
+                const entry = entries[idx];
+                const list = Array.isArray(entry?.questEvents) ? entry.questEvents : [];
+                const eventIndex = list.findIndex(ev => {
+                    const evId = normalizeString(ev?.id);
+                    return ev?.id === questEventId || (evId && evId === normalizedId);
+                });
+                if (eventIndex !== -1) {
+                    return {
+                        continent,
+                        locationIndex: idx,
+                        entry,
+                        eventIndex,
+                        event: list[eventIndex],
+                        events: list
+                    };
+                }
+            }
+        }
+        return null;
+    };
+
     register('GET', '/api/quest-events', async (_req, res) => {
-        const events = await readQuestEventsFile();
+        const locations = await readLocationsFile();
+        const events = [];
+        Object.entries(locations || {}).forEach(([_, entries]) => {
+            if (!Array.isArray(entries)) {
+                return;
+            }
+            entries.forEach(entry => {
+                const list = Array.isArray(entry?.questEvents) ? entry.questEvents : [];
+                list.forEach(ev => {
+                    events.push({
+                        ...ev,
+                        locationName: ev?.locationName || entry?.name || ''
+                    });
+                });
+            });
+        });
         sendJson(res, 200, { status: 'ok', events });
     });
 
@@ -60,10 +122,16 @@ module.exports = (register, context) => {
         }
         const progress = extractProgress(payload?.progress);
         const note = normalizeString(payload?.note) || '';
+        const locations = await readLocationsFile();
+        const match = findLocationByName(locations, locationName);
+        if (!match) {
+            sendJson(res, 404, createErrorResponse('error', 'Lieu introuvable pour cet évènement.'));
+            return;
+        }
         const event = {
             id: payload?.id && normalizeString(payload.id) ? normalizeString(payload.id) : `quest_${Date.now()}`,
             questId,
-            locationName,
+            locationName: match.entry.name,
             status,
             milestone: milestone || null,
             progress,
@@ -71,9 +139,11 @@ module.exports = (register, context) => {
             updatedAt: new Date().toISOString(),
             createdAt: new Date().toISOString()
         };
-        const events = await readQuestEventsFile();
-        events.push(event);
-        await writeQuestEventsFile(events);
+        const list = Array.isArray(match.entry.questEvents) ? match.entry.questEvents : [];
+        list.push(event);
+        match.entry.questEvents = list;
+        locations[match.continent][match.index] = match.entry;
+        await persistLocations(locations);
         broadcastSse('quest.updated', { event });
         sendJson(res, 201, { status: 'ok', event });
     });
@@ -90,13 +160,13 @@ module.exports = (register, context) => {
             return;
         }
         const questEventId = params?.groups ? params.groups.id : params[1];
-        const events = await readQuestEventsFile();
-        const index = events.findIndex(event => event?.id === questEventId);
-        if (index === -1) {
+        const locations = await readLocationsFile();
+        const located = findEventById(locations, questEventId);
+        if (!located) {
             sendJson(res, 404, createErrorResponse('error', 'Evenement de quete introuvable.'));
             return;
         }
-        const current = events[index];
+        const current = located.event;
         const partial = typeof payload === 'object' ? payload : {};
         const questId = normalizeString(partial.questId) || current.questId;
         const locationName = normalizeString(partial.locationName) || current.locationName;
@@ -105,18 +175,33 @@ module.exports = (register, context) => {
             sendJson(res, 400, createErrorResponse('error', 'Champs questId, locationName et status requis.'));
             return;
         }
+        const newLocation = findLocationByName(locations, locationName) || {
+            continent: located.continent,
+            index: located.locationIndex,
+            entry: located.entry
+        };
         const updated = {
             ...current,
             questId,
-            locationName,
+            locationName: newLocation.entry.name || locationName,
             status,
             milestone: normalizeString(partial.milestone) || current.milestone || null,
             note: normalizeString(partial.note) || current.note || '',
             progress: partial.progress ? extractProgress(partial.progress) : current.progress,
             updatedAt: new Date().toISOString()
         };
-        events[index] = updated;
-        await writeQuestEventsFile(events);
+        const sourceList = Array.isArray(located.entry.questEvents) ? located.entry.questEvents : [];
+        sourceList.splice(located.eventIndex, 1);
+        located.entry.questEvents = sourceList;
+
+        const targetList = Array.isArray(newLocation.entry.questEvents) ? newLocation.entry.questEvents : [];
+        targetList.push(updated);
+        newLocation.entry.questEvents = targetList;
+
+        locations[located.continent][located.locationIndex] = located.entry;
+        locations[newLocation.continent][newLocation.index] = newLocation.entry;
+
+        await persistLocations(locations);
         broadcastSse('quest.updated', { event: updated });
         sendJson(res, 200, { status: 'ok', event: updated });
     });
@@ -126,19 +211,21 @@ module.exports = (register, context) => {
             return;
         }
         const questEventId = params?.groups ? params.groups.id : params[1];
-        const normalizedId = normalizeString(questEventId);
-        const events = await readQuestEventsFile();
-        const filtered = events.filter(event => {
-            const eventId = normalizeString(event?.id);
-            return eventId && normalizedId ? eventId !== normalizedId : event?.id !== questEventId;
-        });
-        const removedCount = events.length - filtered.length;
-        const removedEvent = events.find(event => {
-            const eventId = normalizeString(event?.id);
-            return eventId === normalizedId || event?.id === questEventId;
-        }) || null;
-        await writeQuestEventsFile(filtered);
+        const locations = await readLocationsFile();
+        const located = findEventById(locations, questEventId);
+        if (!located) {
+            // Idempotent: still notify clients to clear stale items.
+            broadcastSse('quest.deleted', { id: questEventId });
+            sendJson(res, 200, { status: 'ok', removed: 0, event: null });
+            return;
+        }
+        const list = Array.isArray(located.entry.questEvents) ? located.entry.questEvents : [];
+        const removedEvent = list[located.eventIndex] || null;
+        list.splice(located.eventIndex, 1);
+        located.entry.questEvents = list;
+        locations[located.continent][located.locationIndex] = located.entry;
+        await persistLocations(locations);
         broadcastSse('quest.deleted', { id: questEventId });
-        sendJson(res, 200, { status: 'ok', removed: removedCount, event: removedEvent });
+        sendJson(res, 200, { status: 'ok', removed: 1, event: removedEvent });
     });
 };
