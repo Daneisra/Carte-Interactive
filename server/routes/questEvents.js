@@ -17,7 +17,6 @@ const extractProgress = payload => {
 module.exports = (register, context) => {
     const {
         logger,
-        json,
         ensureAuthorized,
         readQuestEventsFile,
         writeQuestEventsFile,
@@ -27,10 +26,17 @@ module.exports = (register, context) => {
     } = context;
 
     const log = logger.child('[questEvents]');
+    const sendJson = (res, status, payload) => {
+        res.writeHead(status, {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store'
+        });
+        res.end(payload === undefined ? null : JSON.stringify(payload));
+    };
 
     register('GET', '/api/quest-events', async (_req, res) => {
         const events = await readQuestEventsFile();
-        json(res, 200, { status: 'ok', events });
+        sendJson(res, 200, { status: 'ok', events });
     });
 
     register('POST', '/api/quest-events', async (req, res) => {
@@ -41,7 +47,7 @@ module.exports = (register, context) => {
         try {
             payload = JSON.parse(await collectBody(req) || '{}');
         } catch (error) {
-            json(res, 400, createErrorResponse('error', 'Invalid JSON'));
+            sendJson(res, 400, createErrorResponse('error', 'Invalid JSON'));
             return;
         }
         const questId = normalizeString(payload?.questId);
@@ -49,7 +55,7 @@ module.exports = (register, context) => {
         const status = normalizeString(payload?.status);
         const milestone = normalizeString(payload?.milestone);
         if (!questId || !locationName || !status) {
-            json(res, 400, createErrorResponse('error', 'Champs questId, locationName et status requis.'));
+            sendJson(res, 400, createErrorResponse('error', 'Champs questId, locationName et status requis.'));
             return;
         }
         const progress = extractProgress(payload?.progress);
@@ -69,7 +75,7 @@ module.exports = (register, context) => {
         events.push(event);
         await writeQuestEventsFile(events);
         broadcastSse('quest.updated', { event });
-        json(res, 201, { status: 'ok', event });
+        sendJson(res, 201, { status: 'ok', event });
     });
 
     register('PATCH', /^\/api\/quest-events\/(?<id>[^/]+)$/, async (req, res, _urlObj, params) => {
@@ -80,14 +86,14 @@ module.exports = (register, context) => {
         try {
             payload = JSON.parse(await collectBody(req) || '{}');
         } catch (error) {
-            json(res, 400, createErrorResponse('error', 'Invalid JSON'));
+            sendJson(res, 400, createErrorResponse('error', 'Invalid JSON'));
             return;
         }
         const questEventId = params?.groups ? params.groups.id : params[1];
         const events = await readQuestEventsFile();
         const index = events.findIndex(event => event?.id === questEventId);
         if (index === -1) {
-            json(res, 404, createErrorResponse('error', 'Evenement de quete introuvable.'));
+            sendJson(res, 404, createErrorResponse('error', 'Evenement de quete introuvable.'));
             return;
         }
         const current = events[index];
@@ -96,7 +102,7 @@ module.exports = (register, context) => {
         const locationName = normalizeString(partial.locationName) || current.locationName;
         const status = normalizeString(partial.status) || current.status;
         if (!questId || !locationName || !status) {
-            json(res, 400, createErrorResponse('error', 'Champs questId, locationName et status requis.'));
+            sendJson(res, 400, createErrorResponse('error', 'Champs questId, locationName et status requis.'));
             return;
         }
         const updated = {
@@ -112,7 +118,7 @@ module.exports = (register, context) => {
         events[index] = updated;
         await writeQuestEventsFile(events);
         broadcastSse('quest.updated', { event: updated });
-        json(res, 200, { status: 'ok', event: updated });
+        sendJson(res, 200, { status: 'ok', event: updated });
     });
 
     register('DELETE', /^\/api\/quest-events\/(?<id>[^/]+)$/, async (req, res, _urlObj, params) => {
@@ -133,6 +139,6 @@ module.exports = (register, context) => {
         }) || null;
         await writeQuestEventsFile(filtered);
         broadcastSse('quest.deleted', { id: questEventId });
-        json(res, 200, { status: 'ok', removed: removedCount, event: removedEvent });
+        sendJson(res, 200, { status: 'ok', removed: removedCount, event: removedEvent });
     });
 };

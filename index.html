@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -20,20 +20,20 @@
         </div>
     </div>
 
-    <!-- ðŸ§­ Panneau Exploration -->
+    <!-- 🧭 Panneau Exploration -->
     <div id="sidebar">
         <h2>Exploration</h2>
 
-        <!-- ðŸŒ Bouton pour masquer/afficher tous les continents -->
+        <!-- 🌍 Bouton pour masquer/afficher tous les continents -->
         <button id="toggle-all-continents" class="continent-toggle global-toggle" type="button">
             Tout masquer/afficher
         </button>
         
-        <!-- ðŸ” Barre de recherche avec bouton de rÃ©initialisation -->
+        <!-- 🔍 Barre de recherche avec bouton de réinitialisation -->
         <div id="search-container">
             <label for="search-bar" class="sr-only">Rechercher un lieu</label>
             <input type="text" id="search-bar" placeholder="Rechercher un lieu..." autocomplete="off" />
-            <button id="clear-search" aria-label="Effacer la recherche" type="button">âœ•</button>
+            <button id="clear-search" aria-label="Effacer la recherche" type="button">✕</button>
             <span id="search-results-count" class="results-badge" data-state="all" aria-live="polite" aria-atomic="true">0 lieu</span>
         </div>
 
@@ -42,9 +42,9 @@
         <div id="auth-panel" class="auth-panel" aria-live="polite">
             <p id="auth-status" class="auth-status">Connexion requise pour modifier les lieux.</p>
             <button id="login-button" class="secondary-button" type="button">Connexion Discord</button>
-            <button id="logout-button" class="secondary-button" type="button" hidden>Se dÃ©connecter</button>
+            <button id="logout-button" class="secondary-button" type="button" hidden>Se déconnecter</button>
             <button id="user-admin-button" class="secondary-button" type="button" hidden>Gestion utilisateurs</button>
-            <a id="download-assets-button" class="secondary-button" href="/api/admin/assets.zip" download role="button" hidden>TÃ©lÃ©charger assets</a>
+            <a id="download-assets-button" class="secondary-button" href="/api/admin/assets.zip" download role="button" hidden>Télécharger assets</a>
         </div>
 
         <div id="validation-warnings" class="validation-warnings" aria-live="polite" hidden>
@@ -55,7 +55,7 @@
 
         <div id="filters-container">
             <button id="filters-advanced-toggle" class="secondary-button" type="button" aria-expanded="false" aria-controls="advanced-filters-panel">
-                Filtres avancÃ©s
+                Filtres avancés
             </button>
             <div id="advanced-filters-panel" hidden>
                 <fieldset class="filter-section" data-filter-section="types">
@@ -69,7 +69,7 @@
                     <p class="filter-empty" data-empty="tags" hidden>Aucun tag disponible</p>
                 </fieldset>
                 <fieldset class="filter-section" data-filter-section="quests">
-                    <legend id="filter-quests-label">PrÃ©sence de quÃªtes</legend>
+                    <legend id="filter-quests-label">Présence de quêtes</legend>
                     <div class="filter-radio-group" role="radiogroup" aria-labelledby="filter-quests-label">
                         <label class="filter-radio">
                             <input type="radio" name="filter-quests" value="any" checked>
@@ -77,29 +77,29 @@
                         </label>
                         <label class="filter-radio">
                             <input type="radio" name="filter-quests" value="with">
-                            <span>Avec quÃªtes</span>
+                            <span>Avec quêtes</span>
                         </label>
                         <label class="filter-radio">
                             <input type="radio" name="filter-quests" value="without">
-                            <span>Sans quÃªte</span>
+                            <span>Sans quête</span>
                         </label>
                     </div>
                 </fieldset>
                 <fieldset class="filter-section" data-filter-section="statuses">
-                    <legend id="filter-statuses-label">Statuts d'Ã©vÃ¨nement</legend>
+                    <legend id="filter-statuses-label">Statuts d'évènement</legend>
                     <div id="filter-statuses" class="filter-choice-group" role="group" aria-labelledby="filter-statuses-label"></div>
                     <p class="filter-empty" data-empty="statuses" hidden>Aucun statut disponible</p>
                 </fieldset>
             </div>
-            <button id="reset-filters" class="icon-button" aria-label="RÃ©initialiser les filtres" type="button">â†º</button>
-            <button id="random-location" class="icon-button" type="button" aria-label="Choisir un lieu alÃ©atoire">ðŸŽ²</button>
+            <button id="reset-filters" class="icon-button" aria-label="Réinitialiser les filtres" type="button">↺</button>
+            <button id="random-location" class="icon-button" type="button" aria-label="Choisir un lieu aléatoire">🎲</button>
         </div>
         <div id="clustering-container" class="toggle-row">
             <label for="clustering-toggle" class="toggle-label">
                 <input type="checkbox" id="clustering-toggle" />
                 <span>Regrouper les marqueurs</span>
             </label>
-            <span id="clustering-metrics" class="toggle-hint" data-state="off" aria-live="polite" aria-atomic="true">ðŸ“ 0/0</span>
+            <span id="clustering-metrics" class="toggle-hint" data-state="off" aria-live="polite" aria-atomic="true">📍 0/0</span>
         </div>
 
         <div id="marker-scale-container" class="slider-row">
@@ -119,41 +119,41 @@
         <div id="continents-container"></div>
     </div>
 
-    <!-- ðŸ° Panneau d'information des lieux -->
+    <!-- 🏰 Panneau d'information des lieux -->
     <div id="info-sidebar">
         <div id="info-header">
             <h3 id="info-title">Titre du lieu</h3>
             <div class="info-actions">
-                <button id="edit-location" class="icon-button" type="button" aria-label="Modifier le lieu" disabled>âœŽ</button>
-                <button id="favorite-toggle" class="icon-button favorite-toggle" type="button" aria-label="Ajouter aux favoris" aria-pressed="false" disabled>â˜†</button>
-                <button id="close-info-sidebar" class="close-btn" type="button" aria-label="Fermer le panneau">âœ–</button>
+                <button id="edit-location" class="icon-button" type="button" aria-label="Modifier le lieu" disabled>✎</button>
+                <button id="favorite-toggle" class="icon-button favorite-toggle" type="button" aria-label="Ajouter aux favoris" aria-pressed="false" disabled>☆</button>
+                <button id="close-info-sidebar" class="close-btn" type="button" aria-label="Fermer le panneau">✖</button>
             </div>
         </div>
     
-        <!-- ðŸ“‚ Onglets de navigation -->
+        <!-- 📂 Onglets de navigation -->
         <div id="info-tabs" role="tablist" aria-label="Sections d'information du lieu">
             <button id="info-tab-description" class="info-tab active" type="button" role="tab" data-tab="description" aria-controls="description-content" aria-selected="true" tabindex="0">Description</button>
             <button id="info-tab-image" class="info-tab" type="button" role="tab" data-tab="image" aria-controls="image-content" aria-selected="false" tabindex="-1">Image</button>
         </div>
 
-        <!-- ðŸŽµ Lecteur audio compact -->
+        <!-- 🎵 Lecteur audio compact -->
         <div id="audio-container">
-            <p id="audio-title">ðŸŽ§ Ambiance sonore</p>
+            <p id="audio-title">🎧 Ambiance sonore</p>
             <audio id="audio-player" controls>
-                Votre navigateur ne supporte pas l'Ã©lÃ©ment audio.
+                Votre navigateur ne supporte pas l'élément audio.
             </audio>
             <button id="audio-fallback" class="audio-fallback" type="button" hidden>
-                â–¶ï¸ Lancer la lecture
+                ▶️ Lancer la lecture
             </button>
             <p id="audio-status" class="audio-status" role="status" aria-live="polite" hidden></p>
         </div>
 
-        <!-- ðŸ“š Contenu des onglets -->
+        <!-- 📚 Contenu des onglets -->
         <div id="info-content">
             <div id="description-content" class="info-content active" role="tabpanel" aria-labelledby="info-tab-description" tabindex="0">
                 <p id="description-text">Description du lieu...</p>
 
-                <!-- âž• Sections d'informations supplÃ©mentaires -->
+                <!-- ➕ Sections d'informations supplémentaires -->
                 <div id="history-section" class="extra-section" data-section="history"></div>
                 <div id="quests-section" class="extra-section" data-section="quests"></div>
                 <div id="pnjs-section" class="extra-section" data-section="pnj"></div>
@@ -169,42 +169,42 @@
 
     </div>
 
-    <!-- ðŸ“œ Historique modernisÃ© en bas Ã  gauche -->
+    <!-- 📜 Historique modernisé en bas à gauche -->
         <div id="history-container">
             <p id="history-title">Historique</p>
-            <div id="history-list"></div> <!-- Les Ã©lÃ©ments de l'historique seront insÃ©rÃ©s ici -->
-            <button id="history-back" type="button">Retour</button> <!-- Bouton Retour placÃ© sous l'historique -->
+            <div id="history-list"></div> <!-- Les éléments de l'historique seront insérés ici -->
+            <button id="history-back" type="button">Retour</button> <!-- Bouton Retour placé sous l'historique -->
         </div>
 
         <div id="events-feed" aria-live="polite" aria-atomic="false">
             <div class="feed-header">
-                <h4 id="events-feed-title">Flux temps rÃ©el</h4>
-                <label for="events-filter" class="sr-only">Filtrer les Ã©vÃ©nements</label>
+                <h4 id="events-feed-title">Flux temps réel</h4>
+                <label for="events-filter" class="sr-only">Filtrer les événements</label>
                 <select id="events-filter">
                     <option value="all">Tous</option>
                     <option value="annotations">Annotations</option>
-                    <option value="quests">QuÃªtes</option>
+                    <option value="quests">Quêtes</option>
                     <option value="sync">Synchronisations</option>
                     <option value="telemetry">Erreurs</option>
                 </select>
             </div>
-            <div id="events-feed-empty">Aucun Ã©vÃ©nement pour le moment.</div>
+            <div id="events-feed-empty">Aucun événement pour le moment.</div>
             <ul id="events-feed-list"></ul>
         </div>
 
-        <!-- ðŸ—ºï¸ Conteneur de la carte -->
+        <!-- 🗺️ Conteneur de la carte -->
         <div class="map-wrapper">
             <div id="map"></div>
         </div>
 
-    <!-- ðŸŽ›ï¸ Barre de contrÃ´le en bas Ã  droite -->
+    <!-- 🎛️ Barre de contrôle en bas à droite -->
     <div id="map-controls">
         <button id="zoom-in" aria-label="Zoom avant" type="button"><span aria-hidden="true">&#x2795;</span></button>
-        <button id="zoom-out" aria-label="Zoom arriÃ¨re" type="button"><span aria-hidden="true">&#x2796;</span></button>
+        <button id="zoom-out" aria-label="Zoom arrière" type="button"><span aria-hidden="true">&#x2796;</span></button>
         <button id="reset-map" aria-label="Recentrer la carte" type="button" title="Recentrer"><span aria-hidden="true">&#x21BA;</span></button>
-        <button id="fullscreen-map" aria-label="Plein Ã©cran" type="button" title="Plein Ã©cran"><span aria-hidden="true">&#x2922;</span></button>
+        <button id="fullscreen-map" aria-label="Plein écran" type="button" title="Plein écran"><span aria-hidden="true">&#x2922;</span></button>
         <button id="measure-distance" class="map-control-button" type="button" aria-label="Mesurer une distance" aria-pressed="false" title="Mesurer une distance"><span aria-hidden="true">&#x1F4CF;</span></button>
-        <button id="capture-coordinates" class="map-control-button" type="button" aria-label="Obtenir les coordonnÃ©es" aria-pressed="false" title="Obtenir les coordonnÃ©es"><span aria-hidden="true">&#x1F4CD;</span></button>
+        <button id="capture-coordinates" class="map-control-button" type="button" aria-label="Obtenir les coordonnées" aria-pressed="false" title="Obtenir les coordonnées"><span aria-hidden="true">&#x1F4CD;</span></button>
         <button id="annotation-mode" class="map-control-button" type="button" aria-label="Ajouter une annotation" aria-pressed="false" title="Ajouter une annotation"><span aria-hidden="true">&#x1F58C;</span></button>
         <div id="theme-toggle" class="theme-toggle" role="group" aria-label="Mode d'affichage">
             <button type="button" class="theme-toggle-option active" data-theme="dark" aria-pressed="true" title="Mode sombre">
@@ -217,17 +217,17 @@
         <span id="zoom-level">100%</span>
     </div>
 
-    <!-- ðŸ–¼ï¸ Lightbox pour les mÃ©dias -->
+    <!-- 🖼️ Lightbox pour les médias -->
     <div id="media-lightbox" class="media-lightbox" role="dialog" aria-modal="true" hidden>
-        <button id="media-lightbox-close" class="media-lightbox-close" type="button" aria-label="Fermer l'aperÃ§u">Ã—</button>
+        <button id="media-lightbox-close" class="media-lightbox-close" type="button" aria-label="Fermer l'aperçu">×</button>
         <img id="media-lightbox-image" class="media-lightbox-image" alt="">
         <p id="media-lightbox-caption" class="media-lightbox-caption"></p>
     </div>
     <div id="location-editor" class="editor-overlay" role="presentation" hidden>
         <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="location-editor-title">
             <header class="editor-header">
-                <h2 id="location-editor-title">Ã‰diter un lieu</h2>
-                <button id="location-editor-close" class="editor-close" type="button" aria-label="Fermer">Ã—</button>
+                <h2 id="location-editor-title">Éditer un lieu</h2>
+                <button id="location-editor-close" class="editor-close" type="button" aria-label="Fermer">×</button>
             </header>
             <form id="location-editor-form" novalidate autocomplete="off">
                 <div class="form-warning-panel" data-role="validation-warnings" aria-live="polite" hidden>
@@ -237,7 +237,7 @@
                 </div>
                 <div class="editor-content">
                     <fieldset class="editor-section" data-drop-zone="audio">
-                        <legend>Informations gÃ©nÃ©rales</legend>
+                        <legend>Informations générales</legend>
                         <div class="form-row">
                             <label for="editor-name">Nom</label>
                             <input id="editor-name" name="name" type="text" required />
@@ -255,12 +255,12 @@
                         </div>
                         <div class="form-grid">
                             <div class="form-row">
-                                <label for="editor-x">CoordonnÃ©e X</label>
+                                <label for="editor-x">Coordonnée X</label>
                                 <input id="editor-x" name="x" type="number" step="1" required />
                                 <p class="form-error" data-error-for="x"></p>
                             </div>
                             <div class="form-row">
-                                <label for="editor-y">CoordonnÃ©e Y</label>
+                                <label for="editor-y">Coordonnée Y</label>
                                 <input id="editor-y" name="y" type="number" step="1" required />
                                 <p class="form-error" data-error-for="y"></p>
                             </div>
@@ -271,9 +271,9 @@
                                 <button type="button" class="toolbar-button" data-md="**|**" aria-label="Texte gras"><span>G</span></button>
                                 <button type="button" class="toolbar-button" data-md="*|*" aria-label="Texte italique"><span>I</span></button>
                                 <button type="button" class="toolbar-button" data-md="### |" aria-label="Titre niveau 3"><span>H3</span></button>
-                                <button type="button" class="toolbar-button" data-md="- |" aria-label="Liste"><span>â€¢</span></button>
+                                <button type="button" class="toolbar-button" data-md="- |" aria-label="Liste"><span>•</span></button>
                                 <button type="button" class="toolbar-button" data-md="> |" aria-label="Citation"><span>&gt;</span></button>
-                                <button type="button" class="toolbar-button" data-md="[texte](url)" aria-label="Lien">ðŸ”—</button>
+                                <button type="button" class="toolbar-button" data-md="[texte](url)" aria-label="Lien">🔗</button>
                                 <span class="toolbar-hint">Markdown</span>
                             </div>
                             <div class="markdown-draft-status" data-role="description-draft-status" hidden>
@@ -313,9 +313,9 @@
                     </fieldset>
 
                     <fieldset class="editor-section" data-drop-zone="video">
-                        <legend>VidÃ©os</legend>
+                        <legend>Vidéos</legend>
                         <div class="editor-list" data-role="video-list"></div>
-                        <button type="button" class="secondary-button" data-action="add-video">Ajouter une vidÃ©o</button>
+                        <button type="button" class="secondary-button" data-action="add-video">Ajouter une vidéo</button>
                         <p class="form-error" data-error-for="videos"></p>
                         <div class="media-preview" data-preview="videos"></div>
                     </fieldset>
@@ -329,7 +329,7 @@
                     </fieldset>
 
                     <fieldset class="editor-section">
-                        <legend>DÃ©tails supplÃ©mentaires</legend>
+                        <legend>Détails supplémentaires</legend>
                         <div class="form-row markdown-list-row">
                             <label id="editor-history-label">Historique<br><span class="hint">(Markdown - un bloc par element)</span></label>
                             <div class="markdown-list" data-role="history-list" role="group" aria-labelledby="editor-history-label"></div>
@@ -353,56 +353,56 @@
                     </fieldset>
 
                     <fieldset class="editor-section" id="quest-events-section">
-                        <legend>Evenements de quete</legend>
+                        <legend>Événements de quête</legend>
                         <div class="quest-events-disabled" data-role="quest-events-disabled" hidden>
-                            Enregistrez le lieu pour gerer les evenements de quete.
+                            Enregistrez le lieu pour gérer les événements de quête.
                         </div>
                         <div class="quest-events-list-wrapper" data-role="quest-events" hidden>
-                            <p class="quest-events-empty" data-role="quest-events-empty">Aucun evenement enregistre pour ce lieu.</p>
+                            <p class="quest-events-empty" data-role="quest-events-empty">Aucun événement enregistré pour ce lieu.</p>
                             <ul class="quest-events-list" data-role="quest-events-list"></ul>
                         </div>
                         <div class="quest-event-form" data-role="quest-event-form">
                             <div class="form-grid">
                                 <div class="form-row">
-                                    <label for="quest-event-id">Identifiant de quete</label>
-                                    <input id="quest-event-id" name="quest-event-id" type="text" data-role="quest-event-quest-id" placeholder="ex: QST-012" autocomplete="off" />
+                                    <label for="quest-event-id">Identifiant de quête</label>
+                                    <input id="quest-event-id" name="quest-event-id" type="text" data-role="quest-event-quest-id" placeholder="ex: QST-012" />
                                 </div>
                                 <div class="form-row">
                                     <label for="quest-event-status">Statut</label>
                                     <select id="quest-event-status" name="quest-event-status" data-role="quest-event-status">
-                                        <option value="planifie">Planifiee</option>
+                                        <option value="planifie">Planifiée</option>
                                         <option value="en cours" selected>En cours</option>
-                                        <option value="termine">Terminee</option>
-                                        <option value="bloque">Bloquee</option>
+                                        <option value="termine">Terminée</option>
+                                        <option value="bloque">Bloquée</option>
                                     </select>
                                 </div>
                                 <div class="form-row">
                                     <label for="quest-event-milestone">Jalon</label>
-                                    <input id="quest-event-milestone" name="quest-event-milestone" type="text" data-role="quest-event-milestone" placeholder="Etape ou objectif" autocomplete="off" />
+                                    <input id="quest-event-milestone" name="quest-event-milestone" type="text" data-role="quest-event-milestone" placeholder="Étape ou objectif" />
                                 </div>
                                 <div class="form-row">
                                     <label for="quest-event-progress-current">Progression</label>
                                     <div class="input-inline">
-                                        <input id="quest-event-progress-current" name="quest-event-progress-current" type="number" min="0" data-role="quest-event-progress-current" placeholder="Actuel" autocomplete="off" />
+                                        <input id="quest-event-progress-current" name="quest-event-progress-current" type="number" min="0" data-role="quest-event-progress-current" placeholder="Actuel" />
                                         <span class="input-separator">/</span>
-                                        <input id="quest-event-progress-max" name="quest-event-progress-max" type="number" min="0" data-role="quest-event-progress-max" placeholder="Total" autocomplete="off" aria-label="Progression totale" />
+                                        <input id="quest-event-progress-max" name="quest-event-progress-max" type="number" min="0" data-role="quest-event-progress-max" placeholder="Total" />
                                     </div>
                                 </div>
                                 <div class="form-row form-row-wide">
-                                    <label for="quest-event-note">Notes complementaires</label>
+                                    <label for="quest-event-note">Notes complémentaires</label>
                                     <textarea id="quest-event-note" name="quest-event-note" rows="2" data-role="quest-event-note" placeholder="Informations additionnelles (optionnel)"></textarea>
                                 </div>
                             </div>
                             <div class="editor-actions-row quest-event-actions">
                                 <button type="button" class="secondary-button" data-action="quest-event-cancel" hidden>Annuler la modification</button>
-                                <button type="button" class="secondary-button" data-action="quest-event-submit">Enregistrer un evenement</button>
+                                <button type="button" class="secondary-button" data-action="quest-event-submit">Enregistrer un événement</button>
                             </div>
                             <p class="form-error" data-error-for="quest-events"></p>
                         </div>
                     </fieldset>
                 </div>
-                <input type="file" id="editor-image-upload" accept="image/*" hidden aria-hidden="true" tabindex="-1" />
-                <input type="file" id="editor-audio-upload" accept="audio/*" hidden aria-hidden="true" tabindex="-1" />
+                <input type="file" id="editor-image-upload" accept="image/*" hidden />
+                <input type="file" id="editor-audio-upload" accept="audio/*" hidden />
 
                 <footer class="editor-actions">
                     <p class="form-error" data-error-for="form"></p>
@@ -414,7 +414,7 @@
         </div>
     </div>
 
-    <!-- âš™ï¸ Scripts -->
+    <!-- ⚙️ Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.3/dist/purify.min.js" defer></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
@@ -422,8 +422,6 @@
 
 </body>
 </html>
-
-
 
 
 
