@@ -298,6 +298,16 @@
                             </div>
                             <p class="form-error" data-error-for="audio"></p>
                         </div>
+                        <div class="form-row">
+                            <label for="editor-tags">Tags</label>
+                            <div class="input-with-button">
+                                <input id="editor-tags" name="tags" type="text" placeholder="commerce, port, quete" list="editor-tags-suggestions" />
+                                <button type="button" class="secondary-button" data-action="add-tag">Ajouter</button>
+                            </div>
+                            <datalist id="editor-tags-suggestions"></datalist>
+                            <div class="tag-chip-list" data-role="tags-list" aria-live="polite"></div>
+                            <p class="form-error" data-error-for="tags"></p>
+                        </div>
                     </fieldset>
 
                     <fieldset class="editor-section" data-drop-zone="image">
@@ -458,7 +468,6 @@
 
 </body>
 </html>
-
 
 
 

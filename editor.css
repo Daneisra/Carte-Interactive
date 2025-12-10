@@ -1025,6 +1025,43 @@ body[data-theme="light"] .user-admin-empty {
     color: rgba(71, 85, 105, 0.75);
 }
 
+.tag-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 14px;
+    background: rgba(148, 163, 184, 0.16);
+    color: #e2e8f0;
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+.tag-chip button {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0 4px;
+    border-radius: 50%;
+}
+
+.tag-chip button:hover {
+    background: rgba(148, 163, 184, 0.25);
+}
+
+body[data-theme="light"] .tag-chip {
+    background: rgba(71, 85, 105, 0.12);
+    color: #111827;
+}
+
 @media (max-width: 720px) {
     .user-admin-dialog {
         width: 96vw;

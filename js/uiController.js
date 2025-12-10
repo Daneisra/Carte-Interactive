@@ -882,6 +882,9 @@ export class UiController {
             if (this.filtersManager?.setAvailableFilters) {
                 this.filtersManager.setAvailableFilters({ types: [], tags: [], statuses: [], quests: { with: 0, without: 0 } });
             }
+            if (this.locationEditor?.setAvailableTags) {
+                this.locationEditor.setAvailableTags([]);
+            }
             return;
         }
         const typeLabels = new Map(Object.entries(this.typeData || {}));
@@ -895,6 +898,9 @@ export class UiController {
         this.filterFacets = buildFilterFacets(indices, { typeLabels });
         if (this.filtersManager?.setAvailableFilters) {
             this.filtersManager.setAvailableFilters(this.filterFacets);
+        }
+        if (this.locationEditor?.setAvailableTags) {
+            this.locationEditor.setAvailableTags(this.filterFacets.tags || []);
         }
         if (reapply) {
             this.applyFilters();

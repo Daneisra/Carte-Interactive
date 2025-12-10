@@ -134,7 +134,8 @@ const DEFAULT_LOCATION = {
     quests: [],
     lore: [],
     instances: [],
-    pnjs: []
+    pnjs: [],
+    tags: []
 };
 
 const UPLOAD_ENDPOINT = '/api/upload';
@@ -223,7 +224,8 @@ const copyLocation = source => {
         quests: Array.isArray(source.quests) ? [...source.quests] : [],
         lore: Array.isArray(source.lore) ? [...source.lore] : [],
         instances: Array.isArray(source.instances) ? [...source.instances] : [],
-        pnjs: Array.isArray(source.pnjs) ? source.pnjs.map(pnj => ({ ...pnj })) : []
+        pnjs: Array.isArray(source.pnjs) ? source.pnjs.map(pnj => ({ ...pnj })) : [],
+        tags: Array.isArray(source.tags) ? [...source.tags] : []
     };
 };
 
@@ -304,6 +306,10 @@ export class LocationEditor {
         this.imageList = this.form?.querySelector('[data-role="image-list"]') || null;
         this.videoList = this.form?.querySelector('[data-role="video-list"]') || null;
         this.pnjList = this.form?.querySelector('[data-role="pnj-list"]') || null;
+        this.tagsList = this.form?.querySelector('[data-role="tags-list"]') || null;
+        this.tagsInput = this.form?.querySelector('#editor-tags') || null;
+        this.tagsAddButton = this.form?.querySelector('[data-action="add-tag"]') || null;
+        this.tagsSuggestions = this.form?.querySelector('#editor-tags-suggestions') || null;
         this.addImageButton = this.form?.querySelector('[data-action="add-image"]') || null;
         this.addVideoButton = this.form?.querySelector('[data-action="add-video"]') || null;
         this.addPnjButton = this.form?.querySelector('[data-action="add-pnj"]') || null;
@@ -385,6 +391,7 @@ export class LocationEditor {
         this.markdownSections = [...MARKDOWN_SECTION_TYPES];
         this.markdownSectionConfig = MARKDOWN_SECTION_CONFIG;
         this.markdownEntryCounters = {};
+        this.availableTags = [];
         this.resetMarkdownEntryCounters();
         if (this.descriptionPreviewBody) {
             this.descriptionPreviewBody.hidden = true;
@@ -431,6 +438,29 @@ export class LocationEditor {
         if (this.descriptionToolbarButtons && this.descriptionToolbarButtons.length) {
             this.descriptionToolbarButtons.forEach(button => {
                 button.addEventListener('click', () => this.insertMarkdownSnippet(button.dataset.md || ''));
+            });
+        }
+
+        if (this.tagsAddButton) {
+            this.tagsAddButton.addEventListener('click', event => {
+                event.preventDefault();
+                this.addTagsFromInput();
+            });
+        }
+        if (this.tagsInput) {
+            this.tagsInput.addEventListener('keydown', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    this.addTagsFromInput();
+                }
+            });
+        }
+        if (this.tagsList) {
+            this.tagsList.addEventListener('click', event => {
+                if (event.target?.dataset?.action === 'remove-tag') {
+                    const value = event.target.dataset.value || '';
+                    this.removeTag(value);
+                }
             });
         }
 
@@ -759,6 +789,7 @@ export class LocationEditor {
         this.setMarkdownEntries('quests', location.quests);
         this.setMarkdownEntries('lore', location.lore);
         this.setMarkdownEntries('instances', location.instances);
+        this.setTags(location.tags);
 
         if (this.imageList) {
             clearElement(this.imageList);
@@ -1539,6 +1570,128 @@ export class LocationEditor {
         this.videoList.appendChild(row);
     }
 
+    setAvailableTags(tags = []) {
+        const unique = new Set();
+        this.availableTags = [];
+        tags.forEach(entry => {
+            const value = typeof entry === 'string'
+                ? entry
+                : (entry?.value || entry?.label || '');
+            const trimmed = (value || '').toString().trim();
+            if (!trimmed) {
+                return;
+            }
+            const key = trimmed.toLowerCase();
+            if (unique.has(key)) {
+                return;
+            }
+            unique.add(key);
+            this.availableTags.push({
+                value: key,
+                label: entry?.label || trimmed
+            });
+        });
+        this.renderTagSuggestions();
+    }
+
+    renderTagSuggestions() {
+        if (!this.tagsSuggestions) {
+            return;
+        }
+        clearElement(this.tagsSuggestions);
+        this.availableTags.forEach(tag => {
+            const option = createElement('option', { attributes: { value: tag.label || tag.value } });
+            this.tagsSuggestions.appendChild(option);
+        });
+    }
+
+    setTags(tags = []) {
+        if (!this.tagsList) {
+            return;
+        }
+        clearElement(this.tagsList);
+        const entries = Array.isArray(tags) ? tags : [];
+        entries.forEach(tag => this.addTag(tag));
+    }
+
+    addTagsFromInput() {
+        if (!this.tagsInput) {
+            return;
+        }
+        const raw = this.tagsInput.value || '';
+        const parts = raw.split(/[,;]+/).map(part => part.trim()).filter(Boolean);
+        if (!parts.length && raw.trim()) {
+            parts.push(raw.trim());
+        }
+        parts.forEach(part => this.addTag(part));
+        this.tagsInput.value = '';
+    }
+
+    addTag(value) {
+        const label = (value ?? '').toString().trim();
+        if (!label || !this.tagsList) {
+            return;
+        }
+        const key = label.toLowerCase();
+        const existing = Array.from(this.tagsList.querySelectorAll('.tag-chip')).some(chip => {
+            const val = chip.dataset?.value || chip.textContent || '';
+            return val.toLowerCase() === key;
+        });
+        if (existing) {
+            return;
+        }
+        const chip = createElement('span', {
+            className: 'tag-chip',
+            text: label,
+            attributes: { 'data-value': label }
+        });
+        const remove = createElement('button', {
+            text: '×',
+            attributes: {
+                type: 'button',
+                'data-action': 'remove-tag',
+                'data-value': label,
+                'aria-label': `Retirer le tag ${label}`
+            }
+        });
+        chip.appendChild(remove);
+        this.tagsList.appendChild(chip);
+    }
+
+    removeTag(value) {
+        if (!this.tagsList) {
+            return;
+        }
+        const key = (value || '').toString().trim().toLowerCase();
+        Array.from(this.tagsList.querySelectorAll('.tag-chip')).forEach(chip => {
+            const val = (chip.dataset?.value || '').toLowerCase();
+            if (val === key) {
+                chip.remove();
+            }
+        });
+    }
+
+    collectTags() {
+        if (!this.tagsList) {
+            return [];
+        }
+        const tags = [];
+        const seen = new Set();
+        Array.from(this.tagsList.querySelectorAll('.tag-chip')).forEach(chip => {
+            const value = (chip.dataset?.value || chip.textContent || '').trim();
+            if (!value) {
+                return;
+            }
+            const key = value.toLowerCase();
+            if (seen.has(key)) {
+                return;
+            }
+            seen.add(key);
+            tags.push(value);
+        });
+        return tags;
+    }
+
     addPnjField(pnj = { name: '', role: '', description: '' }) {
         if (!this.pnjList) {
             return;
@@ -1680,6 +1833,7 @@ export class LocationEditor {
         location.images = images.filter(Boolean);
         location.videos = videos.filter(video => video.url);
         location.pnjs = pnjs;
+        location.tags = this.collectTags();
         location.history = this.collectMarkdownEntries('history');
         location.quests = this.collectMarkdownEntries('quests');
         location.lore = this.collectMarkdownEntries('lore');

@@ -28,6 +28,7 @@
 - [x] Doc OAuth/Discord “opinionated” + check-lists CI.
 - [x] Bouton “Download ZIP”
 - [x] Vrai panneau admin séparer avec centralisation de la Gestion utilisateurs, téléchargement assets, alerte de validation, erreurs, télémétrie etc
+- [x] Possibilité de pouvoir ajouter/choisir les tags directement depuis ajouter un lieu et modifier un lieu
 - [ ] Gros Polish UI
 
 ### P1 — Valeur
