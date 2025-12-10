@@ -1618,9 +1618,18 @@ export class UiController {
         if (!this.adminDom.overlay) {
             return;
         }
+        this.adminDom.overlay.hidden = true;
         if (this.adminDom.close && !this.adminDom.close.dataset.bound) {
             this.adminDom.close.addEventListener('click', () => this.closeAdminPanel(true));
             this.adminDom.close.dataset.bound = 'true';
+        }
+        if (this.adminDom.overlay && !this.adminDom.overlay.dataset.bound) {
+            this.adminDom.overlay.addEventListener('click', event => {
+                if (event.target === this.adminDom.overlay) {
+                    this.closeAdminPanel(true);
+                }
+            });
+            this.adminDom.overlay.dataset.bound = 'true';
         }
         if (this.adminDom.userButton && !this.adminDom.userButton.dataset.bound) {
             this.adminDom.userButton.addEventListener('click', () => this.openUserAdminPanel());
