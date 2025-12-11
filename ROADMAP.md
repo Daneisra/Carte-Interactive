@@ -30,10 +30,10 @@
 - [x] Vrai panneau admin séparer avec centralisation de la Gestion utilisateurs, téléchargement assets, alerte de validation, erreurs, télémétrie etc
 - [x] Possibilité de pouvoir ajouter/choisir les tags directement depuis ajouter un lieu et modifier un lieu
 - [x] Masquer bouton Ajouter un lieu pour guest et user + masquer bouton Ouvrir le panneau admin pour guest et user
-- [ ] Déplacer cadre "conexion" dans un coin et peut-être modifier la forme pour transformer ça en vrai bouton "profil" avec centralisation des informations de l'utilisateur et un début de personnalisation de profil
-- [ ] Gros Polish UI
+- [x] Polish UI
 
 ### P1 — Valeur
+- [ ] Déplacer cadre "conexion" dans un coin et peut-être modifier la forme pour transformer ça en vrai bouton "profil" avec centralisation des informations de l'utilisateur et un début de personnalisation de profil
 - [ ] Quêtes interactives avec états visuels et transitions.
 - [ ] Markers thématiques/stylés par type + légende.
 - [ ] Tableau de bord live (compteurs SSE/latences) côté admin.
