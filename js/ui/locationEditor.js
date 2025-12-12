@@ -140,7 +140,7 @@ const DEFAULT_LOCATION = {
 
 const UPLOAD_ENDPOINT = '/api/upload';
 const UPLOAD_TYPES = { image: 'image', audio: 'audio' };
-const MAX_UPLOAD_SIZE = 15 * 1024 * 1024;
+const MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
 const UPLOAD_FILE_RULES = {
     [UPLOAD_TYPES.image]: {
         mimePrefix: 'image/',
@@ -2007,7 +2007,7 @@ export class LocationEditor {
             throw new Error('Fichier manquant.');
         }
         if (file.size > MAX_UPLOAD_SIZE) {
-            throw new Error('Fichier trop volumineux (limite 15 Mo).');
+            throw new Error('Fichier trop volumineux (limite 25 Mo).');
         }
         const dataUrl = await this.readFileAsDataURL(file);
         let response;
@@ -2015,6 +2015,7 @@ export class LocationEditor {
             response = await fetch(UPLOAD_ENDPOINT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     type: uploadType,
                     filename: file.name,
@@ -2025,13 +2026,16 @@ export class LocationEditor {
             throw new Error('Serveur indisponible pendant le televersement.');
         }
         let payload = {};
+        let rawText = '';
         try {
-            payload = await response.json();
+            rawText = await response.text();
+            payload = rawText ? JSON.parse(rawText) : {};
         } catch (error) {
-            // ignore
+            payload = {};
         }
         if (!response.ok || payload.status !== 'ok' || !payload.path) {
-            throw new Error(payload?.message || 'Televersement echoue.');
+            const message = payload?.message || rawText || `Televersement echoue (HTTP ${response.status}).`;
+            throw new Error(message);
         }
         return payload.path;
     }

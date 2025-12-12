@@ -54,7 +54,8 @@ const REMOTE_SYNC_TOKEN = (process.env.REMOTE_SYNC_TOKEN || '').trim();
 const rawRemoteSyncMethod = (process.env.REMOTE_SYNC_METHOD || 'POST').trim().toUpperCase();
 const REMOTE_SYNC_METHOD = ['POST', 'PUT', 'PATCH'].includes(rawRemoteSyncMethod) ? rawRemoteSyncMethod : 'POST';
 const REMOTE_SYNC_TIMEOUT = Math.max(0, Number(process.env.REMOTE_SYNC_TIMEOUT) || 7000);
-const MAX_UPLOAD_SIZE = 15 * 1024 * 1024;
+const MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
+const MAX_BODY_SIZE = 40 * 1024 * 1024;
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -651,7 +652,7 @@ const persistUploadedFile = async ({ type, filename, data }) => {
     throw new Error('Invalid file data');
   }
   if (buffer.length > MAX_UPLOAD_SIZE) {
-    throw new Error('Fichier trop volumineux (limite 15 Mo).');
+    throw new Error('Fichier trop volumineux (limite 25 Mo).');
   }
   const ext = path.extname(filename || '').toLowerCase();
   if (!rules.extensions.includes(ext)) {
@@ -1111,7 +1112,7 @@ const collectBody = req => new Promise((resolve, reject) => {
   let body = '';
   req.on('data', chunk => {
     body += chunk;
-    if (body.length > 25 * 1024 * 1024) {
+    if (body.length > MAX_BODY_SIZE) {
       reject(new Error('Payload too large'));
       req.destroy();
     }
@@ -1191,7 +1192,17 @@ const server = http.createServer(async (req, res) => {
       if (!(await ensureAuthorized(req, res, 'admin'))) {
         return;
       }
-      const body = await collectBody(req);
+      let body;
+      try {
+        body = await collectBody(req);
+      } catch (error) {
+        const statusCode = error.message === 'Payload too large' ? 413 : 400;
+        logger.warn('[upload] body rejected', { error: error.message });
+        send(res, statusCode, JSON.stringify({ status: 'error', message: 'Fichier trop volumineux pour etre traite.' }), {
+          'Content-Type': 'application/json'
+        });
+        return;
+      }
       let payload;
       try {
         payload = JSON.parse(body || '{}');
@@ -1207,7 +1218,7 @@ const server = http.createServer(async (req, res) => {
         });
         send(res, 200, JSON.stringify({ status: 'ok', path: relativePath }), { 'Content-Type': 'application/json' });
       } catch (error) {
-        logger.error('[upload] error', { error: error.message });
+        logger.error('[upload] error', { error: error.message, type: payload?.type, filename: payload?.filename });
         send(res, 400, JSON.stringify({ status: 'error', message: error.message }), { 'Content-Type': 'application/json' });
       }
       return;
@@ -1498,5 +1509,3 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   logger.info(`Running at http://${HOST}:${PORT}`);
 });
-
-
