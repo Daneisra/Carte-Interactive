@@ -153,6 +153,15 @@ export class UiController {
             audioTitle: document.getElementById(audioTitleId),
             audioFallback: document.getElementById('audio-fallback'),
             audioStatus: document.getElementById('audio-status'),
+            audioPlayToggle: document.getElementById('audio-play-toggle'),
+            audioProgress: document.getElementById('audio-progress'),
+            audioCurrent: document.getElementById('audio-current'),
+            audioDuration: document.getElementById('audio-duration'),
+            audioVolumeButton: document.getElementById('audio-volume-button'),
+            audioVolume: document.getElementById('audio-volume'),
+            audioLoop: document.getElementById('audio-loop'),
+            audioDownload: document.getElementById('audio-download'),
+            audioSpeed: document.getElementById('audio-speed'),
             locationEditor: document.getElementById('location-editor'),
             userAdminButton: document.getElementById('user-admin-button'),
             userAdminOverlay: document.getElementById('user-admin-overlay'),
@@ -238,7 +247,16 @@ export class UiController {
             titleElement: this.dom.audioTitle,
             container: qs('#audio-container'),
             fallbackButton: this.dom.audioFallback,
-            statusElement: this.dom.audioStatus
+            statusElement: this.dom.audioStatus,
+            playToggle: this.dom.audioPlayToggle,
+            progressBar: this.dom.audioProgress,
+            currentLabel: this.dom.audioCurrent,
+            durationLabel: this.dom.audioDuration,
+            volumeButton: this.dom.audioVolumeButton,
+            volumeSlider: this.dom.audioVolume,
+            loopToggle: this.dom.audioLoop,
+            downloadLink: this.dom.audioDownload,
+            speedSelect: this.dom.audioSpeed
         });
 
         this.infoPanel = new InfoPanel({

@@ -135,16 +135,48 @@
             <button id="info-tab-image" class="info-tab" type="button" role="tab" data-tab="image" aria-controls="image-content" aria-selected="false" tabindex="-1">Image</button>
         </div>
 
+        
         <!-- 🎵 Lecteur audio compact -->
+        
         <div id="audio-container">
             <p id="audio-title">🎧 Ambiance sonore</p>
-            <audio id="audio-player" controls>
-                Votre navigateur ne supporte pas l'élément audio.
-            </audio>
+            <div class="audio-progress-row">
+                <button id="audio-play-toggle" type="button" aria-label="Lire/Pause">▶</button>
+                <div class="audio-progress">
+                    <input id="audio-progress" type="range" min="0" max="0" step="0.1" value="0" />
+                    <div class="audio-time">
+                        <span id="audio-current">0:00</span> / <span id="audio-duration">0:00</span>
+                    </div>
+                </div>
+                <div class="audio-volume-wrap">
+                    <button id="audio-volume-button" type="button" aria-label="Volume">🔊</button>
+                    <input id="audio-volume" type="range" min="0" max="1" step="0.01" value="1" />
+                </div>
+            </div>
+            <div class="audio-controls">
+                <label class="audio-loop">
+                    <input id="audio-loop" type="checkbox" />
+                    Loop
+                </label>
+                <a id="audio-download" class="audio-download" href="#" download hidden>Télécharger</a>
+                <label class="audio-speed">
+                    Vitesse
+                    <select id="audio-speed">
+                        <option value="0.75">0.75x</option>
+                        <option value="1" selected>1x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                    </select>
+                </label>
+            </div>
             <button id="audio-fallback" class="audio-fallback" type="button" hidden>
-                ▶️ Lancer la lecture
+                🎧 Lancer la lecture
             </button>
             <p id="audio-status" class="audio-status" role="status" aria-live="polite" hidden></p>
+            <audio id="audio-player" preload="metadata" hidden>
+                Votre navigateur ne supporte pas l'élément audio.
+            </audio>
         </div>
 
         <!-- 📚 Contenu des onglets -->
@@ -468,5 +500,3 @@
 
 </body>
 </html>
-
-
