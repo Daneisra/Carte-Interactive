@@ -33,6 +33,7 @@
 - [x] Polish UI
 
 ### P1 — Valeur
+- [ ] Amélioration du player audio, meilleur gestion de la lecture, meilleur gestion du volume, possiblités de loop etc
 - [ ] Déplacer cadre "conexion" dans un coin et peut-être modifier la forme pour transformer ça en vrai bouton "profil" avec centralisation des informations de l'utilisateur et un début de personnalisation de profil
 - [ ] Quêtes interactives avec états visuels et transitions.
 - [ ] Markers thématiques/stylés par type + légende.

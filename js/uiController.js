@@ -711,9 +711,6 @@ export class UiController {
             onDeleteQuestEvent: eventId => this.deleteQuestEvent(eventId)
         });
         this.locationEditor.setTypes(this.typeData);
-        if (this.latestValidationWarnings.length) {
-            this.locationEditor.showWarnings(this.latestValidationWarnings);
-        }
         if (this.dom.addLocation) {
             this.dom.addLocation.addEventListener('click', () => {
                 if (!this.isAdmin()) {
@@ -1166,10 +1163,6 @@ export class UiController {
             this.adminDom.validationWarnings.setAttribute('aria-hidden', hasWarnings ? 'false' : 'true');
         }
 
-        if (this.locationEditor?.showWarnings) {
-            this.locationEditor.showWarnings(unique);
-        }
-
         if (changed && unique.length && this.announcer?.polite) {
             const label = unique.length > 1 ? `${unique.length} avertissements` : '1 avertissement';
             this.announcer.polite(`${label} de validation detecte${unique.length > 1 ? 's' : ''}.`);
@@ -1460,6 +1453,7 @@ export class UiController {
         if (this.dom.authPanel) {
             const hidePanel = !this.authRequired && authenticated;
             this.dom.authPanel.hidden = hidePanel;
+            this.dom.authPanel.classList.toggle('auth-admin', isAdmin && authenticated);
         }
         if (this.dom.authStatus) {
             if (!this.authRequired) {
@@ -1483,7 +1477,7 @@ export class UiController {
             this.dom.loginButton.hidden = !this.authRequired || authenticated;
         }
         if (this.dom.logoutButton) {
-            this.dom.logoutButton.hidden = !this.authRequired || !authenticated;
+            this.dom.logoutButton.hidden = true; // caché en mode connecté pour compacter
         }
         if (this.dom.adminPanelButton) {
             const shouldHide = !isAdmin;
