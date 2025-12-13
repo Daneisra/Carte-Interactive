@@ -6,5 +6,13 @@
     "username": "Danny",
     "role": "admin",
     "apiTokens": []
+  },
+  {
+    "id": "discord:449219148636225547",
+    "provider": "discord",
+    "discordId": "449219148636225547",
+    "username": "F4talis",
+    "role": "admin",
+    "apiTokens": []
   }
 ]
