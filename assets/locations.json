@@ -67,7 +67,7 @@
       "type": "Small City Stone Wall",
       "x": 6595,
       "y": 2328,
-      "description": "Description du lieu de Archipel Trekrerith",
+      "description": "# **__Barolt__**\n\nBarolt est une le nom de la ville et de l'île, les deux tire leurs noms du dieux des Valtaran qui est Barolt le dieux de l'artisanat.\n\nToute l'île est entouré par une muraille fortifié afin de se protéger des attaque pirate.\n\nLa ville possède son propre port qui c'est très bien développé au fil des siècles.\n\nLes pirates y sont tolérés mais au moindre problème il sont soit chassé soit exécuté.\n\nLe port compte aussi un chantier naval.\n\nLe commerce en Barolt est très contrôlé, les marchands ne peuvent vendre leur marchandise qu'à un seule endroit qui est rigoureusement contrôlé.\n\nEt les certain marchand sont protégé par des gardes Valtaran afin que leur marchandise arrive à bon port.\n\nIl fait bon vivre dans Barolt et il n'y a quasiment pas de criminalité ou quartier malfamé.",
       "images": [],
       "videos": [],
       "videoTitles": [],
@@ -163,6 +163,76 @@
   ],
   "Dipovia": [
     {
+      "name": "Geirvor",
+      "type": "Small City Stone Wall & Towers",
+      "x": 3101,
+      "y": 4617,
+      "description": "Ville portuaire Dipovienne",
+      "images": [],
+      "videos": [],
+      "videoTitles": [],
+      "audio": "assets/audio/sk-ld-valhalla-lyric-video-skaldvikingsvevo-youtube.mp3",
+      "history": [],
+      "quests": [],
+      "lore": [],
+      "instances": [],
+      "pnjs": [],
+      "tags": [
+        "Port",
+        "Viking"
+      ],
+      "questEvents": []
+    },
+    {
+      "name": "Hanator",
+      "type": "Large City Stone Wall + Towers",
+      "x": 3890,
+      "y": 4946,
+      "description": "Capitale Dipovienne",
+      "images": [],
+      "videos": [],
+      "videoTitles": [],
+      "audio": "assets/audio/sk-l-by-miracle-of-sound-miracleofsound-youtube.mp3",
+      "history": [],
+      "quests": [],
+      "lore": [],
+      "instances": [],
+      "pnjs": [
+        {
+          "name": "Tola Skardsson",
+          "role": "Reine",
+          "description": ""
+        }
+      ],
+      "tags": [
+        "Viking",
+        "Capitale"
+      ],
+      "questEvents": []
+    },
+    {
+      "name": "Kjaldar",
+      "type": "Small City Stone Wall & Towers",
+      "x": 4777,
+      "y": 4369,
+      "description": "La ville principal où les Dipoviens mène leur raids",
+      "images": [],
+      "videos": [],
+      "videoTitles": [],
+      "audio": "assets/audio/sk-ld-dinn-lyric-video-skaldvikingsvevo-youtube.mp3",
+      "history": [],
+      "quests": [],
+      "lore": [],
+      "instances": [],
+      "pnjs": [],
+      "tags": [
+        "Viking",
+        "Raid",
+        "Port"
+      ],
+      "questEvents": []
+    },
+    {
       "name": "Lieu de Dipovia",
       "type": "Crater",
       "x": 3579,
@@ -179,6 +249,27 @@
       "pnjs": [],
       "tags": [],
       "questEvents": []
+    },
+    {
+      "name": "Myrr",
+      "type": "Small City Stone Wall & Towers",
+      "x": 3103,
+      "y": 5082,
+      "description": "Ville minière principale de Dipovia",
+      "images": [],
+      "videos": [],
+      "videoTitles": [],
+      "audio": "assets/audio/sk-ld-r-n-official-music-video-skaldvikingsvevo-youtube.mp3",
+      "history": [],
+      "quests": [],
+      "lore": [],
+      "instances": [],
+      "pnjs": [],
+      "tags": [
+        "Viking",
+        "Mine"
+      ],
+      "questEvents": []
     }
   ],
   "Doprouria": [
@@ -187,7 +278,7 @@
       "type": "Large City Stone Wall + Towers",
       "x": 3991,
       "y": 1037,
-      "description": "Description du lieu de Doprouria",
+      "description": "# **__Irisk: La Porte de Doprouria__**\n\n**__Les Origines de la Ville__**\n\nAu nord de Doprouria, nichée entre les dunes du désert et les falaises escarpées, se trouvait la ville d'Irisk. Fondée il y a des siècles par les ancêtres des Doprouriens, Irisk était destinée à devenir le seul lien entre les vastes terres de Doprouria et le reste du monde. Sa position stratégique, au bord de la mer de Sables, en faisait un lieu de commerce crucial et un point de passage obligé pour les marchands étrangers.\n\n**__La Fondatrice : Séréna l'Audacieuse__**\n\nLa légende raconte que la fondatrice d'Irisk, Séréna l'Audacieuse, avait une vision prophétique. Fille d'un chef nomade, elle rêvait d'une ville où son peuple pourrait échanger ses précieuses ressources contre des denrées rares et des objets exotiques venus de contrées lointaines. Malgré les réticences de son clan, elle entreprit de construire Irisk avec une détermination sans faille. Sous sa direction, des caravanes apportèrent les premières pierres, et des artisans édifièrent les murailles de la cité.\n\n\n**__Le Port d'Irisk__**\n\nLe port d'Irisk était l'âme de la ville. Ses quais en pierre, patinés par les siècles, accueillaient des navires venus des quatre coins du monde. Ici, les marchands échangeaient des épices, des tissus et des métaux précieux contre les richesses de Doprouria. Les bateaux apportaient des vivres, des armes et des objets d'art, indispensables à la vie des nomades.\n\nLe marché d'Irisk, situé près du port, était un lieu animé où se mêlaient les odeurs des épices, les cris des marchands et les couleurs éclatantes des étoffes. C’était un melting-pot culturel où se croisaient les peuples et les langues, faisant d’Irisk une ville cosmopolite unique en Doprouria.\n\n**__La Forteresse d'Irisk__**\n\nPour protéger ce précieux point de commerce, une forteresse imposante fut érigée sur une colline surplombant la ville. Construite en pierre blanche, elle offrait une vue imprenable sur la mer et les environs. Almos Progoni, lors de son règne, renforça les défenses de la forteresse, comprenant son importance stratégique. La forteresse devint un symbole de la puissance de Doprouria, un bastion imprenable face aux pirates et aux orcs.\n\n**__Les Batailles d'Irisk__**\n\nIrisk fut le théâtre de nombreuses batailles. La plus mémorable fut celle menée par Almos Progoni lui-même. Les orcs, en quête de richesses, assiégèrent la ville pendant des mois, espérant couper Doprouria de ses approvisionnements extérieurs. Mais grâce à la bravoure des défenseurs et à l'ingéniosité d'Almos, le siège fut brisé. Utilisant des tunnels secrets et des embuscades, les forces de Doprouria parvinrent à repousser l'envahisseur, assurant la sécurité de la ville et de son port.\n\n**__La Vie à Irisk__**\n\nLa vie à Irisk était un mélange d’austérité et de splendeur. Si les conditions de vie pouvaient être rudes en raison du climat désertique, la ville n'en était pas moins un lieu de prospérité. Les habitants d’Irisk, connus pour leur hospitalité sélective, accueillaient avec respect les marchands et les voyageurs, tout en veillant jalousement sur leurs secrets et leurs richesses.\n\nLes rues pavées d’Irisk étaient bordées de maisons en pierre, ornées de mosaïques et de fresques racontant l’histoire de la ville et de ses héros. Les places publiques étaient des lieux de rencontre où se déroulaient fêtes et cérémonies, perpétuant les traditions ancestrales.\n\n**__Le Déclin et la Renaissance__**\n\nAu fil des siècles, Irisk connut des périodes de déclin, notamment lors des grandes guerres qui secouèrent Doprouria. Cependant, la ville sut toujours renaître de ses cendres, portée par la détermination de ses habitants et l’importance de son port.\n\nAujourd’hui, Irisk reste la porte de Doprouria, un symbole de résilience et de prospérité. Les marchands continuent de venir de loin pour échanger leurs biens, attirés par les richesses inégalées de cette terre légendaire. La ville, avec son port florissant, demeure un carrefour vital et une vitrine du génie et de la ténacité des Doprouriens.",
       "images": [],
       "videos": [],
       "videoTitles": [],
@@ -196,8 +287,16 @@
       "quests": [],
       "lore": [],
       "instances": [],
-      "pnjs": [],
-      "tags": [],
+      "pnjs": [
+        {
+          "name": "Almos Progoni",
+          "role": "Roi",
+          "description": ""
+        }
+      ],
+      "tags": [
+        "Capitale"
+      ],
       "questEvents": []
     },
     {
@@ -209,7 +308,7 @@
       "images": [],
       "videos": [],
       "videoTitles": [],
-      "audio": null,
+      "audio": "assets/audio/malhao-chups24-youtube.mp3",
       "history": [],
       "quests": [],
       "lore": [],
@@ -258,7 +357,9 @@
       "history": [],
       "quests": [],
       "lore": [],
-      "instances": [],
+      "instances": [
+        "La confrérie des assassins"
+      ],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -286,12 +387,16 @@
       "type": "Large City Stone Wall + Towers",
       "x": 7606,
       "y": 466,
-      "description": "",
-      "images": [],
+      "description": "**Brumeport** : La ville Brumeuse du Sud\n\nBrumeport est une ville enclavée entre une chaîne de montagne et l’océan. Cette situation géographique a développé un climat particulier, la ville est toujours enveloppée dans une brume plus ou moins épaisse et n’est accessible que par la mer. Cela a permis de garder la ville secrète pendant de nombreuses années. Elle était au début un repaire de pirates et de contrebandiers en tout genre. Au fil des décennies, la vie était plutôt belle et agitée (malgré quelques incivilités), certains marchands véreux l’appelaient « la petite Trekerith ».  Néanmoins, un jour, les rats ont infesté la ville. Les rumeurs parlaient d’un homme qui était capable de leur parler et de les commander. Très vite, il parvint à prendre le contrôle de la ville et à en devenir le premier seigneur, Archibald de Rongefrey « le Seigneur des rats ».\n\nDepuis, la ville est gouvernée par la maison Rongefrey. Les seigneurs de Brumeport ont toujours gouverné la ville par la terreur. Les gardes de la ville se contentent de battre les malandrins qui ne paient pas la taxe du « rat » (taxe qui autorise à enfreindre la loi du royaume mais pas celle du seigneur). Mais la véritable force qui fait la loi est l’ensemble des spadassins au service des Rongefrey. Quand ils patrouillaient en ville, tous savient qu’ils nétaient pas à l’abris, sauf le tavernier. Tant que les spadassins pouvaient festoyer librement et gratuitement, il pouvait jouir d’une immunité diplomatique.\n\nLa ville est constamment baignée dans la brume et le silence, les volets et portes sont fermées et seuls les rires des spadassins et les travailleurs du port peuvent-être entendus. En plus de la maltraitance subie, l’air humide mêlée à la chaleur du sud rend l’air peu respirable et fait renoncer aux habitants toute activité extérieure. L’entrée de la ville est décorée de quelques pendus qui pensaient être plus malins que les seigneurs du Brumeport. Elle est aussi surplombée par « Noirterrier », le château des Rongefrey. \n\nNoirterrier est un château en pierre sombres. L’intérieur est mal entretenu et mal éclairé. Les visiteurs doivent souvent se munir de torche afin de voir où ils vont. Le parquet grinçant et les brèches dans les murs qui laissent siffler le vent dans le château couvrent les murmures des comploteurs et glacent le sang de ceux qui n’ont pas le cœur aux intrigues.\nLes seigneurs et les membres de la famille sortent rarement du château. A part certains bâtards servant en tant que capitaine spadassin ont pu être aperçu régulièrement en ville au fil des générations. Les Rongefrey ont tout de suite prêté allégeance à la maison Carlevane afin de pouvoir satisfaire leur soif de complot et de pouvoir.  \n\nLes revenues de la seigneurerie viennent des criminels marins, des pirates, des contrebandiers et des marchands que viennent pour commercer. La possibilité de payer la taxe du « rat » rend les échanges entre contrebandiers et marchands beaucoup plus faciles. De plus, les seigneurs du royaume du Sud souhaitant se procurer poisons ou informations viennent en visite « diplomatique » à Noirterrier.\n\n**Brumeport sous l’empire :**\n\nAprès la conquête des royaumes du Sud par l’empire, ces derniers étaient pressés de convertir la population de Brumeport à leur religion. C’est dans ce but qu’ils ont envoyé une équipe composée d’un prêtre et de quelques paladins dans la ville brumeuse. Ces derniers ont commencé à condamner les agissements de la famille Rongefrey. Oronte n’ayant pas l’empire dans le cœur (surtout depuis qu’il est interdit de naviguer et de piller des navires), prit la chose avec philosophie. Les spadassins ont éliminé les paladins et le prêtre fut crucifié sur la proue d’un bateau en direction de Crawen afin d’envoyer un message à l’empereur. Oronte fut ensuite convoqué à Montségur où il fut arrêté par les soldats du duc et brûlé sur un bucher sur ordre impérial.\n\nEnsuite tous les prêtres envoyés à Brumeport tombent « mystérieusement » malades et meurent. C’est pour cela que l’empire finira par y envoyer les paladins et prêtres malhonnêtes et au centre de scandales mais ayant trop d’influence pour être éliminé ou écarté.\n\nL’avis des Rongefrey sur l’empire est très mitigé. Certains y voient des opportunités et d’autres pensent que ce sont des empêcheurs de tourner en rond. Mais une chose est sûre. Aucun membre de la famille n’énonce clairement sa position sur la question",
+      "images": [
+        "assets/images/in-a-fantasy-world-a-poor-port-city-surrounded-by-mountains-and-bathed-in-fog-we-can-see-the-silho.jpg"
+      ],
       "videos": [],
       "videoTitles": [],
       "audio": null,
-      "history": [],
+      "history": [
+        "**Brumeport **: Organisation militaire :\n\nL’armée stationnée à Brumeport n’en est pas vraiment une.\nIl y a la garde de la ville sous le commandement du seigneur.\n\nLa grande partie de « l’armée » est constituée de mercenaires et de brigands qui collaborent ou qui sont endettés avec les Rongefrey ainsi que de la population locale qui n’a pas le choix.\nNéanmoins, la force la plus crainte sont les spadassins qui ne répondent qu’aux membres de la maison Rongefrey. Habituellement, ils éliminent les ennemis de la famille dans des ruelles mais elle peut s’avérer un obstacle redoutable pour ceux qui veulent conquérir la ville.\n\nLa marine de Brumeport n’est composée que de corsaires collaborant ou endettés auprès des Rongefrey.\n\n**Brumeport durant la guerre :**\n\nDurant la guerre contre l’empire, Brumeport avait principalement un rôle de renseignement et d’espionnage. Quelques généraux impériaux ont également mystérieusement « disparus ».\n\nMais le fait d’arme le plus étonnant, c’est le jour où la flotte des Carlevan affronta la flotte impériale. La flotte du royaume du sud rencontra des difficultés car quelqu'un avait divulgué des informations à l'empire (Il s'agit du cousin du chef de la famille Carlevan de l'époque). Un détachement de la flotte impériale comptant une vingtaine de bateaux partie conquérir Brumeport. Mais ce qu’ils ne savaient pas, c’est qu’Oronte de Rongefrey était un amoureux de la mer. Cet homme d’une longue chevelure noire, vêtu d’un chapeau à plume et d’un bandeau sur son œil droit et étant toujours accompagné d'un rat sur son épaule (qui s'appelait Gruyère) était d’ailleurs très reconnu et respecté en Trekerith où il s’était fait un certain nombre d’ami chez les marins. Il avait également fortement agrandi la fortune familiale en pillant des navires marchands impériaux sur son navire : une caraque nommée « Le rat des mers » (qui était le surnom donné à Oronte). Le détachement vit donc émerger de la brûme une caraque avec une voilure bordeau arborant le rat noir des Rongefrey, ainsi qu’une trentaine de bateaux pirates venue de Trekerith pour aider Oronte. C’est ainsi que les Rongefrey ont remporté la bataille navale de Brumeport."
+      ],
       "quests": [],
       "lore": [],
       "instances": [],
@@ -335,7 +440,7 @@
       "type": "Large City Stone Wall + Towers",
       "x": 7458,
       "y": 1098,
-      "description": "",
+      "description": "Carleone est la capitale économique de l'empire de Vruliwen, elle est a l’extrémité sud de la route commerciale principale du continent. Cette route donne beaucoup d’importance à ⁠Winborne et à Carléone qui prennent donc le rôle de pivot dans l’économie du continent.\n\nLe Seigneur de Carleone est Ulrich von Stahl",
       "images": [],
       "videos": [],
       "videoTitles": [],
@@ -343,9 +448,21 @@
       "history": [],
       "quests": [],
       "lore": [],
-      "instances": [],
-      "pnjs": [],
-      "tags": [],
+      "instances": [
+        "La guilde des artisans"
+      ],
+      "pnjs": [
+        {
+          "name": "Ulrich von Stahl",
+          "role": "Seigneur de Carleone",
+          "description": ""
+        }
+      ],
+      "tags": [
+        "Port",
+        "Commerce",
+        "Guilde"
+      ],
       "questEvents": []
     },
     {
@@ -361,7 +478,9 @@
       "history": [],
       "quests": [],
       "lore": [],
-      "instances": [],
+      "instances": [
+        "La guilde des aventuriers"
+      ],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -451,7 +570,9 @@
       "history": [],
       "quests": [],
       "lore": [],
-      "instances": [],
+      "instances": [
+        "Ordre des Marcheurs d’Ombres"
+      ],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -465,7 +586,7 @@
       "images": [],
       "videos": [],
       "videoTitles": [],
-      "audio": null,
+      "audio": "assets/audio/wind-rose-diggy-diggy-hole-official-video-napalm-records-napalm-records-youtube.mp3",
       "history": [],
       "quests": [],
       "lore": [],
@@ -485,11 +606,17 @@
       "videoTitles": [],
       "audio": "assets/audio/gloria_ambiance.mp3",
       "history": [],
-      "quests": [],
+      "quests": [
+        "Le Comptoir d'Épices\n\nUn Comptoir d'Épices en Gloria, dirigé par Thalia Romanidi. Ce comptoir est au cœur d'un réseau de contrebande d'objets magiques interdits. Par leurs actions, ces objets ont pénétré dans l'Empire, semant le chaos."
+      ],
       "lore": [],
-      "instances": [],
+      "instances": [
+        "La guilde des marchands"
+      ],
       "pnjs": [],
-      "tags": [],
+      "tags": [
+        "Port"
+      ],
       "questEvents": []
     },
     {
@@ -505,7 +632,9 @@
       "history": [],
       "quests": [],
       "lore": [],
-      "instances": [],
+      "instances": [
+        "La confrérie des voleurs"
+      ],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -532,7 +661,9 @@
         "Imossa était une cité-état unique en son genre, située sur une île au cœur du continent de Vruliwen. Isolée par sa géographie insulaire, elle a prospéré pendant des siècles en cultivant un modèle politique et économique différent de celui des autres royaumes, faisant d’elle l'une des cités les plus avancées et influentes.",
         "Démocratie Insulaire : Dès sa fondation, Imossa a établi un modèle de gouvernement inédit pour le continent : une démocratie. Contrairement aux autres régions dirigées par des rois ou de l’aristocratie, le pouvoir à Imossa reposait entre les mains d'une assemblée élue, composée de citoyens ayant acquis ce droit grâce à leur participation à la vie civique et économique de la cité. Cependant, tout le monde dans la cité n'était pas citoyen, et seuls les membres influents de la société – les propriétaires terriens, les artisans reconnus, les marins et commerçants les plus prospères – avaient le droit de vote et de participer aux décisions. Cette démocratie conférait à Imossa une aura de progrès politique et social. Elle était perçue comme un modèle en avance sur son temps, où les voix de ses citoyens avaient un impact direct sur les affaires internes de la cité. Sa société accueillait des marchands et des érudits venus des quatre coins du continent, et cette ouverture lui permettait de prospérer sur le plan économique et intellectuel."
       ],
-      "instances": [],
+      "instances": [
+        "La Garde"
+      ],
       "pnjs": [
         {
           "name": "Aden Khenan",
@@ -555,7 +686,7 @@
       "images": [],
       "videos": [],
       "videoTitles": [],
-      "audio": "assets/audio/sanctus_imperator_ambiance.mp3",
+      "audio": "assets/audio/time-and-again-black-templars-ambient-music-music-of-40k-youtube.mp3",
       "history": [],
       "quests": [],
       "lore": [],
@@ -697,7 +828,7 @@
       "type": "Large City Stone Wall + Towers",
       "x": 7363,
       "y": 3607,
-      "description": "Ville portuaire cible de raid viking",
+      "description": "# **__Nikaïus__**\n\nAu continent de l'empereur se dressait la noble cité de Nikaïus, joyau scintillant du continent de Vruliwen. Enserrée dans une étreinte d'eau et de pierre, Nikaïus était une ville portuaire d'une splendeur inégalée, ses quais grouillant de navires aux voiles bariolées venant des quatre coins de Vruliwen et au-delà.\n\nNichée entre les collines ondulantes et les flots tumultueux de la mer d'Ivoire, Nikaïus prospérait grâce à ses marchés débordants de trésors exotiques, de soieries chatoyantes et d'épices odorantes. Les habitants, fiers et courageux, vivaient dans une harmonie précaire, protégés par les remparts imposants de la ville et les vigiles attentifs de la garde impériale.\n\nL'an 33 de l'ère du Second Âge fut marqué par des événements qui allaient ébranler les fondations mêmes de cette cité prospère. En ce fatidique printemps, les vents de la mer d'Ivoire charriaient des murmures d'une menace grandissante, un murmure qui devint bientôt un rugissement lorsqu'une flotte de drakkars, sinistres silhouettes taillées pour la guerre, surgit à l'horizon. Les bannières noires des Vikings, ornées de runes effrayantes, claquaient au vent, annonçant leur intention destructrice.\n\nLes premiers assauts frappèrent Nikaïus comme la fureur des éléments déchaînés. Les défenseurs de la ville, sous le commandement du vaillant général Lucius Varros, résistèrent avec une détermination farouche, se battant dans les ruelles pavées et sur les remparts crénelés. Les Vikings, menés par le redoutable Jarl Skorvald, déferlaient en vagues incessantes, leurs haches et épées étincelant d'un éclat sinistre sous le soleil de mai.\n\nDurant plusieurs semaines, Nikaïus fut le théâtre d'un conflit acharné. Chaque quartier de la ville devint un champ de bataille, les habitants se joignant aux soldats pour défendre leurs foyers. Les cris de guerre se mêlaient aux prières des prêtres suppliant les dieux pour un répit.\n\nMais au-delà des collines, l'Empereur Comosicus Thiri, depuis son trône d'ivoire à Valerius Primus, avait déjà dépêché son armée impériales et ces ordres sacrés. Le tambourinement des sabots et le scintillement des armures annonçaient l'arrivée de la cavalerie lourde de l'Empire. Sous la bannière de l'Aigle d'Or, l'armée impériales pénétrèrent dans Nikaïus comme un torrent impétueux, renversant les assiégeants avec une force irrésistible.\n\nLa bataille finale, connue sous le nom de la Bataille des Trois Jours, vit les forces impériales repousser les Vikings jusqu'aux quais. Là, sur les rivages où la mer et le sang se mêlaient, Jarl Skorvald trouva sa fin, encerclé et abattu par les meilleurs soldats de l'Empire. Les drakkars, privés de leurs capitaines, furent incendiés, leurs carcasses de bois flottant comme de sombres reliques des jours de combat.\n\nAu crépuscule du dernier jour, alors que le silence retombait enfin sur la ville meurtrie, Comosicus Thiri lui-même fit son entrée dans Nikaïus, son regard grave parcourant les vestiges de la bataille. Il déclara alors que la ville serait reconstruite, plus grande et plus forte qu'auparavant, en l'honneur des héros tombés et de la résilience de son peuple.\n\nAinsi s'acheva l'épreuve de Nikaïus, mais son histoire, forgée dans le feu et le sang, devint une légende, chantée par les bardes à travers tout Vruliwen. Les pierres de la cité, gravées de runes et de souvenirs, continuèrent à résonner des échos de cette glorieuse victoire, une victoire qui affermit pour toujours le destin de la ville sous la bienveillance de l'Empire.",
       "images": [],
       "videos": [
         {
@@ -714,12 +845,19 @@
         "One-Shot - La Défense de Nikaïus Part.2"
       ],
       "audio": "assets/audio/tabletop-audio-battle-of-the-amazons-128-ytshorts.savetube.me.mp3",
-      "history": [],
+      "history": [
+        "**__Défense sur le pont de l'Écu d'Argent__**\n\nBayard, vaillant templier de l'Église de la Lumière, se tenait seul sur le pont de l'Écu d'Argent, une structure ancienne enjambant la rivière d'Émeraude, qui divisait Nikaïus en deux. Avec la détermination inébranlable d'un héros légendaire, il fit face à une partie de l'armée viking, son épée bénie scintillant d'une lumière éthérée sous les cieux assombris par la fumée des combats. Chaque coup qu'il portait était empli de la puissance divine, repousant les assaillants avec une force surhumaine. Grâce à son sacrifice et à son courage indomptable, Bayard permit à tout un quartier de la ville de s'échapper en sécurité, enfants, vieillards et blessés trouvant refuge au-delà des remparts. Lorsque le dernier viking tomba sous ses coups, épuisé mais triomphant, Bayard fut trouvé à genoux, priant pour ceux qu'il avait sauvés. Reconnaissant son acte héroïque, l'Église de la Lumière l'éleva au rang de paladin, faisant de lui un symbole vivant de la foi et de la bravoure inébranlable, son nom inscrit à jamais dans les annales de Nikaïus."
+      ],
       "quests": [],
       "lore": [],
-      "instances": [],
+      "instances": [
+        "La guilde des mercenaires"
+      ],
       "pnjs": [],
-      "tags": [],
+      "tags": [
+        "Port",
+        "Guilde"
+      ],
       "questEvents": []
     },
     {
@@ -753,7 +891,9 @@
       "history": [],
       "quests": [],
       "lore": [],
-      "instances": [],
+      "instances": [
+        "La guilde des bardes"
+      ],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -857,17 +997,32 @@
       "type": "Large City Stone Wall + Towers",
       "x": 7676,
       "y": 3513,
-      "description": "Capital de Vruliwen",
-      "images": [],
+      "description": "# **Valerius Primus, la Cité Élevée**\n\nValerius Primus fut, bien avant de devenir capitale impériale, l’une des cités les plus anciennes et les plus prestigieuses du continent de Vruliwen. Rivalisant jadis avec la glorieuse Imossa, elle a toujours été un centre de pouvoir, d’influence et de culture. Chaque grande famille qui y établissait son siège accédait instantanément à un prestige immense. Sa position stratégique au carrefour des routes terrestres et fluviales, combinée à un climat clément, en a fait depuis longtemps un cœur économique et diplomatique.\n\nMais ce n’est qu’après la campagne d’unification de Comosicus Thiri, menée en seulement sept ans, que Valerius devint la capitale politique de l’Empire. En s’installant dans cette ville déjà colossale et reconnue, le jeune empereur marqua sa légitimité tout en s’assurant le soutien des anciennes maisons nobles. Le choix n’était pas que symbolique : c’était un acte de continuité autant que de domination.\n\nArchitecturalement, Valerius est un assemblage vertigineux. Le cœur ancien de la ville — palais en pierre claire, arcs-boutants massifs, temples anciens — témoigne de sa grandeur d’autrefois. Autour de ce noyau s’est développée une cité moderne à l’échelle impériale : avenues monumentales, quartiers planifiés pour la noblesse impériale, casernes, jardins suspendus, et gigantesques infrastructures administratives. L’ensemble abrite aujourd’hui plusieurs millions d’habitants, répartis entre quartiers élitistes et zones populaires densément peuplées.\n\nLes niveaux inférieurs de la cité, creusés sur des siècles, forment un réseau de souterrains où se mêlent les catacombes, les restes de civilisations passées et les quartiers clandestins. En hauteur, certaines tours récentes s’élèvent jusqu’à percer les nuages, servant de phares à la grandeur de l’Empire — ou de tours de guet face aux tempêtes à venir.\n\nValerius Primus, malgré sa centralisation récente du pouvoir, n’a jamais été une ville de paix tranquille. Les intrigues y prospèrent autant que le commerce. Les tensions anciennes entre familles nobles, la présence cachée de cultes dissidents, les jeux d’influence entre l’Église de la Lumière, l’Académie des Mages, l’armée impériale et les anciens bourgeois n’ont pas disparu : ils se sont simplement déplacés plus près du trône.\n\nEt pourtant, c’est là, au cœur de cette complexité, que Comosicus Thiri a choisi d’établir son règne. Non comme un conquérant venu imposer un ordre nouveau, mais comme un héritier capable d’absorber l’histoire pour mieux la diriger. Valerius Primus est ainsi à l’image de l’Empire : ancienne, changeante, imposante — et plus vivante que jamais.",
+      "images": [
+        "assets/images/raw.png"
+      ],
       "videos": [],
       "videoTitles": [],
       "audio": "assets/audio/belisarius-epic-byzantine-music.mp3",
       "history": [],
       "quests": [],
       "lore": [],
-      "instances": [],
-      "pnjs": [],
-      "tags": [],
+      "instances": [
+        "Académie des Mages",
+        "La guilde des protecteurs",
+        "L'Eglise de la Lumière"
+      ],
+      "pnjs": [
+        {
+          "name": "Comosicus Thiri",
+          "role": "Empereur-Dieu de Vruliwen / Unificateur du continent / Porteur de la Pax Maxima / Le Dieu sur Terre",
+          "description": ""
+        }
+      ],
+      "tags": [
+        "Capitale",
+        "Guilde"
+      ],
       "questEvents": []
     },
     {
@@ -885,7 +1040,9 @@
       "lore": [
         "# **Vardanys, le Reflux d’Imossa**\n\nVardanys fut la première cité à accueillir les réfugiés d’Imossa après la Chute.\nDe ce fait, elle devint rapidement un refuge pour les anciens citoyens de la cité perdue, une “petite Imossa” où l’on parlait encore avec fierté le dialecte imossien et où la mémoire des Primarques était entretenue comme un culte.\n\nAu fil des décennies, la ville devint le principal bastion continental de la Garde d’Imossa, un lieu de recrutement, de mémoire et d’entraînement.\nMais depuis la guerre contre Dipovia, la situation s’est tendue :\n\n- L’Empire exige que la Garde se joigne à la Croisade.\n\n- La Garde refuse de se battre sous la bannière de l’Église, qu’elle considère responsable de la Chute d’Imossa.\n\n- Les tensions entre les officiers impériaux et les Primarques s’enveniment.\n\n- Les habitants de Vardanys, descendants d’Imossa, se sentent trahis par le trône.\n\n> Aujourd’hui, Vardanys est une ville au bord de l’insurrection. Ses quais bruissent de murmures, les drapeaux impériaux sont souillés d’eau de mer, et les cloches du port résonnent comme un glas."
       ],
-      "instances": [],
+      "instances": [
+        "La Garde"
+      ],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -903,7 +1060,9 @@
       "history": [],
       "quests": [],
       "lore": [],
-      "instances": [],
+      "instances": [
+        "La guilde des collectionneurs"
+      ],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -919,7 +1078,7 @@
       "images": [],
       "videos": [],
       "videoTitles": [],
-      "audio": null,
+      "audio": "assets/audio/sabaton-templars-official-lyric-video-sabaton-youtube.mp3",
       "history": [],
       "quests": [],
       "lore": [],
