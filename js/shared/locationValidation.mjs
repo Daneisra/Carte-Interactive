@@ -245,6 +245,7 @@ export function validateLocationRecord(rawLocation, {
     collectStringIssues('quests', rawLocation?.quests, { label, issues, allowString: true });
     collectStringIssues('lore', rawLocation?.lore, { label, issues, allowString: true });
     collectStringIssues('instances', rawLocation?.instances, { label, issues, allowString: true });
+    collectStringIssues('nobleFamilies', rawLocation?.nobleFamilies, { label, issues, allowString: true });
 
     if (rawLocation?.pnjs !== undefined) {
         if (!Array.isArray(rawLocation.pnjs)) {

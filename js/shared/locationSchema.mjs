@@ -122,6 +122,7 @@ const normalizeLocation = rawLocation => {
         quests: collectTextArray(rawLocation.quests),
         lore: collectTextArray(rawLocation.lore),
         instances: collectTextArray(rawLocation.instances),
+        nobleFamilies: collectTextArray(rawLocation.nobleFamilies),
         pnjs: normalizePnjList(rawLocation.pnjs),
         tags: (() => {
             if (Array.isArray(rawLocation.tags)) {

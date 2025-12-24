@@ -14,6 +14,7 @@ export class InfoPanel {
         pnjsSection,
         loreSection,
         instancesSection,
+        nobleFamiliesSection,
         audioManager,
         closeButton,
         lightbox = null,
@@ -30,6 +31,7 @@ export class InfoPanel {
         this.pnjsSection = pnjsSection;
         this.loreSection = loreSection;
         this.instancesSection = instancesSection;
+        this.nobleFamiliesSection = nobleFamiliesSection;
         this.audioManager = audioManager;
         this.closeButton = closeButton;
         this.onClose = () => {};
@@ -108,6 +110,7 @@ export class InfoPanel {
         this.renderSection(this.questsSection, location.quests, 'info.quests');
         this.renderSection(this.loreSection, location.lore, 'info.lore');
         this.renderSection(this.instancesSection, location.instances, 'info.instances', 'Instances');
+        this.renderSection(this.nobleFamiliesSection, location.nobleFamilies, 'info.nobleFamilies', 'Familles nobles');
         this.renderPnjsSection(location.pnjs);
         this.renderGallery(location);
 

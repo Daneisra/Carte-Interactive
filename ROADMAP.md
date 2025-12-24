@@ -34,21 +34,30 @@
 
 ### P1 — Valeur
 - [x] Amélioration du player audio, meilleur gestion de la lecture, meilleur gestion du volume, possiblités de loop etc
-- [ ] Déplacer cadre "conexion" dans un coin et peut-être modifier la forme pour transformer ça en vrai bouton "profil" avec centralisation des informations de l'utilisateur et un début de personnalisation de profil
+- [x] Ajout d'un champ famille nobles dans les lieux
+- [ ] Lien interlieux pour passer d'un lieu a l'autre directement depuis les textes des lieux
+- [ ] Déplacer cadre "conexion" dans un coin (surement en haut a droite) et peut-être modifier la forme pour transformer ça en vrai bouton "profil" avec centralisation des informations de l'utilisateur et un début de personnalisation de profil.
+- [ ] Création et gestion de groupe depuis panneau admin pour ensuite attribuer les groupes de jdr au profil utilisateur
+- [ ] Dans le profil utilisateur création de personnage avec nom, bio et groupe
+- [ ] Possiblités de placement des différents groupes sur la carte avec visualisation des utilisateurs a l'intérieur du groupe
 - [ ] Quêtes interactives avec états visuels et transitions.
 - [ ] Markers thématiques/stylés par type + légende.
 - [ ] Tableau de bord live (compteurs SSE/latences) côté admin.
 - [ ] Narateur audio
+- [ ] Polish UI
 
 ### P2 — Différenciants
+- [ ] Détection automatique de lieu dans les texte pour création automatique de lien
+- [ ] Intégration et personalisation d'une frise chronologique
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
 - [ ] Marqueurs évolutifs (temps/événements).
+- [ ] Polish UI
 
 ### P3 — Hygiène & dette
 - [ ] Modularisation fine de `UiController` et nettoyage des artefacts legacy.
 - [ ] Harmonisation encodages (UTF-8) & lint assets. :contentReference[oaicite:7]{index=7}
-
+- [ ] Polish UI
 
 
 ## 3) Architecture (prod)

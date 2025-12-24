@@ -116,6 +116,11 @@ const MARKDOWN_SECTION_CONFIG = {
         placeholder: 'Instance (Markdown)',
         emptyText: 'Previsualisation de cette instance.',
         removeLabel: 'Supprimer cette instance'
+    },
+    nobleFamilies: {
+        placeholder: 'Famille noble (Markdown)',
+        emptyText: 'Previsualisation de cette famille.',
+        removeLabel: 'Supprimer cette famille noble'
     }
 };
 
@@ -134,6 +139,7 @@ const DEFAULT_LOCATION = {
     quests: [],
     lore: [],
     instances: [],
+    nobleFamilies: [],
     pnjs: [],
     tags: []
 };
@@ -336,13 +342,15 @@ export class LocationEditor {
             history: this.form?.querySelector('[data-role="history-list"]') || null,
             quests: this.form?.querySelector('[data-role="quests-list"]') || null,
             lore: this.form?.querySelector('[data-role="lore-list"]') || null,
-            instances: this.form?.querySelector('[data-role="instances-list"]') || null
+            instances: this.form?.querySelector('[data-role="instances-list"]') || null,
+            nobleFamilies: this.form?.querySelector('[data-role="noble-families-list"]') || null
         };
         this.markdownAddButtons = {
             history: this.form?.querySelector('[data-action="add-history-entry"]') || null,
             quests: this.form?.querySelector('[data-action="add-quests-entry"]') || null,
             lore: this.form?.querySelector('[data-action="add-lore-entry"]') || null,
-            instances: this.form?.querySelector('[data-action="add-instances-entry"]') || null
+            instances: this.form?.querySelector('[data-action="add-instances-entry"]') || null,
+            nobleFamilies: this.form?.querySelector('[data-action="add-noble-families-entry"]') || null
         };
         this.questEventsContainer = this.form?.querySelector('[data-role="quest-events"]') || null;
         this.questEventsList = this.form?.querySelector('[data-role="quest-events-list"]') || null;
@@ -789,6 +797,7 @@ export class LocationEditor {
         this.setMarkdownEntries('quests', location.quests);
         this.setMarkdownEntries('lore', location.lore);
         this.setMarkdownEntries('instances', location.instances);
+        this.setMarkdownEntries('nobleFamilies', location.nobleFamilies);
         this.setTags(location.tags);
 
         if (this.imageList) {
@@ -1838,6 +1847,7 @@ export class LocationEditor {
         location.quests = this.collectMarkdownEntries('quests');
         location.lore = this.collectMarkdownEntries('lore');
         location.instances = this.collectMarkdownEntries('instances');
+        location.nobleFamilies = this.collectMarkdownEntries('nobleFamilies');
 
         const valid = Object.keys(errors).length === 0;
         return {
