@@ -38,13 +38,31 @@ const applyInlineFormatting = input => {
         return '';
     }
     const codes = [];
-    let result = escapeHtml(input);
+    const locationLinks = [];
+    let result = input;
 
     result = result.replace(/`([^`]+)`/g, (_, code) => {
         const token = `@@CODE${codes.length}@@`;
-        codes.push(`<code>${code}</code>`);
+        codes.push(`<code>${escapeHtml(code)}</code>`);
         return token;
     });
+
+    result = result.replace(/\[\[([^\]]+)\]\]/g, (match, raw) => {
+        const parts = raw.split('|').map(part => part.trim()).filter(Boolean);
+        if (!parts.length) {
+            return match;
+        }
+        const label = parts[0];
+        const target = parts.length > 1 ? parts[1] : parts[0];
+        if (!target) {
+            return match;
+        }
+        const token = `@@LOC${locationLinks.length}@@`;
+        locationLinks.push({ label, target });
+        return token;
+    });
+
+    result = escapeHtml(result);
 
     result = result.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g, (match, text, href, title) => {
         const url = sanitizeUrl(href);
@@ -57,6 +75,16 @@ const applyInlineFormatting = input => {
     result = result.replace(/~~(.+?)~~/g, '<del>$1</del>');
 
     result = result.replace(/@@CODE(\d+)@@/g, (_, index) => codes[Number(index)] || '');
+    result = result.replace(/@@LOC(\d+)@@/g, (_, index) => {
+        const entry = locationLinks[Number(index)];
+        if (!entry) {
+            return '';
+        }
+        const label = escapeHtml(entry.label);
+        const target = entry.target.trim();
+        const encoded = encodeURIComponent(target);
+        return `<a href="#location:${encoded}" class="location-link" data-location="${escapeAttribute(target)}">${label}</a>`;
+    });
 
     return result.replace(/\n/g, '<br>');
 };

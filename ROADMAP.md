@@ -35,7 +35,7 @@
 ### P1 — Valeur
 - [x] Amélioration du player audio, meilleur gestion de la lecture, meilleur gestion du volume, possiblités de loop etc
 - [x] Ajout d'un champ famille nobles dans les lieux
-- [ ] Lien interlieux pour passer d'un lieu a l'autre directement depuis les textes des lieux
+- [ ] Possiblités de créer des liens interlieux pour passer d'un lieu a l'autre directement depuis les textes des lieux.
 - [ ] Déplacer cadre "conexion" dans un coin (surement en haut a droite) et peut-être modifier la forme pour transformer ça en vrai bouton "profil" avec centralisation des informations de l'utilisateur et un début de personnalisation de profil.
 - [ ] Création et gestion de groupe depuis panneau admin pour ensuite attribuer les groupes de jdr au profil utilisateur
 - [ ] Dans le profil utilisateur création de personnage avec nom, bio et groupe

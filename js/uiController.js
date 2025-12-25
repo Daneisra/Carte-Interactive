@@ -568,6 +568,7 @@ export class UiController {
         this.bindToggleAll();
         this.bindClustering();
         this.bindMarkerScale();
+        this.bindLocationLinks();
         this.bindFavoriteToggle();
         this.bindRandomButton();
         this.bindMeasurementTool();
@@ -1974,6 +1975,38 @@ export class UiController {
 
         attach(this.dom.tabAll, 'all');
         attach(this.dom.tabFavorites, 'favorites');
+    }
+
+    bindLocationLinks() {
+        const container = this.dom.infoSidebar;
+        if (!container || container.dataset.locationLinksBound) {
+            return;
+        }
+        container.dataset.locationLinksBound = 'true';
+        container.addEventListener('click', event => {
+            const link = event.target?.closest('a');
+            if (!link) {
+                return;
+            }
+            const href = link.getAttribute('href') || '';
+            if (!href.startsWith('#location:')) {
+                return;
+            }
+            event.preventDefault();
+            const fromDataset = link.dataset?.location;
+            let name = fromDataset || '';
+            if (!name) {
+                try {
+                    name = decodeURIComponent(href.slice('#location:'.length));
+                } catch (error) {
+                    name = href.slice('#location:'.length);
+                }
+            }
+            if (!name) {
+                return;
+            }
+            this.focusLocationByName(name);
+        });
     }
 
     bindToggleAll() {
