@@ -5,6 +5,14 @@ const DRAFT_STORAGE_KEY_PREFIX = 'interactive-map-markdown-draft';
 const DRAFT_STORAGE_VERSION = 1;
 const DRAFT_STORAGE_TTL = 1000 * 60 * 60 * 24 * 7;
 const DRAFT_SAVE_DEBOUNCE = 400;
+const LINK_SUGGESTION_DEBOUNCE = 300;
+const WORD_CHAR_REGEX = (() => {
+    try {
+        return new RegExp('[\\p{L}\\p{N}]', 'u');
+    } catch (error) {
+        return /[A-Za-z0-9]/;
+    }
+})();
 
 const canUseDraftStorage = () => {
     try {
@@ -98,26 +106,31 @@ const removeDraftRecord = key => {
 
 const MARKDOWN_SECTION_CONFIG = {
     history: {
+        label: 'Historique',
         placeholder: 'Entree historique (Markdown)',
         emptyText: 'Previsualisation de cet historique.',
         removeLabel: 'Supprimer cet historique'
     },
     quests: {
+        label: 'Quetes',
         placeholder: 'Entree de quete (Markdown)',
         emptyText: 'Previsualisation de cette quete.',
         removeLabel: 'Supprimer cette entree de quete'
     },
     lore: {
+        label: 'Lore',
         placeholder: 'Entree de lore (Markdown)',
         emptyText: 'Previsualisation de cet element de lore.',
         removeLabel: 'Supprimer cet element de lore'
     },
     instances: {
+        label: 'Instances',
         placeholder: 'Instance (Markdown)',
         emptyText: 'Previsualisation de cette instance.',
         removeLabel: 'Supprimer cette instance'
     },
     nobleFamilies: {
+        label: 'Familles nobles',
         placeholder: 'Famille noble (Markdown)',
         emptyText: 'Previsualisation de cette famille.',
         removeLabel: 'Supprimer cette famille noble'
@@ -369,8 +382,17 @@ export class LocationEditor {
         this.warningsPanel = this.form?.querySelector('[data-role="validation-warnings"]') || null;
         this.warningsList = this.form?.querySelector('[data-role="validation-warnings-list"]') || null;
         this.warningsFootnote = this.form?.querySelector('[data-role="validation-warnings-footnote"]') || null;
+        this.linkSuggestionsPanel = this.form?.querySelector('[data-role="link-suggestions"]') || null;
+        this.linkSuggestionsList = this.form?.querySelector('[data-role="link-suggestions-list"]') || null;
+        this.linkSuggestionsEmpty = this.form?.querySelector('[data-role="link-suggestions-empty"]') || null;
+        this.linkSuggestionsRefreshButton = this.form?.querySelector('[data-action="refresh-link-suggestions"]') || null;
+        this.linkSuggestionsApplyAllButton = this.form?.querySelector('[data-action="apply-link-suggestions"]') || null;
         this.latestWarnings = [];
         this.editingQuestEventId = null;
+        this.linkSuggestions = [];
+        this.availableLocations = [];
+        this.linkSuggestionTimer = null;
+        this.ignoredLinkSuggestions = new Set();
 
         this.callbacks = {
             onCreate,
@@ -434,6 +456,7 @@ export class LocationEditor {
             this.descriptionInput.addEventListener('input', () => {
                 this.updateDescriptionPreview();
                 this.scheduleDescriptionDraftSave();
+                this.scheduleLinkSuggestions();
             });
             this.descriptionInput.addEventListener('blur', () => this.flushDescriptionDraftSave());
         }
@@ -508,8 +531,34 @@ export class LocationEditor {
             }
             if (target.dataset?.role === 'markdown-entry-input') {
                 this.updateMarkdownEntryPreview(target);
+                this.scheduleLinkSuggestions();
             }
         });
+
+        if (this.linkSuggestionsRefreshButton) {
+            this.linkSuggestionsRefreshButton.addEventListener('click', () => this.refreshLinkSuggestions());
+        }
+        if (this.linkSuggestionsApplyAllButton) {
+            this.linkSuggestionsApplyAllButton.addEventListener('click', () => this.applyAllLinkSuggestions());
+        }
+        if (this.linkSuggestionsList) {
+            this.linkSuggestionsList.addEventListener('click', event => {
+                const button = event.target?.closest('button');
+                if (!button) {
+                    return;
+                }
+                const action = button.dataset?.action || '';
+                const id = button.dataset?.suggestionId || '';
+                if (!id) {
+                    return;
+                }
+                if (action === 'apply-link-suggestion') {
+                    this.applyLinkSuggestion(id);
+                } else if (action === 'ignore-link-suggestion') {
+                    this.ignoreLinkSuggestion(id);
+                }
+            });
+        }
 
         if (this.addImageButton) {
             this.addImageButton.addEventListener('click', () => {
@@ -677,7 +726,7 @@ export class LocationEditor {
         }
     }
 
-    open({ mode = 'create', location = null, continent = '', disallowedNames = [], questEvents = [] } = {}) {
+    open({ mode = 'create', location = null, continent = '', disallowedNames = [], questEvents = [], availableLocations = [] } = {}) {
         if (!this.container) {
             return;
         }
@@ -693,10 +742,12 @@ export class LocationEditor {
             originalName: location?.name || ''
         };
         this.questEvents = Array.isArray(questEvents) ? [...questEvents] : [];
+        this.setAvailableLocations(availableLocations);
         this.descriptionDraftKey = this.buildDescriptionDraftKey();
         this.descriptionDraftSkipOnce = false;
         this.lastSavedDescriptionDraft = '';
         this.lastDraftSavedAt = null;
+        this.ignoredLinkSuggestions.clear();
 
         if (this.deleteButton) {
             const isEditMode = mode === 'edit';
@@ -717,6 +768,7 @@ export class LocationEditor {
         this.updatePnjPreview();
         this.updateQuestEventsSection();
         this.restoreDescriptionDraft();
+        this.refreshLinkSuggestions();
 
         if (this.headerTitle) {
             this.headerTitle.textContent = mode === 'edit' ? 'Modifier un lieu' : 'Creer un lieu';
@@ -764,6 +816,15 @@ export class LocationEditor {
         this.lastSavedDescriptionDraft = '';
         this.lastDraftSavedAt = null;
         this.descriptionDraftSkipOnce = false;
+        if (this.linkSuggestionTimer) {
+            clearTimeout(this.linkSuggestionTimer);
+            this.linkSuggestionTimer = null;
+        }
+        this.linkSuggestions = [];
+        this.ignoredLinkSuggestions.clear();
+        if (this.linkSuggestionsPanel) {
+            this.linkSuggestionsPanel.hidden = true;
+        }
         this.setDescriptionDraftStatus(null);
         this.currentContext = null;
         this.disallowedNames.clear();
@@ -1213,6 +1274,7 @@ export class LocationEditor {
             focusTarget = replacement?.querySelector('textarea[data-role="markdown-entry-input"]') || focusTarget;
         }
         focusTarget?.focus?.();
+        this.scheduleLinkSuggestions();
     }
 
     setQuestEvents(events = []) {
@@ -1612,6 +1674,320 @@ export class LocationEditor {
             const option = createElement('option', { attributes: { value: tag.label || tag.value } });
             this.tagsSuggestions.appendChild(option);
         });
+    }
+
+    setAvailableLocations(locations = []) {
+        const unique = new Set();
+        this.availableLocations = [];
+        (Array.isArray(locations) ? locations : []).forEach(entry => {
+            const value = typeof entry === 'string'
+                ? entry
+                : (entry?.name || entry?.label || '');
+            const trimmed = (value || '').toString().trim();
+            if (!trimmed) {
+                return;
+            }
+            const key = trimmed.toLocaleLowerCase('fr');
+            if (unique.has(key)) {
+                return;
+            }
+            unique.add(key);
+            this.availableLocations.push(trimmed);
+        });
+        if (this.isOpen) {
+            this.refreshLinkSuggestions();
+        }
+    }
+
+    scheduleLinkSuggestions() {
+        if (!this.isOpen) {
+            return;
+        }
+        if (this.linkSuggestionTimer) {
+            clearTimeout(this.linkSuggestionTimer);
+        }
+        this.linkSuggestionTimer = setTimeout(() => {
+            this.linkSuggestionTimer = null;
+            this.refreshLinkSuggestions();
+        }, LINK_SUGGESTION_DEBOUNCE);
+    }
+
+    refreshLinkSuggestions() {
+        if (!this.linkSuggestionsPanel || !this.linkSuggestionsList) {
+            return;
+        }
+        this.linkSuggestions = this.buildLinkSuggestions();
+        this.renderLinkSuggestions();
+    }
+
+    buildLinkSuggestions() {
+        const suggestions = [];
+        const sources = this.getLinkSuggestionSources();
+        if (!sources.length || !this.availableLocations.length) {
+            return suggestions;
+        }
+        const currentName = (this.form?.elements?.name?.value || this.currentContext?.originalName || '').toString().trim();
+        const currentKey = currentName ? currentName.toLocaleLowerCase('fr') : '';
+        const seen = new Set();
+        this.availableLocations.forEach(name => {
+            const key = name.toLocaleLowerCase('fr');
+            if (!key || key === currentKey) {
+                return;
+            }
+            sources.forEach(source => {
+                const text = source.textarea?.value || '';
+                if (!text) {
+                    return;
+                }
+                if (!this.hasEligibleMatch(text, name)) {
+                    return;
+                }
+                const suggestionKey = `${source.key}::${key}`;
+                if (this.ignoredLinkSuggestions.has(suggestionKey) || seen.has(suggestionKey)) {
+                    return;
+                }
+                seen.add(suggestionKey);
+                suggestions.push({
+                    id: suggestionKey,
+                    fieldKey: source.key,
+                    fieldLabel: source.label,
+                    target: name,
+                    textarea: source.textarea,
+                    updatePreview: source.updatePreview
+                });
+            });
+        });
+        return suggestions;
+    }
+
+    getLinkSuggestionSources() {
+        const sources = [];
+        if (this.descriptionInput) {
+            sources.push({
+                key: 'description',
+                label: 'Description',
+                textarea: this.descriptionInput,
+                updatePreview: () => this.updateDescriptionPreview()
+            });
+        }
+        (this.markdownSections || []).forEach(type => {
+            const list = this.markdownLists?.[type];
+            if (!list) {
+                return;
+            }
+            const labelBase = this.getMarkdownConfig(type)?.label || type;
+            const rows = Array.from(list.querySelectorAll('.markdown-entry-row'));
+            rows.forEach((row, index) => {
+                const textarea = row.querySelector('textarea[data-role=\"markdown-entry-input\"]');
+                if (!textarea) {
+                    return;
+                }
+                sources.push({
+                    key: `${type}-${index + 1}`,
+                    label: `${labelBase} ${index + 1}`,
+                    textarea,
+                    updatePreview: () => this.updateMarkdownEntryPreview(textarea)
+                });
+            });
+        });
+        return sources;
+    }
+
+    renderLinkSuggestions() {
+        if (!this.linkSuggestionsPanel || !this.linkSuggestionsList) {
+            return;
+        }
+        clearElement(this.linkSuggestionsList);
+        this.linkSuggestionsPanel.hidden = false;
+        const hasSuggestions = this.linkSuggestions.length > 0;
+        if (this.linkSuggestionsEmpty) {
+            this.linkSuggestionsEmpty.hidden = hasSuggestions;
+        }
+        if (this.linkSuggestionsApplyAllButton) {
+            this.linkSuggestionsApplyAllButton.disabled = !hasSuggestions;
+        }
+        if (!hasSuggestions) {
+            return;
+        }
+        this.linkSuggestions.forEach(suggestion => {
+            const item = createElement('li', { className: 'form-suggestion-item' });
+            const text = createElement('span', {
+                className: 'form-suggestion-text',
+                text: `${suggestion.fieldLabel}: ${suggestion.target}`
+            });
+            const meta = createElement('div', { className: 'form-suggestion-meta' });
+            const applyButton = createElement('button', {
+                className: 'tertiary-button',
+                text: 'Appliquer',
+                attributes: {
+                    type: 'button',
+                    'data-action': 'apply-link-suggestion',
+                    'data-suggestion-id': suggestion.id
+                }
+            });
+            const ignoreButton = createElement('button', {
+                className: 'tertiary-button',
+                text: 'Ignorer',
+                attributes: {
+                    type: 'button',
+                    'data-action': 'ignore-link-suggestion',
+                    'data-suggestion-id': suggestion.id
+                }
+            });
+            meta.appendChild(applyButton);
+            meta.appendChild(ignoreButton);
+            item.appendChild(text);
+            item.appendChild(meta);
+            this.linkSuggestionsList.appendChild(item);
+        });
+    }
+
+    applyLinkSuggestion(id) {
+        const suggestion = this.linkSuggestions.find(entry => entry.id === id);
+        if (!suggestion || !suggestion.textarea) {
+            return;
+        }
+        const text = suggestion.textarea.value || '';
+        const result = this.replaceEligibleMatches(text, suggestion.target);
+        if (!result.changed) {
+            return;
+        }
+        suggestion.textarea.value = result.text;
+        suggestion.updatePreview?.();
+        this.refreshLinkSuggestions();
+    }
+
+    ignoreLinkSuggestion(id) {
+        if (!id) {
+            return;
+        }
+        this.ignoredLinkSuggestions.add(id);
+        this.refreshLinkSuggestions();
+    }
+
+    applyAllLinkSuggestions() {
+        if (!this.linkSuggestions.length) {
+            return;
+        }
+        const current = [...this.linkSuggestions];
+        current.forEach(suggestion => {
+            if (!suggestion.textarea) {
+                return;
+            }
+            const result = this.replaceEligibleMatches(suggestion.textarea.value || '', suggestion.target);
+            if (!result.changed) {
+                return;
+            }
+            suggestion.textarea.value = result.text;
+            suggestion.updatePreview?.();
+        });
+        this.refreshLinkSuggestions();
+    }
+
+    hasEligibleMatch(text, target) {
+        const haystack = (text || '').toString();
+        const needle = (target || '').toString().trim();
+        if (!haystack || !needle) {
+            return false;
+        }
+        const lowerText = haystack.toLocaleLowerCase('fr');
+        const lowerNeedle = needle.toLocaleLowerCase('fr');
+        let index = 0;
+        while (index <= lowerText.length) {
+            const found = lowerText.indexOf(lowerNeedle, index);
+            if (found === -1) {
+                return false;
+            }
+            if (this.isEligibleMatch(haystack, found, needle.length)) {
+                return true;
+            }
+            index = found + lowerNeedle.length;
+        }
+        return false;
+    }
+
+    replaceEligibleMatches(text, target) {
+        const source = (text || '').toString();
+        const needle = (target || '').toString().trim();
+        if (!source || !needle) {
+            return { text: source, changed: false };
+        }
+        const lowerText = source.toLocaleLowerCase('fr');
+        const lowerNeedle = needle.toLocaleLowerCase('fr');
+        let result = '';
+        let index = 0;
+        let changed = false;
+        while (index < source.length) {
+            const found = lowerText.indexOf(lowerNeedle, index);
+            if (found === -1) {
+                result += source.slice(index);
+                break;
+            }
+            if (!this.isEligibleMatch(source, found, needle.length)) {
+                result += source.slice(index, found + needle.length);
+                index = found + needle.length;
+                continue;
+            }
+            result += source.slice(index, found);
+            const matchedText = source.slice(found, found + needle.length);
+            const link = matchedText === needle
+                ? `[[${needle}]]`
+                : `[[${matchedText}|${needle}]]`;
+            result += link;
+            index = found + needle.length;
+            changed = true;
+        }
+        return { text: result, changed };
+    }
+
+    isEligibleMatch(text, start, length) {
+        const end = start + length;
+        const before = start > 0 ? text[start - 1] : '';
+        const after = end < text.length ? text[end] : '';
+        if (before && WORD_CHAR_REGEX.test(before)) {
+            return false;
+        }
+        if (after && WORD_CHAR_REGEX.test(after)) {
+            return false;
+        }
+        if (before === '[' || after === ']') {
+            return false;
+        }
+        if (this.isInsideDoubleBrackets(text, start) || this.isInsideMarkdownLink(text, start)) {
+            return false;
+        }
+        return true;
+    }
+
+    isInsideDoubleBrackets(text, index) {
+        const before = text.slice(0, index);
+        const lastOpen = before.lastIndexOf('[[');
+        if (lastOpen === -1) {
+            return false;
+        }
+        const lastClose = before.lastIndexOf(']]');
+        if (lastClose > lastOpen) {
+            return false;
+        }
+        const nextClose = text.indexOf(']]', index);
+        return nextClose !== -1;
+    }
+
+    isInsideMarkdownLink(text, index) {
+        const before = text.slice(0, index);
+        const lastOpen = before.lastIndexOf('[');
+        if (lastOpen === -1) {
+            return false;
+        }
+        const lastClose = before.lastIndexOf(']');
+        if (lastClose > lastOpen) {
+            return false;
+        }
+        const nextClose = text.indexOf(']', index);
+        if (nextClose === -1) {
+            return false;
+        }
+        return text.slice(nextClose, nextClose + 2) === '](';
     }
 
     setTags(tags = []) {

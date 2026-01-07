@@ -946,6 +946,33 @@ export class UiController {
         return names;
     }
 
+    collectLocationNameLabels(exceptName = null) {
+        const names = [];
+        const seen = new Set();
+        const except = exceptName ? sanitizeString(exceptName).toLowerCase() : null;
+        Object.values(this.locationsData || {}).forEach(list => {
+            if (!Array.isArray(list)) {
+                return;
+            }
+            list.forEach(location => {
+                const label = sanitizeString(location?.name);
+                if (!label) {
+                    return;
+                }
+                const key = label.toLowerCase();
+                if (except && key === except) {
+                    return;
+                }
+                if (seen.has(key)) {
+                    return;
+                }
+                seen.add(key);
+                names.push(label);
+            });
+        });
+        return names;
+    }
+
     getQuestEventsForLocation(locationName) {
         const key = sanitizeString(locationName).toLowerCase();
         if (!key) {
@@ -975,12 +1002,14 @@ export class UiController {
             return;
         }
         const disallowed = this.collectExistingNames();
+        const availableLocations = this.collectLocationNameLabels();
         this.locationEditor.open({
             mode: 'create',
             location: null,
             continent: '',
             disallowedNames: disallowed,
-            questEvents: []
+            questEvents: [],
+            availableLocations
         });
     }
 
@@ -994,12 +1023,14 @@ export class UiController {
         }
         const entry = this.activeEntry;
         const disallowed = this.collectExistingNames(entry.location.name);
+        const availableLocations = this.collectLocationNameLabels(entry.location.name);
         this.locationEditor.open({
             mode: 'edit',
             location: entry.location,
             continent: entry.continent,
             disallowedNames: disallowed,
-            questEvents: this.getQuestEventsForLocation(entry.location.name)
+            questEvents: this.getQuestEventsForLocation(entry.location.name),
+            availableLocations
         });
     }
 

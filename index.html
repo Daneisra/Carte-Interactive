@@ -322,6 +322,17 @@
                                 <div class="markdown-preview-body markdown-content" data-role="description-preview-body" hidden></div>
                             </div>
                             <p class="form-error" data-error-for="description"></p>
+                            <div class="form-suggestion-panel" data-role="link-suggestions" hidden>
+                                <div class="form-suggestion-header">
+                                    <strong>Suggestions de liens</strong>
+                                    <div class="form-suggestion-actions">
+                                        <button type="button" class="tertiary-button" data-action="refresh-link-suggestions">Mettre a jour</button>
+                                        <button type="button" class="tertiary-button" data-action="apply-link-suggestions">Appliquer tout</button>
+                                    </div>
+                                </div>
+                                <ul class="form-suggestion-list" data-role="link-suggestions-list"></ul>
+                                <p class="form-suggestion-empty" data-role="link-suggestions-empty" hidden>Aucune suggestion pour le moment.</p>
+                            </div>
                         </div>
                         <div class="form-row">
                             <label for="editor-audio">Audio (optionnel)</label>
