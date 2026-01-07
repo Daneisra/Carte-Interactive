@@ -1730,34 +1730,78 @@ export class LocationEditor {
         const currentKey = currentName ? currentName.toLocaleLowerCase('fr') : '';
         const seen = new Set();
         this.availableLocations.forEach(name => {
-            const key = name.toLocaleLowerCase('fr');
-            if (!key || key === currentKey) {
+            const targetKey = name.toLocaleLowerCase('fr');
+            if (!targetKey || targetKey === currentKey) {
                 return;
             }
+            const matchOptions = this.getLinkMatchOptions(name);
             sources.forEach(source => {
                 const text = source.textarea?.value || '';
                 if (!text) {
                     return;
                 }
-                if (!this.hasEligibleMatch(text, name)) {
-                    return;
-                }
-                const suggestionKey = `${source.key}::${key}`;
-                if (this.ignoredLinkSuggestions.has(suggestionKey) || seen.has(suggestionKey)) {
-                    return;
-                }
-                seen.add(suggestionKey);
-                suggestions.push({
-                    id: suggestionKey,
-                    fieldKey: source.key,
-                    fieldLabel: source.label,
-                    target: name,
-                    textarea: source.textarea,
-                    updatePreview: source.updatePreview
+                matchOptions.forEach(option => {
+                    if (!this.hasEligibleMatch(text, option.matchText)) {
+                        return;
+                    }
+                    const matchKey = option.matchText.toLocaleLowerCase('fr');
+                    const suggestionKey = `${source.key}::${targetKey}::${matchKey}`;
+                    if (this.ignoredLinkSuggestions.has(suggestionKey) || seen.has(suggestionKey)) {
+                        return;
+                    }
+                    seen.add(suggestionKey);
+                    suggestions.push({
+                        id: suggestionKey,
+                        fieldKey: source.key,
+                        fieldLabel: source.label,
+                        target: name,
+                        matchText: option.matchText,
+                        textarea: source.textarea,
+                        updatePreview: source.updatePreview
+                    });
                 });
             });
         });
         return suggestions;
+    }
+
+    getLinkMatchOptions(name) {
+        const trimmed = (name || '').toString().trim();
+        if (!trimmed) {
+            return [];
+        }
+        const options = [];
+        const unique = new Set();
+        const push = value => {
+            const candidate = (value || '').toString().trim();
+            if (!candidate || candidate.length < 3) {
+                return;
+            }
+            const key = candidate.toLocaleLowerCase('fr');
+            if (unique.has(key)) {
+                return;
+            }
+            unique.add(key);
+            options.push({ matchText: candidate });
+        };
+        push(trimmed);
+        const stripped = trimmed.replace(/^(l'|la|le|les)\s+/i, '');
+        if (stripped && stripped !== trimmed) {
+            push(stripped);
+        }
+        const words = stripped.split(/[\s,.;:!?()]+/).filter(Boolean);
+        if (words.length > 1) {
+            const first = words[0];
+            if (first.length >= 4 && !this.isStopWord(first)) {
+                push(first);
+            }
+        }
+        return options;
+    }
+
+    isStopWord(word) {
+        const normalized = (word || '').toString().trim().toLocaleLowerCase('fr');
+        return ['la', 'le', 'les', 'du', 'des', "d'", "l'"].includes(normalized);
     }
 
     getLinkSuggestionSources() {
@@ -1811,9 +1855,12 @@ export class LocationEditor {
         }
         this.linkSuggestions.forEach(suggestion => {
             const item = createElement('li', { className: 'form-suggestion-item' });
+            const display = suggestion.matchText && suggestion.matchText !== suggestion.target
+                ? `${suggestion.matchText} -> ${suggestion.target}`
+                : suggestion.target;
             const text = createElement('span', {
                 className: 'form-suggestion-text',
-                text: `${suggestion.fieldLabel}: ${suggestion.target}`
+                text: `${suggestion.fieldLabel}: ${display}`
             });
             const meta = createElement('div', { className: 'form-suggestion-meta' });
             const applyButton = createElement('button', {
@@ -1848,7 +1895,7 @@ export class LocationEditor {
             return;
         }
         const text = suggestion.textarea.value || '';
-        const result = this.replaceEligibleMatches(text, suggestion.target);
+        const result = this.replaceEligibleMatches(text, suggestion.matchText || suggestion.target, suggestion.target);
         if (!result.changed) {
             return;
         }
@@ -1874,7 +1921,11 @@ export class LocationEditor {
             if (!suggestion.textarea) {
                 return;
             }
-            const result = this.replaceEligibleMatches(suggestion.textarea.value || '', suggestion.target);
+            const result = this.replaceEligibleMatches(
+                suggestion.textarea.value || '',
+                suggestion.matchText || suggestion.target,
+                suggestion.target
+            );
             if (!result.changed) {
                 return;
             }
@@ -1906,9 +1957,10 @@ export class LocationEditor {
         return false;
     }
 
-    replaceEligibleMatches(text, target) {
+    replaceEligibleMatches(text, matchText, target) {
         const source = (text || '').toString();
-        const needle = (target || '').toString().trim();
+        const needle = (matchText || '').toString().trim();
+        const linkTarget = (target || '').toString().trim();
         if (!source || !needle) {
             return { text: source, changed: false };
         }
@@ -1930,9 +1982,10 @@ export class LocationEditor {
             }
             result += source.slice(index, found);
             const matchedText = source.slice(found, found + needle.length);
-            const link = matchedText === needle
-                ? `[[${needle}]]`
-                : `[[${matchedText}|${needle}]]`;
+            const targetLabel = linkTarget || needle;
+            const link = matchedText === targetLabel
+                ? `[[${targetLabel}]]`
+                : `[[${matchedText}|${targetLabel}]]`;
             result += link;
             index = found + needle.length;
             changed = true;
