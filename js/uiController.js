@@ -1,4 +1,4 @@
-import { UiState } from './ui/state.js';
+﻿import { UiState } from './ui/state.js';
 import { FiltersManager } from './ui/filtersManager.js';
 import { ThemeManager } from './ui/themeManager.js';
 import { MapControlsManager } from './ui/mapControlsManager.js';
@@ -115,8 +115,15 @@ export class UiController {
             toggleAll: document.getElementById(toggleAllButtonId),
             resultsBadge: document.getElementById('search-results-count'),
             addLocation: document.getElementById('add-location'),
+            profilePanel: document.getElementById('profile-panel'),
+            profileButton: document.getElementById('profile-button'),
+            profileLabel: document.getElementById('profile-label'),
+            profileAvatar: document.getElementById('profile-avatar'),
+            profileAvatarPanel: document.getElementById('profile-avatar-panel'),
             authPanel: document.getElementById('auth-panel'),
             authStatus: document.getElementById('auth-status'),
+            authUsername: document.getElementById('auth-username'),
+            authRole: document.getElementById('auth-role'),
             loginButton: document.getElementById('login-button'),
             logoutButton: document.getElementById('logout-button'),
             adminPanelButton: document.getElementById('admin-panel-button'),
@@ -205,7 +212,7 @@ export class UiController {
         });
 
         this.authRequired = true;
-        this.auth = { authenticated: false, role: 'guest', username: '' };
+        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null };
 
         this.pageSize = PAGE_SIZE;
         this.entries = [];
@@ -214,6 +221,9 @@ export class UiController {
         this.toggleAllState = false;
         this.typeData = {};
         this.boundKeyboardShortcuts = false;
+        this.isProfileOpen = false;
+        this.boundProfileClickHandler = null;
+        this.boundProfileKeyHandler = null;
         this.mapClickUnsubscribe = null;
         this.tooltipMeta = new WeakMap();
         this.visibleTooltips = new Set();
@@ -1476,19 +1486,25 @@ export class UiController {
         return (this.auth?.role || '').toLowerCase() === 'admin';
     }
 
-    setAuthState({ authenticated = false, role = 'guest', username = '' } = {}) {
+    setAuthState({ authenticated = false, role = 'guest', username = '', avatar = null } = {}) {
         const previouslyAuthenticated = Boolean(this.auth?.authenticated);
         if (!this.authRequired) {
             if (authenticated) {
-                this.auth = { authenticated: true, role: 'admin', username: username || this.auth.username || '' };
+                this.auth = {
+                    authenticated: true,
+                    role: 'admin',
+                    username: username || this.auth.username || '',
+                    avatar: avatar || this.auth.avatar || null
+                };
             } else {
-                this.auth = { authenticated: false, role: 'guest', username: '' };
+                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null };
             }
         } else {
             this.auth = {
                 authenticated: Boolean(authenticated),
                 role: (role || 'guest').toLowerCase(),
-                username: username || ''
+                username: username || '',
+                avatar: avatar || null
             };
         }
         const nowAuthenticated = Boolean(this.auth?.authenticated);
@@ -1498,13 +1514,10 @@ export class UiController {
         this.updateAuthUI();
         this.updateValidationWarnings(this.latestValidationWarnings);
     }
-
     updateAuthUI() {
         const authenticated = Boolean(this.auth?.authenticated);
         const isAdmin = this.isAdmin();
         if (this.dom.authPanel) {
-            const hidePanel = !this.authRequired && authenticated;
-            this.dom.authPanel.hidden = hidePanel;
             this.dom.authPanel.classList.toggle('auth-admin', isAdmin && authenticated);
         }
         if (this.dom.authStatus) {
@@ -1525,11 +1538,49 @@ export class UiController {
                 this.dom.authStatus.textContent = 'Connexion requise pour modifier les lieux.';
             }
         }
+        const username = (this.auth?.username || '').trim();
+        const displayName = authenticated
+            ? (username || (isAdmin ? 'Administrateur' : 'Utilisateur'))
+            : 'Invite';
+        const roleLabel = !this.authRequired
+            ? (authenticated ? 'Edition locale' : 'Mode lecture')
+            : (authenticated ? (isAdmin ? 'Administrateur' : 'Utilisateur') : 'Invite');
+        const avatarInitial = (username || (authenticated ? (isAdmin ? 'A' : 'U') : '?')).charAt(0).toUpperCase();
+        const avatarUrl = typeof this.auth?.avatar === 'string' ? this.auth.avatar.trim() : '';
+        if (this.dom.profileLabel) {
+            this.dom.profileLabel.textContent = authenticated ? displayName : 'Profil';
+        }
+        if (this.dom.authUsername) {
+            this.dom.authUsername.textContent = displayName;
+        }
+        if (this.dom.authRole) {
+            this.dom.authRole.textContent = roleLabel;
+        }
+        const applyAvatar = element => {
+            if (!element) {
+                return;
+            }
+            if (avatarUrl) {
+                element.style.backgroundImage = `url("${avatarUrl}")`;
+                element.style.backgroundSize = 'cover';
+                element.style.backgroundPosition = 'center';
+                element.textContent = '';
+                element.classList.add('has-avatar');
+            } else {
+                element.style.backgroundImage = '';
+                element.style.backgroundSize = '';
+                element.style.backgroundPosition = '';
+                element.textContent = avatarInitial;
+                element.classList.remove('has-avatar');
+            }
+        };
+        applyAvatar(this.dom.profileAvatar);
+        applyAvatar(this.dom.profileAvatarPanel);
         if (this.dom.loginButton) {
             this.dom.loginButton.hidden = !this.authRequired || authenticated;
         }
         if (this.dom.logoutButton) {
-            this.dom.logoutButton.hidden = true; // caché en mode connecté pour compacter
+            this.dom.logoutButton.hidden = !this.authRequired || !authenticated;
         }
         if (this.dom.adminPanelButton) {
             const shouldHide = !isAdmin;
@@ -1567,7 +1618,7 @@ export class UiController {
     async fetchSession() {
         if (typeof fetch !== 'function') {
             this.authRequired = false;
-            this.setAuthState({ authenticated: true, role: 'admin', username: '' });
+            this.setAuthState({ authenticated: true, role: 'admin', username: '', avatar: null });
             return;
         }
         try {
@@ -1580,19 +1631,67 @@ export class UiController {
             const authenticated = Boolean(payload?.authenticated);
             const role = payload?.role || (authenticated ? 'user' : 'guest');
             const username = payload?.username || '';
-            this.setAuthState({ authenticated, role, username });
+            const avatar = payload?.avatar || null;
+            this.setAuthState({ authenticated, role, username, avatar });
         } catch (error) {
             console.error('[auth] session fetch failed', error);
             this.authRequired = true;
-            this.setAuthState({ authenticated: false, role: 'guest', username: '' });
+            this.setAuthState({ authenticated: false, role: 'guest', username: '', avatar: null });
         }
     }
 
+    setProfilePanelOpen(open) {
+        const shouldOpen = Boolean(open);
+        this.isProfileOpen = shouldOpen;
+        if (this.dom.authPanel) {
+            this.dom.authPanel.hidden = !shouldOpen;
+            this.dom.authPanel.classList.toggle('open', shouldOpen);
+        }
+        if (this.dom.profileButton) {
+            this.dom.profileButton.setAttribute('aria-expanded', String(shouldOpen));
+        }
+    }
+
+    toggleProfilePanel() {
+        this.setProfilePanelOpen(!this.isProfileOpen);
+    }
+
     bindAuthPanel() {
-        if (!this.dom.authPanel) {
+        if (!this.dom.authPanel || !this.dom.profileButton) {
             this.authRequired = false;
-            this.setAuthState({ authenticated: true, role: 'admin', username: '' });
+            this.setAuthState({ authenticated: true, role: 'admin', username: '', avatar: null });
             return;
+        }
+        if (!this.dom.profileButton.dataset.bound) {
+            this.dom.profileButton.addEventListener('click', event => {
+                event.preventDefault();
+                this.toggleProfilePanel();
+            });
+            this.dom.profileButton.dataset.bound = 'true';
+        }
+        if (!this.boundProfileClickHandler) {
+            this.boundProfileClickHandler = event => {
+                if (!this.isProfileOpen) {
+                    return;
+                }
+                const target = event.target;
+                if (!target) {
+                    return;
+                }
+                if (this.dom.profilePanel && this.dom.profilePanel.contains(target)) {
+                    return;
+                }
+                this.setProfilePanelOpen(false);
+            };
+            document.addEventListener('click', this.boundProfileClickHandler);
+        }
+        if (!this.boundProfileKeyHandler) {
+            this.boundProfileKeyHandler = event => {
+                if (event.key === 'Escape' && this.isProfileOpen) {
+                    this.setProfilePanelOpen(false);
+                }
+            };
+            document.addEventListener('keydown', this.boundProfileKeyHandler);
         }
         if (this.dom.loginButton) {
             this.dom.loginButton.addEventListener('click', () => {
@@ -1607,12 +1706,17 @@ export class UiController {
                     console.error('[auth] logout failed', error);
                 }
                 await this.fetchSession();
+                this.setProfilePanelOpen(false);
             });
         }
         if (this.dom.adminPanelButton && !this.dom.adminPanelButton.dataset.bound) {
-            this.dom.adminPanelButton.addEventListener('click', () => this.openAdminPanel());
+            this.dom.adminPanelButton.addEventListener('click', () => {
+                this.setProfilePanelOpen(false);
+                this.openAdminPanel();
+            });
             this.dom.adminPanelButton.dataset.bound = 'true';
         }
+        this.setProfilePanelOpen(false);
         this.updateAuthUI();
         this.fetchSession();
     }
@@ -3624,6 +3728,7 @@ export class UiController {
 
         this.state.activeLocationName = entry.location.name;
 
+        this.setProfilePanelOpen(false);
         this.infoPanel.show(entry);
         this.updateEditButton(entry.location);
         this.updateFavoriteToggle(entry.location);
@@ -3888,3 +3993,4 @@ export class UiController {
         this.updateToggleAllLabel();
     }
 }
+

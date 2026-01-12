@@ -828,6 +828,7 @@ const sanitizeUserRecord = user => ({
   discordId: user?.provider === 'discord' ? user.discordId || null : null,
   username: user?.username || '',
   role: sanitizeRole(user?.role || 'user'),
+  avatar: typeof user?.avatar === 'string' && user.avatar.trim() ? user.avatar.trim() : null,
   apiTokens: Array.isArray(user?.apiTokens) && user?.provider !== 'discord' ? [...user.apiTokens] : undefined
 });
 
@@ -902,9 +903,10 @@ const createManualUser = async ({ username = '', role = 'user', token = null }) 
   return { user, token: apiToken };
 };
 
-const upsertDiscordUser = async ({ discordId, username = '', roleHint = null }) => {
+const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, avatar = null }) => {
   const users = await readUsersFile();
   let user = users.find(entry => entry.provider === 'discord' && entry.discordId === discordId);
+  const avatarValue = typeof avatar === 'string' && avatar.trim() ? avatar.trim() : null;
   if (!user) {
     const shouldBeAdmin = roleHint
       ? sanitizeRole(roleHint) === 'admin'
@@ -914,6 +916,7 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null }) 
       provider: 'discord',
       discordId,
       username: username || '',
+      avatar: avatarValue,
       role: shouldBeAdmin ? 'admin' : 'user',
       apiTokens: []
     };
@@ -921,6 +924,9 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null }) 
   } else {
     if (username && user.username !== username) {
       user.username = username;
+    }
+    if (avatarValue && user.avatar !== avatarValue) {
+      user.avatar = avatarValue;
     }
     if (roleHint) {
       const sanitized = sanitizeRole(roleHint);
@@ -930,7 +936,7 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null }) 
     }
   }
   await writeUsersFile(users);
-  updateSessionsForUser(user.id, { role: user.role, username: user.username });
+  updateSessionsForUser(user.id, { role: user.role, username: user.username, avatar: user.avatar || null });
   return user;
 };
 

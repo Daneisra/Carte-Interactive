@@ -17,6 +17,19 @@ const sanitizeRedirectTarget = value => {
     return trimmed;
 };
 
+const buildDiscordAvatarUrl = profile => {
+    if (!profile || !profile.id) {
+        return null;
+    }
+    const avatarHash = profile.avatar;
+    if (avatarHash) {
+        return `https://cdn.discordapp.com/avatars/${profile.id}/${avatarHash}.png?size=128`;
+    }
+    const discriminator = Number(profile.discriminator) || 0;
+    const index = Number.isFinite(discriminator) ? discriminator % 5 : 0;
+    return `https://cdn.discordapp.com/embed/avatars/${index}.png`;
+};
+
 module.exports = (register, context) => {
     const {
         logger,
@@ -109,6 +122,7 @@ module.exports = (register, context) => {
                 session.data.role = sanitized.role;
                 session.data.username = sanitized.username;
                 session.data.provider = sanitized.provider;
+                session.data.avatar = sanitized.avatar || null;
             }
             return { user: sanitized };
         }
@@ -119,7 +133,8 @@ module.exports = (register, context) => {
                 provider: data.provider || 'manual',
                 discordId: data.discordId || null,
                 username: data.username || '',
-                role
+                role,
+                avatar: data.avatar || null
             };
             if (session.data) {
                 session.data.role = role;
@@ -136,6 +151,7 @@ module.exports = (register, context) => {
                 authenticated: true,
                 role: 'admin',
                 username: '',
+                avatar: null,
                 authRequired: false,
                 oauth: { discord: discordEnabled }
             };
@@ -146,6 +162,7 @@ module.exports = (register, context) => {
                 authenticated: false,
                 role: 'guest',
                 username: '',
+                avatar: null,
                 authRequired: true,
                 oauth: { discord: discordEnabled }
             };
@@ -155,6 +172,7 @@ module.exports = (register, context) => {
             authenticated: true,
             role: sanitizeRole(user.role),
             username: user.username || '',
+            avatar: user.avatar || null,
             provider: user.provider || 'manual',
             authRequired: true,
             oauth: { discord: discordEnabled }
@@ -288,10 +306,12 @@ module.exports = (register, context) => {
             }
 
             const displayName = profile.global_name || profile.username || '';
+            const avatarUrl = buildDiscordAvatarUrl(profile);
             const user = await upsertDiscordUser({
                 discordId: normalizeString(profile.id),
                 username: displayName,
-                roleHint: null
+                roleHint: null,
+                avatar: avatarUrl
             });
 
             const sessionId = createSession({
@@ -299,7 +319,8 @@ module.exports = (register, context) => {
                 provider: 'discord',
                 role: user.role,
                 username: user.username || displayName,
-                discordId: user.discordId
+                discordId: user.discordId,
+                avatar: avatarUrl
             });
             sendSessionCookie(res, sessionId);
 
