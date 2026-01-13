@@ -144,6 +144,43 @@ body[data-theme="light"] .markdown-content a {
     color: #cbd5f5;
 }
 
+.profile-groups {
+    margin: 8px 0 12px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(15, 23, 42, 0.35);
+}
+
+.profile-group-title {
+    margin: 0 0 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.7;
+}
+
+.profile-group-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.profile-group-chip {
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    font-size: 12px;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.profile-group-empty {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
 .profile-actions {
     display: flex;
     flex-direction: column;
@@ -162,6 +199,10 @@ body[data-theme="light"] .profile-menu {
 
 body[data-theme="light"] .auth-status {
     color: #475569;
+}
+
+body[data-theme="light"] .profile-groups {
+    background: rgba(148, 163, 184, 0.12);
 }
 
 .ui-tooltip {

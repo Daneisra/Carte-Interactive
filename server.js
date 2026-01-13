@@ -48,6 +48,7 @@ const AUDIT_DIR = path.join(ASSETS_PATH, 'logs');
 const AUDIT_FILE = path.join(AUDIT_DIR, 'locations-audit.jsonl');
 const SESSION_STORE_FILE = path.join(AUDIT_DIR, 'sessions.json');
 const USERS_FILE = path.join(ASSETS_PATH, 'users.json');
+const GROUPS_FILE = path.join(ASSETS_PATH, 'groups.json');
 const ANNOTATIONS_FILE = path.join(ASSETS_PATH, 'annotations.json');
 const REMOTE_SYNC_URL = (process.env.REMOTE_SYNC_URL || '').trim();
 const REMOTE_SYNC_TOKEN = (process.env.REMOTE_SYNC_TOKEN || '').trim();
@@ -820,6 +821,78 @@ const writeUsersFile = async users => withFileLock(USERS_FILE, async () => {
   await fs.promises.writeFile(USERS_FILE, json, 'utf-8');
 });
 
+const readGroupsFile = async () => {
+  try {
+    const raw = await fs.promises.readFile(GROUPS_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    if (parsed && Array.isArray(parsed.groups)) {
+      return parsed.groups;
+    }
+  } catch (error) {
+    // ignore, fallback to empty list
+  }
+  return [];
+};
+
+const writeGroupsFile = async groups => withFileLock(GROUPS_FILE, async () => {
+  const directory = path.dirname(GROUPS_FILE);
+  await fs.promises.mkdir(directory, { recursive: true });
+  const json = JSON.stringify(groups, null, 2) + '\n';
+  await fs.promises.writeFile(GROUPS_FILE, json, 'utf-8');
+});
+
+const normalizeGroupColor = value => {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const normalized = trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+  return /^#[0-9a-fA-F]{6}$/.test(normalized) ? normalized.toLowerCase() : null;
+};
+
+const slugifyGroupId = name => {
+  if (!name) {
+    return '';
+  }
+  return name
+    .toString()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+const ensureUniqueGroupId = (existing, base) => {
+  if (!base) {
+    return '';
+  }
+  const used = new Set(existing.map(group => group?.id).filter(Boolean));
+  if (!used.has(base)) {
+    return base;
+  }
+  let index = 2;
+  let candidate = `${base}-${index}`;
+  while (used.has(candidate)) {
+    index += 1;
+    candidate = `${base}-${index}`;
+  }
+  return candidate;
+};
+
+const sanitizeGroupRecord = group => ({
+  id: group?.id || '',
+  name: group?.name || '',
+  color: normalizeGroupColor(group?.color)
+});
+
 const sanitizeRole = value => (value && value.toLowerCase() === 'admin') ? 'admin' : 'user';
 
 const sanitizeUserRecord = user => ({
@@ -829,6 +902,7 @@ const sanitizeUserRecord = user => ({
   username: user?.username || '',
   role: sanitizeRole(user?.role || 'user'),
   avatar: typeof user?.avatar === 'string' && user.avatar.trim() ? user.avatar.trim() : null,
+  groups: Array.isArray(user?.groups) ? user.groups.filter(Boolean) : [],
   apiTokens: Array.isArray(user?.apiTokens) && user?.provider !== 'discord' ? [...user.apiTokens] : undefined
 });
 
@@ -896,6 +970,7 @@ const createManualUser = async ({ username = '', role = 'user', token = null }) 
     provider: 'manual',
     username: username || '',
     role: sanitizeRole(role),
+    groups: [],
     apiTokens: [apiToken]
   };
   users.push(user);
@@ -918,6 +993,7 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
       username: username || '',
       avatar: avatarValue,
       role: shouldBeAdmin ? 'admin' : 'user',
+      groups: [],
       apiTokens: []
     };
     users.push(user);
@@ -940,7 +1016,7 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
   return user;
 };
 
-const updateUser = async (id, { role, username, addToken, removeToken }) => {
+const updateUser = async (id, { role, username, addToken, removeToken, groups }) => {
   const users = await readUsersFile();
   const user = users.find(entry => entry.id === id);
   if (!user) {
@@ -974,9 +1050,19 @@ const updateUser = async (id, { role, username, addToken, removeToken }) => {
       updated = true;
     }
   }
+  if (Array.isArray(groups)) {
+    const cleaned = groups.filter(Boolean);
+    const current = Array.isArray(user.groups) ? user.groups : [];
+    const currentKey = JSON.stringify(current);
+    const nextKey = JSON.stringify(cleaned);
+    if (currentKey !== nextKey) {
+      user.groups = cleaned;
+      updated = true;
+    }
+  }
   if (updated) {
     await writeUsersFile(users);
-    updateSessionsForUser(user.id, { role: user.role, username: user.username });
+    updateSessionsForUser(user.id, { role: user.role, username: user.username, groups: user.groups || [] });
   }
   return user;
 };
@@ -990,6 +1076,75 @@ const deleteUser = async id => {
   const [removed] = users.splice(index, 1);
   await writeUsersFile(users);
   destroySessionsForUser(id);
+  return removed;
+};
+
+const createGroup = async ({ name, color = null }) => {
+  const groups = await readGroupsFile();
+  const baseId = slugifyGroupId(name);
+  const id = ensureUniqueGroupId(groups, baseId);
+  const group = {
+    id,
+    name,
+    color: normalizeGroupColor(color)
+  };
+  groups.push(group);
+  await writeGroupsFile(groups);
+  return group;
+};
+
+const updateGroup = async (id, { name, color }) => {
+  const groups = await readGroupsFile();
+  const group = groups.find(entry => entry.id === id);
+  if (!group) {
+    return null;
+  }
+  let updated = false;
+  if (typeof name === 'string' && name.trim() && name.trim() !== group.name) {
+    group.name = name.trim();
+    updated = true;
+  }
+  if (color !== undefined) {
+    const normalized = normalizeGroupColor(color);
+    if (normalized !== group.color) {
+      group.color = normalized;
+      updated = true;
+    }
+  }
+  if (updated) {
+    await writeGroupsFile(groups);
+  }
+  return group;
+};
+
+const removeGroupFromUsers = async groupId => {
+  const users = await readUsersFile();
+  let changed = false;
+  users.forEach(user => {
+    if (!Array.isArray(user.groups)) {
+      return;
+    }
+    const next = user.groups.filter(entry => entry !== groupId);
+    if (next.length !== user.groups.length) {
+      user.groups = next;
+      updateSessionsForUser(user.id, { groups: next });
+      changed = true;
+    }
+  });
+  if (changed) {
+    await writeUsersFile(users);
+  }
+};
+
+const deleteGroup = async id => {
+  const groups = await readGroupsFile();
+  const index = groups.findIndex(entry => entry.id === id);
+  if (index === -1) {
+    return null;
+  }
+  const [removed] = groups.splice(index, 1);
+  await writeGroupsFile(groups);
+  await removeGroupFromUsers(id);
   return removed;
 };
 
@@ -1177,7 +1332,8 @@ const context = {
   sanitizeRole,
   sanitizeUserRecord,
   upsertDiscordUser,
-  fetchJson
+  fetchJson,
+  readGroupsFile
 };
 
 const router = createRouter(context);
@@ -1344,6 +1500,110 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (urlObj.pathname === '/api/admin/groups') {
+      if (req.method === 'GET') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const groups = await readGroupsFile();
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          groups: groups.map(group => sanitizeGroupRecord(group))
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      if (req.method === 'POST') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const name = normalizeString(payload?.name);
+        if (!name) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'name is required.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const color = payload?.color || null;
+        const group = await createGroup({ name, color });
+        send(res, 201, JSON.stringify({
+          status: 'ok',
+          group: sanitizeGroupRecord(group)
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      if (req.method === 'PATCH' || req.method === 'PUT') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const id = normalizeString(payload?.id);
+        if (!id) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'id is required.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const group = await updateGroup(id, {
+          name: typeof payload?.name === 'string' ? payload.name : undefined,
+          color: payload?.color
+        });
+        if (!group) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'Group not found.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          group: sanitizeGroupRecord(group)
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      if (req.method === 'DELETE') {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+          return;
+        }
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const id = normalizeString(payload?.id);
+        if (!id) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'id is required.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const removed = await deleteGroup(id);
+        if (!removed) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'Group not found.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          removed: sanitizeGroupRecord(removed)
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+
+      send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET,POST,PATCH,PUT,DELETE' });
+      return;
+    }
+
     if (urlObj.pathname === '/api/admin/users') {
       if (req.method === 'GET') {
         if (!(await ensureAuthorized(req, res, 'admin'))) {
@@ -1429,6 +1689,13 @@ const server = http.createServer(async (req, res) => {
         }
         if (typeof payload?.username === 'string') {
           updates.username = payload.username;
+        }
+        if (Array.isArray(payload?.groups)) {
+          const groups = await readGroupsFile();
+          const allowed = new Set(groups.map(group => group?.id).filter(Boolean));
+          updates.groups = payload.groups
+            .map(entry => normalizeString(entry))
+            .filter(entry => entry && allowed.has(entry));
         }
         let generatedToken = null;
         if (payload?.generateToken) {

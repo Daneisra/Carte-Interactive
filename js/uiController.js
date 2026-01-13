@@ -124,6 +124,8 @@ export class UiController {
             authStatus: document.getElementById('auth-status'),
             authUsername: document.getElementById('auth-username'),
             authRole: document.getElementById('auth-role'),
+            authGroups: document.getElementById('auth-groups'),
+            authGroupsEmpty: document.getElementById('auth-groups-empty'),
             loginButton: document.getElementById('login-button'),
             logoutButton: document.getElementById('logout-button'),
             adminPanelButton: document.getElementById('admin-panel-button'),
@@ -212,7 +214,7 @@ export class UiController {
         });
 
         this.authRequired = true;
-        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null };
+        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [] };
 
         this.pageSize = PAGE_SIZE;
         this.entries = [];
@@ -1486,7 +1488,7 @@ export class UiController {
         return (this.auth?.role || '').toLowerCase() === 'admin';
     }
 
-    setAuthState({ authenticated = false, role = 'guest', username = '', avatar = null } = {}) {
+    setAuthState({ authenticated = false, role = 'guest', username = '', avatar = null, groups = [], groupDetails = [] } = {}) {
         const previouslyAuthenticated = Boolean(this.auth?.authenticated);
         if (!this.authRequired) {
             if (authenticated) {
@@ -1494,17 +1496,21 @@ export class UiController {
                     authenticated: true,
                     role: 'admin',
                     username: username || this.auth.username || '',
-                    avatar: avatar || this.auth.avatar || null
+                    avatar: avatar || this.auth.avatar || null,
+                    groups: Array.isArray(groups) ? groups : (this.auth.groups || []),
+                    groupDetails: Array.isArray(groupDetails) ? groupDetails : (this.auth.groupDetails || [])
                 };
             } else {
-                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null };
+                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [] };
             }
         } else {
             this.auth = {
                 authenticated: Boolean(authenticated),
                 role: (role || 'guest').toLowerCase(),
                 username: username || '',
-                avatar: avatar || null
+                avatar: avatar || null,
+                groups: Array.isArray(groups) ? groups : [],
+                groupDetails: Array.isArray(groupDetails) ? groupDetails : []
             };
         }
         const nowAuthenticated = Boolean(this.auth?.authenticated);
@@ -1576,6 +1582,30 @@ export class UiController {
         };
         applyAvatar(this.dom.profileAvatar);
         applyAvatar(this.dom.profileAvatarPanel);
+        if (this.dom.authGroups) {
+            clearElement(this.dom.authGroups);
+            const details = Array.isArray(this.auth?.groupDetails) ? this.auth.groupDetails : [];
+            const ids = Array.isArray(this.auth?.groups) ? this.auth.groups : [];
+            const entries = details.length
+                ? details
+                : ids.map(id => ({ id, name: id, color: null }));
+            if (entries.length) {
+                entries.forEach(group => {
+                    const chip = createElement('span', {
+                        className: 'profile-group-chip',
+                        text: group.name || group.id
+                    });
+                    if (group.color) {
+                        chip.style.borderColor = group.color;
+                        chip.style.color = group.color;
+                    }
+                    this.dom.authGroups.appendChild(chip);
+                });
+            }
+            if (this.dom.authGroupsEmpty) {
+                this.dom.authGroupsEmpty.hidden = entries.length > 0;
+            }
+        }
         if (this.dom.loginButton) {
             this.dom.loginButton.hidden = !this.authRequired || authenticated;
         }
@@ -1632,7 +1662,9 @@ export class UiController {
             const role = payload?.role || (authenticated ? 'user' : 'guest');
             const username = payload?.username || '';
             const avatar = payload?.avatar || null;
-            this.setAuthState({ authenticated, role, username, avatar });
+            const groups = Array.isArray(payload?.groups) ? payload.groups : [];
+            const groupDetails = Array.isArray(payload?.groupDetails) ? payload.groupDetails : [];
+            this.setAuthState({ authenticated, role, username, avatar, groups, groupDetails });
         } catch (error) {
             console.error('[auth] session fetch failed', error);
             this.authRequired = true;
@@ -1732,7 +1764,10 @@ export class UiController {
                 fetchUsers: () => this.fetchUsersList(),
                 onAddUser: payload => this.createUser(payload),
                 onUpdateUser: payload => this.updateUser(payload),
-                onDeleteUser: user => this.removeUser(user)
+                onDeleteUser: user => this.removeUser(user),
+                onAddGroup: payload => this.createGroup(payload),
+                onUpdateGroup: payload => this.updateGroup(payload),
+                onDeleteGroup: group => this.removeGroup(group)
             });
         }
         if (this.dom.userAdminButton && !this.dom.userAdminButton.dataset.bound) {
@@ -1885,6 +1920,24 @@ export class UiController {
         return Array.isArray(payload?.users) ? payload.users : [];
     }
 
+    async fetchGroupsList() {
+        const response = await fetch('/api/admin/groups', { credentials: 'include' });
+        if (!response.ok) {
+            const error = new Error(`HTTP ${response.status}`);
+            error.status = response.status;
+            this.logTelemetryEvent({
+                title: 'Admin groups - chargement echoue',
+                description: error.message,
+                route: '/api/admin/groups',
+                method: 'GET',
+                status: response.status
+            });
+            throw error;
+        }
+        const payload = await response.json();
+        return Array.isArray(payload?.groups) ? payload.groups : [];
+    }
+
     async createUser(payload) {
         try {
             const response = await fetch('/api/admin/users', {
@@ -1923,6 +1976,51 @@ export class UiController {
                 title: 'Admin users - creation',
                 description: error?.message || 'Echec creation utilisateur',
                 route: '/api/admin/users',
+                method: 'POST',
+                status: error?.status || null
+            });
+        }
+    }
+
+    async createGroup(payload) {
+        const name = (payload?.name || '').toString().trim();
+        if (!name) {
+            this.announcer?.assertive?.('Nom de groupe manquant.');
+            return;
+        }
+        try {
+            const response = await fetch('/api/admin/groups', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    color: payload?.color || ''
+                })
+            });
+            if (!response.ok) {
+                const error = new Error(`HTTP ${response.status}`);
+                error.status = response.status;
+                this.logTelemetryEvent({
+                    title: 'Admin groups - creation',
+                    description: error.message,
+                    route: '/api/admin/groups',
+                    method: 'POST',
+                    status: response.status
+                });
+                throw error;
+            }
+            await this.refreshUserAdminPanel();
+            this.userAdminPanel?.resetGroupForm();
+            await this.fetchSession();
+            this.announcer?.polite?.('Groupe cree.');
+        } catch (error) {
+            console.error('[admin] create group failed', error);
+            this.announcer?.assertive?.('Impossible de creer le groupe.');
+            this.logTelemetryEvent({
+                title: 'Admin groups - creation',
+                description: error?.message || 'Echec creation groupe',
+                route: '/api/admin/groups',
                 method: 'POST',
                 status: error?.status || null
             });
@@ -1968,6 +2066,52 @@ export class UiController {
         }
     }
 
+    async updateGroup(payload) {
+        const id = (payload?.id || '').toString().trim();
+        const name = (payload?.name || '').toString().trim();
+        if (!id || !name) {
+            this.announcer?.assertive?.('Groupe invalide.');
+            return;
+        }
+        try {
+            const response = await fetch('/api/admin/groups', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id,
+                    name,
+                    color: payload?.color || ''
+                })
+            });
+            if (!response.ok) {
+                const error = new Error(`HTTP ${response.status}`);
+                error.status = response.status;
+                this.logTelemetryEvent({
+                    title: 'Admin groups - mise a jour',
+                    description: error.message,
+                    route: '/api/admin/groups',
+                    method: 'PATCH',
+                    status: response.status
+                });
+                throw error;
+            }
+            await this.refreshUserAdminPanel();
+            await this.fetchSession();
+            this.announcer?.polite?.('Groupe mis a jour.');
+        } catch (error) {
+            console.error('[admin] update group failed', error);
+            this.announcer?.assertive?.('Mise a jour du groupe impossible.');
+            this.logTelemetryEvent({
+                title: 'Admin groups - mise a jour',
+                description: error?.message || 'Echec mise a jour groupe',
+                route: '/api/admin/groups',
+                method: 'PATCH',
+                status: error?.status || null
+            });
+        }
+    }
+
     async removeUser(user) {
         const confirmed = window.confirm(`Supprimer l'utilisateur "${user.username || user.id}" ?`);
         if (!confirmed) {
@@ -2007,13 +2151,66 @@ export class UiController {
         }
     }
 
+    async removeGroup(group) {
+        const confirmed = window.confirm(`Supprimer le groupe "${group.name || group.id}" ?`);
+        if (!confirmed) {
+            return;
+        }
+        try {
+            const response = await fetch('/api/admin/groups', {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: group.id })
+            });
+            if (!response.ok) {
+                const error = new Error(`HTTP ${response.status}`);
+                error.status = response.status;
+                this.logTelemetryEvent({
+                    title: 'Admin groups - suppression',
+                    description: error.message,
+                    route: '/api/admin/groups',
+                    method: 'DELETE',
+                    status: response.status
+                });
+                throw error;
+            }
+            await this.refreshUserAdminPanel();
+            await this.fetchSession();
+            this.announcer?.polite?.('Groupe supprime.');
+        } catch (error) {
+            console.error('[admin] delete group failed', error);
+            this.announcer?.assertive?.('Suppression du groupe impossible.');
+            this.logTelemetryEvent({
+                title: 'Admin groups - suppression',
+                description: error?.message || 'Echec suppression groupe',
+                route: '/api/admin/groups',
+                method: 'DELETE',
+                status: error?.status || null
+            });
+        }
+    }
+
     async refreshUserAdminPanel() {
         if (!this.userAdminPanel) {
             return;
         }
         try {
             const users = await this.fetchUsersList();
-            await this.userAdminPanel.refresh(users);
+            let groups = [];
+            try {
+                groups = await this.fetchGroupsList();
+            } catch (error) {
+                console.error('[admin] fetch groups failed', error);
+                this.logTelemetryEvent({
+                    title: 'Admin groups - chargement',
+                    description: error?.message || 'Echec chargement groupes',
+                    route: '/api/admin/groups',
+                    method: 'GET',
+                    status: error?.status || null
+                });
+            }
+            await this.userAdminPanel.refresh({ users, groups });
         } catch (error) {
             console.error('[admin] fetch users failed', error);
             this.announcer?.assertive?.('Impossible de charger la liste des utilisateurs.');

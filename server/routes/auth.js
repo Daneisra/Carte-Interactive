@@ -50,6 +50,7 @@ module.exports = (register, context) => {
         upsertDiscordUser,
         normalizeString,
         fetchJson,
+        readGroupsFile,
         discordEndpoints = {}
     } = context;
 
@@ -123,6 +124,7 @@ module.exports = (register, context) => {
                 session.data.username = sanitized.username;
                 session.data.provider = sanitized.provider;
                 session.data.avatar = sanitized.avatar || null;
+                session.data.groups = Array.isArray(sanitized.groups) ? sanitized.groups : [];
             }
             return { user: sanitized };
         }
@@ -134,7 +136,8 @@ module.exports = (register, context) => {
                 discordId: data.discordId || null,
                 username: data.username || '',
                 role,
-                avatar: data.avatar || null
+                avatar: data.avatar || null,
+                groups: Array.isArray(data.groups) ? data.groups : []
             };
             if (session.data) {
                 session.data.role = role;
@@ -144,7 +147,7 @@ module.exports = (register, context) => {
         return { user: null };
     };
 
-    const createAuthResponse = user => {
+    const createAuthResponse = (user, groupDetails = []) => {
         if (!authRequired) {
             return {
                 status: 'ok',
@@ -152,6 +155,8 @@ module.exports = (register, context) => {
                 role: 'admin',
                 username: '',
                 avatar: null,
+                groups: [],
+                groupDetails: [],
                 authRequired: false,
                 oauth: { discord: discordEnabled }
             };
@@ -163,6 +168,8 @@ module.exports = (register, context) => {
                 role: 'guest',
                 username: '',
                 avatar: null,
+                groups: [],
+                groupDetails: [],
                 authRequired: true,
                 oauth: { discord: discordEnabled }
             };
@@ -173,6 +180,8 @@ module.exports = (register, context) => {
             role: sanitizeRole(user.role),
             username: user.username || '',
             avatar: user.avatar || null,
+            groups: Array.isArray(user.groups) ? user.groups : [],
+            groupDetails: Array.isArray(groupDetails) ? groupDetails : [],
             provider: user.provider || 'manual',
             authRequired: true,
             oauth: { discord: discordEnabled }
@@ -220,7 +229,20 @@ module.exports = (register, context) => {
     register('GET', '/auth/session', async (req, res) => {
         try {
             const { user } = await resolveSessionUser(req, res);
-            json(res, 200, createAuthResponse(user));
+            let groupDetails = [];
+            if (user && Array.isArray(user.groups) && user.groups.length && typeof readGroupsFile === 'function') {
+                const groups = await readGroupsFile();
+                const lookup = new Map(groups.map(group => [group.id, group]));
+                groupDetails = user.groups
+                    .map(id => lookup.get(id))
+                    .filter(Boolean)
+                    .map(group => ({
+                        id: group.id,
+                        name: group.name || group.id,
+                        color: group.color || null
+                    }));
+            }
+            json(res, 200, createAuthResponse(user, groupDetails));
         } catch (error) {
             log.error('Failed to resolve session', { error: error.message });
             json(res, 500, { status: 'error', message: 'Session lookup failed.' });
@@ -320,7 +342,8 @@ module.exports = (register, context) => {
                 role: user.role,
                 username: user.username || displayName,
                 discordId: user.discordId,
-                avatar: avatarUrl
+                avatar: avatarUrl,
+                groups: Array.isArray(user.groups) ? user.groups : []
             });
             sendSessionCookie(res, sessionId);
 

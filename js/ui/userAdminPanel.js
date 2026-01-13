@@ -12,7 +12,10 @@ export class UserAdminPanel {
         fetchUsers = null,
         onAddUser = null,
         onUpdateUser = null,
-        onDeleteUser = null
+        onDeleteUser = null,
+        onAddGroup = null,
+        onUpdateGroup = null,
+        onDeleteGroup = null
     } = {}) {
         this.container = container;
         this.onClose = onClose;
@@ -20,11 +23,18 @@ export class UserAdminPanel {
         this.onAddUser = onAddUser;
         this.onUpdateUser = onUpdateUser;
         this.onDeleteUser = onDeleteUser;
+        this.onAddGroup = onAddGroup;
+        this.onUpdateGroup = onUpdateGroup;
+        this.onDeleteGroup = onDeleteGroup;
 
         this.tableBody = null;
         this.addForm = null;
         this.closeButton = null;
         this.emptyState = null;
+        this.groupList = null;
+        this.groupEmpty = null;
+        this.groupForm = null;
+        this.groups = [];
 
         if (this.container) {
             this.buildUI();
@@ -55,15 +65,11 @@ export class UserAdminPanel {
 
         const table = createElement('table', { className: 'user-admin-table' });
         const thead = createElement('thead');
-        thead.appendChild(createElement('tr', {
-            children: [
-                createElement('th', { text: 'Nom' }),
-                createElement('th', { text: 'Provider' }),
-                createElement('th', { text: 'Role' }),
-                createElement('th', { text: 'Tokens API' }),
-                createElement('th', { text: 'Actions' })
-            ]
-        }));
+        const headerRow = createElement('tr');
+        ['Nom', 'Provider', 'Role', 'Groupes', 'Tokens API', 'Actions'].forEach(label => {
+            headerRow.appendChild(createElement('th', { text: label }));
+        });
+        thead.appendChild(headerRow);
         table.appendChild(thead);
         this.tableBody = createElement('tbody');
         table.appendChild(this.tableBody);
@@ -72,6 +78,78 @@ export class UserAdminPanel {
         this.emptyState = createElement('p', { className: 'user-admin-empty', text: 'Aucun utilisateur enregistre.' });
         this.emptyState.hidden = true;
         this.container.appendChild(this.emptyState);
+
+        const groupSection = createElement('div', { className: 'user-admin-group-section' });
+        groupSection.appendChild(createElement('h4', { text: 'Groupes JDR' }));
+        this.groupList = createElement('div', { className: 'user-admin-group-list' });
+        groupSection.appendChild(this.groupList);
+        this.groupEmpty = createElement('p', { className: 'user-admin-empty', text: 'Aucun groupe enregistre.' });
+        this.groupEmpty.hidden = true;
+        groupSection.appendChild(this.groupEmpty);
+
+        this.groupForm = createElement('form', {
+            className: 'user-admin-group-form',
+            attributes: { autocomplete: 'off' }
+        });
+
+        const groupNameId = 'user-admin-group-name';
+        const groupColorId = 'user-admin-group-color';
+
+        const groupNameField = createElement('div', { className: 'user-admin-field' });
+        groupNameField.appendChild(createElement('label', {
+            text: 'Nom du groupe',
+            attributes: { for: groupNameId }
+        }));
+        const groupNameInput = createElement('input', {
+            attributes: {
+                type: 'text',
+                id: groupNameId,
+                name: 'name',
+                placeholder: 'Nom du groupe'
+            }
+        });
+        groupNameField.appendChild(groupNameInput);
+        this.groupForm.appendChild(groupNameField);
+
+        const groupColorField = createElement('div', { className: 'user-admin-field' });
+        groupColorField.appendChild(createElement('label', {
+            text: 'Couleur',
+            attributes: { for: groupColorId }
+        }));
+        const groupColorInput = createElement('input', {
+            attributes: {
+                type: 'text',
+                id: groupColorId,
+                name: 'color',
+                placeholder: '#2563eb'
+            }
+        });
+        groupColorField.appendChild(groupColorInput);
+        this.groupForm.appendChild(groupColorField);
+
+        this.groupForm.appendChild(createElement('button', {
+            className: 'primary-button',
+            attributes: { type: 'submit' },
+            text: 'Creer'
+        }));
+        this.groupForm.appendChild(createElement('p', {
+            className: 'user-admin-add-hint',
+            text: 'Un identifiant est derive du nom.'
+        }));
+        this.groupForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const formData = new FormData(this.groupForm);
+            const name = (formData.get('name') || '').toString().trim();
+            const color = (formData.get('color') || '').toString().trim();
+            if (!name) {
+                groupNameInput.focus();
+                return;
+            }
+            this.onAddGroup?.({ name, color });
+        });
+
+        groupSection.appendChild(this.groupForm);
+        this.container.appendChild(groupSection);
 
         const addSection = createElement('div', { className: 'user-admin-add' });
         addSection.appendChild(createElement('h4', { text: 'Ajouter un utilisateur (manuel)' }));
@@ -136,13 +214,16 @@ export class UserAdminPanel {
         this.container.appendChild(addSection);
     }
 
-    async refresh(users = []) {
+    async refresh(data = []) {
+        const users = Array.isArray(data) ? data : (Array.isArray(data?.users) ? data.users : []);
+        this.groups = Array.isArray(data?.groups) ? data.groups : this.groups;
         clearElement(this.tableBody);
         this.emptyState.hidden = users.length > 0;
         users.forEach(user => {
             const row = this.createRow(user);
             this.tableBody.appendChild(row);
         });
+        this.renderGroupList();
     }
 
     createRow(user) {
@@ -150,6 +231,7 @@ export class UserAdminPanel {
         row.appendChild(createElement('td', { text: user.username || '(sans nom)' }));
         row.appendChild(createElement('td', { text: user.provider || 'manual' }));
         row.appendChild(createElement('td', { text: ROLE_LABELS[user.role] || user.role }));
+        row.appendChild(this.createGroupCell(user));
 
         const tokenCell = createElement('td');
         if (Array.isArray(user.apiTokens) && user.apiTokens.length) {
@@ -202,6 +284,112 @@ export class UserAdminPanel {
         return row;
     }
 
+    createGroupCell(user) {
+        const cell = createElement('td', { className: 'user-admin-groups-cell' });
+        const groups = Array.isArray(this.groups) ? this.groups : [];
+        if (!groups.length) {
+            cell.appendChild(createElement('span', { className: 'token-empty', text: 'Aucun groupe' }));
+            return cell;
+        }
+        const selected = new Set(Array.isArray(user.groups) ? user.groups : []);
+        const list = createElement('div', { className: 'user-admin-group-picker' });
+        groups.forEach(group => {
+            const option = createElement('label', { className: 'user-admin-group-option' });
+            const checkbox = createElement('input', {
+                attributes: {
+                    type: 'checkbox',
+                    value: group.id
+                }
+            });
+            checkbox.checked = selected.has(group.id);
+            const label = createElement('span', { text: group.name || group.id });
+            if (group.color) {
+                label.style.borderColor = group.color;
+                label.style.color = group.color;
+            }
+            option.appendChild(checkbox);
+            option.appendChild(label);
+            list.appendChild(option);
+        });
+        const applyButton = createElement('button', {
+            className: 'secondary-button user-admin-group-apply',
+            text: 'Appliquer',
+            attributes: { type: 'button' }
+        });
+        applyButton.addEventListener('click', () => {
+            const checked = Array.from(list.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(input => input.value);
+            this.onUpdateUser?.({ id: user.id, groups: checked });
+        });
+        cell.appendChild(list);
+        cell.appendChild(applyButton);
+        return cell;
+    }
+
+    renderGroupList() {
+        if (!this.groupList) {
+            return;
+        }
+        clearElement(this.groupList);
+        const groups = Array.isArray(this.groups) ? this.groups : [];
+        if (this.groupEmpty) {
+            this.groupEmpty.hidden = groups.length > 0;
+        }
+        groups.forEach(group => {
+            const row = createElement('div', { className: 'user-admin-group-row' });
+
+            const nameWrap = createElement('div', { className: 'user-admin-group-name' });
+            const nameInput = createElement('input', {
+                attributes: {
+                    type: 'text',
+                    value: group.name || group.id
+                }
+            });
+            const idHint = createElement('span', { className: 'user-admin-group-id', text: group.id });
+            nameWrap.appendChild(nameInput);
+            nameWrap.appendChild(idHint);
+            row.appendChild(nameWrap);
+
+            const colorInput = createElement('input', {
+                className: 'user-admin-group-color',
+                attributes: {
+                    type: 'text',
+                    value: group.color || '',
+                    placeholder: '#2563eb'
+                }
+            });
+            row.appendChild(colorInput);
+
+            const actions = createElement('div', { className: 'user-admin-group-actions' });
+            const updateBtn = createElement('button', {
+                className: 'secondary-button',
+                text: 'Mettre a jour',
+                attributes: { type: 'button' }
+            });
+            updateBtn.addEventListener('click', () => {
+                const name = nameInput.value.trim();
+                const color = colorInput.value.trim();
+                if (!name) {
+                    nameInput.focus();
+                    return;
+                }
+                this.onUpdateGroup?.({ id: group.id, name, color });
+            });
+            actions.appendChild(updateBtn);
+
+            const deleteBtn = createElement('button', {
+                className: 'danger-button',
+                text: 'Supprimer',
+                attributes: { type: 'button' }
+            });
+            deleteBtn.addEventListener('click', () => this.onDeleteGroup?.(group));
+            actions.appendChild(deleteBtn);
+
+            row.appendChild(actions);
+            this.groupList.appendChild(row);
+        });
+    }
+
     onPromote(user) {
         const newRole = user.role === 'admin' ? 'user' : 'admin';
         this.onUpdateUser?.({ id: user.id, role: newRole });
@@ -217,5 +405,9 @@ export class UserAdminPanel {
 
     resetAddForm() {
         this.addForm?.reset?.();
+    }
+
+    resetGroupForm() {
+        this.groupForm?.reset?.();
     }
 }
