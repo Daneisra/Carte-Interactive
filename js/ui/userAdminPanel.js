@@ -15,7 +15,9 @@ export class UserAdminPanel {
         onDeleteUser = null,
         onAddGroup = null,
         onUpdateGroup = null,
-        onDeleteGroup = null
+        onDeleteGroup = null,
+        onPlaceGroup = null,
+        onClearGroup = null
     } = {}) {
         this.container = container;
         this.onClose = onClose;
@@ -26,6 +28,8 @@ export class UserAdminPanel {
         this.onAddGroup = onAddGroup;
         this.onUpdateGroup = onUpdateGroup;
         this.onDeleteGroup = onDeleteGroup;
+        this.onPlaceGroup = onPlaceGroup;
+        this.onClearGroup = onClearGroup;
 
         this.tableBody = null;
         this.addForm = null;
@@ -360,6 +364,13 @@ export class UserAdminPanel {
             });
             row.appendChild(colorInput);
 
+            const position = createElement('div', { className: 'user-admin-group-position' });
+            const hasCoords = Number.isFinite(group.x) && Number.isFinite(group.y);
+            position.textContent = hasCoords
+                ? `Position: ${Math.round(group.x)}, ${Math.round(group.y)}`
+                : 'Position: non placee';
+            row.appendChild(position);
+
             const actions = createElement('div', { className: 'user-admin-group-actions' });
             const updateBtn = createElement('button', {
                 className: 'secondary-button',
@@ -376,6 +387,24 @@ export class UserAdminPanel {
                 this.onUpdateGroup?.({ id: group.id, name, color });
             });
             actions.appendChild(updateBtn);
+
+            const placeBtn = createElement('button', {
+                className: 'secondary-button',
+                text: hasCoords ? 'Deplacer' : 'Placer',
+                attributes: { type: 'button' }
+            });
+            placeBtn.addEventListener('click', () => this.onPlaceGroup?.(group));
+            actions.appendChild(placeBtn);
+
+            if (hasCoords) {
+                const clearBtn = createElement('button', {
+                    className: 'secondary-button',
+                    text: 'Retirer',
+                    attributes: { type: 'button' }
+                });
+                clearBtn.addEventListener('click', () => this.onClearGroup?.(group));
+                actions.appendChild(clearBtn);
+            }
 
             const deleteBtn = createElement('button', {
                 className: 'danger-button',

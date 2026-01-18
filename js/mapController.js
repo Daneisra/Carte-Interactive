@@ -47,6 +47,8 @@ export class MapController {
         this.markerLayer = L.layerGroup().addTo(this.map);
         this.annotationLayer = L.layerGroup().addTo(this.map);
         this.annotationMarkers = new Map();
+        this.groupLayer = L.layerGroup().addTo(this.map);
+        this.groupMarkers = new Map();
         this.clusterGroup = null;
         this.clusteringEnabled = false;
         this.mapStateListeners = new Set();
@@ -562,6 +564,106 @@ export class MapController {
             this.annotationLayer.removeLayer(marker);
         });
         this.annotationMarkers.clear();
+    }
+
+    setGroups(groups = []) {
+        this.clearGroups();
+        if (!Array.isArray(groups)) {
+            return;
+        }
+        groups.forEach(group => {
+            this.addGroupMarker(group);
+        });
+    }
+
+    addGroupMarker(group) {
+        if (!group || typeof group !== 'object') {
+            return null;
+        }
+        if (!group.id || !Number.isFinite(group.x) || !Number.isFinite(group.y)) {
+            return null;
+        }
+        const latlng = [group.y, group.x];
+        const existing = this.groupMarkers.get(group.id);
+        if (existing) {
+            existing.setLatLng(latlng);
+            if (existing.getTooltip()) {
+                existing.setTooltipContent(this.buildGroupTooltip(group));
+            }
+            existing.group = group;
+            return existing;
+        }
+        const marker = L.marker(latlng, {
+            icon: this.createGroupIcon(group),
+            interactive: true
+        });
+        marker.group = group;
+        marker.bindTooltip(this.buildGroupTooltip(group), {
+            direction: 'top',
+            offset: [0, -12],
+            sticky: true,
+            className: 'group-tooltip'
+        });
+        marker.on('click', () => {
+            const desiredZoom = Math.max(this.map.getZoom(), this.maxZoom - 1);
+            this.map.flyTo(latlng, this.clampZoom(Math.min(this.maxZoom, desiredZoom)), { animate: true, duration: 0.6 });
+        });
+        this.groupLayer.addLayer(marker);
+        this.groupMarkers.set(group.id, marker);
+        return marker;
+    }
+
+    removeGroup(groupId) {
+        if (!groupId) {
+            return;
+        }
+        const marker = this.groupMarkers.get(groupId);
+        if (marker) {
+            this.groupLayer.removeLayer(marker);
+            this.groupMarkers.delete(groupId);
+        }
+    }
+
+    clearGroups() {
+        this.groupMarkers.forEach(marker => {
+            this.groupLayer.removeLayer(marker);
+        });
+        this.groupMarkers.clear();
+    }
+
+    buildGroupTooltip(group) {
+        const name = group?.name || group?.id || 'Groupe';
+        const members = Array.isArray(group?.members) ? group.members.filter(Boolean) : [];
+        if (!members.length) {
+            return name;
+        }
+        const lines = members.map(member => `- ${member}`);
+        return [name, ...lines].join('<br>');
+    }
+
+    createGroupIcon(group) {
+        const name = group?.name || group?.id || 'Groupe';
+        const members = Array.isArray(group?.members) ? group.members : [];
+        const count = Number.isFinite(group?.memberCount) ? group.memberCount : members.length;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'group-marker';
+        if (group?.color) {
+            wrapper.style.setProperty('--group-color', group.color);
+        }
+        const title = document.createElement('span');
+        title.className = 'group-marker-name';
+        title.textContent = name;
+        const badge = document.createElement('span');
+        badge.className = 'group-marker-count';
+        badge.textContent = `${count}`;
+        wrapper.appendChild(title);
+        wrapper.appendChild(badge);
+        return L.divIcon({
+            html: wrapper.outerHTML,
+            className: 'group-marker-icon',
+            iconSize: [96, 40],
+            iconAnchor: [48, 20]
+        });
     }
 
     createClusterIcon(cluster) {

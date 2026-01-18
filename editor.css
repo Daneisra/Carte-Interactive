@@ -1120,7 +1120,7 @@ body[data-theme="light"] .user-admin-table tbody tr:hover {
 
 .user-admin-group-row {
     display: grid;
-    grid-template-columns: minmax(160px, 1fr) minmax(120px, 160px) auto;
+    grid-template-columns: minmax(160px, 1fr) minmax(120px, 160px) minmax(160px, 1fr) auto;
     gap: 10px;
     align-items: center;
     padding: 10px;
@@ -1148,6 +1148,11 @@ body[data-theme="light"] .user-admin-group-row {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+.user-admin-group-position {
+    font-size: 12px;
+    opacity: 0.8;
 }
 
 .user-admin-group-form {

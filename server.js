@@ -890,7 +890,9 @@ const ensureUniqueGroupId = (existing, base) => {
 const sanitizeGroupRecord = group => ({
   id: group?.id || '',
   name: group?.name || '',
-  color: normalizeGroupColor(group?.color)
+  color: normalizeGroupColor(group?.color),
+  x: Number.isFinite(group?.x) ? group.x : null,
+  y: Number.isFinite(group?.y) ? group.y : null
 });
 
 const sanitizeRole = value => (value && value.toLowerCase() === 'admin') ? 'admin' : 'user';
@@ -1079,21 +1081,26 @@ const deleteUser = async id => {
   return removed;
 };
 
-const createGroup = async ({ name, color = null }) => {
+const createGroup = async ({ name, color = null, x, y }) => {
   const groups = await readGroupsFile();
   const baseId = slugifyGroupId(name);
   const id = ensureUniqueGroupId(groups, baseId);
+  const nextX = x === null ? null : Number(x);
+  const nextY = y === null ? null : Number(y);
+  const hasCoords = Number.isFinite(nextX) && Number.isFinite(nextY);
   const group = {
     id,
     name,
-    color: normalizeGroupColor(color)
+    color: normalizeGroupColor(color),
+    x: hasCoords ? nextX : null,
+    y: hasCoords ? nextY : null
   };
   groups.push(group);
   await writeGroupsFile(groups);
   return group;
 };
 
-const updateGroup = async (id, { name, color }) => {
+const updateGroup = async (id, { name, color, x, y }) => {
   const groups = await readGroupsFile();
   const group = groups.find(entry => entry.id === id);
   if (!group) {
@@ -1109,6 +1116,23 @@ const updateGroup = async (id, { name, color }) => {
     if (normalized !== group.color) {
       group.color = normalized;
       updated = true;
+    }
+  }
+  if (x !== undefined || y !== undefined) {
+    const nextX = x === null ? null : Number(x);
+    const nextY = y === null ? null : Number(y);
+    if (nextX === null || nextY === null) {
+      if (group.x !== null || group.y !== null) {
+        group.x = null;
+        group.y = null;
+        updated = true;
+      }
+    } else if (Number.isFinite(nextX) && Number.isFinite(nextY)) {
+      if (group.x !== nextX || group.y !== nextY) {
+        group.x = nextX;
+        group.y = nextY;
+        updated = true;
+      }
     }
   }
   if (updated) {
@@ -1500,6 +1524,47 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (urlObj.pathname === '/api/groups') {
+      if (req.method !== 'GET') {
+        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
+        return;
+      }
+      const groups = await readGroupsFile();
+      const users = await readUsersFile();
+      const membersByGroup = new Map();
+      groups.forEach(group => {
+        if (group?.id) {
+          membersByGroup.set(group.id, []);
+        }
+      });
+      users.forEach(user => {
+        const username = normalizeString(user?.username) || user?.username || user?.id;
+        if (!username) {
+          return;
+        }
+        const assigned = Array.isArray(user?.groups) ? user.groups : [];
+        assigned.forEach(groupId => {
+          if (!groupId || !membersByGroup.has(groupId)) {
+            return;
+          }
+          membersByGroup.get(groupId).push(username);
+        });
+      });
+      send(res, 200, JSON.stringify({
+        status: 'ok',
+        groups: groups.map(group => {
+          const record = sanitizeGroupRecord(group);
+          const members = membersByGroup.get(record.id) || [];
+          return {
+            ...record,
+            members,
+            memberCount: members.length
+          };
+        })
+      }), { 'Content-Type': 'application/json' });
+      return;
+    }
+
     if (urlObj.pathname === '/api/admin/groups') {
       if (req.method === 'GET') {
         if (!(await ensureAuthorized(req, res, 'admin'))) {
@@ -1531,7 +1596,12 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         const color = payload?.color || null;
-        const group = await createGroup({ name, color });
+        const group = await createGroup({
+          name,
+          color,
+          x: payload?.x ?? undefined,
+          y: payload?.y ?? undefined
+        });
         send(res, 201, JSON.stringify({
           status: 'ok',
           group: sanitizeGroupRecord(group)
@@ -1558,7 +1628,9 @@ const server = http.createServer(async (req, res) => {
         }
         const group = await updateGroup(id, {
           name: typeof payload?.name === 'string' ? payload.name : undefined,
-          color: payload?.color
+          color: payload?.color,
+          x: payload?.x ?? undefined,
+          y: payload?.y ?? undefined
         });
         if (!group) {
           send(res, 404, JSON.stringify({ status: 'error', message: 'Group not found.' }), { 'Content-Type': 'application/json' });

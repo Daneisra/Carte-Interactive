@@ -234,9 +234,15 @@ export class UiController {
         this.annotations = new Map();
         this.questEvents = new Map();
         this.questEventsLoaded = false;
+        this.groups = [];
         this.filterFacets = { types: [], tags: [], statuses: [], quests: { with: 0, without: 0 } };
         this.annotationTool = {
             active: false,
+            clickUnsubscribe: null
+        };
+        this.groupPlacement = {
+            active: false,
+            group: null,
             clickUnsubscribe: null
         };
         this.latestValidationWarnings = [];
@@ -1767,7 +1773,9 @@ export class UiController {
                 onDeleteUser: user => this.removeUser(user),
                 onAddGroup: payload => this.createGroup(payload),
                 onUpdateGroup: payload => this.updateGroup(payload),
-                onDeleteGroup: group => this.removeGroup(group)
+                onDeleteGroup: group => this.removeGroup(group),
+                onPlaceGroup: group => this.startGroupPlacement(group),
+                onClearGroup: group => this.clearGroupPlacement(group)
             });
         }
         if (this.dom.userAdminButton && !this.dom.userAdminButton.dataset.bound) {
@@ -2013,6 +2021,7 @@ export class UiController {
             await this.refreshUserAdminPanel();
             this.userAdminPanel?.resetGroupForm();
             await this.fetchSession();
+            await this.fetchGroups();
             this.announcer?.polite?.('Groupe cree.');
         } catch (error) {
             console.error('[admin] create group failed', error);
@@ -2098,6 +2107,7 @@ export class UiController {
             }
             await this.refreshUserAdminPanel();
             await this.fetchSession();
+            await this.fetchGroups();
             this.announcer?.polite?.('Groupe mis a jour.');
         } catch (error) {
             console.error('[admin] update group failed', error);
@@ -2177,6 +2187,7 @@ export class UiController {
             }
             await this.refreshUserAdminPanel();
             await this.fetchSession();
+            await this.fetchGroups();
             this.announcer?.polite?.('Groupe supprime.');
         } catch (error) {
             console.error('[admin] delete group failed', error);
@@ -2838,6 +2849,115 @@ export class UiController {
         }
     }
 
+    startGroupPlacement(group) {
+        if (!this.isAdmin()) {
+            this.announcer?.assertive?.('Connexion administrateur requise.');
+            return;
+        }
+        if (!group?.id || !this.mapController) {
+            return;
+        }
+        if (this.groupPlacement?.active) {
+            this.stopGroupPlacement(false);
+        }
+        if (this.measurement.active) {
+            this.stopMeasurementMode(false);
+        }
+        if (this.coordinateTool.active) {
+            this.stopCoordinateMode(false);
+        }
+        if (this.annotationTool.active) {
+            this.stopAnnotationMode(false);
+        }
+        this.groupPlacement.active = true;
+        this.groupPlacement.group = group;
+        this.groupPlacement.clickUnsubscribe = this.mapController.onMapClick(event => this.handleGroupPlacementClick(event));
+        this.closeUserAdminPanel(true);
+        this.closeAdminPanel(true);
+        const label = group.name || group.id;
+        this.announcer?.polite?.(`Cliquez sur la carte pour placer le groupe ${label}.`);
+    }
+
+    stopGroupPlacement(announce = false) {
+        if (!this.groupPlacement?.active) {
+            return;
+        }
+        this.groupPlacement.active = false;
+        this.groupPlacement.group = null;
+        if (this.groupPlacement.clickUnsubscribe) {
+            this.groupPlacement.clickUnsubscribe();
+            this.groupPlacement.clickUnsubscribe = null;
+        }
+        if (announce) {
+            this.announcer?.polite?.('Placement du groupe annule.');
+        }
+    }
+
+    async handleGroupPlacementClick(event) {
+        if (!this.groupPlacement?.active) {
+            return;
+        }
+        const coords = this.mapController?.toPixelCoordinates(event?.latlng);
+        const group = this.groupPlacement.group;
+        if (!coords || !group?.id) {
+            return;
+        }
+        const x = Math.round(coords.x);
+        const y = Math.round(coords.y);
+        await this.updateGroupPosition({ id: group.id, x, y });
+        this.stopGroupPlacement(false);
+    }
+
+    async clearGroupPlacement(group) {
+        if (!group?.id) {
+            return;
+        }
+        const confirmation = window.confirm(`Retirer le placement du groupe "${group.name || group.id}" ?`);
+        if (!confirmation) {
+            return;
+        }
+        await this.updateGroupPosition({ id: group.id, x: null, y: null });
+    }
+
+    async updateGroupPosition({ id, x, y }) {
+        if (!id) {
+            return;
+        }
+        try {
+            const response = await fetch('/api/admin/groups', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, x, y })
+            });
+            if (!response.ok) {
+                const error = new Error(`HTTP ${response.status}`);
+                error.status = response.status;
+                this.logTelemetryEvent({
+                    title: 'Admin groups - placement',
+                    description: error.message,
+                    route: '/api/admin/groups',
+                    method: 'PATCH',
+                    status: response.status
+                });
+                throw error;
+            }
+            await this.refreshUserAdminPanel();
+            await this.fetchGroups();
+            this.announcer?.polite?.('Placement du groupe mis a jour.');
+        } catch (error) {
+            console.error('[admin] group placement failed', error);
+            this.announcer?.assertive?.('Mise a jour du placement impossible.');
+            this.logTelemetryEvent({
+                title: 'Admin groups - placement',
+                description: error?.message || 'Echec placement groupe',
+                route: '/api/admin/groups',
+                method: 'PATCH',
+                status: error?.status || null
+            });
+        }
+    }
+
     async createQuestEvent({ locationName, questId, status, milestone, progress, note }) {
         if (!this.isAdmin()) {
             throw new Error('Droits administrateur requis pour creer un evenement de quete.');
@@ -3101,7 +3221,7 @@ export class UiController {
         }
 
         this.mapClickUnsubscribe = this.mapController.onMapClick(event => {
-            if (this.measurement?.active || this.coordinateTool?.active || this.annotationTool?.active) {
+            if (this.measurement?.active || this.coordinateTool?.active || this.annotationTool?.active || this.groupPlacement?.active) {
                 return;
             }
             const sidebar = this.dom.infoSidebar;
@@ -3154,7 +3274,8 @@ export class UiController {
         try {
             await Promise.allSettled([
                 this.fetchAnnotations(),
-                this.fetchQuestEvents()
+                this.fetchQuestEvents(),
+                this.fetchGroups()
             ]);
         } catch (error) {
             console.warn('[realtime] Erreur lors du chargement des donnees temps reel', error);
@@ -3177,6 +3298,22 @@ export class UiController {
         }
     }
 
+    async fetchGroups() {
+        try {
+            const response = await fetch('/api/groups', { cache: 'no-store', credentials: 'include' });
+            if (!response.ok) {
+                return;
+            }
+            const payload = await response.json();
+            if (!Array.isArray(payload?.groups)) {
+                return;
+            }
+            this.applyGroupBootstrap(payload.groups);
+        } catch (error) {
+            console.warn('[realtime] Impossible de charger les groupes', error);
+        }
+    }
+
     applyAnnotationBootstrap(list = []) {
         const registry = new Map();
         list.forEach(annotation => {
@@ -3186,6 +3323,13 @@ export class UiController {
         });
         this.annotations = registry;
         this.mapController.setAnnotations(Array.from(registry.values()));
+    }
+
+    applyGroupBootstrap(list = []) {
+        this.groups = Array.isArray(list) ? list : [];
+        if (this.mapController?.setGroups) {
+            this.mapController.setGroups(this.groups);
+        }
     }
 
     handleAnnotationCreated(data) {
