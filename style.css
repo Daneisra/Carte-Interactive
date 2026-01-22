@@ -181,6 +181,72 @@ body[data-theme="light"] .markdown-content a {
     opacity: 0.7;
 }
 
+.profile-character {
+    margin: 8px 0 12px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(15, 23, 42, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-character-title {
+    margin: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.7;
+}
+
+.profile-character-locked {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.75;
+}
+
+.profile-character-fields {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.profile-character-fields label {
+    font-weight: 600;
+    opacity: 0.75;
+}
+
+.profile-character-fields input,
+.profile-character-fields textarea,
+.profile-character-fields select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.55);
+    color: inherit;
+    font-size: 12px;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.profile-character-fields textarea {
+    resize: vertical;
+}
+
+.profile-character-status {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.profile-character-status.is-error {
+    color: #f87171;
+    opacity: 1;
+}
+
 .profile-actions {
     display: flex;
     flex-direction: column;
@@ -203,6 +269,18 @@ body[data-theme="light"] .auth-status {
 
 body[data-theme="light"] .profile-groups {
     background: rgba(148, 163, 184, 0.12);
+}
+
+body[data-theme="light"] .profile-character {
+    background: rgba(148, 163, 184, 0.12);
+}
+
+body[data-theme="light"] .profile-character-fields input,
+body[data-theme="light"] .profile-character-fields textarea,
+body[data-theme="light"] .profile-character-fields select {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(100, 116, 139, 0.35);
+    color: #1f2933;
 }
 
 body[data-theme="light"] .group-marker {

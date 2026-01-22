@@ -895,6 +895,24 @@ const sanitizeGroupRecord = group => ({
   y: Number.isFinite(group?.y) ? group.y : null
 });
 
+const sanitizeCharacterRecord = character => {
+  if (!character || typeof character !== 'object') {
+    return null;
+  }
+  const name = normalizeString(character.name);
+  const bio = normalizeString(character.bio);
+  const avatar = normalizeString(character.avatar);
+  const groupId = normalizeString(character.groupId || character.group);
+  const record = {
+    name: name || null,
+    bio: bio || null,
+    avatar: avatar || null,
+    groupId: groupId || null
+  };
+  const hasValue = record.name || record.bio || record.avatar || record.groupId;
+  return hasValue ? record : null;
+};
+
 const sanitizeRole = value => (value && value.toLowerCase() === 'admin') ? 'admin' : 'user';
 
 const sanitizeUserRecord = user => ({
@@ -905,6 +923,7 @@ const sanitizeUserRecord = user => ({
   role: sanitizeRole(user?.role || 'user'),
   avatar: typeof user?.avatar === 'string' && user.avatar.trim() ? user.avatar.trim() : null,
   groups: Array.isArray(user?.groups) ? user.groups.filter(Boolean) : [],
+  character: sanitizeCharacterRecord(user?.character),
   apiTokens: Array.isArray(user?.apiTokens) && user?.provider !== 'discord' ? [...user.apiTokens] : undefined
 });
 
@@ -935,6 +954,27 @@ const resolveTokenUser = async token => {
     return { user: null, role: 'user' };
   }
   return null;
+};
+
+const normalizeCharacterPayload = (payload, allowedGroups = null) => {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+  const name = normalizeString(payload.name).slice(0, 120);
+  const bio = normalizeString(payload.bio).slice(0, 2000);
+  const avatar = normalizeString(payload.avatar).slice(0, 400);
+  let groupId = normalizeString(payload.groupId || payload.group);
+  if (allowedGroups && groupId && !allowedGroups.has(groupId)) {
+    groupId = '';
+  }
+  const record = {
+    name: name || null,
+    bio: bio || null,
+    avatar: avatar || null,
+    groupId: groupId || null
+  };
+  const hasValue = record.name || record.bio || record.avatar || record.groupId;
+  return hasValue ? record : null;
 };
 
 const updateSessionsForUser = (userId, updates = {}) => {
@@ -972,6 +1012,7 @@ const createManualUser = async ({ username = '', role = 'user', token = null }) 
     provider: 'manual',
     username: username || '',
     role: sanitizeRole(role),
+    character: null,
     groups: [],
     apiTokens: [apiToken]
   };
@@ -995,6 +1036,7 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
       username: username || '',
       avatar: avatarValue,
       role: shouldBeAdmin ? 'admin' : 'user',
+      character: null,
       groups: [],
       apiTokens: []
     };
@@ -1014,11 +1056,16 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
     }
   }
   await writeUsersFile(users);
-  updateSessionsForUser(user.id, { role: user.role, username: user.username, avatar: user.avatar || null });
+  updateSessionsForUser(user.id, {
+    role: user.role,
+    username: user.username,
+    avatar: user.avatar || null,
+    character: user.character || null
+  });
   return user;
 };
 
-const updateUser = async (id, { role, username, addToken, removeToken, groups }) => {
+const updateUser = async (id, { role, username, addToken, removeToken, groups, character }) => {
   const users = await readUsersFile();
   const user = users.find(entry => entry.id === id);
   if (!user) {
@@ -1062,9 +1109,57 @@ const updateUser = async (id, { role, username, addToken, removeToken, groups })
       updated = true;
     }
   }
+  if (character !== undefined) {
+    const normalized = sanitizeCharacterRecord(character);
+    const currentKey = JSON.stringify(user.character || null);
+    const nextKey = JSON.stringify(normalized);
+    if (currentKey !== nextKey) {
+      user.character = normalized;
+      updated = true;
+    }
+  }
   if (updated) {
     await writeUsersFile(users);
-    updateSessionsForUser(user.id, { role: user.role, username: user.username, groups: user.groups || [] });
+    updateSessionsForUser(user.id, {
+      role: user.role,
+      username: user.username,
+      groups: user.groups || [],
+      character: user.character || null
+    });
+  }
+  return user;
+};
+
+const updateUserCharacter = async (id, characterPayload) => {
+  const users = await readUsersFile();
+  const user = users.find(entry => entry.id === id);
+  if (!user) {
+    return null;
+  }
+  const groups = await readGroupsFile();
+  const allowed = new Set(groups.map(group => group?.id).filter(Boolean));
+  const normalized = normalizeCharacterPayload(characterPayload, allowed);
+  const currentKey = JSON.stringify(user.character || null);
+  const nextKey = JSON.stringify(normalized);
+  let updated = currentKey !== nextKey;
+  if (updated) {
+    user.character = normalized;
+  }
+  if (normalized?.groupId) {
+    if (!Array.isArray(user.groups)) {
+      user.groups = [];
+    }
+    if (!user.groups.includes(normalized.groupId)) {
+      user.groups.push(normalized.groupId);
+      updated = true;
+    }
+  }
+  if (updated) {
+    await writeUsersFile(users);
+    updateSessionsForUser(user.id, {
+      character: user.character || null,
+      groups: user.groups || []
+    });
   }
   return user;
 };
@@ -1562,6 +1657,61 @@ const server = http.createServer(async (req, res) => {
           };
         })
       }), { 'Content-Type': 'application/json' });
+      return;
+    }
+
+    if (urlObj.pathname === '/api/profile') {
+      if (!(await ensureAuthorized(req, res, 'user'))) {
+        return;
+      }
+      const currentUser = req.auth?.user;
+      if (!currentUser?.id) {
+        send(res, 403, JSON.stringify({ status: 'error', message: 'User profile unavailable.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      if (req.method === 'GET') {
+        const user = await findUserById(currentUser.id);
+        if (!user) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'User not found.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          profile: {
+            username: user.username || '',
+            avatar: user.avatar || null,
+            groups: Array.isArray(user.groups) ? user.groups : [],
+            character: sanitizeCharacterRecord(user.character)
+          }
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      if (req.method === 'PATCH' || req.method === 'PUT') {
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const user = await updateUserCharacter(currentUser.id, payload);
+        if (!user) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'User not found.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          profile: {
+            username: user.username || '',
+            avatar: user.avatar || null,
+            groups: Array.isArray(user.groups) ? user.groups : [],
+            character: sanitizeCharacterRecord(user.character)
+          }
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET,PATCH,PUT' });
       return;
     }
 

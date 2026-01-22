@@ -126,6 +126,14 @@ export class UiController {
             authRole: document.getElementById('auth-role'),
             authGroups: document.getElementById('auth-groups'),
             authGroupsEmpty: document.getElementById('auth-groups-empty'),
+            characterSection: document.getElementById('profile-character'),
+            characterLocked: document.getElementById('profile-character-locked'),
+            characterName: document.getElementById('character-name'),
+            characterBio: document.getElementById('character-bio'),
+            characterAvatar: document.getElementById('character-avatar'),
+            characterGroup: document.getElementById('character-group'),
+            characterSave: document.getElementById('character-save'),
+            characterStatus: document.getElementById('character-status'),
             loginButton: document.getElementById('login-button'),
             logoutButton: document.getElementById('logout-button'),
             adminPanelButton: document.getElementById('admin-panel-button'),
@@ -214,7 +222,7 @@ export class UiController {
         });
 
         this.authRequired = true;
-        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [] };
+        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], character: null };
 
         this.pageSize = PAGE_SIZE;
         this.entries = [];
@@ -226,6 +234,7 @@ export class UiController {
         this.isProfileOpen = false;
         this.boundProfileClickHandler = null;
         this.boundProfileKeyHandler = null;
+        this.characterFormDirty = false;
         this.mapClickUnsubscribe = null;
         this.tooltipMeta = new WeakMap();
         this.visibleTooltips = new Set();
@@ -1494,7 +1503,7 @@ export class UiController {
         return (this.auth?.role || '').toLowerCase() === 'admin';
     }
 
-    setAuthState({ authenticated = false, role = 'guest', username = '', avatar = null, groups = [], groupDetails = [] } = {}) {
+    setAuthState({ authenticated = false, role = 'guest', username = '', avatar = null, groups = [], groupDetails = [], character = null } = {}) {
         const previouslyAuthenticated = Boolean(this.auth?.authenticated);
         if (!this.authRequired) {
             if (authenticated) {
@@ -1504,10 +1513,11 @@ export class UiController {
                     username: username || this.auth.username || '',
                     avatar: avatar || this.auth.avatar || null,
                     groups: Array.isArray(groups) ? groups : (this.auth.groups || []),
-                    groupDetails: Array.isArray(groupDetails) ? groupDetails : (this.auth.groupDetails || [])
+                    groupDetails: Array.isArray(groupDetails) ? groupDetails : (this.auth.groupDetails || []),
+                    character: character ?? this.auth.character ?? null
                 };
             } else {
-                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [] };
+                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], character: null };
             }
         } else {
             this.auth = {
@@ -1516,12 +1526,19 @@ export class UiController {
                 username: username || '',
                 avatar: avatar || null,
                 groups: Array.isArray(groups) ? groups : [],
-                groupDetails: Array.isArray(groupDetails) ? groupDetails : []
+                groupDetails: Array.isArray(groupDetails) ? groupDetails : [],
+                character: character ?? null
             };
+        }
+        if (previouslyAuthenticated !== this.auth.authenticated) {
+            this.characterFormDirty = false;
         }
         const nowAuthenticated = Boolean(this.auth?.authenticated);
         if (this.authRequired && !previouslyAuthenticated && nowAuthenticated && !this.questEventsLoaded) {
             this.fetchQuestEvents();
+        }
+        if (!nowAuthenticated) {
+            this.setCharacterStatus('');
         }
         this.updateAuthUI();
         this.updateValidationWarnings(this.latestValidationWarnings);
@@ -1649,6 +1666,125 @@ export class UiController {
         if (this.eventsFeed) {
             this.eventsFeed.setCanDeleteResolver(() => this.isAdmin());
         }
+        this.syncCharacterForm();
+    }
+
+    syncCharacterForm() {
+        const section = this.dom.characterSection;
+        if (!section) {
+            return;
+        }
+        const authenticated = Boolean(this.auth?.authenticated);
+        const inputs = [
+            this.dom.characterName,
+            this.dom.characterBio,
+            this.dom.characterAvatar,
+            this.dom.characterGroup
+        ].filter(Boolean);
+        inputs.forEach(input => {
+            input.disabled = !authenticated;
+        });
+        if (this.dom.characterSave) {
+            this.dom.characterSave.disabled = !authenticated;
+        }
+        if (this.dom.characterLocked) {
+            this.dom.characterLocked.hidden = authenticated;
+        }
+        if (!this.characterFormDirty) {
+            const character = this.auth?.character || {};
+            if (this.dom.characterName) {
+                this.dom.characterName.value = character.name || '';
+            }
+            if (this.dom.characterBio) {
+                this.dom.characterBio.value = character.bio || '';
+            }
+            if (this.dom.characterAvatar) {
+                this.dom.characterAvatar.value = character.avatar || '';
+            }
+        }
+        this.refreshCharacterGroupOptions();
+    }
+
+    refreshCharacterGroupOptions() {
+        const select = this.dom.characterGroup;
+        if (!select) {
+            return;
+        }
+        const currentValue = select.value;
+        const desired = this.characterFormDirty
+            ? currentValue
+            : (this.auth?.character?.groupId || '');
+        select.innerHTML = '';
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = 'Aucun groupe';
+        select.appendChild(emptyOption);
+        const groups = Array.isArray(this.groups) ? this.groups : [];
+        groups.forEach(group => {
+            if (!group?.id) {
+                return;
+            }
+            const option = document.createElement('option');
+            option.value = group.id;
+            option.textContent = group.name || group.id;
+            select.appendChild(option);
+        });
+        select.value = desired && groups.some(group => group.id === desired) ? desired : '';
+    }
+
+    setCharacterStatus(message, isError = false) {
+        if (!this.dom.characterStatus) {
+            return;
+        }
+        if (!message) {
+            this.dom.characterStatus.hidden = true;
+            this.dom.characterStatus.textContent = '';
+            this.dom.characterStatus.classList.remove('is-error');
+            return;
+        }
+        this.dom.characterStatus.textContent = message;
+        this.dom.characterStatus.hidden = false;
+        this.dom.characterStatus.classList.toggle('is-error', isError);
+    }
+
+    async saveCharacterProfile() {
+        if (!this.auth?.authenticated) {
+            this.announcer?.assertive?.('Connexion requise pour creer un personnage.');
+            return;
+        }
+        const name = this.dom.characterName?.value.trim() || '';
+        const bio = this.dom.characterBio?.value.trim() || '';
+        const avatar = this.dom.characterAvatar?.value.trim() || '';
+        const groupId = this.dom.characterGroup?.value || '';
+        if (this.dom.characterSave) {
+            this.dom.characterSave.disabled = true;
+        }
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, bio, avatar, groupId })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            const profile = payload?.profile || {};
+            const character = profile.character || null;
+            this.auth.character = character;
+            this.characterFormDirty = false;
+            this.setCharacterStatus('Personnage enregistre.');
+            await this.fetchSession();
+            await this.fetchGroups();
+        } catch (error) {
+            console.error('[profile] update failed', error);
+            this.setCharacterStatus('Impossible d\'enregistrer le personnage.', true);
+        } finally {
+            if (this.dom.characterSave) {
+                this.dom.characterSave.disabled = false;
+            }
+        }
     }
 
     async fetchSession() {
@@ -1670,7 +1806,8 @@ export class UiController {
             const avatar = payload?.avatar || null;
             const groups = Array.isArray(payload?.groups) ? payload.groups : [];
             const groupDetails = Array.isArray(payload?.groupDetails) ? payload.groupDetails : [];
-            this.setAuthState({ authenticated, role, username, avatar, groups, groupDetails });
+            const character = payload?.character || null;
+            this.setAuthState({ authenticated, role, username, avatar, groups, groupDetails, character });
         } catch (error) {
             console.error('[auth] session fetch failed', error);
             this.authRequired = true;
@@ -1746,6 +1883,30 @@ export class UiController {
                 await this.fetchSession();
                 this.setProfilePanelOpen(false);
             });
+        }
+        const markCharacterDirty = () => {
+            this.characterFormDirty = true;
+            this.setCharacterStatus('');
+        };
+        if (this.dom.characterName && !this.dom.characterName.dataset.bound) {
+            this.dom.characterName.addEventListener('input', markCharacterDirty);
+            this.dom.characterName.dataset.bound = 'true';
+        }
+        if (this.dom.characterBio && !this.dom.characterBio.dataset.bound) {
+            this.dom.characterBio.addEventListener('input', markCharacterDirty);
+            this.dom.characterBio.dataset.bound = 'true';
+        }
+        if (this.dom.characterAvatar && !this.dom.characterAvatar.dataset.bound) {
+            this.dom.characterAvatar.addEventListener('input', markCharacterDirty);
+            this.dom.characterAvatar.dataset.bound = 'true';
+        }
+        if (this.dom.characterGroup && !this.dom.characterGroup.dataset.bound) {
+            this.dom.characterGroup.addEventListener('change', markCharacterDirty);
+            this.dom.characterGroup.dataset.bound = 'true';
+        }
+        if (this.dom.characterSave && !this.dom.characterSave.dataset.bound) {
+            this.dom.characterSave.addEventListener('click', () => this.saveCharacterProfile());
+            this.dom.characterSave.dataset.bound = 'true';
         }
         if (this.dom.adminPanelButton && !this.dom.adminPanelButton.dataset.bound) {
             this.dom.adminPanelButton.addEventListener('click', () => {
@@ -3330,6 +3491,7 @@ export class UiController {
         if (this.mapController?.setGroups) {
             this.mapController.setGroups(this.groups);
         }
+        this.refreshCharacterGroupOptions();
     }
 
     handleAnnotationCreated(data) {

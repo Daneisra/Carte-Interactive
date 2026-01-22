@@ -125,6 +125,7 @@ module.exports = (register, context) => {
                 session.data.provider = sanitized.provider;
                 session.data.avatar = sanitized.avatar || null;
                 session.data.groups = Array.isArray(sanitized.groups) ? sanitized.groups : [];
+                session.data.character = sanitized.character || null;
             }
             return { user: sanitized };
         }
@@ -137,7 +138,8 @@ module.exports = (register, context) => {
                 username: data.username || '',
                 role,
                 avatar: data.avatar || null,
-                groups: Array.isArray(data.groups) ? data.groups : []
+                groups: Array.isArray(data.groups) ? data.groups : [],
+                character: data.character || null
             };
             if (session.data) {
                 session.data.role = role;
@@ -157,6 +159,7 @@ module.exports = (register, context) => {
                 avatar: null,
                 groups: [],
                 groupDetails: [],
+                character: null,
                 authRequired: false,
                 oauth: { discord: discordEnabled }
             };
@@ -170,6 +173,7 @@ module.exports = (register, context) => {
                 avatar: null,
                 groups: [],
                 groupDetails: [],
+                character: null,
                 authRequired: true,
                 oauth: { discord: discordEnabled }
             };
@@ -182,6 +186,7 @@ module.exports = (register, context) => {
             avatar: user.avatar || null,
             groups: Array.isArray(user.groups) ? user.groups : [],
             groupDetails: Array.isArray(groupDetails) ? groupDetails : [],
+            character: user.character || null,
             provider: user.provider || 'manual',
             authRequired: true,
             oauth: { discord: discordEnabled }
@@ -343,7 +348,8 @@ module.exports = (register, context) => {
                 username: user.username || displayName,
                 discordId: user.discordId,
                 avatar: avatarUrl,
-                groups: Array.isArray(user.groups) ? user.groups : []
+                groups: Array.isArray(user.groups) ? user.groups : [],
+                character: user.character || null
             });
             sendSessionCookie(res, sessionId);
 

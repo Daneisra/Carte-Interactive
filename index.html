@@ -33,6 +33,24 @@
                 <div id="auth-groups" class="profile-group-list"></div>
                 <p id="auth-groups-empty" class="profile-group-empty">Aucun groupe assigne.</p>
             </div>
+            <div id="profile-character" class="profile-character">
+                <p class="profile-character-title">Personnage</p>
+                <p id="profile-character-locked" class="profile-character-locked" hidden>Connexion requise pour creer un personnage.</p>
+                <div class="profile-character-fields">
+                    <label for="character-name">Nom</label>
+                    <input id="character-name" type="text" placeholder="Nom du personnage" autocomplete="off" />
+                    <label for="character-bio">Bio</label>
+                    <textarea id="character-bio" rows="3" placeholder="Bio rapide" autocomplete="off"></textarea>
+                    <label for="character-avatar">Avatar (URL)</label>
+                    <input id="character-avatar" type="text" placeholder="https://..." autocomplete="off" />
+                    <label for="character-group">Groupe</label>
+                    <select id="character-group">
+                        <option value="">Aucun groupe</option>
+                    </select>
+                </div>
+                <button id="character-save" class="secondary-button" type="button">Enregistrer</button>
+                <p id="character-status" class="profile-character-status" role="status" aria-live="polite" hidden></p>
+            </div>
             <div class="profile-actions">
                 <button id="login-button" class="secondary-button" type="button">Connexion Discord</button>
                 <button id="logout-button" class="secondary-button" type="button" hidden>Se deconnecter</button>

@@ -40,7 +40,8 @@
 - [x] Déplacer le cadre "connexion" dans un coin de la page (surement en haut a droite) et peut-être modifier la forme pour transformer ça en vrai bouton "profil" avec centralisation des informations de l'utilisateur et un début de personnalisation de profil
 - [x] Création et gestion de groupe depuis panneau admin pour ensuite attribuer les groupes de jdr au profil utilisateur
 - [x] Possiblités de placement des différents groupes sur la carte avec visualisation des utilisateurs a l'intérieur du groupe
-- [ ] Dans le profil utilisateur création de personnage avec nom, bio et groupe
+- [x] Dans le profil utilisateur création de personnage avec nom, bio, avatar et groupe
+- [ ] Les personnages associés aux utilisateur apparaitrons dans les groupes sur la carte
 - [ ] Quêtes interactives avec états visuels et transitions.
 - [ ] Markers thématiques/stylés par type + légende.
 - [ ] Tableau de bord live (compteurs SSE/latences) côté admin.
@@ -48,7 +49,6 @@
 - [ ] Polish UI
 
 ### P2 — Différenciants
-- [ ] Détection automatique de lieu dans les texte pour création automatique de lien
 - [ ] Intégration et personalisation d'une frise chronologique
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
