@@ -1633,16 +1633,36 @@ const server = http.createServer(async (req, res) => {
         }
       });
       users.forEach(user => {
+        const character = sanitizeCharacterRecord(user?.character);
         const username = normalizeString(user?.username) || user?.username || user?.id;
-        if (!username) {
+        const characterName = normalizeString(character?.name);
+        if (!username && !characterName) {
           return;
         }
-        const assigned = Array.isArray(user?.groups) ? user.groups : [];
+        const userAvatar = normalizeString(user?.avatar) || null;
+        const characterAvatar = normalizeString(character?.avatar) || null;
+        const assigned = [];
+        if (character?.groupId) {
+          assigned.push(character.groupId);
+        }
+        if (Array.isArray(user?.groups)) {
+          user.groups.forEach(groupId => {
+            if (groupId && !assigned.includes(groupId)) {
+              assigned.push(groupId);
+            }
+          });
+        }
         assigned.forEach(groupId => {
           if (!groupId || !membersByGroup.has(groupId)) {
             return;
           }
-          membersByGroup.get(groupId).push(username);
+          const bucket = membersByGroup.get(groupId);
+          if (username) {
+            bucket.push({ name: username, avatar: userAvatar, type: 'user' });
+          }
+          if (characterName && character?.groupId === groupId) {
+            bucket.push({ name: characterName, avatar: characterAvatar, type: 'character' });
+          }
         });
       });
       send(res, 200, JSON.stringify({

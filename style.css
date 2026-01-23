@@ -2139,6 +2139,53 @@ body[data-theme="light"] #events-filter option {
     line-height: 1.4;
 }
 
+.leaflet-tooltip.group-tooltip .group-tooltip-title {
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.leaflet-tooltip.group-tooltip .group-tooltip-members {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.leaflet-tooltip.group-tooltip .group-tooltip-member {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.leaflet-tooltip.group-tooltip .group-tooltip-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(148, 163, 184, 0.3);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background-size: cover;
+    background-position: center;
+    color: #e2e8f0;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.leaflet-tooltip.group-tooltip .group-tooltip-name {
+    font-size: 12px;
+}
+
+.leaflet-tooltip.group-tooltip .group-tooltip-badge {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
 #clustering-container {
     margin-top: 8px;
     display: flex;

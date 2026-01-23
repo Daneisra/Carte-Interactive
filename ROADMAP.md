@@ -41,7 +41,7 @@
 - [x] Création et gestion de groupe depuis panneau admin pour ensuite attribuer les groupes de jdr au profil utilisateur
 - [x] Possiblités de placement des différents groupes sur la carte avec visualisation des utilisateurs a l'intérieur du groupe
 - [x] Dans le profil utilisateur création de personnage avec nom, bio, avatar et groupe
-- [ ] Les personnages associés aux utilisateur apparaitrons dans les groupes sur la carte
+- [x] Les personnages associés aux utilisateur apparaitrons dans les groupes sur la carte
 - [ ] Quêtes interactives avec états visuels et transitions.
 - [ ] Markers thématiques/stylés par type + légende.
 - [ ] Tableau de bord live (compteurs SSE/latences) côté admin.

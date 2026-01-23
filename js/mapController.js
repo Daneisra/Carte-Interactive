@@ -633,12 +633,45 @@ export class MapController {
 
     buildGroupTooltip(group) {
         const name = group?.name || group?.id || 'Groupe';
-        const members = Array.isArray(group?.members) ? group.members.filter(Boolean) : [];
+        const members = Array.isArray(group?.members) ? group.members : [];
+        const escapeHtml = value => (value || '')
+            .toString()
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        const normalizeAvatarUrl = value => {
+            if (!value || typeof value !== 'string') {
+                return '';
+            }
+            const trimmed = value.trim();
+            if (!trimmed) {
+                return '';
+            }
+            if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/') || trimmed.startsWith('assets/')) {
+                return trimmed;
+            }
+            return '';
+        };
+        const title = `<div class="group-tooltip-title">${escapeHtml(name)}</div>`;
         if (!members.length) {
-            return name;
+            return title;
         }
-        const lines = members.map(member => `- ${member}`);
-        return [name, ...lines].join('<br>');
+        const items = members.map(member => {
+            const entry = typeof member === 'string' ? { name: member } : (member || {});
+            const displayName = entry.name || 'Sans nom';
+            const avatarUrl = normalizeAvatarUrl(entry.avatar);
+            const type = entry.type === 'character' ? 'Personnage' : (entry.type === 'user' ? 'Utilisateur' : '');
+            const avatarMarkup = avatarUrl
+                ? `<span class="group-tooltip-avatar" style="background-image: url('${escapeHtml(avatarUrl)}')"></span>`
+                : `<span class="group-tooltip-avatar is-placeholder">${escapeHtml(displayName.charAt(0).toUpperCase())}</span>`;
+            const badgeMarkup = type
+                ? `<span class="group-tooltip-badge">${escapeHtml(type)}</span>`
+                : '';
+            return `<div class="group-tooltip-member">${avatarMarkup}<span class="group-tooltip-name">${escapeHtml(displayName)}</span>${badgeMarkup}</div>`;
+        }).join('');
+        return `${title}<div class="group-tooltip-members">${items}</div>`;
     }
 
     createGroupIcon(group) {
