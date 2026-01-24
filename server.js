@@ -895,15 +895,17 @@ const sanitizeGroupRecord = group => ({
   y: Number.isFinite(group?.y) ? group.y : null
 });
 
-const sanitizeCharacterRecord = character => {
+const sanitizeCharacterRecord = (character, { allowEmptyId = true } = {}) => {
   if (!character || typeof character !== 'object') {
     return null;
   }
+  const id = normalizeString(character.id);
   const name = normalizeString(character.name);
   const bio = normalizeString(character.bio);
   const avatar = normalizeString(character.avatar);
   const groupId = normalizeString(character.groupId || character.group);
   const record = {
+    id: id || (allowEmptyId ? null : ''),
     name: name || null,
     bio: bio || null,
     avatar: avatar || null,
@@ -913,9 +915,62 @@ const sanitizeCharacterRecord = character => {
   return hasValue ? record : null;
 };
 
+const sanitizeCharacterList = (characters, { assignIds = false, allowedGroups = null } = {}) => {
+  if (!Array.isArray(characters)) {
+    return [];
+  }
+  const list = [];
+  const seen = new Set();
+  characters.forEach(entry => {
+    const record = sanitizeCharacterRecord(entry);
+    if (!record) {
+      return;
+    }
+    let id = normalizeString(record.id);
+    if (!id && assignIds) {
+      id = `char_${crypto.randomUUID()}`;
+    }
+    if (!id && !assignIds) {
+      id = `legacy_${list.length + 1}`;
+    }
+    if (!id) {
+      return;
+    }
+    if (seen.has(id)) {
+      if (!assignIds) {
+        return;
+      }
+      id = `char_${crypto.randomUUID()}`;
+    }
+    seen.add(id);
+    let groupId = record.groupId || null;
+    if (allowedGroups && groupId && !allowedGroups.has(groupId)) {
+      groupId = null;
+    }
+    list.push({
+      id,
+      name: record.name || null,
+      bio: record.bio || null,
+      avatar: record.avatar || null,
+      groupId
+    });
+  });
+  return list;
+};
+
+const resolveUserCharacters = user => {
+  if (Array.isArray(user?.characters) && user.characters.length) {
+    return user.characters;
+  }
+  const legacy = sanitizeCharacterRecord(user?.character);
+  return legacy ? [legacy] : [];
+};
+
 const sanitizeRole = value => (value && value.toLowerCase() === 'admin') ? 'admin' : 'user';
 
-const sanitizeUserRecord = user => ({
+const sanitizeUserRecord = user => {
+  const characters = sanitizeCharacterList(resolveUserCharacters(user));
+  return ({
   id: user?.id || '',
   provider: user?.provider || 'manual',
   discordId: user?.provider === 'discord' ? user.discordId || null : null,
@@ -923,9 +978,11 @@ const sanitizeUserRecord = user => ({
   role: sanitizeRole(user?.role || 'user'),
   avatar: typeof user?.avatar === 'string' && user.avatar.trim() ? user.avatar.trim() : null,
   groups: Array.isArray(user?.groups) ? user.groups.filter(Boolean) : [],
-  character: sanitizeCharacterRecord(user?.character),
+  character: characters[0] || null,
+  characters,
   apiTokens: Array.isArray(user?.apiTokens) && user?.provider !== 'discord' ? [...user.apiTokens] : undefined
-});
+  });
+};
 
 const findUserById = async id => {
   const users = await readUsersFile();
@@ -956,25 +1013,14 @@ const resolveTokenUser = async token => {
   return null;
 };
 
-const normalizeCharacterPayload = (payload, allowedGroups = null) => {
-  if (!payload || typeof payload !== 'object') {
-    return null;
+const normalizeCharacterPayload = (payload, allowedGroups = null, assignIds = true) => {
+  if (Array.isArray(payload)) {
+    return sanitizeCharacterList(payload, { assignIds, allowedGroups });
   }
-  const name = normalizeString(payload.name).slice(0, 120);
-  const bio = normalizeString(payload.bio).slice(0, 2000);
-  const avatar = normalizeString(payload.avatar).slice(0, 400);
-  let groupId = normalizeString(payload.groupId || payload.group);
-  if (allowedGroups && groupId && !allowedGroups.has(groupId)) {
-    groupId = '';
+  if (payload && typeof payload === 'object') {
+    return sanitizeCharacterList([payload], { assignIds, allowedGroups });
   }
-  const record = {
-    name: name || null,
-    bio: bio || null,
-    avatar: avatar || null,
-    groupId: groupId || null
-  };
-  const hasValue = record.name || record.bio || record.avatar || record.groupId;
-  return hasValue ? record : null;
+  return [];
 };
 
 const updateSessionsForUser = (userId, updates = {}) => {
@@ -1012,6 +1058,7 @@ const createManualUser = async ({ username = '', role = 'user', token = null }) 
     provider: 'manual',
     username: username || '',
     role: sanitizeRole(role),
+    characters: [],
     character: null,
     groups: [],
     apiTokens: [apiToken]
@@ -1036,6 +1083,7 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
       username: username || '',
       avatar: avatarValue,
       role: shouldBeAdmin ? 'admin' : 'user',
+      characters: [],
       character: null,
       groups: [],
       apiTokens: []
@@ -1060,12 +1108,12 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
     role: user.role,
     username: user.username,
     avatar: user.avatar || null,
-    character: user.character || null
+    characters: Array.isArray(user.characters) ? user.characters : []
   });
   return user;
 };
 
-const updateUser = async (id, { role, username, addToken, removeToken, groups, character }) => {
+const updateUser = async (id, { role, username, addToken, removeToken, groups, character, characters }) => {
   const users = await readUsersFile();
   const user = users.find(entry => entry.id === id);
   if (!user) {
@@ -1109,12 +1157,17 @@ const updateUser = async (id, { role, username, addToken, removeToken, groups, c
       updated = true;
     }
   }
-  if (character !== undefined) {
-    const normalized = sanitizeCharacterRecord(character);
-    const currentKey = JSON.stringify(user.character || null);
+  if (Array.isArray(characters) || character !== undefined) {
+    const groups = await readGroupsFile();
+    const allowed = new Set(groups.map(group => group?.id).filter(Boolean));
+    const normalized = Array.isArray(characters)
+      ? normalizeCharacterPayload(characters, allowed, true)
+      : normalizeCharacterPayload(character, allowed, true);
+    const currentKey = JSON.stringify(Array.isArray(user.characters) ? user.characters : []);
     const nextKey = JSON.stringify(normalized);
     if (currentKey !== nextKey) {
-      user.character = normalized;
+      user.characters = normalized;
+      user.character = null;
       updated = true;
     }
   }
@@ -1124,13 +1177,13 @@ const updateUser = async (id, { role, username, addToken, removeToken, groups, c
       role: user.role,
       username: user.username,
       groups: user.groups || [],
-      character: user.character || null
+      characters: Array.isArray(user.characters) ? user.characters : []
     });
   }
   return user;
 };
 
-const updateUserCharacter = async (id, characterPayload) => {
+const updateUserCharacters = async (id, characterPayload) => {
   const users = await readUsersFile();
   const user = users.find(entry => entry.id === id);
   if (!user) {
@@ -1138,26 +1191,15 @@ const updateUserCharacter = async (id, characterPayload) => {
   }
   const groups = await readGroupsFile();
   const allowed = new Set(groups.map(group => group?.id).filter(Boolean));
-  const normalized = normalizeCharacterPayload(characterPayload, allowed);
-  const currentKey = JSON.stringify(user.character || null);
+  const normalized = normalizeCharacterPayload(characterPayload, allowed, true);
+  const currentKey = JSON.stringify(Array.isArray(user.characters) ? user.characters : []);
   const nextKey = JSON.stringify(normalized);
-  let updated = currentKey !== nextKey;
-  if (updated) {
-    user.character = normalized;
-  }
-  if (normalized?.groupId) {
-    if (!Array.isArray(user.groups)) {
-      user.groups = [];
-    }
-    if (!user.groups.includes(normalized.groupId)) {
-      user.groups.push(normalized.groupId);
-      updated = true;
-    }
-  }
-  if (updated) {
+  if (currentKey !== nextKey) {
+    user.characters = normalized;
+    user.character = null;
     await writeUsersFile(users);
     updateSessionsForUser(user.id, {
-      character: user.character || null,
+      characters: Array.isArray(user.characters) ? user.characters : [],
       groups: user.groups || []
     });
   }
@@ -1633,22 +1675,22 @@ const server = http.createServer(async (req, res) => {
         }
       });
       users.forEach(user => {
-        const character = sanitizeCharacterRecord(user?.character);
+        const characters = sanitizeCharacterList(resolveUserCharacters(user));
         const username = normalizeString(user?.username) || user?.username || user?.id;
-        const characterName = normalizeString(character?.name);
-        if (!username && !characterName) {
+        if (!username && !characters.length) {
           return;
         }
         const userAvatar = normalizeString(user?.avatar) || null;
-        const characterAvatar = normalizeString(character?.avatar) || null;
-        const assigned = [];
-        if (character?.groupId) {
-          assigned.push(character.groupId);
-        }
+        const assigned = new Set();
+        characters.forEach(character => {
+          if (character?.groupId) {
+            assigned.add(character.groupId);
+          }
+        });
         if (Array.isArray(user?.groups)) {
           user.groups.forEach(groupId => {
-            if (groupId && !assigned.includes(groupId)) {
-              assigned.push(groupId);
+            if (groupId) {
+              assigned.add(groupId);
             }
           });
         }
@@ -1660,9 +1702,15 @@ const server = http.createServer(async (req, res) => {
           if (username) {
             bucket.push({ name: username, avatar: userAvatar, type: 'user' });
           }
-          if (characterName && character?.groupId === groupId) {
-            bucket.push({ name: characterName, avatar: characterAvatar, type: 'character' });
-          }
+          characters
+            .filter(character => character?.groupId === groupId)
+            .forEach(character => {
+              bucket.push({
+                name: character.name || 'Personnage',
+                avatar: character.avatar || null,
+                type: 'character'
+              });
+            });
         });
       });
       send(res, 200, JSON.stringify({
@@ -1690,10 +1738,23 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (req.method === 'GET') {
-        const user = await findUserById(currentUser.id);
+        const users = await readUsersFile();
+        const index = users.findIndex(entry => entry.id === currentUser.id);
+        const user = index === -1 ? null : users[index];
         if (!user) {
           send(res, 404, JSON.stringify({ status: 'error', message: 'User not found.' }), { 'Content-Type': 'application/json' });
           return;
+        }
+        const groups = await readGroupsFile();
+        const allowed = new Set(groups.map(group => group?.id).filter(Boolean));
+        const characters = sanitizeCharacterList(resolveUserCharacters(user), { assignIds: true, allowedGroups: allowed });
+        const currentKey = JSON.stringify(Array.isArray(user.characters) ? user.characters : []);
+        const nextKey = JSON.stringify(characters);
+        if (currentKey !== nextKey || user.character) {
+          user.characters = characters;
+          user.character = null;
+          await writeUsersFile(users);
+          updateSessionsForUser(user.id, { characters });
         }
         send(res, 200, JSON.stringify({
           status: 'ok',
@@ -1701,7 +1762,7 @@ const server = http.createServer(async (req, res) => {
             username: user.username || '',
             avatar: user.avatar || null,
             groups: Array.isArray(user.groups) ? user.groups : [],
-            character: sanitizeCharacterRecord(user.character)
+            characters
           }
         }), { 'Content-Type': 'application/json' });
         return;
@@ -1715,7 +1776,13 @@ const server = http.createServer(async (req, res) => {
           send(res, 400, 'Invalid JSON');
           return;
         }
-        const user = await updateUserCharacter(currentUser.id, payload);
+        const hasLegacyFields = payload && typeof payload === 'object' && (
+          payload.name || payload.bio || payload.avatar || payload.groupId || payload.group
+        );
+        const characterPayload = Array.isArray(payload?.characters)
+          ? payload.characters
+          : (payload?.character ? payload.character : (hasLegacyFields ? payload : []));
+        const user = await updateUserCharacters(currentUser.id, characterPayload);
         if (!user) {
           send(res, 404, JSON.stringify({ status: 'error', message: 'User not found.' }), { 'Content-Type': 'application/json' });
           return;
@@ -1726,7 +1793,7 @@ const server = http.createServer(async (req, res) => {
             username: user.username || '',
             avatar: user.avatar || null,
             groups: Array.isArray(user.groups) ? user.groups : [],
-            character: sanitizeCharacterRecord(user.character)
+            characters: sanitizeCharacterList(resolveUserCharacters(user))
           }
         }), { 'Content-Type': 'application/json' });
         return;

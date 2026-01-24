@@ -128,11 +128,15 @@ export class UiController {
             authGroupsEmpty: document.getElementById('auth-groups-empty'),
             characterSection: document.getElementById('profile-character'),
             characterLocked: document.getElementById('profile-character-locked'),
+            characterList: document.getElementById('character-list'),
+            characterEmpty: document.getElementById('character-empty'),
+            characterAdd: document.getElementById('character-add'),
             characterName: document.getElementById('character-name'),
             characterBio: document.getElementById('character-bio'),
             characterAvatar: document.getElementById('character-avatar'),
             characterGroup: document.getElementById('character-group'),
             characterSave: document.getElementById('character-save'),
+            characterDelete: document.getElementById('character-delete'),
             characterStatus: document.getElementById('character-status'),
             loginButton: document.getElementById('login-button'),
             logoutButton: document.getElementById('logout-button'),
@@ -222,7 +226,7 @@ export class UiController {
         });
 
         this.authRequired = true;
-        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], character: null };
+        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [] };
 
         this.pageSize = PAGE_SIZE;
         this.entries = [];
@@ -235,6 +239,9 @@ export class UiController {
         this.boundProfileClickHandler = null;
         this.boundProfileKeyHandler = null;
         this.characterFormDirty = false;
+        this.charactersDirty = false;
+        this.profileCharacters = [];
+        this.activeCharacterId = null;
         this.mapClickUnsubscribe = null;
         this.tooltipMeta = new WeakMap();
         this.visibleTooltips = new Set();
@@ -1503,7 +1510,7 @@ export class UiController {
         return (this.auth?.role || '').toLowerCase() === 'admin';
     }
 
-    setAuthState({ authenticated = false, role = 'guest', username = '', avatar = null, groups = [], groupDetails = [], character = null } = {}) {
+    setAuthState({ authenticated = false, role = 'guest', username = '', avatar = null, groups = [], groupDetails = [], characters = [] } = {}) {
         const previouslyAuthenticated = Boolean(this.auth?.authenticated);
         if (!this.authRequired) {
             if (authenticated) {
@@ -1514,10 +1521,10 @@ export class UiController {
                     avatar: avatar || this.auth.avatar || null,
                     groups: Array.isArray(groups) ? groups : (this.auth.groups || []),
                     groupDetails: Array.isArray(groupDetails) ? groupDetails : (this.auth.groupDetails || []),
-                    character: character ?? this.auth.character ?? null
+                    characters: Array.isArray(characters) ? characters : (this.auth.characters || [])
                 };
             } else {
-                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], character: null };
+                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [] };
             }
         } else {
             this.auth = {
@@ -1527,11 +1534,12 @@ export class UiController {
                 avatar: avatar || null,
                 groups: Array.isArray(groups) ? groups : [],
                 groupDetails: Array.isArray(groupDetails) ? groupDetails : [],
-                character: character ?? null
+                characters: Array.isArray(characters) ? characters : []
             };
         }
         if (previouslyAuthenticated !== this.auth.authenticated) {
             this.characterFormDirty = false;
+            this.charactersDirty = false;
         }
         const nowAuthenticated = Boolean(this.auth?.authenticated);
         if (this.authRequired && !previouslyAuthenticated && nowAuthenticated && !this.questEventsLoaded) {
@@ -1539,6 +1547,17 @@ export class UiController {
         }
         if (!nowAuthenticated) {
             this.setCharacterStatus('');
+        }
+        if (!this.charactersDirty) {
+            this.profileCharacters = Array.isArray(this.auth.characters) ? [...this.auth.characters] : [];
+            if (this.profileCharacters.length) {
+                const exists = this.profileCharacters.some(character => character.id === this.activeCharacterId);
+                if (!exists) {
+                    this.activeCharacterId = this.profileCharacters[0]?.id || null;
+                }
+            } else {
+                this.activeCharacterId = null;
+            }
         }
         this.updateAuthUI();
         this.updateValidationWarnings(this.latestValidationWarnings);
@@ -1687,11 +1706,19 @@ export class UiController {
         if (this.dom.characterSave) {
             this.dom.characterSave.disabled = !authenticated;
         }
+        if (this.dom.characterDelete) {
+            this.dom.characterDelete.disabled = !authenticated || !this.activeCharacterId;
+            this.dom.characterDelete.hidden = !this.activeCharacterId;
+        }
+        if (this.dom.characterAdd) {
+            this.dom.characterAdd.disabled = !authenticated;
+        }
         if (this.dom.characterLocked) {
             this.dom.characterLocked.hidden = authenticated;
         }
+        this.renderCharacterList();
         if (!this.characterFormDirty) {
-            const character = this.auth?.character || {};
+            const character = this.getActiveCharacter() || {};
             if (this.dom.characterName) {
                 this.dom.characterName.value = character.name || '';
             }
@@ -1713,7 +1740,7 @@ export class UiController {
         const currentValue = select.value;
         const desired = this.characterFormDirty
             ? currentValue
-            : (this.auth?.character?.groupId || '');
+            : (this.getActiveCharacter()?.groupId || '');
         select.innerHTML = '';
         const emptyOption = document.createElement('option');
         emptyOption.value = '';
@@ -1730,6 +1757,102 @@ export class UiController {
             select.appendChild(option);
         });
         select.value = desired && groups.some(group => group.id === desired) ? desired : '';
+    }
+
+    getActiveCharacter() {
+        if (!this.activeCharacterId) {
+            return null;
+        }
+        return this.profileCharacters.find(character => character.id === this.activeCharacterId) || null;
+    }
+
+    renderCharacterList() {
+        const container = this.dom.characterList;
+        if (!container) {
+            return;
+        }
+        clearElement(container);
+        const characters = Array.isArray(this.profileCharacters) ? this.profileCharacters : [];
+        if (this.dom.characterEmpty) {
+            this.dom.characterEmpty.hidden = characters.length > 0;
+        }
+        if (!characters.length) {
+            return;
+        }
+        characters.forEach(character => {
+            const card = createElement('button', {
+                className: `profile-character-card${character.id === this.activeCharacterId ? ' is-active' : ''}`,
+                attributes: { type: 'button' }
+            });
+            const avatar = createElement('span', { className: 'profile-character-avatar' });
+            const avatarUrl = typeof character.avatar === 'string' ? character.avatar.trim() : '';
+            if (avatarUrl) {
+                avatar.style.backgroundImage = `url("${avatarUrl}")`;
+                avatar.classList.add('has-image');
+                avatar.textContent = '';
+            } else {
+                const initial = (character.name || '?').charAt(0).toUpperCase();
+                avatar.textContent = initial;
+            }
+            const meta = createElement('span', { className: 'profile-character-meta' });
+            meta.appendChild(createElement('span', {
+                className: 'profile-character-name',
+                text: character.name || 'Personnage'
+            }));
+            const groupLabel = this.groups.find(group => group.id === character.groupId)?.name || '';
+            meta.appendChild(createElement('span', {
+                className: 'profile-character-sub',
+                text: groupLabel ? `Groupe: ${groupLabel}` : 'Aucun groupe'
+            }));
+            card.appendChild(avatar);
+            card.appendChild(meta);
+            card.addEventListener('click', () => this.selectCharacter(character.id));
+            container.appendChild(card);
+        });
+    }
+
+    selectCharacter(characterId) {
+        if (!characterId) {
+            return;
+        }
+        this.activeCharacterId = characterId;
+        this.characterFormDirty = false;
+        this.charactersDirty = false;
+        this.setCharacterStatus('');
+        this.syncCharacterForm();
+    }
+
+    startNewCharacter() {
+        this.activeCharacterId = null;
+        this.characterFormDirty = false;
+        this.charactersDirty = true;
+        if (this.dom.characterName) {
+            this.dom.characterName.value = '';
+        }
+        if (this.dom.characterBio) {
+            this.dom.characterBio.value = '';
+        }
+        if (this.dom.characterAvatar) {
+            this.dom.characterAvatar.value = '';
+        }
+        this.refreshCharacterGroupOptions();
+        this.setCharacterStatus('');
+        this.syncCharacterForm();
+    }
+
+    collectCharacterDraft() {
+        const name = this.dom.characterName?.value.trim() || '';
+        const bio = this.dom.characterBio?.value.trim() || '';
+        const avatar = this.dom.characterAvatar?.value.trim() || '';
+        const groupId = this.dom.characterGroup?.value || '';
+        return { name, bio, avatar, groupId };
+    }
+
+    createCharacterId() {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return `char_${crypto.randomUUID()}`;
+        }
+        return `char_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
     }
 
     setCharacterStatus(message, isError = false) {
@@ -1752,10 +1875,26 @@ export class UiController {
             this.announcer?.assertive?.('Connexion requise pour creer un personnage.');
             return;
         }
-        const name = this.dom.characterName?.value.trim() || '';
-        const bio = this.dom.characterBio?.value.trim() || '';
-        const avatar = this.dom.characterAvatar?.value.trim() || '';
-        const groupId = this.dom.characterGroup?.value || '';
+        const draft = this.collectCharacterDraft();
+        if (!draft.name) {
+            this.setCharacterStatus('Le nom du personnage est requis.', true);
+            return;
+        }
+        const nextCharacters = Array.isArray(this.profileCharacters) ? [...this.profileCharacters] : [];
+        let activeId = this.activeCharacterId;
+        if (activeId) {
+            const index = nextCharacters.findIndex(character => character.id === activeId);
+            if (index >= 0) {
+                nextCharacters[index] = { ...nextCharacters[index], ...draft, id: activeId };
+            } else {
+                activeId = this.createCharacterId();
+                nextCharacters.push({ ...draft, id: activeId });
+            }
+        } else {
+            activeId = this.createCharacterId();
+            nextCharacters.push({ ...draft, id: activeId });
+        }
+        this.charactersDirty = true;
         if (this.dom.characterSave) {
             this.dom.characterSave.disabled = true;
         }
@@ -1764,22 +1903,78 @@ export class UiController {
                 method: 'PATCH',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, bio, avatar, groupId })
+                body: JSON.stringify({ characters: nextCharacters })
             });
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
             const payload = await response.json();
             const profile = payload?.profile || {};
-            const character = profile.character || null;
-            this.auth.character = character;
+            const characters = Array.isArray(profile.characters) ? profile.characters : [];
+            this.profileCharacters = characters;
+            this.auth.characters = characters;
             this.characterFormDirty = false;
+            this.charactersDirty = false;
+            this.activeCharacterId = characters.some(entry => entry.id === activeId)
+                ? activeId
+                : (characters[0]?.id || null);
             this.setCharacterStatus('Personnage enregistre.');
+            this.syncCharacterForm();
             await this.fetchSession();
             await this.fetchGroups();
         } catch (error) {
             console.error('[profile] update failed', error);
             this.setCharacterStatus('Impossible d\'enregistrer le personnage.', true);
+        } finally {
+            if (this.dom.characterSave) {
+                this.dom.characterSave.disabled = false;
+            }
+        }
+    }
+
+    async deleteCharacterProfile() {
+        if (!this.auth?.authenticated) {
+            return;
+        }
+        const activeId = this.activeCharacterId;
+        if (!activeId) {
+            return;
+        }
+        const target = this.getActiveCharacter();
+        const confirmed = window.confirm(`Supprimer le personnage "${target?.name || 'sans nom'}" ?`);
+        if (!confirmed) {
+            return;
+        }
+        const nextCharacters = (Array.isArray(this.profileCharacters) ? this.profileCharacters : [])
+            .filter(character => character.id !== activeId);
+        if (this.dom.characterSave) {
+            this.dom.characterSave.disabled = true;
+        }
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ characters: nextCharacters })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            const profile = payload?.profile || {};
+            const characters = Array.isArray(profile.characters) ? profile.characters : [];
+            this.profileCharacters = characters;
+            this.auth.characters = characters;
+            this.characterFormDirty = false;
+            this.charactersDirty = false;
+            this.activeCharacterId = characters[0]?.id || null;
+            this.setCharacterStatus('Personnage supprime.');
+            this.syncCharacterForm();
+            await this.fetchSession();
+            await this.fetchGroups();
+        } catch (error) {
+            console.error('[profile] delete failed', error);
+            this.setCharacterStatus('Impossible de supprimer le personnage.', true);
         } finally {
             if (this.dom.characterSave) {
                 this.dom.characterSave.disabled = false;
@@ -1806,8 +2001,8 @@ export class UiController {
             const avatar = payload?.avatar || null;
             const groups = Array.isArray(payload?.groups) ? payload.groups : [];
             const groupDetails = Array.isArray(payload?.groupDetails) ? payload.groupDetails : [];
-            const character = payload?.character || null;
-            this.setAuthState({ authenticated, role, username, avatar, groups, groupDetails, character });
+            const characters = Array.isArray(payload?.characters) ? payload.characters : [];
+            this.setAuthState({ authenticated, role, username, avatar, groups, groupDetails, characters });
         } catch (error) {
             console.error('[auth] session fetch failed', error);
             this.authRequired = true;
@@ -1886,6 +2081,7 @@ export class UiController {
         }
         const markCharacterDirty = () => {
             this.characterFormDirty = true;
+            this.charactersDirty = true;
             this.setCharacterStatus('');
         };
         if (this.dom.characterName && !this.dom.characterName.dataset.bound) {
@@ -1907,6 +2103,14 @@ export class UiController {
         if (this.dom.characterSave && !this.dom.characterSave.dataset.bound) {
             this.dom.characterSave.addEventListener('click', () => this.saveCharacterProfile());
             this.dom.characterSave.dataset.bound = 'true';
+        }
+        if (this.dom.characterDelete && !this.dom.characterDelete.dataset.bound) {
+            this.dom.characterDelete.addEventListener('click', () => this.deleteCharacterProfile());
+            this.dom.characterDelete.dataset.bound = 'true';
+        }
+        if (this.dom.characterAdd && !this.dom.characterAdd.dataset.bound) {
+            this.dom.characterAdd.addEventListener('click', () => this.startNewCharacter());
+            this.dom.characterAdd.dataset.bound = 'true';
         }
         if (this.dom.adminPanelButton && !this.dom.adminPanelButton.dataset.bound) {
             this.dom.adminPanelButton.addEventListener('click', () => {
@@ -3492,6 +3696,7 @@ export class UiController {
             this.mapController.setGroups(this.groups);
         }
         this.refreshCharacterGroupOptions();
+        this.renderCharacterList();
     }
 
     handleAnnotationCreated(data) {

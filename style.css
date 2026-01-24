@@ -192,6 +192,13 @@ body[data-theme="light"] .markdown-content a {
     gap: 10px;
 }
 
+.profile-character-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
 .profile-character-title {
     margin: 0;
     font-size: 11px;
@@ -204,6 +211,72 @@ body[data-theme="light"] .markdown-content a {
     margin: 0;
     font-size: 12px;
     opacity: 0.75;
+}
+
+.profile-character-list {
+    display: grid;
+    gap: 8px;
+}
+
+.profile-character-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(15, 23, 42, 0.45);
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+
+.profile-character-card.is-active {
+    border-color: rgba(96, 165, 250, 0.8);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
+}
+
+.profile-character-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(148, 163, 184, 0.25);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    color: #e2e8f0;
+    flex-shrink: 0;
+}
+
+.profile-character-avatar.has-image {
+    color: transparent;
+    background-size: cover;
+    background-position: center;
+}
+
+.profile-character-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.profile-character-name {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.profile-character-sub {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.profile-character-empty {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.7;
 }
 
 .profile-character-fields {
@@ -234,6 +307,11 @@ body[data-theme="light"] .markdown-content a {
 
 .profile-character-fields textarea {
     resize: vertical;
+}
+
+.profile-character-actions {
+    display: flex;
+    gap: 8px;
 }
 
 .profile-character-status {
@@ -273,6 +351,15 @@ body[data-theme="light"] .profile-groups {
 
 body[data-theme="light"] .profile-character {
     background: rgba(148, 163, 184, 0.12);
+}
+
+body[data-theme="light"] .profile-character-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(100, 116, 139, 0.25);
+}
+
+body[data-theme="light"] .profile-character-avatar {
+    color: #1f2933;
 }
 
 body[data-theme="light"] .profile-character-fields input,

@@ -125,12 +125,13 @@ module.exports = (register, context) => {
                 session.data.provider = sanitized.provider;
                 session.data.avatar = sanitized.avatar || null;
                 session.data.groups = Array.isArray(sanitized.groups) ? sanitized.groups : [];
-                session.data.character = sanitized.character || null;
+                session.data.characters = Array.isArray(sanitized.characters) ? sanitized.characters : [];
             }
             return { user: sanitized };
         }
         if (data.role) {
             const role = sanitizeRole(data.role);
+            const legacyCharacter = data.character && !Array.isArray(data.characters) ? [data.character] : [];
             const user = {
                 id: data.userId || '',
                 provider: data.provider || 'manual',
@@ -139,7 +140,7 @@ module.exports = (register, context) => {
                 role,
                 avatar: data.avatar || null,
                 groups: Array.isArray(data.groups) ? data.groups : [],
-                character: data.character || null
+                characters: Array.isArray(data.characters) ? data.characters : legacyCharacter
             };
             if (session.data) {
                 session.data.role = role;
@@ -159,7 +160,7 @@ module.exports = (register, context) => {
                 avatar: null,
                 groups: [],
                 groupDetails: [],
-                character: null,
+                characters: [],
                 authRequired: false,
                 oauth: { discord: discordEnabled }
             };
@@ -173,7 +174,7 @@ module.exports = (register, context) => {
                 avatar: null,
                 groups: [],
                 groupDetails: [],
-                character: null,
+                characters: [],
                 authRequired: true,
                 oauth: { discord: discordEnabled }
             };
@@ -186,7 +187,7 @@ module.exports = (register, context) => {
             avatar: user.avatar || null,
             groups: Array.isArray(user.groups) ? user.groups : [],
             groupDetails: Array.isArray(groupDetails) ? groupDetails : [],
-            character: user.character || null,
+            characters: Array.isArray(user.characters) ? user.characters : [],
             provider: user.provider || 'manual',
             authRequired: true,
             oauth: { discord: discordEnabled }
@@ -349,7 +350,7 @@ module.exports = (register, context) => {
                 discordId: user.discordId,
                 avatar: avatarUrl,
                 groups: Array.isArray(user.groups) ? user.groups : [],
-                character: user.character || null
+                characters: Array.isArray(user.characters) ? user.characters : []
             });
             sendSessionCookie(res, sessionId);
 

@@ -34,8 +34,13 @@
                 <p id="auth-groups-empty" class="profile-group-empty">Aucun groupe assigne.</p>
             </div>
             <div id="profile-character" class="profile-character">
-                <p class="profile-character-title">Personnage</p>
+                <div class="profile-character-header">
+                    <p class="profile-character-title">Personnages</p>
+                    <button id="character-add" class="tertiary-button profile-character-add" type="button">Nouveau</button>
+                </div>
                 <p id="profile-character-locked" class="profile-character-locked" hidden>Connexion requise pour creer un personnage.</p>
+                <div id="character-list" class="profile-character-list"></div>
+                <p id="character-empty" class="profile-character-empty" hidden>Aucun personnage enregistre.</p>
                 <div class="profile-character-fields">
                     <label for="character-name">Nom</label>
                     <input id="character-name" type="text" placeholder="Nom du personnage" autocomplete="off" />
@@ -48,7 +53,10 @@
                         <option value="">Aucun groupe</option>
                     </select>
                 </div>
-                <button id="character-save" class="secondary-button" type="button">Enregistrer</button>
+                <div class="profile-character-actions">
+                    <button id="character-save" class="secondary-button" type="button">Enregistrer</button>
+                    <button id="character-delete" class="danger-button" type="button">Supprimer</button>
+                </div>
                 <p id="character-status" class="profile-character-status" role="status" aria-live="polite" hidden></p>
             </div>
             <div class="profile-actions">
