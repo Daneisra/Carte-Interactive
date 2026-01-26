@@ -8,6 +8,7 @@ const ROLE_LABELS = {
 export class UserAdminPanel {
     constructor({
         container,
+        mode = 'users',
         onClose = null,
         fetchUsers = null,
         onAddUser = null,
@@ -20,6 +21,7 @@ export class UserAdminPanel {
         onClearGroup = null
     } = {}) {
         this.container = container;
+        this.mode = mode;
         this.onClose = onClose;
         this.fetchUsers = fetchUsers;
         this.onAddUser = onAddUser;
@@ -39,10 +41,31 @@ export class UserAdminPanel {
         this.groupEmpty = null;
         this.groupForm = null;
         this.groups = [];
+        this.latestData = { users: [], groups: [] };
 
         if (this.container) {
             this.buildUI();
         }
+    }
+
+    setMode(mode = 'users') {
+        if (mode !== 'users' && mode !== 'groups') {
+            return;
+        }
+        if (this.mode === mode) {
+            return;
+        }
+        this.mode = mode;
+        this.buildUI();
+        this.refresh(this.latestData);
+    }
+
+    isUsersMode() {
+        return this.mode === 'users';
+    }
+
+    isGroupsMode() {
+        return this.mode === 'groups';
     }
 
     buildUI() {
@@ -50,7 +73,10 @@ export class UserAdminPanel {
         this.container.classList.add('user-admin-panel');
 
         const header = createElement('div', { className: 'user-admin-header' });
-        const title = createElement('h3', { text: 'Administration des utilisateurs', attributes: { id: 'user-admin-title' } });
+        const titleText = this.isGroupsMode()
+            ? 'Administration des groupes JDR'
+            : 'Administration des utilisateurs';
+        const title = createElement('h3', { text: titleText, attributes: { id: 'user-admin-title' } });
         header.appendChild(title);
         this.closeButton = createElement('button', {
             className: 'secondary-button',
@@ -63,171 +89,195 @@ export class UserAdminPanel {
 
         const info = createElement('p', {
             className: 'user-admin-info',
-            text: 'Gerez les comptes admin/utilisateur utilises par la carte (roles, tokens API, connexion Discord).'
+            text: this.isGroupsMode()
+                ? 'Gerez les groupes JDR (couleur, placement sur la carte, attribution).'
+                : 'Gerez les comptes admin/utilisateur utilises par la carte (roles, tokens API, connexion Discord).'
         });
         this.container.appendChild(info);
 
-        const table = createElement('table', { className: 'user-admin-table' });
-        const thead = createElement('thead');
-        const headerRow = createElement('tr');
-        ['Nom', 'Provider', 'Role', 'Groupes', 'Tokens API', 'Actions'].forEach(label => {
-            headerRow.appendChild(createElement('th', { text: label }));
-        });
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-        this.tableBody = createElement('tbody');
-        table.appendChild(this.tableBody);
-        this.container.appendChild(table);
+        if (this.isUsersMode()) {
+            const table = createElement('table', { className: 'user-admin-table' });
+            const thead = createElement('thead');
+            const headerRow = createElement('tr');
+            ['Nom', 'Provider', 'Role', 'Groupes', 'Tokens API', 'Actions'].forEach(label => {
+                headerRow.appendChild(createElement('th', { text: label }));
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            this.tableBody = createElement('tbody');
+            table.appendChild(this.tableBody);
+            this.container.appendChild(table);
 
-        this.emptyState = createElement('p', { className: 'user-admin-empty', text: 'Aucun utilisateur enregistre.' });
-        this.emptyState.hidden = true;
-        this.container.appendChild(this.emptyState);
+            this.emptyState = createElement('p', { className: 'user-admin-empty', text: 'Aucun utilisateur enregistre.' });
+            this.emptyState.hidden = true;
+            this.container.appendChild(this.emptyState);
+        } else {
+            this.tableBody = null;
+            this.emptyState = null;
+        }
 
-        const groupSection = createElement('div', { className: 'user-admin-group-section' });
-        groupSection.appendChild(createElement('h4', { text: 'Groupes JDR' }));
-        this.groupList = createElement('div', { className: 'user-admin-group-list' });
-        groupSection.appendChild(this.groupList);
-        this.groupEmpty = createElement('p', { className: 'user-admin-empty', text: 'Aucun groupe enregistre.' });
-        this.groupEmpty.hidden = true;
-        groupSection.appendChild(this.groupEmpty);
+        if (this.isGroupsMode()) {
+            const groupSection = createElement('div', { className: 'user-admin-group-section' });
+            groupSection.appendChild(createElement('h4', { text: 'Groupes JDR' }));
+            this.groupList = createElement('div', { className: 'user-admin-group-list' });
+            groupSection.appendChild(this.groupList);
+            this.groupEmpty = createElement('p', { className: 'user-admin-empty', text: 'Aucun groupe enregistre.' });
+            this.groupEmpty.hidden = true;
+            groupSection.appendChild(this.groupEmpty);
 
-        this.groupForm = createElement('form', {
-            className: 'user-admin-group-form',
-            attributes: { autocomplete: 'off' }
-        });
+            this.groupForm = createElement('form', {
+                className: 'user-admin-group-form',
+                attributes: { autocomplete: 'off' }
+            });
 
-        const groupNameId = 'user-admin-group-name';
-        const groupColorId = 'user-admin-group-color';
+            const groupNameId = 'user-admin-group-name';
+            const groupColorId = 'user-admin-group-color';
 
-        const groupNameField = createElement('div', { className: 'user-admin-field' });
-        groupNameField.appendChild(createElement('label', {
-            text: 'Nom du groupe',
-            attributes: { for: groupNameId }
-        }));
-        const groupNameInput = createElement('input', {
-            attributes: {
-                type: 'text',
-                id: groupNameId,
-                name: 'name',
-                placeholder: 'Nom du groupe'
-            }
-        });
-        groupNameField.appendChild(groupNameInput);
-        this.groupForm.appendChild(groupNameField);
+            const groupNameField = createElement('div', { className: 'user-admin-field' });
+            groupNameField.appendChild(createElement('label', {
+                text: 'Nom du groupe',
+                attributes: { for: groupNameId }
+            }));
+            const groupNameInput = createElement('input', {
+                attributes: {
+                    type: 'text',
+                    id: groupNameId,
+                    name: 'name',
+                    placeholder: 'Nom du groupe'
+                }
+            });
+            groupNameField.appendChild(groupNameInput);
+            this.groupForm.appendChild(groupNameField);
 
-        const groupColorField = createElement('div', { className: 'user-admin-field' });
-        groupColorField.appendChild(createElement('label', {
-            text: 'Couleur',
-            attributes: { for: groupColorId }
-        }));
-        const groupColorInput = createElement('input', {
-            attributes: {
-                type: 'text',
-                id: groupColorId,
-                name: 'color',
-                placeholder: '#2563eb'
-            }
-        });
-        groupColorField.appendChild(groupColorInput);
-        this.groupForm.appendChild(groupColorField);
+            const groupColorField = createElement('div', { className: 'user-admin-field' });
+            groupColorField.appendChild(createElement('label', {
+                text: 'Couleur',
+                attributes: { for: groupColorId }
+            }));
+            const groupColorInput = createElement('input', {
+                attributes: {
+                    type: 'text',
+                    id: groupColorId,
+                    name: 'color',
+                    placeholder: '#2563eb'
+                }
+            });
+            groupColorField.appendChild(groupColorInput);
+            this.groupForm.appendChild(groupColorField);
 
-        this.groupForm.appendChild(createElement('button', {
-            className: 'primary-button',
-            attributes: { type: 'submit' },
-            text: 'Creer'
-        }));
-        this.groupForm.appendChild(createElement('p', {
-            className: 'user-admin-add-hint',
-            text: 'Un identifiant est derive du nom.'
-        }));
-        this.groupForm.addEventListener('submit', event => {
-            event.preventDefault();
-            const formData = new FormData(this.groupForm);
-            const name = (formData.get('name') || '').toString().trim();
-            const color = (formData.get('color') || '').toString().trim();
-            if (!name) {
-                groupNameInput.focus();
-                return;
-            }
-            this.onAddGroup?.({ name, color });
-        });
+            this.groupForm.appendChild(createElement('button', {
+                className: 'primary-button',
+                attributes: { type: 'submit' },
+                text: 'Creer'
+            }));
+            this.groupForm.appendChild(createElement('p', {
+                className: 'user-admin-add-hint',
+                text: 'Un identifiant est derive du nom.'
+            }));
+            this.groupForm.addEventListener('submit', event => {
+                event.preventDefault();
+                const formData = new FormData(this.groupForm);
+                const name = (formData.get('name') || '').toString().trim();
+                const color = (formData.get('color') || '').toString().trim();
+                if (!name) {
+                    groupNameInput.focus();
+                    return;
+                }
+                this.onAddGroup?.({ name, color });
+            });
 
-        groupSection.appendChild(this.groupForm);
-        this.container.appendChild(groupSection);
+            groupSection.appendChild(this.groupForm);
+            this.container.appendChild(groupSection);
+        } else {
+            this.groupList = null;
+            this.groupEmpty = null;
+            this.groupForm = null;
+        }
 
-        const addSection = createElement('div', { className: 'user-admin-add' });
-        addSection.appendChild(createElement('h4', { text: 'Ajouter un utilisateur (manuel)' }));
-        const usernameFieldId = 'user-admin-add-username';
-        const roleFieldId = 'user-admin-add-role';
+        if (this.isUsersMode()) {
+            const addSection = createElement('div', { className: 'user-admin-add' });
+            addSection.appendChild(createElement('h4', { text: 'Ajouter un utilisateur (manuel)' }));
+            const usernameFieldId = 'user-admin-add-username';
+            const roleFieldId = 'user-admin-add-role';
 
-        this.addForm = createElement('form', {
-            className: 'user-admin-add-form',
-            attributes: { autocomplete: 'off' }
-        });
+            this.addForm = createElement('form', {
+                className: 'user-admin-add-form',
+                attributes: { autocomplete: 'off' }
+            });
 
-        const usernameGroup = createElement('div', { className: 'user-admin-field' });
-        usernameGroup.appendChild(createElement('label', {
-            text: 'Nom affiche',
-            attributes: { for: usernameFieldId }
-        }));
-        const usernameInput = createElement('input', {
-            attributes: {
-                type: 'text',
-                id: usernameFieldId,
-                name: 'username',
-                placeholder: 'Nom affiche',
-                autocomplete: 'username'
-            }
-        });
-        usernameGroup.appendChild(usernameInput);
-        this.addForm.appendChild(usernameGroup);
+            const usernameGroup = createElement('div', { className: 'user-admin-field' });
+            usernameGroup.appendChild(createElement('label', {
+                text: 'Nom affiche',
+                attributes: { for: usernameFieldId }
+            }));
+            const usernameInput = createElement('input', {
+                attributes: {
+                    type: 'text',
+                    id: usernameFieldId,
+                    name: 'username',
+                    placeholder: 'Nom affiche',
+                    autocomplete: 'username'
+                }
+            });
+            usernameGroup.appendChild(usernameInput);
+            this.addForm.appendChild(usernameGroup);
 
-        const roleGroup = createElement('div', { className: 'user-admin-field' });
-        roleGroup.appendChild(createElement('label', {
-            text: 'Role',
-            attributes: { for: roleFieldId }
-        }));
-        const roleSelect = createElement('select', {
-            attributes: { id: roleFieldId, name: 'role', autocomplete: 'off' }
-        });
-        ['admin', 'user'].forEach(role => {
-            roleSelect.appendChild(createElement('option', { text: ROLE_LABELS[role], attributes: { value: role } }));
-        });
-        roleGroup.appendChild(roleSelect);
-        this.addForm.appendChild(roleGroup);
+            const roleGroup = createElement('div', { className: 'user-admin-field' });
+            roleGroup.appendChild(createElement('label', {
+                text: 'Role',
+                attributes: { for: roleFieldId }
+            }));
+            const roleSelect = createElement('select', {
+                attributes: { id: roleFieldId, name: 'role', autocomplete: 'off' }
+            });
+            ['admin', 'user'].forEach(role => {
+                roleSelect.appendChild(createElement('option', { text: ROLE_LABELS[role], attributes: { value: role } }));
+            });
+            roleGroup.appendChild(roleSelect);
+            this.addForm.appendChild(roleGroup);
 
-        this.addForm.appendChild(createElement('button', {
-            className: 'primary-button',
-            attributes: { type: 'submit' },
-            text: 'Creer'
-        }));
-        this.addForm.appendChild(createElement('p', {
-            className: 'user-admin-add-hint',
-            text: 'Un token API sera genere automatiquement.'
-        }));
-        this.addForm.addEventListener('submit', event => {
-            event.preventDefault();
-            const formData = new FormData(this.addForm);
-            const payload = {
-                username: (formData.get('username') || '').trim(),
-                role: formData.get('role') || 'user'
-            };
-            this.onAddUser?.(payload);
-        });
-        addSection.appendChild(this.addForm);
-        this.container.appendChild(addSection);
+            this.addForm.appendChild(createElement('button', {
+                className: 'primary-button',
+                attributes: { type: 'submit' },
+                text: 'Creer'
+            }));
+            this.addForm.appendChild(createElement('p', {
+                className: 'user-admin-add-hint',
+                text: 'Un token API sera genere automatiquement.'
+            }));
+            this.addForm.addEventListener('submit', event => {
+                event.preventDefault();
+                const formData = new FormData(this.addForm);
+                const payload = {
+                    username: (formData.get('username') || '').trim(),
+                    role: formData.get('role') || 'user'
+                };
+                this.onAddUser?.(payload);
+            });
+            addSection.appendChild(this.addForm);
+            this.container.appendChild(addSection);
+        } else {
+            this.addForm = null;
+        }
     }
 
     async refresh(data = []) {
         const users = Array.isArray(data) ? data : (Array.isArray(data?.users) ? data.users : []);
         this.groups = Array.isArray(data?.groups) ? data.groups : this.groups;
-        clearElement(this.tableBody);
-        this.emptyState.hidden = users.length > 0;
-        users.forEach(user => {
-            const row = this.createRow(user);
-            this.tableBody.appendChild(row);
-        });
-        this.renderGroupList();
+        this.latestData = { users, groups: this.groups };
+        if (this.tableBody) {
+            clearElement(this.tableBody);
+            if (this.emptyState) {
+                this.emptyState.hidden = users.length > 0;
+            }
+            users.forEach(user => {
+                const row = this.createRow(user);
+                this.tableBody.appendChild(row);
+            });
+        }
+        if (this.groupList) {
+            this.renderGroupList();
+        }
     }
 
     createRow(user) {

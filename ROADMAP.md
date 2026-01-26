@@ -60,6 +60,7 @@
 
 ### P3 — Différenciants
 - [ ] Intégration et personalisation d'une frise chronologique
+- [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des chéma, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
 - [ ] Marqueurs évolutifs (temps/événements).

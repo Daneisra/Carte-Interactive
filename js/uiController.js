@@ -257,6 +257,7 @@ export class UiController {
             close: document.getElementById('admin-close'),
             status: document.getElementById('admin-auth-status'),
             userButton: document.getElementById('admin-user-button'),
+            groupButton: document.getElementById('admin-group-button'),
             downloadAssetsButton: document.getElementById('download-assets-button'),
             availabilityHint: document.getElementById('admin-availability-hint'),
             availabilityGrid: document.getElementById('admin-availability-grid'),
@@ -275,6 +276,7 @@ export class UiController {
 
         this.locationEditor = null;
         this.userAdminPanel = null;
+        this.userAdminMode = 'users';
         this.locationsData = {};
 
         this.state = new UiState({
@@ -1734,6 +1736,9 @@ export class UiController {
         if (this.adminDom.userButton) {
             this.adminDom.userButton.disabled = !isAdmin;
         }
+        if (this.adminDom.groupButton) {
+            this.adminDom.groupButton.disabled = !isAdmin;
+        }
         if (this.adminDom.downloadAssetsButton) {
             this.adminDom.downloadAssetsButton.hidden = !isAdmin;
         }
@@ -2406,6 +2411,7 @@ export class UiController {
         if (!this.userAdminPanel) {
             this.userAdminPanel = new UserAdminPanel({
                 container: this.dom.userAdminContainer,
+                mode: this.userAdminMode,
                 onClose: () => this.closeUserAdminPanel(true),
                 fetchUsers: () => this.fetchUsersList(),
                 onAddUser: payload => this.createUser(payload),
@@ -2419,7 +2425,7 @@ export class UiController {
             });
         }
         if (this.dom.userAdminButton && !this.dom.userAdminButton.dataset.bound) {
-            this.dom.userAdminButton.addEventListener('click', () => this.openUserAdminPanel());
+            this.dom.userAdminButton.addEventListener('click', () => this.openUserAdminPanel('users'));
             this.dom.userAdminButton.dataset.bound = 'true';
         }
         if (this.dom.userAdminOverlay && !this.dom.userAdminOverlay.dataset.bound) {
@@ -2478,8 +2484,12 @@ export class UiController {
             this.adminDom.overlay.dataset.bound = 'true';
         }
         if (this.adminDom.userButton && !this.adminDom.userButton.dataset.bound) {
-            this.adminDom.userButton.addEventListener('click', () => this.openUserAdminPanel());
+            this.adminDom.userButton.addEventListener('click', () => this.openUserAdminPanel('users'));
             this.adminDom.userButton.dataset.bound = 'true';
+        }
+        if (this.adminDom.groupButton && !this.adminDom.groupButton.dataset.bound) {
+            this.adminDom.groupButton.addEventListener('click', () => this.openUserAdminPanel('groups'));
+            this.adminDom.groupButton.dataset.bound = 'true';
         }
         if (this.adminDom.downloadAssetsButton && !this.adminDom.downloadAssetsButton.dataset.bound) {
             this.adminDom.downloadAssetsButton.addEventListener('click', () => this.downloadAssetsArchive());
@@ -2946,19 +2956,36 @@ export class UiController {
             return;
         }
         try {
-            const users = await this.fetchUsersList();
+            const mode = this.userAdminMode || 'users';
+            let users = [];
             let groups = [];
-            try {
-                groups = await this.fetchGroupsList();
-            } catch (error) {
-                console.error('[admin] fetch groups failed', error);
-                this.logTelemetryEvent({
-                    title: 'Admin groups - chargement',
-                    description: error?.message || 'Echec chargement groupes',
-                    route: '/api/admin/groups',
-                    method: 'GET',
-                    status: error?.status || null
-                });
+            if (mode === 'users') {
+                users = await this.fetchUsersList();
+                try {
+                    groups = await this.fetchGroupsList();
+                } catch (error) {
+                    console.error('[admin] fetch groups failed', error);
+                    this.logTelemetryEvent({
+                        title: 'Admin groups - chargement',
+                        description: error?.message || 'Echec chargement groupes',
+                        route: '/api/admin/groups',
+                        method: 'GET',
+                        status: error?.status || null
+                    });
+                }
+            } else {
+                try {
+                    groups = await this.fetchGroupsList();
+                } catch (error) {
+                    console.error('[admin] fetch groups failed', error);
+                    this.logTelemetryEvent({
+                        title: 'Admin groups - chargement',
+                        description: error?.message || 'Echec chargement groupes',
+                        route: '/api/admin/groups',
+                        method: 'GET',
+                        status: error?.status || null
+                    });
+                }
             }
             await this.userAdminPanel.refresh({ users, groups });
         } catch (error) {
@@ -3017,7 +3044,7 @@ export class UiController {
         document.body.removeChild(anchor);
     }
 
-    async openUserAdminPanel() {
+    async openUserAdminPanel(mode = 'users') {
         if (!this.isAdmin()) {
             this.announcer?.assertive?.('Connexion administrateur requise.');
             return;
@@ -3025,6 +3052,11 @@ export class UiController {
         if (!this.dom.userAdminOverlay || !this.userAdminPanel) {
             return;
         }
+        if (mode !== 'users' && mode !== 'groups') {
+            mode = 'users';
+        }
+        this.userAdminMode = mode;
+        this.userAdminPanel.setMode?.(mode);
         await this.refreshUserAdminPanel();
         this.dom.userAdminOverlay.hidden = false;
         this.dom.userAdminOverlay.classList.add('open');
