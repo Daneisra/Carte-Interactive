@@ -90,11 +90,20 @@ const SECURITY_HEADERS = {
 
 const SSE_HEARTBEAT_MS = 30_000;
 const sseClients = new Set();
+const serverStartedAt = Date.now();
+const sseMetrics = {
+  broadcastCount: 0,
+  lastEventAt: null,
+  lastEventName: null
+};
 
 const broadcastSse = (eventName, payload) => {
   if (!sseClients.size) {
     return;
   }
+  sseMetrics.broadcastCount += 1;
+  sseMetrics.lastEventAt = Date.now();
+  sseMetrics.lastEventName = eventName || null;
   const serialized = typeof payload === 'string' ? payload : JSON.stringify(payload);
   sseClients.forEach(client => {
     if (!client.res || client.res.writableEnded) {
@@ -1985,6 +1994,28 @@ const server = http.createServer(async (req, res) => {
         totalUsers: users.length,
         counts,
         timezones
+      }), { 'Content-Type': 'application/json' });
+      return;
+    }
+
+    if (urlObj.pathname === '/api/admin/metrics') {
+      if (req.method !== 'GET') {
+        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
+        return;
+      }
+      if (!(await ensureAuthorized(req, res, 'admin'))) {
+        return;
+      }
+      send(res, 200, JSON.stringify({
+        status: 'ok',
+        serverTime: new Date().toISOString(),
+        uptimeMs: Date.now() - serverStartedAt,
+        sse: {
+          clients: sseClients.size,
+          broadcastCount: sseMetrics.broadcastCount,
+          lastEventAt: sseMetrics.lastEventAt,
+          lastEventName: sseMetrics.lastEventName
+        }
       }), { 'Content-Type': 'application/json' });
       return;
     }

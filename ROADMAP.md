@@ -43,9 +43,7 @@
 - [x] Dans le profil utilisateur création de personnage avec nom, bio, avatar et groupe
 - [x] Les personnages associés aux utilisateur apparaitrons dans les groupes sur la carte
 - [x] Dans le profil possiblités de renseigner ces disponibilités a la semaine, remonter des information coté admin pour analyse et trouver les meilleurs créneaux de jeux selon les utilisateurs
-- [ ] Quêtes interactives avec états visuels et transitions.
-- [ ] Markers thématiques/stylés par type + légende.
-- [ ] Tableau de bord live (compteurs SSE/latences) côté admin.
+- [x] Tableau de bord live (compteurs SSE/latences) côté admin.
 - [ ] Narateur audio
 - [ ] Polish UI
 
@@ -64,6 +62,8 @@
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
 - [ ] Marqueurs évolutifs (temps/événements).
+- [ ] Markers thématiques/stylés par type + légende.
+- [ ] Quêtes interactives avec états visuels et transitions.
 - [ ] Polish UI
 
 ### P4 — Hygiène & dette

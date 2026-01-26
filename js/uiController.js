@@ -262,6 +262,8 @@ export class UiController {
             availabilityHint: document.getElementById('admin-availability-hint'),
             availabilityGrid: document.getElementById('admin-availability-grid'),
             availabilityEmpty: document.getElementById('admin-availability-empty'),
+            liveMetrics: document.getElementById('admin-live-metrics'),
+            liveEmpty: document.getElementById('admin-live-empty'),
             validationWarnings: document.getElementById('admin-validation-warnings'),
             validationWarningsList: document.getElementById('admin-validation-list'),
             validationWarningsFootnote: document.getElementById('admin-validation-footnote'),
@@ -306,6 +308,8 @@ export class UiController {
         this.availabilityDirty = false;
         this.availabilityTimezone = resolveLocalTimezone();
         this.adminAvailability = null;
+        this.adminMetrics = null;
+        this.adminMetricsInterval = null;
         this.mapClickUnsubscribe = null;
         this.tooltipMeta = new WeakMap();
         this.visibleTooltips = new Set();
@@ -2451,6 +2455,7 @@ export class UiController {
         this.syncAdminValidationWarnings();
         this.syncAdminTelemetry();
         this.fetchAdminAvailability();
+        this.startAdminMetrics();
         this.adminDom.overlay.hidden = false;
         this.adminDom.overlay.classList.add('open');
     }
@@ -2459,6 +2464,7 @@ export class UiController {
         if (!this.adminDom.overlay) {
             return;
         }
+        this.stopAdminMetrics();
         this.adminDom.overlay.classList.remove('open');
         this.adminDom.overlay.hidden = true;
         if (force && this.adminDom.overlay) {
@@ -2644,6 +2650,95 @@ export class UiController {
             });
             this.adminAvailability = null;
             this.syncAdminAvailability();
+        }
+    }
+
+    renderAdminMetrics() {
+        const container = this.adminDom.liveMetrics;
+        const empty = this.adminDom.liveEmpty;
+        if (!container || !empty) {
+            return;
+        }
+        clearElement(container);
+        const metrics = this.adminMetrics;
+        if (!metrics || metrics.status !== 'ok') {
+            empty.hidden = false;
+            return;
+        }
+        empty.hidden = true;
+
+        const sse = metrics.sse || {};
+        const uptimeMs = Number(metrics.uptimeMs) || 0;
+        const uptimeMinutes = Math.floor(uptimeMs / 60000);
+        const uptimeHours = Math.floor(uptimeMinutes / 60);
+        const uptimeLabel = uptimeHours > 0
+            ? `${uptimeHours}h ${uptimeMinutes % 60}m`
+            : `${uptimeMinutes}m`;
+
+        const items = [
+            { label: 'Clients SSE', value: sse.clients ?? 0 },
+            { label: 'Evenements SSE', value: sse.broadcastCount ?? 0 },
+            { label: 'Dernier event', value: sse.lastEventName || '-' },
+            { label: 'Dernier envoi', value: sse.lastEventAt ? new Date(sse.lastEventAt).toLocaleTimeString() : '-' },
+            { label: 'Uptime', value: uptimeLabel },
+            { label: 'Latence', value: metrics.latencyMs ? `${Math.round(metrics.latencyMs)} ms` : '-' }
+        ];
+
+        items.forEach(item => {
+            const card = createElement('div', { className: 'admin-live-card' });
+            card.appendChild(createElement('span', { className: 'admin-live-label', text: item.label }));
+            card.appendChild(createElement('span', { className: 'admin-live-value', text: String(item.value) }));
+            container.appendChild(card);
+        });
+    }
+
+    async fetchAdminMetrics() {
+        if (!this.adminDom.liveMetrics || !this.adminDom.liveEmpty) {
+            return;
+        }
+        if (!this.isAdmin()) {
+            this.adminMetrics = null;
+            this.renderAdminMetrics();
+            return;
+        }
+        const start = performance.now();
+        try {
+            const response = await fetch('/api/admin/metrics', { credentials: 'include', cache: 'no-store' });
+            const latencyMs = performance.now() - start;
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            this.adminMetrics = { ...payload, latencyMs };
+            this.renderAdminMetrics();
+        } catch (error) {
+            console.error('[admin] metrics fetch failed', error);
+            this.adminMetrics = null;
+            this.renderAdminMetrics();
+        }
+    }
+
+    startAdminMetrics() {
+        if (!this.adminDom.liveMetrics) {
+            return;
+        }
+        if (this.adminMetricsInterval) {
+            clearInterval(this.adminMetricsInterval);
+        }
+        this.fetchAdminMetrics();
+        this.adminMetricsInterval = setInterval(() => {
+            if (!this.adminDom.overlay || this.adminDom.overlay.hidden) {
+                this.stopAdminMetrics();
+                return;
+            }
+            this.fetchAdminMetrics();
+        }, 5000);
+    }
+
+    stopAdminMetrics() {
+        if (this.adminMetricsInterval) {
+            clearInterval(this.adminMetricsInterval);
+            this.adminMetricsInterval = null;
         }
     }
 

@@ -280,6 +280,41 @@ body[data-theme="light"] .auth-panel .auth-status {
     font-weight: 600;
 }
 
+.admin-live-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.admin-live-card {
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 10px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-live-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+}
+
+.admin-live-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.admin-live-empty {
+    margin: 8px 0 0;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
 .admin-actions {
     display: flex;
     flex-wrap: wrap;
