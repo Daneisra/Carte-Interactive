@@ -325,6 +325,105 @@ body[data-theme="light"] .markdown-content a {
     opacity: 1;
 }
 
+.profile-availability {
+    margin: 8px 0 12px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(15, 23, 42, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-availability-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.profile-availability-title {
+    margin: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.7;
+}
+
+.profile-availability-timezone {
+    font-size: 11px;
+    opacity: 0.65;
+}
+
+.profile-availability-grid {
+    display: grid;
+    gap: 6px;
+}
+
+.profile-availability-row {
+    display: grid;
+    grid-template-columns: 42px repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    align-items: center;
+}
+
+.profile-availability-cell {
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.profile-availability-label {
+    opacity: 0;
+}
+
+.profile-availability-day {
+    font-weight: 600;
+    padding-left: 2px;
+}
+
+.profile-availability-slot-label {
+    text-align: center;
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.profile-availability-slot {
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(15, 23, 42, 0.5);
+    color: inherit;
+    padding: 6px 0;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profile-availability-slot.is-active {
+    background: rgba(59, 130, 246, 0.4);
+    border-color: rgba(96, 165, 250, 0.8);
+    box-shadow: inset 0 0 0 1px rgba(191, 219, 254, 0.35);
+}
+
+.profile-availability-slot:focus-visible {
+    outline: 2px solid rgba(148, 180, 255, 0.75);
+    outline-offset: 2px;
+}
+
+.profile-availability-grid.is-disabled .profile-availability-slot {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.profile-availability-status {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.75;
+}
+
+.profile-availability-status.is-error {
+    color: #f87171;
+    opacity: 1;
+}
+
 .profile-actions {
     display: flex;
     flex-direction: column;
@@ -368,6 +467,21 @@ body[data-theme="light"] .profile-character-fields select {
     background: rgba(255, 255, 255, 0.9);
     border-color: rgba(100, 116, 139, 0.35);
     color: #1f2933;
+}
+
+body[data-theme="light"] .profile-availability {
+    background: rgba(148, 163, 184, 0.12);
+}
+
+body[data-theme="light"] .profile-availability-slot {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(100, 116, 139, 0.35);
+    color: #1f2933;
+}
+
+body[data-theme="light"] .profile-availability-slot.is-active {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.6);
 }
 
 body[data-theme="light"] .group-marker {

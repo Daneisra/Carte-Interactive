@@ -57,6 +57,8 @@ const REMOTE_SYNC_METHOD = ['POST', 'PUT', 'PATCH'].includes(rawRemoteSyncMethod
 const REMOTE_SYNC_TIMEOUT = Math.max(0, Number(process.env.REMOTE_SYNC_TIMEOUT) || 7000);
 const MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
 const MAX_BODY_SIZE = 40 * 1024 * 1024;
+const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -958,6 +960,44 @@ const sanitizeCharacterList = (characters, { assignIds = false, allowedGroups = 
   return list;
 };
 
+const normalizeAvailabilityMatrix = slots => {
+  if (!Array.isArray(slots)) {
+    return null;
+  }
+  const matrix = [];
+  for (let dayIndex = 0; dayIndex < AVAILABILITY_DAYS.length; dayIndex += 1) {
+    const daySlots = Array.isArray(slots[dayIndex]) ? slots[dayIndex] : [];
+    const row = [];
+    for (let slotIndex = 0; slotIndex < AVAILABILITY_SLOTS.length; slotIndex += 1) {
+      row.push(Boolean(daySlots[slotIndex]));
+    }
+    matrix.push(row);
+  }
+  return matrix;
+};
+
+const sanitizeAvailabilityRecord = value => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const timezone = normalizeString(value.timezone || value.tz) || null;
+  const sourceSlots = Array.isArray(value.slots)
+    ? value.slots
+    : (Array.isArray(value.days) ? value.days : null);
+  const slots = normalizeAvailabilityMatrix(sourceSlots);
+  if (!slots) {
+    return null;
+  }
+  return { timezone, slots };
+};
+
+const availabilityHasSlots = availability => {
+  if (!availability || !Array.isArray(availability.slots)) {
+    return false;
+  }
+  return availability.slots.some(day => Array.isArray(day) && day.some(Boolean));
+};
+
 const resolveUserCharacters = user => {
   if (Array.isArray(user?.characters) && user.characters.length) {
     return user.characters;
@@ -980,6 +1020,7 @@ const sanitizeUserRecord = user => {
   groups: Array.isArray(user?.groups) ? user.groups.filter(Boolean) : [],
   character: characters[0] || null,
   characters,
+  availability: sanitizeAvailabilityRecord(user?.availability),
   apiTokens: Array.isArray(user?.apiTokens) && user?.provider !== 'discord' ? [...user.apiTokens] : undefined
   });
 };
@@ -1060,6 +1101,7 @@ const createManualUser = async ({ username = '', role = 'user', token = null }) 
     role: sanitizeRole(role),
     characters: [],
     character: null,
+    availability: null,
     groups: [],
     apiTokens: [apiToken]
   };
@@ -1085,6 +1127,7 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
       role: shouldBeAdmin ? 'admin' : 'user',
       characters: [],
       character: null,
+      availability: null,
       groups: [],
       apiTokens: []
     };
@@ -1108,12 +1151,13 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
     role: user.role,
     username: user.username,
     avatar: user.avatar || null,
-    characters: Array.isArray(user.characters) ? user.characters : []
+    characters: Array.isArray(user.characters) ? user.characters : [],
+    availability: sanitizeAvailabilityRecord(user?.availability)
   });
   return user;
 };
 
-const updateUser = async (id, { role, username, addToken, removeToken, groups, character, characters }) => {
+const updateUser = async (id, { role, username, addToken, removeToken, groups, character, characters, availability }) => {
   const users = await readUsersFile();
   const user = users.find(entry => entry.id === id);
   if (!user) {
@@ -1171,13 +1215,25 @@ const updateUser = async (id, { role, username, addToken, removeToken, groups, c
       updated = true;
     }
   }
+  if (availability !== undefined) {
+    const normalized = availability === null ? null : sanitizeAvailabilityRecord(availability);
+    if (availability === null || normalized) {
+      const currentKey = JSON.stringify(sanitizeAvailabilityRecord(user.availability) || null);
+      const nextKey = JSON.stringify(normalized || null);
+      if (currentKey !== nextKey) {
+        user.availability = normalized;
+        updated = true;
+      }
+    }
+  }
   if (updated) {
     await writeUsersFile(users);
     updateSessionsForUser(user.id, {
       role: user.role,
       username: user.username,
       groups: user.groups || [],
-      characters: Array.isArray(user.characters) ? user.characters : []
+      characters: Array.isArray(user.characters) ? user.characters : [],
+      availability: sanitizeAvailabilityRecord(user?.availability)
     });
   }
   return user;
@@ -1204,6 +1260,71 @@ const updateUserCharacters = async (id, characterPayload) => {
     });
   }
   return user;
+};
+
+const updateUserProfile = async (id, { characterPayload, availabilityPayload, updateCharacters, updateAvailability } = {}) => {
+  const users = await readUsersFile();
+  const user = users.find(entry => entry.id === id);
+  if (!user) {
+    return { user: null };
+  }
+  const groups = await readGroupsFile();
+  const allowed = new Set(groups.map(group => group?.id).filter(Boolean));
+  const currentCharacters = sanitizeCharacterList(resolveUserCharacters(user), { assignIds: true, allowedGroups: allowed });
+  let characters = currentCharacters;
+  let updated = false;
+  if (updateCharacters) {
+    const normalized = normalizeCharacterPayload(characterPayload, allowed, true);
+    const currentKey = JSON.stringify(Array.isArray(user.characters) ? user.characters : []);
+    const nextKey = JSON.stringify(normalized);
+    if (currentKey !== nextKey) {
+      user.characters = normalized;
+      user.character = null;
+      updated = true;
+    }
+    characters = normalized;
+  } else {
+    const currentKey = JSON.stringify(Array.isArray(user.characters) ? user.characters : []);
+    const nextKey = JSON.stringify(characters);
+    if (currentKey !== nextKey || user.character) {
+      user.characters = characters;
+      user.character = null;
+      updated = true;
+    }
+  }
+
+  let availability = sanitizeAvailabilityRecord(user.availability) || null;
+  if (updateAvailability) {
+    if (availabilityPayload === null) {
+      if (availability !== null) {
+        availability = null;
+        user.availability = null;
+        updated = true;
+      }
+    } else {
+      const normalized = sanitizeAvailabilityRecord(availabilityPayload);
+      if (!normalized) {
+        return { user: null, error: 'Invalid availability payload.' };
+      }
+      const currentKey = JSON.stringify(availability || null);
+      const nextKey = JSON.stringify(normalized || null);
+      if (currentKey !== nextKey) {
+        availability = normalized;
+        user.availability = normalized;
+        updated = true;
+      }
+    }
+  }
+
+  if (updated) {
+    await writeUsersFile(users);
+    updateSessionsForUser(user.id, {
+      characters: Array.isArray(user.characters) ? user.characters : [],
+      groups: user.groups || [],
+      availability: sanitizeAvailabilityRecord(user?.availability)
+    });
+  }
+  return { user, characters, availability };
 };
 
 const deleteUser = async id => {
@@ -1748,13 +1869,14 @@ const server = http.createServer(async (req, res) => {
         const groups = await readGroupsFile();
         const allowed = new Set(groups.map(group => group?.id).filter(Boolean));
         const characters = sanitizeCharacterList(resolveUserCharacters(user), { assignIds: true, allowedGroups: allowed });
+        const availability = sanitizeAvailabilityRecord(user.availability) || null;
         const currentKey = JSON.stringify(Array.isArray(user.characters) ? user.characters : []);
         const nextKey = JSON.stringify(characters);
         if (currentKey !== nextKey || user.character) {
           user.characters = characters;
           user.character = null;
           await writeUsersFile(users);
-          updateSessionsForUser(user.id, { characters });
+          updateSessionsForUser(user.id, { characters, availability });
         }
         send(res, 200, JSON.stringify({
           status: 'ok',
@@ -1762,7 +1884,8 @@ const server = http.createServer(async (req, res) => {
             username: user.username || '',
             avatar: user.avatar || null,
             groups: Array.isArray(user.groups) ? user.groups : [],
-            characters
+            characters,
+            availability
           }
         }), { 'Content-Type': 'application/json' });
         return;
@@ -1779,26 +1902,90 @@ const server = http.createServer(async (req, res) => {
         const hasLegacyFields = payload && typeof payload === 'object' && (
           payload.name || payload.bio || payload.avatar || payload.groupId || payload.group
         );
-        const characterPayload = Array.isArray(payload?.characters)
-          ? payload.characters
-          : (payload?.character ? payload.character : (hasLegacyFields ? payload : []));
-        const user = await updateUserCharacters(currentUser.id, characterPayload);
-        if (!user) {
+        const updateCharacters = Boolean(
+          Array.isArray(payload?.characters) || payload?.character || hasLegacyFields
+        );
+        const characterPayload = updateCharacters
+          ? (Array.isArray(payload?.characters)
+            ? payload.characters
+            : (payload?.character ? payload.character : payload))
+          : undefined;
+        const updateAvailability = Object.prototype.hasOwnProperty.call(payload || {}, 'availability');
+        const availabilityPayload = updateAvailability ? payload.availability : undefined;
+        const result = await updateUserProfile(currentUser.id, {
+          characterPayload,
+          availabilityPayload,
+          updateCharacters,
+          updateAvailability
+        });
+        if (result.error) {
+          send(res, 400, JSON.stringify({ status: 'error', message: result.error }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        if (!result.user) {
           send(res, 404, JSON.stringify({ status: 'error', message: 'User not found.' }), { 'Content-Type': 'application/json' });
           return;
         }
+        const characters = Array.isArray(result.characters)
+          ? result.characters
+          : sanitizeCharacterList(resolveUserCharacters(result.user));
+        const availability = result.availability ?? (sanitizeAvailabilityRecord(result.user.availability) || null);
         send(res, 200, JSON.stringify({
           status: 'ok',
           profile: {
-            username: user.username || '',
-            avatar: user.avatar || null,
-            groups: Array.isArray(user.groups) ? user.groups : [],
-            characters: sanitizeCharacterList(resolveUserCharacters(user))
+            username: result.user.username || '',
+            avatar: result.user.avatar || null,
+            groups: Array.isArray(result.user.groups) ? result.user.groups : [],
+            characters,
+            availability
           }
         }), { 'Content-Type': 'application/json' });
         return;
       }
       send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET,PATCH,PUT' });
+      return;
+    }
+
+    if (urlObj.pathname === '/api/admin/availability') {
+      if (req.method !== 'GET') {
+        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
+        return;
+      }
+      if (!(await ensureAuthorized(req, res, 'admin'))) {
+        return;
+      }
+      const users = await readUsersFile();
+      const counts = Array.from({ length: AVAILABILITY_DAYS.length }, () => (
+        Array.from({ length: AVAILABILITY_SLOTS.length }, () => 0)
+      ));
+      const timezones = {};
+      let respondents = 0;
+      users.forEach(user => {
+        const availability = sanitizeAvailabilityRecord(user?.availability);
+        if (!availability || !availabilityHasSlots(availability)) {
+          return;
+        }
+        respondents += 1;
+        availability.slots.forEach((daySlots, dayIndex) => {
+          daySlots.forEach((active, slotIndex) => {
+            if (active) {
+              counts[dayIndex][slotIndex] += 1;
+            }
+          });
+        });
+        if (availability.timezone) {
+          timezones[availability.timezone] = (timezones[availability.timezone] || 0) + 1;
+        }
+      });
+      send(res, 200, JSON.stringify({
+        status: 'ok',
+        days: AVAILABILITY_DAYS,
+        slots: AVAILABILITY_SLOTS,
+        respondents,
+        totalUsers: users.length,
+        counts,
+        timezones
+      }), { 'Content-Type': 'application/json' });
       return;
     }
 

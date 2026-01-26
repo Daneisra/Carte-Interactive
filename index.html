@@ -59,6 +59,15 @@
                 </div>
                 <p id="character-status" class="profile-character-status" role="status" aria-live="polite" hidden></p>
             </div>
+            <div id="profile-availability" class="profile-availability">
+                <div class="profile-availability-header">
+                    <p class="profile-availability-title">Disponibilites</p>
+                    <span id="availability-timezone" class="profile-availability-timezone">Fuseau: --</span>
+                </div>
+                <div id="availability-grid" class="profile-availability-grid"></div>
+                <button id="availability-save" class="secondary-button" type="button">Enregistrer disponibilites</button>
+                <p id="availability-status" class="profile-availability-status" role="status" aria-live="polite" hidden></p>
+            </div>
             <div class="profile-actions">
                 <button id="login-button" class="secondary-button" type="button">Connexion Discord</button>
                 <button id="logout-button" class="secondary-button" type="button" hidden>Se deconnecter</button>
@@ -533,6 +542,13 @@
                         <button id="admin-user-button" class="secondary-button" type="button">Gestion utilisateurs</button>
                         <button id="download-assets-button" class="secondary-button" type="button">Télécharger assets</button>
                     </div>
+                </section>
+
+                <section class="admin-section" id="admin-section-availability">
+                    <h3>Disponibilites joueurs</h3>
+                    <p id="admin-availability-hint" class="admin-availability-hint">Aucune disponibilite recue.</p>
+                    <div id="admin-availability-grid" class="admin-availability-grid"></div>
+                    <p id="admin-availability-empty" class="admin-availability-empty">Aucune disponibilite renseignee.</p>
                 </section>
 
                 <section class="admin-section" id="admin-section-alerts">

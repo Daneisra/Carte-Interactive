@@ -53,6 +53,57 @@ const clusteringIcon = clustered => clustered
     : localized('clustering.iconOff', 'OFF');
 const clusteringEmptyIcon = () => localized('clustering.iconEmpty', '-');
 const CLUSTERING_TOOLTIP_SEPARATOR = ' - ';
+const AVAILABILITY_DAYS = [
+    { id: 'mon', label: 'Lun' },
+    { id: 'tue', label: 'Mar' },
+    { id: 'wed', label: 'Mer' },
+    { id: 'thu', label: 'Jeu' },
+    { id: 'fri', label: 'Ven' },
+    { id: 'sat', label: 'Sam' },
+    { id: 'sun', label: 'Dim' }
+];
+const AVAILABILITY_SLOTS = [
+    { id: 'morning', label: 'Matin', range: '08-12' },
+    { id: 'afternoon', label: 'Apres-midi', range: '12-18' },
+    { id: 'evening', label: 'Soir', range: '18-22' },
+    { id: 'night', label: 'Nuit', range: '22-02' }
+];
+
+const resolveLocalTimezone = () => {
+    try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        return tz || 'UTC';
+    } catch (error) {
+        return 'UTC';
+    }
+};
+
+const createAvailabilityMatrix = () => (
+    AVAILABILITY_DAYS.map(() => AVAILABILITY_SLOTS.map(() => false))
+);
+
+const normalizeAvailabilityPayload = (payload, fallbackTimezone = '') => {
+    if (!payload || typeof payload !== 'object') {
+        return null;
+    }
+    const timezone = typeof payload.timezone === 'string' && payload.timezone.trim()
+        ? payload.timezone.trim()
+        : (fallbackTimezone || '');
+    const source = Array.isArray(payload.slots)
+        ? payload.slots
+        : (Array.isArray(payload.days) ? payload.days : null);
+    if (!Array.isArray(source)) {
+        return null;
+    }
+    const matrix = createAvailabilityMatrix();
+    for (let dayIndex = 0; dayIndex < AVAILABILITY_DAYS.length; dayIndex += 1) {
+        const daySlots = Array.isArray(source[dayIndex]) ? source[dayIndex] : [];
+        for (let slotIndex = 0; slotIndex < AVAILABILITY_SLOTS.length; slotIndex += 1) {
+            matrix[dayIndex][slotIndex] = Boolean(daySlots[slotIndex]);
+        }
+    }
+    return { timezone: timezone || null, slots: matrix };
+};
 
 const isInteractiveTextField = element => {
     if (!element) {
@@ -138,6 +189,10 @@ export class UiController {
             characterSave: document.getElementById('character-save'),
             characterDelete: document.getElementById('character-delete'),
             characterStatus: document.getElementById('character-status'),
+            availabilityGrid: document.getElementById('availability-grid'),
+            availabilitySave: document.getElementById('availability-save'),
+            availabilityStatus: document.getElementById('availability-status'),
+            availabilityTimezone: document.getElementById('availability-timezone'),
             loginButton: document.getElementById('login-button'),
             logoutButton: document.getElementById('logout-button'),
             adminPanelButton: document.getElementById('admin-panel-button'),
@@ -203,6 +258,9 @@ export class UiController {
             status: document.getElementById('admin-auth-status'),
             userButton: document.getElementById('admin-user-button'),
             downloadAssetsButton: document.getElementById('download-assets-button'),
+            availabilityHint: document.getElementById('admin-availability-hint'),
+            availabilityGrid: document.getElementById('admin-availability-grid'),
+            availabilityEmpty: document.getElementById('admin-availability-empty'),
             validationWarnings: document.getElementById('admin-validation-warnings'),
             validationWarningsList: document.getElementById('admin-validation-list'),
             validationWarningsFootnote: document.getElementById('admin-validation-footnote'),
@@ -226,7 +284,7 @@ export class UiController {
         });
 
         this.authRequired = true;
-        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [] };
+        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [], availability: null };
 
         this.pageSize = PAGE_SIZE;
         this.entries = [];
@@ -242,6 +300,10 @@ export class UiController {
         this.charactersDirty = false;
         this.profileCharacters = [];
         this.activeCharacterId = null;
+        this.availability = null;
+        this.availabilityDirty = false;
+        this.availabilityTimezone = resolveLocalTimezone();
+        this.adminAvailability = null;
         this.mapClickUnsubscribe = null;
         this.tooltipMeta = new WeakMap();
         this.visibleTooltips = new Set();
@@ -1510,7 +1572,7 @@ export class UiController {
         return (this.auth?.role || '').toLowerCase() === 'admin';
     }
 
-    setAuthState({ authenticated = false, role = 'guest', username = '', avatar = null, groups = [], groupDetails = [], characters = [] } = {}) {
+    setAuthState({ authenticated = false, role = 'guest', username = '', avatar = null, groups = [], groupDetails = [], characters = [], availability = null } = {}) {
         const previouslyAuthenticated = Boolean(this.auth?.authenticated);
         if (!this.authRequired) {
             if (authenticated) {
@@ -1521,10 +1583,11 @@ export class UiController {
                     avatar: avatar || this.auth.avatar || null,
                     groups: Array.isArray(groups) ? groups : (this.auth.groups || []),
                     groupDetails: Array.isArray(groupDetails) ? groupDetails : (this.auth.groupDetails || []),
-                    characters: Array.isArray(characters) ? characters : (this.auth.characters || [])
+                    characters: Array.isArray(characters) ? characters : (this.auth.characters || []),
+                    availability: availability ?? this.auth.availability ?? null
                 };
             } else {
-                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [] };
+                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [], availability: null };
             }
         } else {
             this.auth = {
@@ -1534,12 +1597,14 @@ export class UiController {
                 avatar: avatar || null,
                 groups: Array.isArray(groups) ? groups : [],
                 groupDetails: Array.isArray(groupDetails) ? groupDetails : [],
-                characters: Array.isArray(characters) ? characters : []
+                characters: Array.isArray(characters) ? characters : [],
+                availability: availability ?? null
             };
         }
         if (previouslyAuthenticated !== this.auth.authenticated) {
             this.characterFormDirty = false;
             this.charactersDirty = false;
+            this.availabilityDirty = false;
         }
         const nowAuthenticated = Boolean(this.auth?.authenticated);
         if (this.authRequired && !previouslyAuthenticated && nowAuthenticated && !this.questEventsLoaded) {
@@ -1557,6 +1622,13 @@ export class UiController {
                 }
             } else {
                 this.activeCharacterId = null;
+            }
+        }
+        if (!this.availabilityDirty) {
+            const normalized = normalizeAvailabilityPayload(this.auth.availability, this.availabilityTimezone);
+            this.availability = normalized;
+            if (normalized?.timezone) {
+                this.availabilityTimezone = normalized.timezone;
             }
         }
         this.updateAuthUI();
@@ -1686,6 +1758,7 @@ export class UiController {
             this.eventsFeed.setCanDeleteResolver(() => this.isAdmin());
         }
         this.syncCharacterForm();
+        this.syncAvailabilityUI();
     }
 
     syncCharacterForm() {
@@ -1982,6 +2055,202 @@ export class UiController {
         }
     }
 
+    buildAvailabilityGrid() {
+        const grid = this.dom.availabilityGrid;
+        if (!grid || grid.dataset.ready === 'true') {
+            return;
+        }
+        clearElement(grid);
+        const header = createElement('div', { className: 'profile-availability-row profile-availability-header' });
+        header.appendChild(createElement('span', { className: 'profile-availability-cell profile-availability-label' }));
+        AVAILABILITY_SLOTS.forEach(slot => {
+            const label = createElement('span', {
+                className: 'profile-availability-cell profile-availability-slot-label',
+                text: slot.label,
+                title: slot.range ? `${slot.label} (${slot.range})` : slot.label
+            });
+            header.appendChild(label);
+        });
+        grid.appendChild(header);
+        AVAILABILITY_DAYS.forEach((day, dayIndex) => {
+            const row = createElement('div', {
+                className: 'profile-availability-row',
+                dataset: { dayIndex }
+            });
+            row.appendChild(createElement('span', {
+                className: 'profile-availability-cell profile-availability-day',
+                text: day.label
+            }));
+            AVAILABILITY_SLOTS.forEach((slot, slotIndex) => {
+                const button = createElement('button', {
+                    className: 'profile-availability-cell profile-availability-slot',
+                    dataset: { dayIndex, slotIndex },
+                    attributes: {
+                        type: 'button',
+                        'aria-pressed': 'false',
+                        'aria-label': `${day.label} ${slot.label}`
+                    },
+                    title: slot.range ? `${slot.label} (${slot.range})` : slot.label
+                });
+                row.appendChild(button);
+            });
+            grid.appendChild(row);
+        });
+        grid.addEventListener('click', event => {
+            const target = event.target;
+            if (!target) {
+                return;
+            }
+            const button = target.closest('.profile-availability-slot');
+            if (!button || !grid.contains(button)) {
+                return;
+            }
+            const dayIndex = Number(button.dataset.dayIndex);
+            const slotIndex = Number(button.dataset.slotIndex);
+            if (!Number.isFinite(dayIndex) || !Number.isFinite(slotIndex)) {
+                return;
+            }
+            this.toggleAvailabilitySlot(dayIndex, slotIndex);
+        });
+        grid.dataset.ready = 'true';
+    }
+
+    getAvailabilityMatrix() {
+        const matrix = createAvailabilityMatrix();
+        const slots = this.availability?.slots;
+        if (!Array.isArray(slots)) {
+            return matrix;
+        }
+        slots.forEach((daySlots, dayIndex) => {
+            if (!Array.isArray(daySlots) || !matrix[dayIndex]) {
+                return;
+            }
+            daySlots.forEach((active, slotIndex) => {
+                if (matrix[dayIndex] && slotIndex < matrix[dayIndex].length) {
+                    matrix[dayIndex][slotIndex] = Boolean(active);
+                }
+            });
+        });
+        return matrix;
+    }
+
+    setAvailabilityStatus(message, isError = false) {
+        if (!this.dom.availabilityStatus) {
+            return;
+        }
+        if (!message) {
+            this.dom.availabilityStatus.hidden = true;
+            this.dom.availabilityStatus.textContent = '';
+            this.dom.availabilityStatus.classList.remove('is-error');
+            return;
+        }
+        this.dom.availabilityStatus.textContent = message;
+        this.dom.availabilityStatus.hidden = false;
+        this.dom.availabilityStatus.classList.toggle('is-error', isError);
+    }
+
+    syncAvailabilityUI() {
+        if (!this.dom.availabilityGrid) {
+            return;
+        }
+        this.buildAvailabilityGrid();
+        const authenticated = Boolean(this.auth?.authenticated);
+        if (this.dom.availabilitySave) {
+            this.dom.availabilitySave.disabled = !authenticated;
+        }
+        if (this.dom.availabilityTimezone) {
+            const tz = this.availabilityTimezone || resolveLocalTimezone();
+            this.dom.availabilityTimezone.textContent = `Fuseau: ${tz}`;
+        }
+        if (!authenticated) {
+            this.setAvailabilityStatus('Connexion requise pour renseigner vos disponibilites.', true);
+        } else if (this.dom.availabilityStatus?.textContent === 'Connexion requise pour renseigner vos disponibilites.') {
+            this.setAvailabilityStatus('');
+        }
+        this.renderAvailabilityGrid();
+    }
+
+    renderAvailabilityGrid() {
+        const grid = this.dom.availabilityGrid;
+        if (!grid) {
+            return;
+        }
+        const authenticated = Boolean(this.auth?.authenticated);
+        grid.classList.toggle('is-disabled', !authenticated);
+        const matrix = this.getAvailabilityMatrix();
+        const buttons = grid.querySelectorAll('.profile-availability-slot');
+        buttons.forEach(button => {
+            const dayIndex = Number(button.dataset.dayIndex);
+            const slotIndex = Number(button.dataset.slotIndex);
+            const active = Boolean(matrix?.[dayIndex]?.[slotIndex]);
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', String(active));
+            button.disabled = !authenticated;
+        });
+    }
+
+    toggleAvailabilitySlot(dayIndex, slotIndex) {
+        if (!this.auth?.authenticated) {
+            this.setAvailabilityStatus('Connexion requise pour renseigner vos disponibilites.', true);
+            return;
+        }
+        const matrix = this.getAvailabilityMatrix();
+        if (!matrix[dayIndex] || slotIndex >= matrix[dayIndex].length) {
+            return;
+        }
+        matrix[dayIndex][slotIndex] = !matrix[dayIndex][slotIndex];
+        const timezone = this.availabilityTimezone || resolveLocalTimezone();
+        this.availability = { timezone, slots: matrix };
+        this.availabilityDirty = true;
+        this.setAvailabilityStatus('');
+        this.renderAvailabilityGrid();
+    }
+
+    async saveAvailability() {
+        if (!this.auth?.authenticated) {
+            this.setAvailabilityStatus('Connexion requise pour renseigner vos disponibilites.', true);
+            return;
+        }
+        const matrix = this.getAvailabilityMatrix();
+        const timezone = this.availabilityTimezone || resolveLocalTimezone();
+        const availability = { timezone, slots: matrix };
+        if (this.dom.availabilitySave) {
+            this.dom.availabilitySave.disabled = true;
+        }
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ availability })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            const profile = payload?.profile || {};
+            const normalized = normalizeAvailabilityPayload(profile.availability, timezone);
+            this.availability = normalized;
+            this.auth.availability = normalized;
+            this.availabilityDirty = false;
+            if (normalized?.timezone) {
+                this.availabilityTimezone = normalized.timezone;
+            }
+            this.setAvailabilityStatus('Disponibilites enregistrees.');
+            this.renderAvailabilityGrid();
+            if (this.isAdmin() && this.adminDom.overlay && !this.adminDom.overlay.hidden) {
+                this.fetchAdminAvailability();
+            }
+        } catch (error) {
+            console.error('[profile] availability save failed', error);
+            this.setAvailabilityStatus('Impossible d\'enregistrer les disponibilites.', true);
+        } finally {
+            if (this.dom.availabilitySave) {
+                this.dom.availabilitySave.disabled = false;
+            }
+        }
+    }
+
     async fetchSession() {
         if (typeof fetch !== 'function') {
             this.authRequired = false;
@@ -2002,7 +2271,8 @@ export class UiController {
             const groups = Array.isArray(payload?.groups) ? payload.groups : [];
             const groupDetails = Array.isArray(payload?.groupDetails) ? payload.groupDetails : [];
             const characters = Array.isArray(payload?.characters) ? payload.characters : [];
-            this.setAuthState({ authenticated, role, username, avatar, groups, groupDetails, characters });
+            const availability = payload?.availability ?? null;
+            this.setAuthState({ authenticated, role, username, avatar, groups, groupDetails, characters, availability });
         } catch (error) {
             console.error('[auth] session fetch failed', error);
             this.authRequired = true;
@@ -2112,6 +2382,11 @@ export class UiController {
             this.dom.characterAdd.addEventListener('click', () => this.startNewCharacter());
             this.dom.characterAdd.dataset.bound = 'true';
         }
+        if (this.dom.availabilitySave && !this.dom.availabilitySave.dataset.bound) {
+            this.dom.availabilitySave.addEventListener('click', () => this.saveAvailability());
+            this.dom.availabilitySave.dataset.bound = 'true';
+        }
+        this.buildAvailabilityGrid();
         if (this.dom.adminPanelButton && !this.dom.adminPanelButton.dataset.bound) {
             this.dom.adminPanelButton.addEventListener('click', () => {
                 this.setProfilePanelOpen(false);
@@ -2169,6 +2444,7 @@ export class UiController {
         this.syncAdminStatus();
         this.syncAdminValidationWarnings();
         this.syncAdminTelemetry();
+        this.fetchAdminAvailability();
         this.adminDom.overlay.hidden = false;
         this.adminDom.overlay.classList.add('open');
     }
@@ -2261,6 +2537,104 @@ export class UiController {
             li.textContent = entry?.description || entry?.title || 'Erreur/évènement';
             this.adminDom.telemetryList.appendChild(li);
         });
+    }
+
+    syncAdminAvailability() {
+        const grid = this.adminDom.availabilityGrid;
+        const hint = this.adminDom.availabilityHint;
+        const empty = this.adminDom.availabilityEmpty;
+        if (!grid || !hint || !empty) {
+            return;
+        }
+        clearElement(grid);
+        const summary = this.adminAvailability;
+        const counts = Array.isArray(summary?.counts) ? summary.counts : null;
+        const respondents = Number.isFinite(summary?.respondents) ? summary.respondents : 0;
+        const totalUsers = Number.isFinite(summary?.totalUsers) ? summary.totalUsers : null;
+        if (!counts || !counts.length || respondents <= 0) {
+            hint.textContent = 'Aucune disponibilite recue.';
+            empty.hidden = false;
+            return;
+        }
+        const hintParts = [`Disponibilites de ${respondents} joueur(s)`];
+        if (totalUsers) {
+            hintParts.push(`sur ${totalUsers}`);
+        }
+        const timezones = summary?.timezones && typeof summary.timezones === 'object' ? summary.timezones : null;
+        if (timezones) {
+            const topZones = Object.entries(timezones)
+                .sort(([, aCount], [, bCount]) => bCount - aCount)
+                .slice(0, 3)
+                .map(([zone, count]) => `${zone} (${count})`);
+            if (topZones.length) {
+                hintParts.push(`Fuseaux: ${topZones.join(', ')}`);
+            }
+        }
+        hint.textContent = hintParts.join(' - ');
+        empty.hidden = true;
+
+        const maxCount = counts.flat().reduce((acc, value) => Math.max(acc, Number(value) || 0), 0);
+        const table = createElement('table', { className: 'admin-availability-table' });
+        const thead = createElement('thead');
+        const headerRow = createElement('tr');
+        headerRow.appendChild(createElement('th', { text: 'Jour' }));
+        AVAILABILITY_SLOTS.forEach(slot => {
+            headerRow.appendChild(createElement('th', { text: slot.label }));
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = createElement('tbody');
+        counts.forEach((daySlots, dayIndex) => {
+            const row = createElement('tr');
+            const dayLabel = AVAILABILITY_DAYS[dayIndex]?.label || `J${dayIndex + 1}`;
+            row.appendChild(createElement('td', { text: dayLabel }));
+            AVAILABILITY_SLOTS.forEach((slot, slotIndex) => {
+                const count = Number(daySlots?.[slotIndex]) || 0;
+                const cell = createElement('td', {
+                    className: 'admin-availability-count',
+                    text: count.toString(),
+                    title: `${count}/${respondents}`
+                });
+                if (maxCount > 0 && count === maxCount) {
+                    cell.classList.add('is-peak');
+                }
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        grid.appendChild(table);
+    }
+
+    async fetchAdminAvailability() {
+        if (!this.adminDom.availabilityGrid || !this.adminDom.availabilityHint || !this.adminDom.availabilityEmpty) {
+            return;
+        }
+        if (!this.isAdmin()) {
+            this.adminAvailability = null;
+            this.syncAdminAvailability();
+            return;
+        }
+        try {
+            const response = await fetch('/api/admin/availability', { credentials: 'include' });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            this.adminAvailability = payload;
+            this.syncAdminAvailability();
+        } catch (error) {
+            console.error('[admin] availability fetch failed', error);
+            this.logTelemetryEvent({
+                title: 'Erreur disponibilites',
+                description: 'Chargement des disponibilites impossible.',
+                route: '/api/admin/availability',
+                method: 'GET'
+            });
+            this.adminAvailability = null;
+            this.syncAdminAvailability();
+        }
     }
 
     bindAssetsDownloadButton() {

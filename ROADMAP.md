@@ -42,20 +42,30 @@
 - [x] Possiblités de placement des différents groupes sur la carte avec visualisation des utilisateurs a l'intérieur du groupe
 - [x] Dans le profil utilisateur création de personnage avec nom, bio, avatar et groupe
 - [x] Les personnages associés aux utilisateur apparaitrons dans les groupes sur la carte
+- [x] Dans le profil possiblités de renseigner ces disponibilités a la semaine, remonter des information coté admin pour analyse et trouver les meilleurs créneaux de jeux selon les utilisateurs
 - [ ] Quêtes interactives avec états visuels et transitions.
 - [ ] Markers thématiques/stylés par type + légende.
 - [ ] Tableau de bord live (compteurs SSE/latences) côté admin.
 - [ ] Narateur audio
 - [ ] Polish UI
 
-### P2 — Différenciants
+### P2 — Menu profil (UX + contenu)
+
+- [ ] Carte profil plus claire: avatar grand, pseudo, rôle, groupe(s) en chips, statut/présence.
+- [ ] Multi‑personnages: carrousel + filtres, tag “actif”, duplication rapide, import/export.
+- [ ] Personnalisation: bannière, couleur d’accent, bio riche (markdown léger), liens sociaux.
+- [ ] Actions rapides: changer thème, raccourcis admin, accès “Mes lieux favoris”.
+- [ ] Feedback clair: état de sauvegarde, erreurs inline, historique des edits récents.
+- [ ] Sécurité/compte: bouton “révoquer session”, infos Discord, date dernière connexion.
+
+### P3 — Différenciants
 - [ ] Intégration et personalisation d'une frise chronologique
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
 - [ ] Marqueurs évolutifs (temps/événements).
 - [ ] Polish UI
 
-### P3 — Hygiène & dette
+### P4 — Hygiène & dette
 - [ ] Modularisation fine de `UiController` et nettoyage des artefacts legacy.
 - [ ] Harmonisation encodages (UTF-8) & lint assets. :contentReference[oaicite:7]{index=7}
 - [ ] Polish UI
