@@ -227,12 +227,19 @@ body[data-theme="light"] .auth-panel .auth-status {
     border-radius: 10px;
     padding: 10px 12px;
     border: 1px solid rgba(148, 163, 184, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .admin-section h3 {
     margin: 0 0 8px;
     font-size: 16px;
     color: #f9fafb;
+}
+
+.admin-section p {
+    margin: 0;
 }
 
 .admin-availability-hint {
@@ -321,6 +328,15 @@ body[data-theme="light"] .auth-panel .auth-status {
     gap: 10px;
 }
 
+.admin-actions .secondary-button {
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.admin-actions .secondary-button:hover {
+    transform: translateY(-1px);
+}
+
 .admin-section .validation-warnings {
     margin: 0;
     background: rgba(252, 211, 77, 0.1);
@@ -355,12 +371,13 @@ body[data-theme="light"] .auth-panel .auth-status {
 .editor-dialog {
     width: min(900px, 94vw);
     max-height: 92vh;
-    background: #1f2933;
+    background: linear-gradient(180deg, #1f2933 0%, #1b2430 100%);
     border-radius: 18px;
     box-shadow: 0 24px 80px rgba(15, 23, 42, 0.55);
     display: flex;
     flex-direction: column;
     color: #f5f7ff;
+    border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .editor-dialog form {
@@ -371,8 +388,14 @@ body[data-theme="light"] .auth-panel .auth-status {
 }
 
 body[data-theme="light"] .editor-dialog {
-    background: #f5f7ff;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
     color: #1f2933;
+    border-color: rgba(100, 116, 139, 0.25);
+}
+
+body[data-theme="light"] .editor-header {
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(248, 250, 252, 0.75) 100%);
+    border-bottom-color: rgba(100, 116, 139, 0.2);
 }
 
 .editor-header {
@@ -380,7 +403,12 @@ body[data-theme="light"] .editor-dialog {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 20px 28px 0;
+    padding: 20px 28px 12px;
+    position: sticky;
+    top: 0;
+    background: linear-gradient(180deg, rgba(31, 41, 51, 0.98) 0%, rgba(31, 41, 51, 0.6) 100%);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    z-index: 2;
 }
 
 .editor-close {
@@ -394,23 +422,31 @@ body[data-theme="light"] .editor-dialog {
 }
 
 .editor-content {
-    padding: 20px 28px 0;
+    padding: 16px 28px 0;
     overflow-y: auto;
     scrollbar-width: thin;
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
 }
 
 .editor-section {
     border: 1px solid rgba(148, 163, 184, 0.25);
     border-radius: 14px;
     padding: 18px 20px;
-    margin-bottom: 20px;
+    margin-bottom: 0;
+    background: rgba(15, 23, 42, 0.35);
 }
 
 .editor-section legend {
     padding: 0 8px;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(226, 232, 240, 0.8);
 }
 
 .form-row {
@@ -420,6 +456,12 @@ body[data-theme="light"] .editor-dialog {
     margin-bottom: 14px;
 }
 
+.form-row label {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
 .form-row input,
 .form-row textarea,
 .form-row select {
@@ -427,7 +469,7 @@ body[data-theme="light"] .editor-dialog {
     padding: 10px 12px;
     border: 1px solid rgba(148, 163, 184, 0.35);
     border-radius: 10px;
-    background: rgba(15, 23, 42, 0.45);
+    background: rgba(15, 23, 42, 0.4);
     color: inherit;
     font-size: 14px;
     outline: 2px solid transparent;
@@ -447,6 +489,15 @@ body[data-theme="light"] .form-row textarea,
 body[data-theme="light"] .form-row select {
     background: rgba(255, 255, 255, 0.85);
     border-color: rgba(107, 114, 128, 0.3);
+}
+
+body[data-theme="light"] .editor-section {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(100, 116, 139, 0.2);
+}
+
+body[data-theme="light"] .editor-section legend {
+    color: rgba(15, 23, 42, 0.65);
 }
 
 body[data-theme="light"] .markdown-preview {
@@ -1008,10 +1059,12 @@ body[data-theme="light"] .quest-events-item-status {
     gap: 12px;
     padding: 16px 28px 24px;
     border-top: 1px solid rgba(148, 163, 184, 0.2);
+    background: linear-gradient(180deg, rgba(31, 41, 51, 0) 0%, rgba(31, 41, 51, 0.65) 45%, rgba(31, 41, 51, 0.85) 100%);
 }
 
 body[data-theme="light"] .editor-actions {
     border-top-color: rgba(148, 163, 184, 0.25);
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.65) 45%, rgba(248, 250, 252, 0.85) 100%);
 }
 
 #sidebar .primary-button {

@@ -44,8 +44,7 @@
 - [x] Les personnages associés aux utilisateur apparaitrons dans les groupes sur la carte
 - [x] Dans le profil possiblités de renseigner ces disponibilités a la semaine, remonter des information coté admin pour analyse et trouver les meilleurs créneaux de jeux selon les utilisateurs
 - [x] Tableau de bord live (compteurs SSE/latences) côté admin.
-- [ ] Narateur audio
-- [ ] Polish UI
+- [x] Polish UI
 
 ### P2 — Menu profil (UX + contenu)
 
@@ -55,6 +54,7 @@
 - [ ] Actions rapides: changer thème, raccourcis admin, accès “Mes lieux favoris”.
 - [ ] Feedback clair: état de sauvegarde, erreurs inline, historique des edits récents.
 - [ ] Sécurité/compte: bouton “révoquer session”, infos Discord, date dernière connexion.
+- [ ] Polish UI
 
 ### P3 — Différenciants
 - [ ] Intégration et personalisation d'une frise chronologique
@@ -64,6 +64,7 @@
 - [ ] Marqueurs évolutifs (temps/événements).
 - [ ] Markers thématiques/stylés par type + légende.
 - [ ] Quêtes interactives avec états visuels et transitions.
+- [ ] Narateur audio
 - [ ] Polish UI
 
 ### P4 — Hygiène & dette
