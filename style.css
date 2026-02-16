@@ -55,6 +55,14 @@ body[data-theme="light"] .markdown-content a {
     z-index: 1300;
     pointer-events: auto;
     max-height: calc(100vh - 16px);
+    transition: right 0.25s ease;
+}
+
+body.info-sidebar-open .profile-panel {
+    right: min(
+        calc(var(--info-sidebar-width) + var(--info-sidebar-offset)),
+        calc(100vw - 92px)
+    );
 }
 
 .profile-button {
@@ -1409,7 +1417,7 @@ body[data-theme="light"] .validation-warnings {
 
 /* ?? Continent ouvert */
 #info-sidebar.open {
-    transform: translateX(-420px);
+    transform: translateX(calc(-1 * var(--info-sidebar-width)));
     opacity: 1;
     pointer-events: all;
 }
@@ -1974,6 +1982,11 @@ body[data-theme="light"] #events-filter option {
 }
 
 @media (max-width: 560px) {
+    body.info-sidebar-open .profile-panel {
+        right: 8px;
+        left: 8px;
+    }
+
     .profile-panel {
         top: 8px;
         right: 8px;

@@ -63,11 +63,11 @@ const normalizePnjList = pnjs => {
         });
 };
 
-const normalizeVideoList = (videos, { legacyTitles = [] } = {}) => {
+const normalizeVideoList = videos => {
     if (!Array.isArray(videos)) {
         return [];
     }
-    return videos.reduce((accumulator, entry, index) => {
+    return videos.reduce((accumulator, entry) => {
         let url = '';
         let title = '';
 
@@ -82,13 +82,6 @@ const normalizeVideoList = (videos, { legacyTitles = [] } = {}) => {
             return accumulator;
         }
 
-        if (!title && typeof legacyTitles[index] === 'string') {
-            const legacy = sanitizeString(legacyTitles[index]);
-            if (legacy) {
-                title = legacy;
-            }
-        }
-
         accumulator.push({ url, title });
         return accumulator;
     }, []);
@@ -99,9 +92,7 @@ const normalizeLocation = rawLocation => {
         return null;
     }
 
-    const videos = normalizeVideoList(rawLocation.videos, {
-        legacyTitles: Array.isArray(rawLocation.videoTitles) ? rawLocation.videoTitles : []
-    });
+    const videos = normalizeVideoList(rawLocation.videos);
 
     const normalized = {
         name: sanitizeString(rawLocation.name) || 'Lieu inconnu',
@@ -113,7 +104,6 @@ const normalizeLocation = rawLocation => {
             ? rawLocation.images.map(sanitizeString).filter(Boolean)
             : [],
         videos,
-        videoTitles: videos.map(video => video.title).filter(Boolean),
         audio: (() => {
             const audioPath = sanitizeString(rawLocation.audio);
             return audioPath ? audioPath : null;

@@ -47,7 +47,6 @@
 - [x] Polish UI
 
 ### P2 — Menu profil (UX + contenu)
-
 - [ ] Carte profil plus claire: avatar grand, pseudo, rôle, groupe(s) en chips, statut/présence.
 - [ ] Multi‑personnages: carrousel + filtres, tag “actif”, duplication rapide, import/export.
 - [ ] Personnalisation: bannière, couleur d’accent, bio riche (markdown léger), liens sociaux.
@@ -58,7 +57,7 @@
 
 ### P3 — Différenciants
 - [ ] Intégration et personalisation d'une frise chronologique
-- [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des chéma, créer des routes, instruction etc
+- [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schéma, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
 - [ ] Marqueurs évolutifs (temps/événements).
@@ -71,6 +70,7 @@
 - [ ] Modularisation fine de `UiController` et nettoyage des artefacts legacy.
 - [ ] Harmonisation encodages (UTF-8) & lint assets. :contentReference[oaicite:7]{index=7}
 - [ ] Polish UI
+
 
 
 ## 3) Architecture (prod)
@@ -260,7 +260,6 @@ bash
 rsync -avz --delete --exclude ".git/" --exclude ".github/" --exclude "node_modules/" \
   ./  debian@<VPS>:/srv/cartehesta/app/
 ssh debian@<VPS> "cd /srv/cartehesta/app && pm2 restart carte-api --update-env && pm2 save"
-
 
 
 

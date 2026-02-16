@@ -122,6 +122,7 @@ export class InfoPanel {
             this.setActiveTab('description');
             this.sidebar.style.display = 'block';
             this.sidebar.classList.add('open');
+            document.body.classList.add('info-sidebar-open');
         }
     }
 
@@ -320,7 +321,6 @@ export class InfoPanel {
     }
 
     createVideoThumbnail({ videoEntry, location, index }) {
-        const titles = Array.isArray(location.videoTitles) ? location.videoTitles : [];
         let url = '';
         let providedTitle = '';
 
@@ -337,10 +337,6 @@ export class InfoPanel {
 
         if (!url) {
             return { element: null, url: '', title: '' };
-        }
-
-        if (!providedTitle && typeof titles[index] === 'string') {
-            providedTitle = titles[index].trim();
         }
 
         const videoId = InfoPanel.extractYoutubeId(url);
@@ -456,6 +452,7 @@ export class InfoPanel {
     close() {
         if (this.sidebar) {
             this.sidebar.classList.remove('open');
+            document.body.classList.remove('info-sidebar-open');
             setTimeout(() => {
                 if (this.sidebar) {
                     this.sidebar.style.display = 'none';
