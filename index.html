@@ -20,18 +20,23 @@
             <span id="profile-label" class="profile-label">Profil</span>
         </button>
         <div id="auth-panel" class="profile-menu" hidden>
-            <div class="profile-summary">
-                <div id="profile-avatar-panel" class="profile-avatar profile-avatar-lg" aria-hidden="true">?</div>
-                <div class="profile-info">
-                    <p id="auth-username" class="profile-name">Invite</p>
-                    <p id="auth-role" class="profile-role">Non connecte</p>
+            <div class="profile-identity-card">
+                <div class="profile-summary">
+                    <div id="profile-avatar-panel" class="profile-avatar profile-avatar-lg" aria-hidden="true">?</div>
+                    <div class="profile-info">
+                        <p id="auth-username" class="profile-name">Invite</p>
+                        <div class="profile-meta-row">
+                            <p id="auth-role" class="profile-role">Non connecte</p>
+                            <span id="auth-presence" class="profile-presence is-offline">Hors ligne</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <p id="auth-status" class="auth-status">Connexion requise pour modifier les lieux.</p>
-            <div class="profile-groups">
-                <p class="profile-group-title">Groupes JDR</p>
-                <div id="auth-groups" class="profile-group-list"></div>
-                <p id="auth-groups-empty" class="profile-group-empty">Aucun groupe assigne.</p>
+                <p id="auth-status" class="auth-status">Connexion requise pour modifier les lieux.</p>
+                <div class="profile-groups">
+                    <p class="profile-group-title">Groupes JDR</p>
+                    <div id="auth-groups" class="profile-group-list"></div>
+                    <p id="auth-groups-empty" class="profile-group-empty">Aucun groupe assigne.</p>
+                </div>
             </div>
             <div id="profile-character" class="profile-character">
                 <div class="profile-character-header">

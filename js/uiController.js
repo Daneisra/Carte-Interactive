@@ -175,6 +175,7 @@ export class UiController {
             authStatus: document.getElementById('auth-status'),
             authUsername: document.getElementById('auth-username'),
             authRole: document.getElementById('auth-role'),
+            authPresence: document.getElementById('auth-presence'),
             authGroups: document.getElementById('auth-groups'),
             authGroupsEmpty: document.getElementById('auth-groups-empty'),
             characterSection: document.getElementById('profile-character'),
@@ -1681,6 +1682,17 @@ export class UiController {
         }
         if (this.dom.authRole) {
             this.dom.authRole.textContent = roleLabel;
+        }
+        if (this.dom.authPresence) {
+            const presenceLabel = authenticated
+                ? (!this.authRequired ? 'Edition locale' : 'En ligne')
+                : 'Hors ligne';
+            const presenceClass = authenticated
+                ? (!this.authRequired ? 'is-local' : 'is-online')
+                : 'is-offline';
+            this.dom.authPresence.textContent = presenceLabel;
+            this.dom.authPresence.classList.remove('is-online', 'is-offline', 'is-local');
+            this.dom.authPresence.classList.add(presenceClass);
         }
         const applyAvatar = element => {
             if (!element) {
