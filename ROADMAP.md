@@ -48,7 +48,7 @@
 
 ### P2 — Menu profil (UX + contenu)
 - [x] Carte profil plus claire: avatar grand, pseudo, rôle, groupe(s) en chips, statut/présence.
-- [ ] Multi‑personnages: carrousel + filtres, tag “actif”, duplication rapide, import/export.
+- [x] Multi‑personnages: carrousel + filtres, tag “actif”, duplication rapide, import/export.
 - [ ] Personnalisation: bannière, couleur d’accent, bio riche (markdown léger), liens sociaux.
 - [ ] Actions rapides: changer thème, raccourcis admin, accès “Mes lieux favoris”.
 - [ ] Feedback clair: état de sauvegarde, erreurs inline, historique des edits récents.

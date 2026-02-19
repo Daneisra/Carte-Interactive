@@ -915,14 +915,16 @@ const sanitizeCharacterRecord = (character, { allowEmptyId = true } = {}) => {
   const bio = normalizeString(character.bio);
   const avatar = normalizeString(character.avatar);
   const groupId = normalizeString(character.groupId || character.group);
+  const active = Boolean(character.active);
   const record = {
     id: id || (allowEmptyId ? null : ''),
     name: name || null,
     bio: bio || null,
     avatar: avatar || null,
-    groupId: groupId || null
+    groupId: groupId || null,
+    active
   };
-  const hasValue = record.name || record.bio || record.avatar || record.groupId;
+  const hasValue = record.name || record.bio || record.avatar || record.groupId || record.active;
   return hasValue ? record : null;
 };
 
@@ -932,6 +934,7 @@ const sanitizeCharacterList = (characters, { assignIds = false, allowedGroups = 
   }
   const list = [];
   const seen = new Set();
+  let hasActiveCharacter = false;
   characters.forEach(entry => {
     const record = sanitizeCharacterRecord(entry);
     if (!record) {
@@ -958,12 +961,17 @@ const sanitizeCharacterList = (characters, { assignIds = false, allowedGroups = 
     if (allowedGroups && groupId && !allowedGroups.has(groupId)) {
       groupId = null;
     }
+    const isActive = Boolean(record.active) && !hasActiveCharacter;
+    if (isActive) {
+      hasActiveCharacter = true;
+    }
     list.push({
       id,
       name: record.name || null,
       bio: record.bio || null,
       avatar: record.avatar || null,
-      groupId
+      groupId,
+      active: isActive
     });
   });
   return list;
@@ -1838,7 +1846,8 @@ const server = http.createServer(async (req, res) => {
               bucket.push({
                 name: character.name || 'Personnage',
                 avatar: character.avatar || null,
-                type: 'character'
+                type: 'character',
+                active: Boolean(character.active)
               });
             });
         });

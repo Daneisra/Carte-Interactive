@@ -180,13 +180,29 @@ export class UiController {
             authGroupsEmpty: document.getElementById('auth-groups-empty'),
             characterSection: document.getElementById('profile-character'),
             characterLocked: document.getElementById('profile-character-locked'),
+            characterSummary: document.getElementById('character-summary'),
+            characterOpen: document.getElementById('character-open'),
+            characterOverlay: document.getElementById('character-overlay'),
+            characterClose: document.getElementById('character-close'),
+            characterOverlayLocked: document.getElementById('character-overlay-locked'),
             characterList: document.getElementById('character-list'),
             characterEmpty: document.getElementById('character-empty'),
+            characterPageIndicator: document.getElementById('character-page-indicator'),
+            characterCarouselPrev: document.getElementById('character-carousel-prev'),
+            characterCarouselNext: document.getElementById('character-carousel-next'),
+            characterFilterSearch: document.getElementById('character-filter-search'),
+            characterFilterGroup: document.getElementById('character-filter-group'),
+            characterFilterActive: document.getElementById('character-filter-active'),
+            characterImport: document.getElementById('character-import'),
+            characterImportFile: document.getElementById('character-import-file'),
+            characterExport: document.getElementById('character-export'),
             characterAdd: document.getElementById('character-add'),
+            characterDuplicate: document.getElementById('character-duplicate'),
             characterName: document.getElementById('character-name'),
             characterBio: document.getElementById('character-bio'),
             characterAvatar: document.getElementById('character-avatar'),
             characterGroup: document.getElementById('character-group'),
+            characterActive: document.getElementById('character-active'),
             characterSave: document.getElementById('character-save'),
             characterDelete: document.getElementById('character-delete'),
             characterStatus: document.getElementById('character-status'),
@@ -299,12 +315,19 @@ export class UiController {
         this.typeData = {};
         this.boundKeyboardShortcuts = false;
         this.isProfileOpen = false;
+        this.isCharacterOverlayOpen = false;
         this.boundProfileClickHandler = null;
         this.boundProfileKeyHandler = null;
         this.characterFormDirty = false;
+        this.characterSyncPending = false;
         this.charactersDirty = false;
         this.profileCharacters = [];
         this.activeCharacterId = null;
+        this.characterFilterSearch = '';
+        this.characterFilterGroup = '';
+        this.characterFilterActive = 'all';
+        this.characterPageIndex = 0;
+        this.characterPageSize = 6;
         this.availability = null;
         this.availabilityDirty = false;
         this.availabilityTimezone = resolveLocalTimezone();
@@ -1621,11 +1644,12 @@ export class UiController {
             this.setCharacterStatus('');
         }
         if (!this.charactersDirty) {
-            this.profileCharacters = Array.isArray(this.auth.characters) ? [...this.auth.characters] : [];
+            this.profileCharacters = this.normalizeCharacterList(this.auth.characters, { assignIds: true });
             if (this.profileCharacters.length) {
                 const exists = this.profileCharacters.some(character => character.id === this.activeCharacterId);
                 if (!exists) {
-                    this.activeCharacterId = this.profileCharacters[0]?.id || null;
+                    const preferred = this.profileCharacters.find(character => character.active);
+                    this.activeCharacterId = preferred?.id || this.profileCharacters[0]?.id || null;
                 }
             } else {
                 this.activeCharacterId = null;
@@ -1783,34 +1807,52 @@ export class UiController {
     }
 
     syncCharacterForm() {
-        const section = this.dom.characterSection;
-        if (!section) {
+        if (!this.dom.characterSection && !this.dom.characterOverlay) {
             return;
         }
         const authenticated = Boolean(this.auth?.authenticated);
+        if (this.dom.characterLocked) {
+            this.dom.characterLocked.hidden = authenticated;
+        }
+        if (this.dom.characterOverlayLocked) {
+            this.dom.characterOverlayLocked.hidden = authenticated;
+        }
+        this.updateCharacterSummary();
+        this.refreshCharacterGroupOptions();
+        this.renderCharacterList();
         const inputs = [
             this.dom.characterName,
             this.dom.characterBio,
             this.dom.characterAvatar,
-            this.dom.characterGroup
+            this.dom.characterGroup,
+            this.dom.characterActive
         ].filter(Boolean);
         inputs.forEach(input => {
-            input.disabled = !authenticated;
+            input.disabled = !authenticated || this.characterSyncPending;
         });
+        if (this.dom.characterOpen) {
+            this.dom.characterOpen.disabled = false;
+            this.dom.characterOpen.setAttribute('aria-expanded', String(this.isCharacterOverlayOpen));
+        }
         if (this.dom.characterSave) {
-            this.dom.characterSave.disabled = !authenticated;
+            this.dom.characterSave.disabled = !authenticated || this.characterSyncPending;
         }
         if (this.dom.characterDelete) {
-            this.dom.characterDelete.disabled = !authenticated || !this.activeCharacterId;
+            this.dom.characterDelete.disabled = !authenticated || !this.activeCharacterId || this.characterSyncPending;
             this.dom.characterDelete.hidden = !this.activeCharacterId;
         }
         if (this.dom.characterAdd) {
-            this.dom.characterAdd.disabled = !authenticated;
+            this.dom.characterAdd.disabled = !authenticated || this.characterSyncPending;
         }
-        if (this.dom.characterLocked) {
-            this.dom.characterLocked.hidden = authenticated;
+        if (this.dom.characterDuplicate) {
+            this.dom.characterDuplicate.disabled = !authenticated || !this.activeCharacterId || this.characterSyncPending;
         }
-        this.renderCharacterList();
+        if (this.dom.characterImport) {
+            this.dom.characterImport.disabled = !authenticated || this.characterSyncPending;
+        }
+        if (this.dom.characterExport) {
+            this.dom.characterExport.disabled = this.characterSyncPending || !this.profileCharacters.length;
+        }
         if (!this.characterFormDirty) {
             const character = this.getActiveCharacter() || {};
             if (this.dom.characterName) {
@@ -1822,35 +1864,147 @@ export class UiController {
             if (this.dom.characterAvatar) {
                 this.dom.characterAvatar.value = character.avatar || '';
             }
+            if (this.dom.characterActive) {
+                this.dom.characterActive.checked = Boolean(character.active);
+            }
         }
-        this.refreshCharacterGroupOptions();
+    }
+
+    normalizeCharacterList(characters, { assignIds = false } = {}) {
+        if (!Array.isArray(characters)) {
+            return [];
+        }
+        const list = [];
+        const seen = new Set();
+        characters.forEach(entry => {
+            if (!entry || typeof entry !== 'object') {
+                return;
+            }
+            let id = typeof entry.id === 'string' ? entry.id.trim() : '';
+            if (!id && assignIds) {
+                id = this.createCharacterId();
+            }
+            if (!id) {
+                return;
+            }
+            if (seen.has(id)) {
+                if (!assignIds) {
+                    return;
+                }
+                id = this.createCharacterId();
+            }
+            seen.add(id);
+            const name = typeof entry.name === 'string' ? entry.name.trim() : '';
+            const bio = typeof entry.bio === 'string' ? entry.bio.trim() : '';
+            const avatar = typeof entry.avatar === 'string' ? entry.avatar.trim() : '';
+            const groupIdRaw = typeof entry.groupId === 'string'
+                ? entry.groupId
+                : (typeof entry.group === 'string' ? entry.group : '');
+            const groupId = groupIdRaw ? groupIdRaw.trim() : '';
+            const active = Boolean(entry.active);
+            const hasValue = Boolean(name || bio || avatar || groupId || active);
+            if (!hasValue) {
+                return;
+            }
+            list.push({
+                id,
+                name: name || null,
+                bio: bio || null,
+                avatar: avatar || null,
+                groupId: groupId || null,
+                active
+            });
+        });
+        return this.enforceSingleActiveCharacter(list);
+    }
+
+    enforceSingleActiveCharacter(characters) {
+        if (!Array.isArray(characters)) {
+            return [];
+        }
+        let found = false;
+        return characters.map(character => {
+            const next = { ...character };
+            if (next.active && !found) {
+                found = true;
+                next.active = true;
+            } else {
+                next.active = false;
+            }
+            return next;
+        });
+    }
+
+    updateCharacterSummary() {
+        if (!this.dom.characterSummary) {
+            return;
+        }
+        const characters = Array.isArray(this.profileCharacters) ? this.profileCharacters : [];
+        if (!characters.length) {
+            this.dom.characterSummary.textContent = 'Aucun personnage enregistre.';
+            this.dom.characterSummary.className = 'profile-character-empty';
+            return;
+        }
+        const active = characters.find(character => character.active)
+            || characters.find(character => character.id === this.activeCharacterId)
+            || characters[0];
+        const total = characters.length;
+        const activeLabel = active?.name || 'Aucun';
+        this.dom.characterSummary.textContent = `${total} personnage(s) - actif: ${activeLabel}`;
+        this.dom.characterSummary.className = 'profile-character-summary';
     }
 
     refreshCharacterGroupOptions() {
         const select = this.dom.characterGroup;
-        if (!select) {
+        const filterSelect = this.dom.characterFilterGroup;
+        const groups = Array.isArray(this.groups) ? this.groups : [];
+        const characterGroups = new Set();
+        (Array.isArray(this.profileCharacters) ? this.profileCharacters : []).forEach(character => {
+            const groupId = typeof character?.groupId === 'string' ? character.groupId.trim() : '';
+            if (groupId) {
+                characterGroups.add(groupId);
+            }
+        });
+        const allGroupIds = Array.from(new Set([
+            ...groups.map(group => group?.id).filter(Boolean),
+            ...characterGroups
+        ]));
+        if (select) {
+            const currentValue = select.value;
+            const desired = this.characterFormDirty
+                ? currentValue
+                : (this.getActiveCharacter()?.groupId || '');
+            select.innerHTML = '';
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Aucun groupe';
+            select.appendChild(emptyOption);
+            allGroupIds.forEach(groupId => {
+                const option = document.createElement('option');
+                option.value = groupId;
+                option.textContent = groups.find(group => group?.id === groupId)?.name || groupId;
+                select.appendChild(option);
+            });
+            select.value = desired && allGroupIds.includes(desired) ? desired : '';
+        }
+        if (!filterSelect) {
             return;
         }
-        const currentValue = select.value;
-        const desired = this.characterFormDirty
-            ? currentValue
-            : (this.getActiveCharacter()?.groupId || '');
-        select.innerHTML = '';
-        const emptyOption = document.createElement('option');
-        emptyOption.value = '';
-        emptyOption.textContent = 'Aucun groupe';
-        select.appendChild(emptyOption);
-        const groups = Array.isArray(this.groups) ? this.groups : [];
-        groups.forEach(group => {
-            if (!group?.id) {
-                return;
-            }
+        const previous = filterSelect.value;
+        filterSelect.innerHTML = '';
+        const allOption = document.createElement('option');
+        allOption.value = '';
+        allOption.textContent = 'Tous les groupes';
+        filterSelect.appendChild(allOption);
+        allGroupIds.forEach(groupId => {
             const option = document.createElement('option');
-            option.value = group.id;
-            option.textContent = group.name || group.id;
-            select.appendChild(option);
+            option.value = groupId;
+            option.textContent = groups.find(group => group?.id === groupId)?.name || groupId;
+            filterSelect.appendChild(option);
         });
-        select.value = desired && groups.some(group => group.id === desired) ? desired : '';
+        const desired = this.characterFilterGroup || previous || '';
+        this.characterFilterGroup = desired && allGroupIds.includes(desired) ? desired : '';
+        filterSelect.value = this.characterFilterGroup;
     }
 
     getActiveCharacter() {
@@ -1860,20 +2014,86 @@ export class UiController {
         return this.profileCharacters.find(character => character.id === this.activeCharacterId) || null;
     }
 
+    getFilteredCharacters() {
+        const normalizedSearch = (this.characterFilterSearch || '').trim().toLowerCase();
+        const normalizedGroup = (this.characterFilterGroup || '').trim();
+        const activeMode = this.characterFilterActive || 'all';
+        const characters = Array.isArray(this.profileCharacters) ? this.profileCharacters : [];
+        return characters
+            .filter(character => {
+                if (normalizedGroup && (character.groupId || '') !== normalizedGroup) {
+                    return false;
+                }
+                if (activeMode === 'active' && !character.active) {
+                    return false;
+                }
+                if (activeMode === 'inactive' && character.active) {
+                    return false;
+                }
+                if (!normalizedSearch) {
+                    return true;
+                }
+                const haystack = [
+                    character.name || '',
+                    character.bio || '',
+                    character.groupId || ''
+                ].join(' ').toLowerCase();
+                return haystack.includes(normalizedSearch);
+            })
+            .sort((a, b) => {
+                const activeDiff = Number(Boolean(b.active)) - Number(Boolean(a.active));
+                if (activeDiff !== 0) {
+                    return activeDiff;
+                }
+                return (a.name || '').localeCompare(b.name || '', 'fr', { sensitivity: 'base' });
+            });
+    }
+
+    updateCharacterPagination(totalItems = 0) {
+        const totalPages = totalItems > 0
+            ? Math.max(1, Math.ceil(totalItems / this.characterPageSize))
+            : 0;
+        const currentPage = totalPages > 0 ? Math.min(this.characterPageIndex + 1, totalPages) : 0;
+        if (this.dom.characterPageIndicator) {
+            this.dom.characterPageIndicator.textContent = `Page ${currentPage}/${totalPages}`;
+        }
+        if (this.dom.characterCarouselPrev) {
+            this.dom.characterCarouselPrev.disabled = totalPages <= 1 || this.characterPageIndex <= 0;
+        }
+        if (this.dom.characterCarouselNext) {
+            this.dom.characterCarouselNext.disabled = totalPages <= 1 || this.characterPageIndex >= totalPages - 1;
+        }
+    }
+
     renderCharacterList() {
         const container = this.dom.characterList;
         if (!container) {
             return;
         }
         clearElement(container);
-        const characters = Array.isArray(this.profileCharacters) ? this.profileCharacters : [];
-        if (this.dom.characterEmpty) {
-            this.dom.characterEmpty.hidden = characters.length > 0;
+        const filtered = this.getFilteredCharacters();
+        const totalItems = filtered.length;
+        const totalPages = totalItems > 0 ? Math.max(1, Math.ceil(totalItems / this.characterPageSize)) : 0;
+        if (this.characterPageIndex >= totalPages) {
+            this.characterPageIndex = Math.max(0, totalPages - 1);
         }
-        if (!characters.length) {
+        const start = this.characterPageIndex * this.characterPageSize;
+        const currentPageItems = filtered.slice(start, start + this.characterPageSize);
+        if (!currentPageItems.length) {
+            if (this.dom.characterEmpty) {
+                const hasCharacters = (Array.isArray(this.profileCharacters) ? this.profileCharacters.length : 0) > 0;
+                this.dom.characterEmpty.textContent = hasCharacters
+                    ? 'Aucun personnage ne correspond aux filtres.'
+                    : 'Aucun personnage enregistre.';
+                this.dom.characterEmpty.hidden = false;
+            }
+            this.updateCharacterPagination(totalItems);
             return;
         }
-        characters.forEach(character => {
+        if (this.dom.characterEmpty) {
+            this.dom.characterEmpty.hidden = true;
+        }
+        currentPageItems.forEach(character => {
             const card = createElement('button', {
                 className: `profile-character-card${character.id === this.activeCharacterId ? ' is-active' : ''}`,
                 attributes: { type: 'button' }
@@ -1893,7 +2113,15 @@ export class UiController {
                 className: 'profile-character-name',
                 text: character.name || 'Personnage'
             }));
-            const groupLabel = this.groups.find(group => group.id === character.groupId)?.name || '';
+            if (character.active) {
+                meta.appendChild(createElement('span', {
+                    className: 'profile-character-tag',
+                    text: 'Actif'
+                }));
+            }
+            const groupLabel = this.groups.find(group => group.id === character.groupId)?.name
+                || character.groupId
+                || '';
             meta.appendChild(createElement('span', {
                 className: 'profile-character-sub',
                 text: groupLabel ? `Groupe: ${groupLabel}` : 'Aucun groupe'
@@ -1903,6 +2131,7 @@ export class UiController {
             card.addEventListener('click', () => this.selectCharacter(character.id));
             container.appendChild(card);
         });
+        this.updateCharacterPagination(totalItems);
     }
 
     selectCharacter(characterId) {
@@ -1910,6 +2139,13 @@ export class UiController {
             return;
         }
         this.activeCharacterId = characterId;
+        const activeCharacter = this.getActiveCharacter();
+        if (activeCharacter) {
+            this.characterPageIndex = Math.floor(this.getFilteredCharacters().findIndex(entry => entry.id === characterId) / this.characterPageSize);
+            if (!Number.isFinite(this.characterPageIndex) || this.characterPageIndex < 0) {
+                this.characterPageIndex = 0;
+            }
+        }
         this.characterFormDirty = false;
         this.charactersDirty = false;
         this.setCharacterStatus('');
@@ -1929,8 +2165,47 @@ export class UiController {
         if (this.dom.characterAvatar) {
             this.dom.characterAvatar.value = '';
         }
+        if (this.dom.characterGroup) {
+            this.dom.characterGroup.value = '';
+        }
+        if (this.dom.characterActive) {
+            this.dom.characterActive.checked = false;
+        }
         this.refreshCharacterGroupOptions();
         this.setCharacterStatus('');
+        this.syncCharacterForm();
+    }
+
+    duplicateCharacterProfile() {
+        if (!this.auth?.authenticated) {
+            this.setCharacterStatus('Connexion requise pour dupliquer un personnage.', true);
+            return;
+        }
+        const source = this.getActiveCharacter();
+        if (!source) {
+            this.setCharacterStatus('Selectionnez un personnage a dupliquer.', true);
+            return;
+        }
+        const baseName = source.name || 'Personnage';
+        if (this.dom.characterName) {
+            this.dom.characterName.value = `Copie - ${baseName}`;
+        }
+        if (this.dom.characterBio) {
+            this.dom.characterBio.value = source.bio || '';
+        }
+        if (this.dom.characterAvatar) {
+            this.dom.characterAvatar.value = source.avatar || '';
+        }
+        if (this.dom.characterGroup) {
+            this.dom.characterGroup.value = source.groupId || '';
+        }
+        if (this.dom.characterActive) {
+            this.dom.characterActive.checked = false;
+        }
+        this.activeCharacterId = null;
+        this.characterFormDirty = true;
+        this.charactersDirty = true;
+        this.setCharacterStatus('Copie prete. Enregistrez pour creer le personnage.');
         this.syncCharacterForm();
     }
 
@@ -1939,7 +2214,8 @@ export class UiController {
         const bio = this.dom.characterBio?.value.trim() || '';
         const avatar = this.dom.characterAvatar?.value.trim() || '';
         const groupId = this.dom.characterGroup?.value || '';
-        return { name, bio, avatar, groupId };
+        const active = Boolean(this.dom.characterActive?.checked);
+        return { name, bio, avatar, groupId, active };
     }
 
     createCharacterId() {
@@ -1962,6 +2238,79 @@ export class UiController {
         this.dom.characterStatus.textContent = message;
         this.dom.characterStatus.hidden = false;
         this.dom.characterStatus.classList.toggle('is-error', isError);
+    }
+
+    setCharacterOverlayOpen(open, { focusName = false } = {}) {
+        if (!this.dom.characterOverlay) {
+            return;
+        }
+        this.isCharacterOverlayOpen = Boolean(open);
+        this.dom.characterOverlay.hidden = !this.isCharacterOverlayOpen;
+        this.dom.characterOverlay.classList.toggle('open', this.isCharacterOverlayOpen);
+        if (this.dom.characterOpen) {
+            this.dom.characterOpen.setAttribute('aria-expanded', String(this.isCharacterOverlayOpen));
+        }
+        if (this.isCharacterOverlayOpen) {
+            this.refreshCharacterGroupOptions();
+            this.renderCharacterList();
+            this.syncCharacterForm();
+            if (focusName && this.dom.characterName) {
+                window.requestAnimationFrame(() => {
+                    this.dom.characterName?.focus?.();
+                });
+            }
+            return;
+        }
+        this.characterFormDirty = false;
+        this.setCharacterStatus('');
+    }
+
+    openCharacterOverlay() {
+        this.setProfilePanelOpen(false);
+        this.setCharacterOverlayOpen(true, { focusName: true });
+    }
+
+    closeCharacterOverlay() {
+        this.setCharacterOverlayOpen(false);
+    }
+
+    async persistCharacters(nextCharacters, successMessage) {
+        const normalizedCharacters = this.normalizeCharacterList(nextCharacters, { assignIds: true });
+        this.charactersDirty = true;
+        this.characterSyncPending = true;
+        this.syncCharacterForm();
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ characters: normalizedCharacters })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            const profile = payload?.profile || {};
+            const characters = this.normalizeCharacterList(profile.characters, { assignIds: true });
+            this.profileCharacters = characters;
+            this.auth.characters = characters;
+            this.characterFormDirty = false;
+            this.charactersDirty = false;
+            if (!characters.some(entry => entry.id === this.activeCharacterId)) {
+                const preferred = characters.find(entry => entry.active);
+                this.activeCharacterId = preferred?.id || characters[0]?.id || null;
+            }
+            this.setCharacterStatus(successMessage || 'Personnage enregistre.');
+            this.syncCharacterForm();
+            await this.fetchSession();
+            await this.fetchGroups();
+        } catch (error) {
+            console.error('[profile] update failed', error);
+            this.setCharacterStatus('Impossible de mettre a jour les personnages.', true);
+        } finally {
+            this.characterSyncPending = false;
+            this.syncCharacterForm();
+        }
     }
 
     async saveCharacterProfile() {
@@ -1988,42 +2337,13 @@ export class UiController {
             activeId = this.createCharacterId();
             nextCharacters.push({ ...draft, id: activeId });
         }
-        this.charactersDirty = true;
-        if (this.dom.characterSave) {
-            this.dom.characterSave.disabled = true;
-        }
-        try {
-            const response = await fetch('/api/profile', {
-                method: 'PATCH',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ characters: nextCharacters })
+        if (draft.active) {
+            nextCharacters.forEach(character => {
+                character.active = character.id === activeId;
             });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            const payload = await response.json();
-            const profile = payload?.profile || {};
-            const characters = Array.isArray(profile.characters) ? profile.characters : [];
-            this.profileCharacters = characters;
-            this.auth.characters = characters;
-            this.characterFormDirty = false;
-            this.charactersDirty = false;
-            this.activeCharacterId = characters.some(entry => entry.id === activeId)
-                ? activeId
-                : (characters[0]?.id || null);
-            this.setCharacterStatus('Personnage enregistre.');
-            this.syncCharacterForm();
-            await this.fetchSession();
-            await this.fetchGroups();
-        } catch (error) {
-            console.error('[profile] update failed', error);
-            this.setCharacterStatus('Impossible d\'enregistrer le personnage.', true);
-        } finally {
-            if (this.dom.characterSave) {
-                this.dom.characterSave.disabled = false;
-            }
         }
+        this.activeCharacterId = activeId;
+        await this.persistCharacters(nextCharacters, 'Personnage enregistre.');
     }
 
     async deleteCharacterProfile() {
@@ -2041,37 +2361,107 @@ export class UiController {
         }
         const nextCharacters = (Array.isArray(this.profileCharacters) ? this.profileCharacters : [])
             .filter(character => character.id !== activeId);
-        if (this.dom.characterSave) {
-            this.dom.characterSave.disabled = true;
+        const fallbackActive = nextCharacters.find(character => character.active);
+        this.activeCharacterId = fallbackActive?.id || nextCharacters[0]?.id || null;
+        await this.persistCharacters(nextCharacters, 'Personnage supprime.');
+    }
+
+    exportCharacterProfiles() {
+        const characters = this.normalizeCharacterList(this.profileCharacters, { assignIds: true });
+        if (!characters.length) {
+            this.setCharacterStatus('Aucun personnage a exporter.', true);
+            return;
         }
         try {
-            const response = await fetch('/api/profile', {
-                method: 'PATCH',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ characters: nextCharacters })
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            const payload = await response.json();
-            const profile = payload?.profile || {};
-            const characters = Array.isArray(profile.characters) ? profile.characters : [];
-            this.profileCharacters = characters;
-            this.auth.characters = characters;
-            this.characterFormDirty = false;
-            this.charactersDirty = false;
-            this.activeCharacterId = characters[0]?.id || null;
-            this.setCharacterStatus('Personnage supprime.');
-            this.syncCharacterForm();
-            await this.fetchSession();
-            await this.fetchGroups();
+            const payload = {
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                characters
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            const username = (this.auth?.username || 'profil').toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+            anchor.href = url;
+            anchor.download = `${username || 'profil'}-personnages.json`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            URL.revokeObjectURL(url);
+            this.setCharacterStatus('Export termine.');
         } catch (error) {
-            console.error('[profile] delete failed', error);
-            this.setCharacterStatus('Impossible de supprimer le personnage.', true);
+            console.error('[profile] export failed', error);
+            this.setCharacterStatus('Impossible d\'exporter les personnages.', true);
+        }
+    }
+
+    triggerCharacterImport() {
+        if (!this.auth?.authenticated) {
+            this.setCharacterStatus('Connexion requise pour importer des personnages.', true);
+            return;
+        }
+        const input = this.dom.characterImportFile;
+        if (!input) {
+            return;
+        }
+        input.value = '';
+        input.click();
+    }
+
+    async importCharacterProfiles() {
+        if (!this.auth?.authenticated) {
+            this.setCharacterStatus('Connexion requise pour importer des personnages.', true);
+            return;
+        }
+        const input = this.dom.characterImportFile;
+        const file = input?.files?.[0];
+        if (!file) {
+            return;
+        }
+        try {
+            const text = await file.text();
+            const parsed = JSON.parse(text);
+            const source = Array.isArray(parsed)
+                ? parsed
+                : (Array.isArray(parsed?.characters) ? parsed.characters : []);
+            const imported = this.normalizeCharacterList(source, { assignIds: true });
+            if (!imported.length) {
+                this.setCharacterStatus('Aucun personnage valide trouve dans le fichier.', true);
+                return;
+            }
+            const nextCharacters = [
+                ...(Array.isArray(this.profileCharacters) ? this.profileCharacters : []),
+                ...imported
+            ];
+            const deduped = [];
+            const seen = new Set();
+            const existingCount = (Array.isArray(this.profileCharacters) ? this.profileCharacters.length : 0);
+            let importedActiveId = null;
+            nextCharacters.forEach((entry, index) => {
+                let id = entry.id;
+                while (!id || seen.has(id)) {
+                    id = this.createCharacterId();
+                }
+                seen.add(id);
+                const normalizedEntry = { ...entry, id };
+                if (index >= existingCount && entry.active && !importedActiveId) {
+                    importedActiveId = id;
+                }
+                deduped.push(normalizedEntry);
+            });
+            if (importedActiveId) {
+                deduped.forEach(entry => {
+                    entry.active = entry.id === importedActiveId;
+                });
+            }
+            this.activeCharacterId = deduped[deduped.length - 1]?.id || this.activeCharacterId;
+            await this.persistCharacters(deduped, `${imported.length} personnage(s) importe(s).`);
+        } catch (error) {
+            console.error('[profile] import failed', error);
+            this.setCharacterStatus('Import impossible. Verifiez le format JSON.', true);
         } finally {
-            if (this.dom.characterSave) {
-                this.dom.characterSave.disabled = false;
+            if (input) {
+                input.value = '';
             }
         }
     }
@@ -2348,7 +2738,14 @@ export class UiController {
         }
         if (!this.boundProfileKeyHandler) {
             this.boundProfileKeyHandler = event => {
-                if (event.key === 'Escape' && this.isProfileOpen) {
+                if (event.key !== 'Escape') {
+                    return;
+                }
+                if (this.isCharacterOverlayOpen) {
+                    this.closeCharacterOverlay();
+                    return;
+                }
+                if (this.isProfileOpen) {
                     this.setProfilePanelOpen(false);
                 }
             };
@@ -2367,8 +2764,27 @@ export class UiController {
                     console.error('[auth] logout failed', error);
                 }
                 await this.fetchSession();
+                this.closeCharacterOverlay();
                 this.setProfilePanelOpen(false);
             });
+        }
+        if (this.dom.characterOpen && !this.dom.characterOpen.dataset.bound) {
+            this.dom.characterOpen.addEventListener('click', () => {
+                this.openCharacterOverlay();
+            });
+            this.dom.characterOpen.dataset.bound = 'true';
+        }
+        if (this.dom.characterClose && !this.dom.characterClose.dataset.bound) {
+            this.dom.characterClose.addEventListener('click', () => this.closeCharacterOverlay());
+            this.dom.characterClose.dataset.bound = 'true';
+        }
+        if (this.dom.characterOverlay && !this.dom.characterOverlay.dataset.bound) {
+            this.dom.characterOverlay.addEventListener('click', event => {
+                if (event.target === this.dom.characterOverlay) {
+                    this.closeCharacterOverlay();
+                }
+            });
+            this.dom.characterOverlay.dataset.bound = 'true';
         }
         const markCharacterDirty = () => {
             this.characterFormDirty = true;
@@ -2391,6 +2807,48 @@ export class UiController {
             this.dom.characterGroup.addEventListener('change', markCharacterDirty);
             this.dom.characterGroup.dataset.bound = 'true';
         }
+        if (this.dom.characterActive && !this.dom.characterActive.dataset.bound) {
+            this.dom.characterActive.addEventListener('change', markCharacterDirty);
+            this.dom.characterActive.dataset.bound = 'true';
+        }
+        if (this.dom.characterFilterSearch && !this.dom.characterFilterSearch.dataset.bound) {
+            this.dom.characterFilterSearch.addEventListener('input', event => {
+                this.characterFilterSearch = event?.target?.value || '';
+                this.characterPageIndex = 0;
+                this.renderCharacterList();
+            });
+            this.dom.characterFilterSearch.dataset.bound = 'true';
+        }
+        if (this.dom.characterFilterGroup && !this.dom.characterFilterGroup.dataset.bound) {
+            this.dom.characterFilterGroup.addEventListener('change', event => {
+                this.characterFilterGroup = event?.target?.value || '';
+                this.characterPageIndex = 0;
+                this.renderCharacterList();
+            });
+            this.dom.characterFilterGroup.dataset.bound = 'true';
+        }
+        if (this.dom.characterFilterActive && !this.dom.characterFilterActive.dataset.bound) {
+            this.dom.characterFilterActive.addEventListener('change', event => {
+                this.characterFilterActive = event?.target?.value || 'all';
+                this.characterPageIndex = 0;
+                this.renderCharacterList();
+            });
+            this.dom.characterFilterActive.dataset.bound = 'true';
+        }
+        if (this.dom.characterCarouselPrev && !this.dom.characterCarouselPrev.dataset.bound) {
+            this.dom.characterCarouselPrev.addEventListener('click', () => {
+                this.characterPageIndex = Math.max(0, this.characterPageIndex - 1);
+                this.renderCharacterList();
+            });
+            this.dom.characterCarouselPrev.dataset.bound = 'true';
+        }
+        if (this.dom.characterCarouselNext && !this.dom.characterCarouselNext.dataset.bound) {
+            this.dom.characterCarouselNext.addEventListener('click', () => {
+                this.characterPageIndex += 1;
+                this.renderCharacterList();
+            });
+            this.dom.characterCarouselNext.dataset.bound = 'true';
+        }
         if (this.dom.characterSave && !this.dom.characterSave.dataset.bound) {
             this.dom.characterSave.addEventListener('click', () => this.saveCharacterProfile());
             this.dom.characterSave.dataset.bound = 'true';
@@ -2402,6 +2860,22 @@ export class UiController {
         if (this.dom.characterAdd && !this.dom.characterAdd.dataset.bound) {
             this.dom.characterAdd.addEventListener('click', () => this.startNewCharacter());
             this.dom.characterAdd.dataset.bound = 'true';
+        }
+        if (this.dom.characterDuplicate && !this.dom.characterDuplicate.dataset.bound) {
+            this.dom.characterDuplicate.addEventListener('click', () => this.duplicateCharacterProfile());
+            this.dom.characterDuplicate.dataset.bound = 'true';
+        }
+        if (this.dom.characterExport && !this.dom.characterExport.dataset.bound) {
+            this.dom.characterExport.addEventListener('click', () => this.exportCharacterProfiles());
+            this.dom.characterExport.dataset.bound = 'true';
+        }
+        if (this.dom.characterImport && !this.dom.characterImport.dataset.bound) {
+            this.dom.characterImport.addEventListener('click', () => this.triggerCharacterImport());
+            this.dom.characterImport.dataset.bound = 'true';
+        }
+        if (this.dom.characterImportFile && !this.dom.characterImportFile.dataset.bound) {
+            this.dom.characterImportFile.addEventListener('change', () => this.importCharacterProfiles());
+            this.dom.characterImportFile.dataset.bound = 'true';
         }
         if (this.dom.availabilitySave && !this.dom.availabilitySave.dataset.bound) {
             this.dom.availabilitySave.addEventListener('click', () => this.saveAvailability());
@@ -2468,6 +2942,7 @@ export class UiController {
         this.syncAdminTelemetry();
         this.fetchAdminAvailability();
         this.startAdminMetrics();
+        this.closeCharacterOverlay();
         this.adminDom.overlay.hidden = false;
         this.adminDom.overlay.classList.add('open');
     }
@@ -3165,6 +3640,7 @@ export class UiController {
         this.userAdminMode = mode;
         this.userAdminPanel.setMode?.(mode);
         await this.refreshUserAdminPanel();
+        this.closeCharacterOverlay();
         this.dom.userAdminOverlay.hidden = false;
         this.dom.userAdminOverlay.classList.add('open');
     }
@@ -4208,8 +4684,7 @@ export class UiController {
         if (this.mapController?.setGroups) {
             this.mapController.setGroups(this.groups);
         }
-        this.refreshCharacterGroupOptions();
-        this.renderCharacterList();
+        this.syncCharacterForm();
     }
 
     handleAnnotationCreated(data) {

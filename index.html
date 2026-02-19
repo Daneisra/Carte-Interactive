@@ -41,28 +41,10 @@
             <div id="profile-character" class="profile-character">
                 <div class="profile-character-header">
                     <p class="profile-character-title">Personnages</p>
-                    <button id="character-add" class="tertiary-button profile-character-add" type="button">Nouveau</button>
+                    <button id="character-open" class="tertiary-button profile-character-add" type="button">Personnages</button>
                 </div>
                 <p id="profile-character-locked" class="profile-character-locked" hidden>Connexion requise pour creer un personnage.</p>
-                <div id="character-list" class="profile-character-list"></div>
-                <p id="character-empty" class="profile-character-empty" hidden>Aucun personnage enregistre.</p>
-                <div class="profile-character-fields">
-                    <label for="character-name">Nom</label>
-                    <input id="character-name" type="text" placeholder="Nom du personnage" autocomplete="off" />
-                    <label for="character-bio">Bio</label>
-                    <textarea id="character-bio" rows="3" placeholder="Bio rapide" autocomplete="off"></textarea>
-                    <label for="character-avatar">Avatar (URL)</label>
-                    <input id="character-avatar" type="text" placeholder="https://..." autocomplete="off" />
-                    <label for="character-group">Groupe</label>
-                    <select id="character-group">
-                        <option value="">Aucun groupe</option>
-                    </select>
-                </div>
-                <div class="profile-character-actions">
-                    <button id="character-save" class="secondary-button" type="button">Enregistrer</button>
-                    <button id="character-delete" class="danger-button" type="button">Supprimer</button>
-                </div>
-                <p id="character-status" class="profile-character-status" role="status" aria-live="polite" hidden></p>
+                <p id="character-summary" class="profile-character-empty">Aucun personnage enregistre.</p>
             </div>
             <div id="profile-availability" class="profile-availability">
                 <div class="profile-availability-header">
@@ -78,6 +60,62 @@
                 <button id="logout-button" class="secondary-button" type="button" hidden>Se deconnecter</button>
                 <button id="admin-panel-button" class="secondary-button admin-locked" type="button" hidden>Ouvrir le panneau admin</button>
             </div>
+        </div>
+    </div>
+    <div id="character-overlay" class="character-overlay" hidden>
+        <div class="character-dialog" role="dialog" aria-modal="true" aria-labelledby="character-dialog-title">
+            <header class="character-dialog-header">
+                <h3 id="character-dialog-title">Personnages</h3>
+                <button id="character-close" class="character-close" type="button" aria-label="Fermer la gestion des personnages">×</button>
+            </header>
+            <div class="character-dialog-toolbar">
+                <label class="sr-only" for="character-filter-search">Filtrer par nom</label>
+                <input id="character-filter-search" type="text" placeholder="Filtrer par nom..." autocomplete="off" />
+                <label class="sr-only" for="character-filter-group">Filtrer par groupe</label>
+                <select id="character-filter-group">
+                    <option value="">Tous les groupes</option>
+                </select>
+                <label class="sr-only" for="character-filter-active">Filtrer par statut actif</label>
+                <select id="character-filter-active">
+                    <option value="all">Tous</option>
+                    <option value="active">Actifs</option>
+                    <option value="inactive">Inactifs</option>
+                </select>
+                <button id="character-export" class="secondary-button" type="button">Exporter</button>
+                <button id="character-import" class="secondary-button" type="button">Importer</button>
+                <input id="character-import-file" type="file" accept="application/json,.json" hidden />
+            </div>
+            <div class="character-carousel">
+                <button id="character-carousel-prev" class="character-carousel-nav" type="button" aria-label="Page precedente">‹</button>
+                <div id="character-list" class="profile-character-list character-carousel-track"></div>
+                <button id="character-carousel-next" class="character-carousel-nav" type="button" aria-label="Page suivante">›</button>
+            </div>
+            <p id="character-empty" class="profile-character-empty" hidden>Aucun personnage enregistre.</p>
+            <p id="character-page-indicator" class="character-page-indicator">Page 1/1</p>
+            <div class="profile-character-fields">
+                <label for="character-name">Nom</label>
+                <input id="character-name" type="text" placeholder="Nom du personnage" autocomplete="off" />
+                <label for="character-bio">Bio</label>
+                <textarea id="character-bio" rows="4" placeholder="Bio rapide" autocomplete="off"></textarea>
+                <label for="character-avatar">Avatar (URL)</label>
+                <input id="character-avatar" type="text" placeholder="https://..." autocomplete="off" />
+                <label for="character-group">Groupe</label>
+                <select id="character-group">
+                    <option value="">Aucun groupe</option>
+                </select>
+                <label class="character-active-toggle" for="character-active">
+                    <input id="character-active" type="checkbox" />
+                    <span>Tag actif</span>
+                </label>
+            </div>
+            <div class="profile-character-actions">
+                <button id="character-add" class="secondary-button" type="button">Nouveau</button>
+                <button id="character-duplicate" class="secondary-button" type="button">Dupliquer</button>
+                <button id="character-save" class="primary-button" type="button">Enregistrer</button>
+                <button id="character-delete" class="danger-button" type="button">Supprimer</button>
+            </div>
+            <p id="character-overlay-locked" class="profile-character-locked" hidden>Connexion requise pour creer un personnage.</p>
+            <p id="character-status" class="profile-character-status" role="status" aria-live="polite" hidden></p>
         </div>
     </div>
     <div id="user-admin-overlay" class="user-admin-overlay" hidden>
