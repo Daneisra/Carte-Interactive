@@ -977,6 +977,54 @@ const sanitizeCharacterList = (characters, { assignIds = false, allowedGroups = 
   return list;
 };
 
+const sanitizeProfileUrl = value => {
+  const normalized = normalizeString(value);
+  if (!normalized) {
+    return null;
+  }
+  if (normalized.startsWith('/')) {
+    return normalized;
+  }
+  return isHttpUrl(normalized) ? normalized : null;
+};
+
+const sanitizeAccentColor = value => {
+  const normalized = normalizeString(value).toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(normalized) ? normalized : null;
+};
+
+const PROFILE_SOCIAL_KEYS = ['website', 'discord', 'twitch', 'youtube', 'x'];
+
+const sanitizeProfileRecord = value => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const banner = sanitizeProfileUrl(value.banner || value.bannerUrl);
+  const accentColor = sanitizeAccentColor(value.accentColor || value.accent || value.color);
+  const bioRaw = normalizeString(value.bio);
+  const bio = bioRaw ? bioRaw.slice(0, 6000) : null;
+  const socialsSource = value.socials && typeof value.socials === 'object'
+    ? value.socials
+    : value;
+  const socials = {};
+  PROFILE_SOCIAL_KEYS.forEach(key => {
+    const normalized = sanitizeProfileUrl(socialsSource[key]);
+    if (normalized) {
+      socials[key] = normalized;
+    }
+  });
+  const hasSocials = Object.keys(socials).length > 0;
+  if (!banner && !accentColor && !bio && !hasSocials) {
+    return null;
+  }
+  return {
+    banner: banner || null,
+    accentColor: accentColor || null,
+    bio: bio || null,
+    socials
+  };
+};
+
 const normalizeAvailabilityMatrix = slots => {
   if (!Array.isArray(slots)) {
     return null;
@@ -1037,6 +1085,7 @@ const sanitizeUserRecord = user => {
   groups: Array.isArray(user?.groups) ? user.groups.filter(Boolean) : [],
   character: characters[0] || null,
   characters,
+  profile: sanitizeProfileRecord(user?.profile),
   availability: sanitizeAvailabilityRecord(user?.availability),
   apiTokens: Array.isArray(user?.apiTokens) && user?.provider !== 'discord' ? [...user.apiTokens] : undefined
   });
@@ -1118,6 +1167,7 @@ const createManualUser = async ({ username = '', role = 'user', token = null }) 
     role: sanitizeRole(role),
     characters: [],
     character: null,
+    profile: null,
     availability: null,
     groups: [],
     apiTokens: [apiToken]
@@ -1144,6 +1194,7 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
       role: shouldBeAdmin ? 'admin' : 'user',
       characters: [],
       character: null,
+      profile: null,
       availability: null,
       groups: [],
       apiTokens: []
@@ -1169,6 +1220,7 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
     username: user.username,
     avatar: user.avatar || null,
     characters: Array.isArray(user.characters) ? user.characters : [],
+    profile: sanitizeProfileRecord(user?.profile),
     availability: sanitizeAvailabilityRecord(user?.availability)
   });
   return user;
@@ -1250,6 +1302,7 @@ const updateUser = async (id, { role, username, addToken, removeToken, groups, c
       username: user.username,
       groups: user.groups || [],
       characters: Array.isArray(user.characters) ? user.characters : [],
+      profile: sanitizeProfileRecord(user?.profile),
       availability: sanitizeAvailabilityRecord(user?.availability)
     });
   }
@@ -1279,7 +1332,17 @@ const updateUserCharacters = async (id, characterPayload) => {
   return user;
 };
 
-const updateUserProfile = async (id, { characterPayload, availabilityPayload, updateCharacters, updateAvailability } = {}) => {
+const updateUserProfile = async (
+  id,
+  {
+    characterPayload,
+    availabilityPayload,
+    profilePayload,
+    updateCharacters,
+    updateAvailability,
+    updateProfile
+  } = {}
+) => {
   const users = await readUsersFile();
   const user = users.find(entry => entry.id === id);
   if (!user) {
@@ -1333,15 +1396,36 @@ const updateUserProfile = async (id, { characterPayload, availabilityPayload, up
     }
   }
 
+  let profile = sanitizeProfileRecord(user.profile) || null;
+  if (updateProfile) {
+    if (profilePayload === null) {
+      if (profile !== null) {
+        profile = null;
+        user.profile = null;
+        updated = true;
+      }
+    } else {
+      const normalized = sanitizeProfileRecord(profilePayload);
+      const currentKey = JSON.stringify(profile || null);
+      const nextKey = JSON.stringify(normalized || null);
+      if (currentKey !== nextKey) {
+        profile = normalized;
+        user.profile = normalized;
+        updated = true;
+      }
+    }
+  }
+
   if (updated) {
     await writeUsersFile(users);
     updateSessionsForUser(user.id, {
       characters: Array.isArray(user.characters) ? user.characters : [],
       groups: user.groups || [],
+      profile: sanitizeProfileRecord(user?.profile),
       availability: sanitizeAvailabilityRecord(user?.availability)
     });
   }
-  return { user, characters, availability };
+  return { user, characters, availability, profile };
 };
 
 const deleteUser = async id => {
@@ -1888,13 +1972,17 @@ const server = http.createServer(async (req, res) => {
         const allowed = new Set(groups.map(group => group?.id).filter(Boolean));
         const characters = sanitizeCharacterList(resolveUserCharacters(user), { assignIds: true, allowedGroups: allowed });
         const availability = sanitizeAvailabilityRecord(user.availability) || null;
+        const profile = sanitizeProfileRecord(user.profile) || null;
         const currentKey = JSON.stringify(Array.isArray(user.characters) ? user.characters : []);
         const nextKey = JSON.stringify(characters);
-        if (currentKey !== nextKey || user.character) {
+        const currentProfileKey = JSON.stringify(user?.profile || null);
+        const nextProfileKey = JSON.stringify(profile || null);
+        if (currentKey !== nextKey || user.character || currentProfileKey !== nextProfileKey) {
           user.characters = characters;
           user.character = null;
+          user.profile = profile;
           await writeUsersFile(users);
-          updateSessionsForUser(user.id, { characters, availability });
+          updateSessionsForUser(user.id, { characters, availability, profile });
         }
         send(res, 200, JSON.stringify({
           status: 'ok',
@@ -1903,7 +1991,9 @@ const server = http.createServer(async (req, res) => {
             avatar: user.avatar || null,
             groups: Array.isArray(user.groups) ? user.groups : [],
             characters,
-            availability
+            availability,
+            profile,
+            customization: profile
           }
         }), { 'Content-Type': 'application/json' });
         return;
@@ -1930,11 +2020,15 @@ const server = http.createServer(async (req, res) => {
           : undefined;
         const updateAvailability = Object.prototype.hasOwnProperty.call(payload || {}, 'availability');
         const availabilityPayload = updateAvailability ? payload.availability : undefined;
+        const updateProfile = Object.prototype.hasOwnProperty.call(payload || {}, 'profile');
+        const profilePayload = updateProfile ? payload.profile : undefined;
         const result = await updateUserProfile(currentUser.id, {
           characterPayload,
           availabilityPayload,
+          profilePayload,
           updateCharacters,
-          updateAvailability
+          updateAvailability,
+          updateProfile
         });
         if (result.error) {
           send(res, 400, JSON.stringify({ status: 'error', message: result.error }), { 'Content-Type': 'application/json' });
@@ -1948,6 +2042,7 @@ const server = http.createServer(async (req, res) => {
           ? result.characters
           : sanitizeCharacterList(resolveUserCharacters(result.user));
         const availability = result.availability ?? (sanitizeAvailabilityRecord(result.user.availability) || null);
+        const profile = result.profile ?? (sanitizeProfileRecord(result.user.profile) || null);
         send(res, 200, JSON.stringify({
           status: 'ok',
           profile: {
@@ -1955,7 +2050,9 @@ const server = http.createServer(async (req, res) => {
             avatar: result.user.avatar || null,
             groups: Array.isArray(result.user.groups) ? result.user.groups : [],
             characters,
-            availability
+            availability,
+            profile,
+            customization: profile
           }
         }), { 'Content-Type': 'application/json' });
         return;

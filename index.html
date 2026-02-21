@@ -20,7 +20,7 @@
             <span id="profile-label" class="profile-label">Profil</span>
         </button>
         <div id="auth-panel" class="profile-menu" hidden>
-            <div class="profile-identity-card">
+            <div id="profile-identity-card" class="profile-identity-card">
                 <div class="profile-summary">
                     <div id="profile-avatar-panel" class="profile-avatar profile-avatar-lg" aria-hidden="true">?</div>
                     <div class="profile-info">
@@ -37,6 +37,42 @@
                     <div id="auth-groups" class="profile-group-list"></div>
                     <p id="auth-groups-empty" class="profile-group-empty">Aucun groupe assigne.</p>
                 </div>
+            </div>
+            <div id="profile-customization" class="profile-customization">
+                <div class="profile-customization-header">
+                    <p class="profile-customization-title">Personnalisation</p>
+                    <button id="profile-customization-save" class="tertiary-button" type="button">Enregistrer</button>
+                </div>
+                <p id="profile-customization-locked" class="profile-character-locked" hidden>Connexion requise pour personnaliser votre profil.</p>
+                <div class="profile-customization-fields">
+                    <label for="profile-banner">Banniere (URL)</label>
+                    <input id="profile-banner" type="text" placeholder="https://.../banniere.jpg" autocomplete="off" />
+                    <label for="profile-accent">Couleur d'accent</label>
+                    <div class="profile-accent-row">
+                        <input id="profile-accent-picker" type="color" value="#60a5fa" />
+                        <input id="profile-accent" type="text" placeholder="#60a5fa" autocomplete="off" />
+                    </div>
+                    <label for="profile-bio-markdown">Bio (markdown leger)</label>
+                    <textarea id="profile-bio-markdown" rows="4" placeholder="Quelques lignes sur votre profil..."></textarea>
+                    <label for="profile-social-website">Site web</label>
+                    <input id="profile-social-website" type="text" placeholder="https://..." autocomplete="off" />
+                    <label for="profile-social-discord">Discord</label>
+                    <input id="profile-social-discord" type="text" placeholder="https://discord.gg/..." autocomplete="off" />
+                    <label for="profile-social-twitch">Twitch</label>
+                    <input id="profile-social-twitch" type="text" placeholder="https://twitch.tv/..." autocomplete="off" />
+                    <label for="profile-social-youtube">YouTube</label>
+                    <input id="profile-social-youtube" type="text" placeholder="https://youtube.com/..." autocomplete="off" />
+                    <label for="profile-social-x">X / Twitter</label>
+                    <input id="profile-social-x" type="text" placeholder="https://x.com/..." autocomplete="off" />
+                </div>
+                <div class="profile-customization-preview">
+                    <p class="profile-preview-title">Apercu bio</p>
+                    <div id="profile-bio-preview" class="profile-bio-preview markdown-content">
+                        <p class="profile-preview-empty">Aucune bio renseignee.</p>
+                    </div>
+                    <div id="profile-social-preview" class="profile-social-preview" hidden></div>
+                </div>
+                <p id="profile-customization-status" class="profile-character-status" role="status" aria-live="polite" hidden></p>
             </div>
             <div id="profile-character" class="profile-character">
                 <div class="profile-character-header">

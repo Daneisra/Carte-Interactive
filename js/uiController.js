@@ -7,6 +7,7 @@ import { AudioManager } from './ui/audioManager.js';
 import { InfoPanel } from './ui/infoPanel.js';
 import { UserAdminPanel } from './ui/userAdminPanel.js';
 import { AriaAnnouncer } from './ui/ariaAnnouncer.js';
+import { renderMarkdown } from './ui/markdown.mjs';
 import { qs, createElement, clearElement } from './ui/dom.js';
 import { LocationEditor } from './ui/locationEditor.js';
 import { EventsFeed } from './ui/eventsFeed.js';
@@ -68,6 +69,13 @@ const AVAILABILITY_SLOTS = [
     { id: 'evening', label: 'Soir', range: '18-22' },
     { id: 'night', label: 'Nuit', range: '22-02' }
 ];
+const PROFILE_SOCIAL_LABELS = {
+    website: 'Site web',
+    discord: 'Discord',
+    twitch: 'Twitch',
+    youtube: 'YouTube',
+    x: 'X/Twitter'
+};
 
 const resolveLocalTimezone = () => {
     try {
@@ -176,8 +184,24 @@ export class UiController {
             authUsername: document.getElementById('auth-username'),
             authRole: document.getElementById('auth-role'),
             authPresence: document.getElementById('auth-presence'),
+            profileIdentityCard: document.getElementById('profile-identity-card'),
             authGroups: document.getElementById('auth-groups'),
             authGroupsEmpty: document.getElementById('auth-groups-empty'),
+            profileCustomization: document.getElementById('profile-customization'),
+            profileCustomizationLocked: document.getElementById('profile-customization-locked'),
+            profileCustomizationSave: document.getElementById('profile-customization-save'),
+            profileCustomizationStatus: document.getElementById('profile-customization-status'),
+            profileBanner: document.getElementById('profile-banner'),
+            profileAccent: document.getElementById('profile-accent'),
+            profileAccentPicker: document.getElementById('profile-accent-picker'),
+            profileBioMarkdown: document.getElementById('profile-bio-markdown'),
+            profileSocialWebsite: document.getElementById('profile-social-website'),
+            profileSocialDiscord: document.getElementById('profile-social-discord'),
+            profileSocialTwitch: document.getElementById('profile-social-twitch'),
+            profileSocialYoutube: document.getElementById('profile-social-youtube'),
+            profileSocialX: document.getElementById('profile-social-x'),
+            profileBioPreview: document.getElementById('profile-bio-preview'),
+            profileSocialPreview: document.getElementById('profile-social-preview'),
             characterSection: document.getElementById('profile-character'),
             characterLocked: document.getElementById('profile-character-locked'),
             characterSummary: document.getElementById('character-summary'),
@@ -305,7 +329,7 @@ export class UiController {
         });
 
         this.authRequired = true;
-        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [], availability: null };
+        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [], availability: null, profile: null };
 
         this.pageSize = PAGE_SIZE;
         this.entries = [];
@@ -328,6 +352,9 @@ export class UiController {
         this.characterFilterActive = 'all';
         this.characterPageIndex = 0;
         this.characterPageSize = 6;
+        this.profileCustomization = null;
+        this.profileCustomizationDirty = false;
+        this.profileCustomizationPending = false;
         this.availability = null;
         this.availabilityDirty = false;
         this.availabilityTimezone = resolveLocalTimezone();
@@ -1602,7 +1629,17 @@ export class UiController {
         return (this.auth?.role || '').toLowerCase() === 'admin';
     }
 
-    setAuthState({ authenticated = false, role = 'guest', username = '', avatar = null, groups = [], groupDetails = [], characters = [], availability = null } = {}) {
+    setAuthState({
+        authenticated = false,
+        role = 'guest',
+        username = '',
+        avatar = null,
+        groups = [],
+        groupDetails = [],
+        characters = [],
+        availability = null,
+        profile = null
+    } = {}) {
         const previouslyAuthenticated = Boolean(this.auth?.authenticated);
         if (!this.authRequired) {
             if (authenticated) {
@@ -1614,10 +1651,11 @@ export class UiController {
                     groups: Array.isArray(groups) ? groups : (this.auth.groups || []),
                     groupDetails: Array.isArray(groupDetails) ? groupDetails : (this.auth.groupDetails || []),
                     characters: Array.isArray(characters) ? characters : (this.auth.characters || []),
-                    availability: availability ?? this.auth.availability ?? null
+                    availability: availability ?? this.auth.availability ?? null,
+                    profile: profile ?? this.auth.profile ?? null
                 };
             } else {
-                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [], availability: null };
+                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [], availability: null, profile: null };
             }
         } else {
             this.auth = {
@@ -1628,13 +1666,15 @@ export class UiController {
                 groups: Array.isArray(groups) ? groups : [],
                 groupDetails: Array.isArray(groupDetails) ? groupDetails : [],
                 characters: Array.isArray(characters) ? characters : [],
-                availability: availability ?? null
+                availability: availability ?? null,
+                profile: profile ?? null
             };
         }
         if (previouslyAuthenticated !== this.auth.authenticated) {
             this.characterFormDirty = false;
             this.charactersDirty = false;
             this.availabilityDirty = false;
+            this.profileCustomizationDirty = false;
         }
         const nowAuthenticated = Boolean(this.auth?.authenticated);
         if (this.authRequired && !previouslyAuthenticated && nowAuthenticated && !this.questEventsLoaded) {
@@ -1661,6 +1701,9 @@ export class UiController {
             if (normalized?.timezone) {
                 this.availabilityTimezone = normalized.timezone;
             }
+        }
+        if (!this.profileCustomizationDirty) {
+            this.profileCustomization = this.normalizeProfileCustomization(this.auth.profile);
         }
         this.updateAuthUI();
         this.updateValidationWarnings(this.latestValidationWarnings);
@@ -1802,6 +1845,7 @@ export class UiController {
         if (this.eventsFeed) {
             this.eventsFeed.setCanDeleteResolver(() => this.isAdmin());
         }
+        this.syncProfileCustomizationUI();
         this.syncCharacterForm();
         this.syncAvailabilityUI();
     }
@@ -2466,6 +2510,232 @@ export class UiController {
         }
     }
 
+    isValidAccentColor(value) {
+        return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value.trim());
+    }
+
+    normalizeProfileUrl(value) {
+        const normalized = typeof value === 'string' ? value.trim() : '';
+        if (!normalized) {
+            return null;
+        }
+        if (normalized.startsWith('/')) {
+            return normalized;
+        }
+        if (/^https?:\/\//i.test(normalized)) {
+            return normalized;
+        }
+        return null;
+    }
+
+    normalizeProfileCustomization(payload) {
+        const source = payload && typeof payload === 'object' ? payload : {};
+        const banner = this.normalizeProfileUrl(source.banner);
+        const accentColor = this.isValidAccentColor(source.accentColor || '')
+            ? (source.accentColor || '').trim()
+            : null;
+        const bio = typeof source.bio === 'string'
+            ? source.bio.trim().slice(0, 6000)
+            : '';
+        const socialsSource = source.socials && typeof source.socials === 'object'
+            ? source.socials
+            : source;
+        const socials = {};
+        Object.keys(PROFILE_SOCIAL_LABELS).forEach(key => {
+            const value = this.normalizeProfileUrl(socialsSource[key]);
+            if (value) {
+                socials[key] = value;
+            }
+        });
+        return {
+            banner: banner || null,
+            accentColor: accentColor || null,
+            bio: bio || '',
+            socials
+        };
+    }
+
+    collectProfileCustomizationDraft() {
+        const accentInput = this.dom.profileAccent?.value || '';
+        const accent = this.isValidAccentColor(accentInput) ? accentInput.trim() : null;
+        return this.normalizeProfileCustomization({
+            banner: this.dom.profileBanner?.value || '',
+            accentColor: accent,
+            bio: this.dom.profileBioMarkdown?.value || '',
+            socials: {
+                website: this.dom.profileSocialWebsite?.value || '',
+                discord: this.dom.profileSocialDiscord?.value || '',
+                twitch: this.dom.profileSocialTwitch?.value || '',
+                youtube: this.dom.profileSocialYoutube?.value || '',
+                x: this.dom.profileSocialX?.value || ''
+            }
+        });
+    }
+
+    setProfileCustomizationStatus(message, isError = false) {
+        const target = this.dom.profileCustomizationStatus;
+        if (!target) {
+            return;
+        }
+        if (!message) {
+            target.hidden = true;
+            target.textContent = '';
+            target.classList.remove('is-error');
+            return;
+        }
+        target.hidden = false;
+        target.textContent = message;
+        target.classList.toggle('is-error', isError);
+    }
+
+    applyProfileCustomizationTheme(profile) {
+        const normalized = this.normalizeProfileCustomization(profile);
+        const accent = normalized.accentColor || '#60a5fa';
+        if (this.dom.profilePanel) {
+            this.dom.profilePanel.style.setProperty('--profile-accent', accent);
+        }
+        const card = this.dom.profileIdentityCard;
+        if (!card) {
+            return;
+        }
+        if (normalized.banner) {
+            card.style.backgroundImage = `linear-gradient(145deg, rgba(15, 23, 42, 0.82), rgba(23, 37, 84, 0.5)), url("${normalized.banner}")`;
+            card.style.backgroundSize = 'cover';
+            card.style.backgroundPosition = 'center';
+        } else {
+            card.style.backgroundImage = '';
+            card.style.backgroundSize = '';
+            card.style.backgroundPosition = '';
+        }
+    }
+
+    renderProfileCustomizationPreview(profile) {
+        const normalized = this.normalizeProfileCustomization(profile);
+        if (this.dom.profileBioPreview) {
+            const html = renderMarkdown(normalized.bio || '');
+            if (html) {
+                this.dom.profileBioPreview.innerHTML = html;
+            } else {
+                this.dom.profileBioPreview.innerHTML = '<p class="profile-preview-empty">Aucune bio renseignee.</p>';
+            }
+        }
+        if (this.dom.profileSocialPreview) {
+            clearElement(this.dom.profileSocialPreview);
+            const entries = Object.entries(normalized.socials || {});
+            this.dom.profileSocialPreview.hidden = entries.length === 0;
+            entries.forEach(([key, href]) => {
+                const label = PROFILE_SOCIAL_LABELS[key] || key;
+                const link = createElement('a', {
+                    className: 'profile-social-chip',
+                    text: label,
+                    attributes: {
+                        href,
+                        target: '_blank',
+                        rel: 'noopener noreferrer'
+                    }
+                });
+                this.dom.profileSocialPreview.appendChild(link);
+            });
+        }
+        this.applyProfileCustomizationTheme(normalized);
+    }
+
+    syncProfileCustomizationUI() {
+        if (!this.dom.profileCustomization) {
+            return;
+        }
+        const authenticated = Boolean(this.auth?.authenticated);
+        const disabled = !authenticated || this.profileCustomizationPending;
+        const inputs = [
+            this.dom.profileBanner,
+            this.dom.profileAccent,
+            this.dom.profileAccentPicker,
+            this.dom.profileBioMarkdown,
+            this.dom.profileSocialWebsite,
+            this.dom.profileSocialDiscord,
+            this.dom.profileSocialTwitch,
+            this.dom.profileSocialYoutube,
+            this.dom.profileSocialX
+        ].filter(Boolean);
+        inputs.forEach(input => {
+            input.disabled = disabled;
+        });
+        if (this.dom.profileCustomizationSave) {
+            this.dom.profileCustomizationSave.disabled = disabled;
+        }
+        if (this.dom.profileCustomizationLocked) {
+            this.dom.profileCustomizationLocked.hidden = authenticated;
+        }
+        if (!this.profileCustomizationDirty) {
+            const value = this.normalizeProfileCustomization(this.profileCustomization);
+            if (this.dom.profileBanner) {
+                this.dom.profileBanner.value = value.banner || '';
+            }
+            if (this.dom.profileAccent) {
+                this.dom.profileAccent.value = value.accentColor || '';
+            }
+            if (this.dom.profileAccentPicker) {
+                this.dom.profileAccentPicker.value = value.accentColor || '#60a5fa';
+            }
+            if (this.dom.profileBioMarkdown) {
+                this.dom.profileBioMarkdown.value = value.bio || '';
+            }
+            if (this.dom.profileSocialWebsite) {
+                this.dom.profileSocialWebsite.value = value.socials.website || '';
+            }
+            if (this.dom.profileSocialDiscord) {
+                this.dom.profileSocialDiscord.value = value.socials.discord || '';
+            }
+            if (this.dom.profileSocialTwitch) {
+                this.dom.profileSocialTwitch.value = value.socials.twitch || '';
+            }
+            if (this.dom.profileSocialYoutube) {
+                this.dom.profileSocialYoutube.value = value.socials.youtube || '';
+            }
+            if (this.dom.profileSocialX) {
+                this.dom.profileSocialX.value = value.socials.x || '';
+            }
+            this.renderProfileCustomizationPreview(value);
+            return;
+        }
+        this.renderProfileCustomizationPreview(this.collectProfileCustomizationDraft());
+    }
+
+    async saveProfileCustomization() {
+        if (!this.auth?.authenticated) {
+            this.setProfileCustomizationStatus('Connexion requise pour enregistrer votre profil.', true);
+            return;
+        }
+        const draft = this.collectProfileCustomizationDraft();
+        this.profileCustomizationPending = true;
+        this.syncProfileCustomizationUI();
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profile: draft })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            const nextProfile = this.normalizeProfileCustomization(payload?.profile?.profile || payload?.profile?.customization || payload?.profile || draft);
+            this.profileCustomization = nextProfile;
+            this.auth.profile = nextProfile;
+            this.profileCustomizationDirty = false;
+            this.setProfileCustomizationStatus('Profil mis a jour.');
+            this.syncProfileCustomizationUI();
+            await this.fetchSession();
+        } catch (error) {
+            console.error('[profile] customization save failed', error);
+            this.setProfileCustomizationStatus('Impossible de sauvegarder la personnalisation.', true);
+        } finally {
+            this.profileCustomizationPending = false;
+            this.syncProfileCustomizationUI();
+        }
+    }
+
     buildAvailabilityGrid() {
         const grid = this.dom.availabilityGrid;
         if (!grid || grid.dataset.ready === 'true') {
@@ -2683,7 +2953,8 @@ export class UiController {
             const groupDetails = Array.isArray(payload?.groupDetails) ? payload.groupDetails : [];
             const characters = Array.isArray(payload?.characters) ? payload.characters : [];
             const availability = payload?.availability ?? null;
-            this.setAuthState({ authenticated, role, username, avatar, groups, groupDetails, characters, availability });
+            const profile = payload?.profile ?? null;
+            this.setAuthState({ authenticated, role, username, avatar, groups, groupDetails, characters, availability, profile });
         } catch (error) {
             console.error('[auth] session fetch failed', error);
             this.authRequired = true;
@@ -2767,6 +3038,49 @@ export class UiController {
                 this.closeCharacterOverlay();
                 this.setProfilePanelOpen(false);
             });
+        }
+        const markProfileCustomizationDirty = () => {
+            this.profileCustomizationDirty = true;
+            this.setProfileCustomizationStatus('');
+            this.syncProfileCustomizationUI();
+        };
+        if (this.dom.profileAccentPicker && !this.dom.profileAccentPicker.dataset.bound) {
+            this.dom.profileAccentPicker.addEventListener('input', () => {
+                if (this.dom.profileAccent) {
+                    this.dom.profileAccent.value = this.dom.profileAccentPicker.value || '';
+                }
+                markProfileCustomizationDirty();
+            });
+            this.dom.profileAccentPicker.dataset.bound = 'true';
+        }
+        if (this.dom.profileAccent && !this.dom.profileAccent.dataset.bound) {
+            this.dom.profileAccent.addEventListener('input', () => {
+                const value = this.dom.profileAccent.value || '';
+                if (this.isValidAccentColor(value) && this.dom.profileAccentPicker) {
+                    this.dom.profileAccentPicker.value = value.trim();
+                }
+                markProfileCustomizationDirty();
+            });
+            this.dom.profileAccent.dataset.bound = 'true';
+        }
+        [
+            this.dom.profileBanner,
+            this.dom.profileBioMarkdown,
+            this.dom.profileSocialWebsite,
+            this.dom.profileSocialDiscord,
+            this.dom.profileSocialTwitch,
+            this.dom.profileSocialYoutube,
+            this.dom.profileSocialX
+        ].forEach(input => {
+            if (!input || input.dataset.bound) {
+                return;
+            }
+            input.addEventListener('input', markProfileCustomizationDirty);
+            input.dataset.bound = 'true';
+        });
+        if (this.dom.profileCustomizationSave && !this.dom.profileCustomizationSave.dataset.bound) {
+            this.dom.profileCustomizationSave.addEventListener('click', () => this.saveProfileCustomization());
+            this.dom.profileCustomizationSave.dataset.bound = 'true';
         }
         if (this.dom.characterOpen && !this.dom.characterOpen.dataset.bound) {
             this.dom.characterOpen.addEventListener('click', () => {
