@@ -51,7 +51,7 @@
 - [x] Multi‑personnages: carrousel + filtres, tag “actif”, duplication rapide, import/export.
 - [x] Personnalisation: bannière, couleur d’accent, bio riche (markdown léger), liens sociaux.
 - [x] Actions rapides: changer thème, raccourcis admin, accès “Mes lieux favoris”.
-- [ ] Feedback clair: état de sauvegarde, erreurs inline, historique des edits récents.
+- [x] Feedback clair: état de sauvegarde, erreurs inline, historique des edits récents.
 - [ ] Sécurité/compte: bouton “révoquer session”, infos Discord, date dernière connexion.
 - [ ] Polish UI
 

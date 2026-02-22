@@ -191,6 +191,7 @@ export class UiController {
             profileCustomizationLocked: document.getElementById('profile-customization-locked'),
             profileCustomizationSave: document.getElementById('profile-customization-save'),
             profileCustomizationStatus: document.getElementById('profile-customization-status'),
+            profileCustomizationErrors: document.getElementById('profile-customization-errors'),
             profileBanner: document.getElementById('profile-banner'),
             profileAccent: document.getElementById('profile-accent'),
             profileAccentPicker: document.getElementById('profile-accent-picker'),
@@ -202,6 +203,12 @@ export class UiController {
             profileSocialX: document.getElementById('profile-social-x'),
             profileBioPreview: document.getElementById('profile-bio-preview'),
             profileSocialPreview: document.getElementById('profile-social-preview'),
+            profileSaveState: document.getElementById('profile-save-state'),
+            profileSaveDetail: document.getElementById('profile-save-detail'),
+            profileCustomizationState: document.getElementById('profile-customization-state'),
+            profileCharactersState: document.getElementById('profile-characters-state'),
+            profileAvailabilityState: document.getElementById('profile-availability-state'),
+            profileEditHistory: document.getElementById('profile-edit-history'),
             characterSection: document.getElementById('profile-character'),
             characterLocked: document.getElementById('profile-character-locked'),
             characterSummary: document.getElementById('character-summary'),
@@ -209,6 +216,7 @@ export class UiController {
             characterOverlay: document.getElementById('character-overlay'),
             characterClose: document.getElementById('character-close'),
             characterOverlayLocked: document.getElementById('character-overlay-locked'),
+            characterErrors: document.getElementById('character-errors'),
             characterList: document.getElementById('character-list'),
             characterEmpty: document.getElementById('character-empty'),
             characterPageIndicator: document.getElementById('character-page-indicator'),
@@ -359,6 +367,14 @@ export class UiController {
         this.profileCustomization = null;
         this.profileCustomizationDirty = false;
         this.profileCustomizationPending = false;
+        this.profileCustomizationInlineErrors = [];
+        this.characterInlineErrors = [];
+        this.availabilitySyncPending = false;
+        this.profileFeedback = {
+            state: 'idle',
+            detail: 'Aucune modification en attente.',
+            history: []
+        };
         this.availability = null;
         this.availabilityDirty = false;
         this.availabilityTimezone = resolveLocalTimezone();
@@ -1679,6 +1695,11 @@ export class UiController {
             this.charactersDirty = false;
             this.availabilityDirty = false;
             this.profileCustomizationDirty = false;
+            this.characterSyncPending = false;
+            this.availabilitySyncPending = false;
+            this.profileCustomizationPending = false;
+            this.characterInlineErrors = [];
+            this.profileCustomizationInlineErrors = [];
         }
         const nowAuthenticated = Boolean(this.auth?.authenticated);
         if (this.authRequired && !previouslyAuthenticated && nowAuthenticated && !this.questEventsLoaded) {
@@ -1872,6 +1893,7 @@ export class UiController {
         this.syncProfileCustomizationUI();
         this.syncCharacterForm();
         this.syncAvailabilityUI();
+        this.syncProfileFeedbackUI();
     }
 
     syncCharacterForm() {
@@ -1935,7 +1957,12 @@ export class UiController {
             if (this.dom.characterActive) {
                 this.dom.characterActive.checked = Boolean(character.active);
             }
+            this.characterInlineErrors = [];
+            this.renderInlineErrors(this.dom.characterErrors, []);
+            this.setFieldInvalid(this.dom.characterName, false);
+            this.setFieldInvalid(this.dom.characterAvatar, false);
         }
+        this.syncProfileFeedbackUI();
     }
 
     normalizeCharacterList(characters, { assignIds = false } = {}) {
@@ -2306,6 +2333,7 @@ export class UiController {
         this.dom.characterStatus.textContent = message;
         this.dom.characterStatus.hidden = false;
         this.dom.characterStatus.classList.toggle('is-error', isError);
+        this.syncProfileFeedbackUI();
     }
 
     setCharacterOverlayOpen(open, { focusName = false } = {}) {
@@ -2346,7 +2374,9 @@ export class UiController {
         const normalizedCharacters = this.normalizeCharacterList(nextCharacters, { assignIds: true });
         this.charactersDirty = true;
         this.characterSyncPending = true;
+        this.setProfileFeedbackState('saving', 'Sauvegarde des personnages...');
         this.syncCharacterForm();
+        this.syncProfileFeedbackUI();
         try {
             const response = await fetch('/api/profile', {
                 method: 'PATCH',
@@ -2369,15 +2399,18 @@ export class UiController {
                 this.activeCharacterId = preferred?.id || characters[0]?.id || null;
             }
             this.setCharacterStatus(successMessage || 'Personnage enregistre.');
+            this.recordProfileEdit('characters', successMessage || 'Personnages mis a jour', 'ok');
             this.syncCharacterForm();
             await this.fetchSession();
             await this.fetchGroups();
         } catch (error) {
             console.error('[profile] update failed', error);
             this.setCharacterStatus('Impossible de mettre a jour les personnages.', true);
+            this.recordProfileEdit('characters', 'Echec de mise a jour', 'error');
         } finally {
             this.characterSyncPending = false;
             this.syncCharacterForm();
+            this.syncProfileFeedbackUI();
         }
     }
 
@@ -2386,11 +2419,13 @@ export class UiController {
             this.announcer?.assertive?.('Connexion requise pour creer un personnage.');
             return;
         }
-        const draft = this.collectCharacterDraft();
-        if (!draft.name) {
-            this.setCharacterStatus('Le nom du personnage est requis.', true);
+        const inlineErrors = this.validateCharacterDraftInline();
+        if (inlineErrors.length) {
+            this.setCharacterStatus('Corrigez les erreurs inline avant de sauvegarder.', true);
+            this.recordProfileEdit('characters', 'Validation personnage echouee', 'error');
             return;
         }
+        const draft = this.collectCharacterDraft();
         const nextCharacters = Array.isArray(this.profileCharacters) ? [...this.profileCharacters] : [];
         let activeId = this.activeCharacterId;
         if (activeId) {
@@ -2457,9 +2492,11 @@ export class UiController {
             anchor.remove();
             URL.revokeObjectURL(url);
             this.setCharacterStatus('Export termine.');
+            this.recordProfileEdit('characters', 'Export JSON', 'ok');
         } catch (error) {
             console.error('[profile] export failed', error);
             this.setCharacterStatus('Impossible d\'exporter les personnages.', true);
+            this.recordProfileEdit('characters', 'Export JSON echoue', 'error');
         }
     }
 
@@ -2495,6 +2532,7 @@ export class UiController {
             const imported = this.normalizeCharacterList(source, { assignIds: true });
             if (!imported.length) {
                 this.setCharacterStatus('Aucun personnage valide trouve dans le fichier.', true);
+                this.recordProfileEdit('characters', 'Import JSON invalide', 'error');
                 return;
             }
             const nextCharacters = [
@@ -2527,6 +2565,7 @@ export class UiController {
         } catch (error) {
             console.error('[profile] import failed', error);
             this.setCharacterStatus('Import impossible. Verifiez le format JSON.', true);
+            this.recordProfileEdit('characters', 'Import JSON echoue', 'error');
         } finally {
             if (input) {
                 input.value = '';
@@ -2610,6 +2649,208 @@ export class UiController {
         target.hidden = false;
         target.textContent = message;
         target.classList.toggle('is-error', isError);
+        if (message) {
+            this.setProfileFeedbackState(isError ? 'error' : 'saved', message);
+        }
+        this.syncProfileFeedbackUI();
+    }
+
+    renderInlineErrors(listElement, errors = []) {
+        if (!listElement) {
+            return;
+        }
+        clearElement(listElement);
+        const entries = Array.isArray(errors) ? errors.filter(Boolean) : [];
+        listElement.hidden = entries.length === 0;
+        entries.forEach(message => {
+            const li = createElement('li', { text: message });
+            listElement.appendChild(li);
+        });
+    }
+
+    setFieldInvalid(input, invalid) {
+        if (!input) {
+            return;
+        }
+        input.classList.toggle('is-invalid', Boolean(invalid));
+        input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+    }
+
+    validateCharacterDraftInline() {
+        const errors = [];
+        const name = this.dom.characterName?.value.trim() || '';
+        const avatar = this.dom.characterAvatar?.value.trim() || '';
+        if (!name) {
+            errors.push('Le nom du personnage est requis.');
+        }
+        if (avatar && !this.normalizeProfileUrl(avatar)) {
+            errors.push("L'URL d'avatar du personnage est invalide (http(s) ou chemin local).");
+        }
+        this.setFieldInvalid(this.dom.characterName, !name);
+        this.setFieldInvalid(this.dom.characterAvatar, Boolean(avatar) && !this.normalizeProfileUrl(avatar));
+        this.characterInlineErrors = errors;
+        this.renderInlineErrors(this.dom.characterErrors, errors);
+        this.syncProfileFeedbackUI();
+        return errors;
+    }
+
+    validateProfileCustomizationInline() {
+        const errors = [];
+        const banner = this.dom.profileBanner?.value.trim() || '';
+        const accent = this.dom.profileAccent?.value.trim() || '';
+        const socials = [
+            ['Site web', this.dom.profileSocialWebsite],
+            ['Discord', this.dom.profileSocialDiscord],
+            ['Twitch', this.dom.profileSocialTwitch],
+            ['YouTube', this.dom.profileSocialYoutube],
+            ['X / Twitter', this.dom.profileSocialX]
+        ];
+        if (banner && !this.normalizeProfileUrl(banner)) {
+            errors.push("L'URL de banniere est invalide (http(s) ou chemin local).");
+        }
+        if (accent && !this.isValidAccentColor(accent)) {
+            errors.push('La couleur d’accent doit etre au format #RRGGBB.');
+        }
+        socials.forEach(([label, input]) => {
+            const raw = input?.value?.trim?.() || '';
+            if (raw && !this.normalizeProfileUrl(raw)) {
+                errors.push(`${label}: URL invalide.`);
+            }
+        });
+        this.setFieldInvalid(this.dom.profileBanner, Boolean(banner) && !this.normalizeProfileUrl(banner));
+        this.setFieldInvalid(this.dom.profileAccent, Boolean(accent) && !this.isValidAccentColor(accent));
+        this.setFieldInvalid(this.dom.profileSocialWebsite, Boolean(this.dom.profileSocialWebsite?.value?.trim?.()) && !this.normalizeProfileUrl(this.dom.profileSocialWebsite.value));
+        this.setFieldInvalid(this.dom.profileSocialDiscord, Boolean(this.dom.profileSocialDiscord?.value?.trim?.()) && !this.normalizeProfileUrl(this.dom.profileSocialDiscord.value));
+        this.setFieldInvalid(this.dom.profileSocialTwitch, Boolean(this.dom.profileSocialTwitch?.value?.trim?.()) && !this.normalizeProfileUrl(this.dom.profileSocialTwitch.value));
+        this.setFieldInvalid(this.dom.profileSocialYoutube, Boolean(this.dom.profileSocialYoutube?.value?.trim?.()) && !this.normalizeProfileUrl(this.dom.profileSocialYoutube.value));
+        this.setFieldInvalid(this.dom.profileSocialX, Boolean(this.dom.profileSocialX?.value?.trim?.()) && !this.normalizeProfileUrl(this.dom.profileSocialX.value));
+        this.profileCustomizationInlineErrors = errors;
+        this.renderInlineErrors(this.dom.profileCustomizationErrors, errors);
+        this.syncProfileFeedbackUI();
+        return errors;
+    }
+
+    recordProfileEdit(scope, message, status = 'ok') {
+        const scopeLabel = ({
+            customization: 'Personnalisation',
+            characters: 'Personnages',
+            availability: 'Disponibilites'
+        })[scope] || scope || 'Profil';
+        const entry = {
+            id: `${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+            at: new Date().toISOString(),
+            scope: scopeLabel,
+            message: message || '',
+            status: status === 'error' ? 'error' : 'ok'
+        };
+        this.profileFeedback.history = [entry, ...(this.profileFeedback.history || [])].slice(0, 8);
+        this.syncProfileFeedbackUI();
+    }
+
+    setProfileFeedbackState(state = 'idle', detail = '') {
+        this.profileFeedback.state = state;
+        if (detail) {
+            this.profileFeedback.detail = detail;
+        } else if (state === 'idle') {
+            this.profileFeedback.detail = 'Aucune modification en attente.';
+        }
+    }
+
+    syncProfileFeedbackUI() {
+        const stateNode = this.dom.profileSaveState;
+        const detailNode = this.dom.profileSaveDetail;
+        const historyNode = this.dom.profileEditHistory;
+        const customNode = this.dom.profileCustomizationState;
+        const characterNode = this.dom.profileCharactersState;
+        const availabilityNode = this.dom.profileAvailabilityState;
+        if (!stateNode || !detailNode || !historyNode) {
+            return;
+        }
+        const hasPending = Boolean(this.profileCustomizationPending || this.characterSyncPending || this.availabilitySyncPending);
+        const hasDirty = Boolean(this.profileCustomizationDirty || this.charactersDirty || this.availabilityDirty);
+        const hasErrors = (this.profileFeedback.state === 'error')
+            || (this.profileCustomizationInlineErrors?.length > 0)
+            || (this.characterInlineErrors?.length > 0);
+        let state = 'idle';
+        let label = 'A jour';
+        let detail = this.profileFeedback.detail || 'Aucune modification en attente.';
+        if (hasPending) {
+            state = 'saving';
+            label = 'Enregistrement...';
+            detail = 'Sauvegarde en cours.';
+        } else if (hasErrors) {
+            state = 'error';
+            label = 'Erreur';
+            detail = this.profileFeedback.detail || "Certaines modifications n'ont pas pu etre sauvegardees.";
+        } else if (hasDirty) {
+            state = 'dirty';
+            label = 'Brouillon';
+            detail = 'Des modifications ne sont pas encore enregistrees.';
+        }
+        stateNode.textContent = label;
+        stateNode.className = `profile-save-state is-${state}`;
+        detailNode.textContent = detail;
+
+        const setChip = (node, name, { dirty = false, pending = false, error = false } = {}) => {
+            if (!node) {
+                return;
+            }
+            let suffix = 'a jour';
+            let cls = 'is-idle';
+            if (pending) {
+                suffix = 'enregistrement...';
+                cls = 'is-saving';
+            } else if (error) {
+                suffix = 'erreur';
+                cls = 'is-error';
+            } else if (dirty) {
+                suffix = 'brouillon';
+                cls = 'is-dirty';
+            }
+            node.textContent = `${name}: ${suffix}`;
+            node.className = `profile-feedback-chip ${cls}`;
+        };
+        setChip(customNode, 'Personnalisation', {
+            dirty: this.profileCustomizationDirty,
+            pending: this.profileCustomizationPending,
+            error: (this.profileCustomizationInlineErrors?.length || 0) > 0 || (this.dom.profileCustomizationStatus?.classList.contains('is-error') && !this.dom.profileCustomizationStatus.hidden)
+        });
+        setChip(characterNode, 'Personnages', {
+            dirty: this.charactersDirty,
+            pending: this.characterSyncPending,
+            error: (this.characterInlineErrors?.length || 0) > 0 || (this.dom.characterStatus?.classList.contains('is-error') && !this.dom.characterStatus.hidden)
+        });
+        setChip(availabilityNode, 'Disponibilites', {
+            dirty: this.availabilityDirty,
+            pending: this.availabilitySyncPending,
+            error: (this.dom.availabilityStatus?.classList.contains('is-error') && !this.dom.availabilityStatus.hidden)
+        });
+
+        clearElement(historyNode);
+        const history = Array.isArray(this.profileFeedback.history) ? this.profileFeedback.history : [];
+        if (!history.length) {
+            historyNode.appendChild(createElement('li', {
+                className: 'profile-edit-history-empty',
+                text: 'Aucune modification recente.'
+            }));
+            return;
+        }
+        history.forEach(entry => {
+            const li = createElement('li', {
+                className: `profile-edit-history-item ${entry.status === 'error' ? 'is-error' : 'is-ok'}`
+            });
+            const timeLabel = (() => {
+                try {
+                    return new Date(entry.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                } catch {
+                    return '--:--';
+                }
+            })();
+            li.appendChild(createElement('span', { className: 'profile-edit-history-time', text: timeLabel }));
+            li.appendChild(createElement('span', { className: 'profile-edit-history-scope', text: entry.scope || 'Profil' }));
+            li.appendChild(createElement('span', { className: 'profile-edit-history-message', text: entry.message || 'Modification' }));
+            historyNode.appendChild(li);
+        });
     }
 
     applyProfileCustomizationTheme(profile) {
@@ -2719,10 +2960,24 @@ export class UiController {
             if (this.dom.profileSocialX) {
                 this.dom.profileSocialX.value = value.socials.x || '';
             }
+            this.profileCustomizationInlineErrors = [];
+            this.renderInlineErrors(this.dom.profileCustomizationErrors, []);
+            [
+                this.dom.profileBanner,
+                this.dom.profileAccent,
+                this.dom.profileSocialWebsite,
+                this.dom.profileSocialDiscord,
+                this.dom.profileSocialTwitch,
+                this.dom.profileSocialYoutube,
+                this.dom.profileSocialX
+            ].forEach(input => this.setFieldInvalid(input, false));
             this.renderProfileCustomizationPreview(value);
+            this.syncProfileFeedbackUI();
             return;
         }
+        this.validateProfileCustomizationInline();
         this.renderProfileCustomizationPreview(this.collectProfileCustomizationDraft());
+        this.syncProfileFeedbackUI();
     }
 
     async saveProfileCustomization() {
@@ -2730,9 +2985,17 @@ export class UiController {
             this.setProfileCustomizationStatus('Connexion requise pour enregistrer votre profil.', true);
             return;
         }
+        const inlineErrors = this.validateProfileCustomizationInline();
+        if (inlineErrors.length) {
+            this.setProfileCustomizationStatus('Corrigez les erreurs inline avant de sauvegarder.', true);
+            this.recordProfileEdit('customization', 'Validation echouee', 'error');
+            return;
+        }
         const draft = this.collectProfileCustomizationDraft();
         this.profileCustomizationPending = true;
+        this.setProfileFeedbackState('saving', 'Sauvegarde de la personnalisation...');
         this.syncProfileCustomizationUI();
+        this.syncProfileFeedbackUI();
         try {
             const response = await fetch('/api/profile', {
                 method: 'PATCH',
@@ -2749,14 +3012,17 @@ export class UiController {
             this.auth.profile = nextProfile;
             this.profileCustomizationDirty = false;
             this.setProfileCustomizationStatus('Profil mis a jour.');
+            this.recordProfileEdit('customization', 'Personnalisation enregistree', 'ok');
             this.syncProfileCustomizationUI();
             await this.fetchSession();
         } catch (error) {
             console.error('[profile] customization save failed', error);
             this.setProfileCustomizationStatus('Impossible de sauvegarder la personnalisation.', true);
+            this.recordProfileEdit('customization', 'Echec de sauvegarde', 'error');
         } finally {
             this.profileCustomizationPending = false;
             this.syncProfileCustomizationUI();
+            this.syncProfileFeedbackUI();
         }
     }
 
@@ -2852,6 +3118,7 @@ export class UiController {
         this.dom.availabilityStatus.textContent = message;
         this.dom.availabilityStatus.hidden = false;
         this.dom.availabilityStatus.classList.toggle('is-error', isError);
+        this.syncProfileFeedbackUI();
     }
 
     syncAvailabilityUI() {
@@ -2861,7 +3128,7 @@ export class UiController {
         this.buildAvailabilityGrid();
         const authenticated = Boolean(this.auth?.authenticated);
         if (this.dom.availabilitySave) {
-            this.dom.availabilitySave.disabled = !authenticated;
+            this.dom.availabilitySave.disabled = !authenticated || this.availabilitySyncPending;
         }
         if (this.dom.availabilityTimezone) {
             const tz = this.availabilityTimezone || resolveLocalTimezone();
@@ -2908,7 +3175,9 @@ export class UiController {
         this.availability = { timezone, slots: matrix };
         this.availabilityDirty = true;
         this.setAvailabilityStatus('');
+        this.setProfileFeedbackState('dirty', 'Des modifications de disponibilites sont en attente.');
         this.renderAvailabilityGrid();
+        this.syncProfileFeedbackUI();
     }
 
     async saveAvailability() {
@@ -2919,6 +3188,9 @@ export class UiController {
         const matrix = this.getAvailabilityMatrix();
         const timezone = this.availabilityTimezone || resolveLocalTimezone();
         const availability = { timezone, slots: matrix };
+        this.availabilitySyncPending = true;
+        this.setProfileFeedbackState('saving', 'Sauvegarde des disponibilites...');
+        this.syncProfileFeedbackUI();
         if (this.dom.availabilitySave) {
             this.dom.availabilitySave.disabled = true;
         }
@@ -2942,6 +3214,7 @@ export class UiController {
                 this.availabilityTimezone = normalized.timezone;
             }
             this.setAvailabilityStatus('Disponibilites enregistrees.');
+            this.recordProfileEdit('availability', 'Disponibilites enregistrees', 'ok');
             this.renderAvailabilityGrid();
             if (this.isAdmin() && this.adminDom.overlay && !this.adminDom.overlay.hidden) {
                 this.fetchAdminAvailability();
@@ -2949,10 +3222,13 @@ export class UiController {
         } catch (error) {
             console.error('[profile] availability save failed', error);
             this.setAvailabilityStatus('Impossible d\'enregistrer les disponibilites.', true);
+            this.recordProfileEdit('availability', 'Echec de sauvegarde', 'error');
         } finally {
+            this.availabilitySyncPending = false;
             if (this.dom.availabilitySave) {
                 this.dom.availabilitySave.disabled = false;
             }
+            this.syncProfileFeedbackUI();
         }
     }
 
@@ -3089,6 +3365,8 @@ export class UiController {
         const markProfileCustomizationDirty = () => {
             this.profileCustomizationDirty = true;
             this.setProfileCustomizationStatus('');
+            this.validateProfileCustomizationInline();
+            this.setProfileFeedbackState('dirty', 'Des modifications de profil sont en attente.');
             this.syncProfileCustomizationUI();
         };
         if (this.dom.profileAccentPicker && !this.dom.profileAccentPicker.dataset.bound) {
@@ -3151,6 +3429,8 @@ export class UiController {
             this.characterFormDirty = true;
             this.charactersDirty = true;
             this.setCharacterStatus('');
+            this.validateCharacterDraftInline();
+            this.setProfileFeedbackState('dirty', 'Des modifications de personnages sont en attente.');
         };
         if (this.dom.characterName && !this.dom.characterName.dataset.bound) {
             this.dom.characterName.addEventListener('input', markCharacterDirty);

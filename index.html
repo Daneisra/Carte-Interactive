@@ -44,6 +44,7 @@
                     <button id="profile-customization-save" class="tertiary-button" type="button">Enregistrer</button>
                 </div>
                 <p id="profile-customization-locked" class="profile-character-locked" hidden>Connexion requise pour personnaliser votre profil.</p>
+                <ul id="profile-customization-errors" class="profile-inline-errors" hidden></ul>
                 <div class="profile-customization-fields">
                     <label for="profile-banner">Banniere (URL)</label>
                     <input id="profile-banner" type="text" placeholder="https://.../banniere.jpg" autocomplete="off" />
@@ -90,6 +91,24 @@
                 <div id="availability-grid" class="profile-availability-grid"></div>
                 <button id="availability-save" class="secondary-button" type="button">Enregistrer disponibilites</button>
                 <p id="availability-status" class="profile-availability-status" role="status" aria-live="polite" hidden></p>
+            </div>
+            <div id="profile-feedback" class="profile-feedback">
+                <div class="profile-feedback-header">
+                    <p class="profile-feedback-title">Feedback</p>
+                    <span id="profile-save-state" class="profile-save-state is-idle">A jour</span>
+                </div>
+                <p id="profile-save-detail" class="profile-save-detail">Aucune modification en attente.</p>
+                <div class="profile-feedback-substates">
+                    <span id="profile-customization-state" class="profile-feedback-chip">Personnalisation: a jour</span>
+                    <span id="profile-characters-state" class="profile-feedback-chip">Personnages: a jour</span>
+                    <span id="profile-availability-state" class="profile-feedback-chip">Disponibilites: a jour</span>
+                </div>
+                <div class="profile-feedback-history">
+                    <p class="profile-feedback-history-title">Edits recents</p>
+                    <ul id="profile-edit-history" class="profile-edit-history-list">
+                        <li class="profile-edit-history-empty">Aucune modification recente.</li>
+                    </ul>
+                </div>
             </div>
             <div id="profile-quick-actions" class="profile-quick-actions">
                 <p class="profile-quick-actions-title">Actions rapides</p>
@@ -160,6 +179,7 @@
                 <button id="character-delete" class="danger-button" type="button">Supprimer</button>
             </div>
             <p id="character-overlay-locked" class="profile-character-locked" hidden>Connexion requise pour creer un personnage.</p>
+            <ul id="character-errors" class="profile-inline-errors" hidden></ul>
             <p id="character-status" class="profile-character-status" role="status" aria-live="polite" hidden></p>
         </div>
     </div>
