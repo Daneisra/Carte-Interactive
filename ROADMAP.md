@@ -50,7 +50,7 @@
 - [x] Carte profil plus claire: avatar grand, pseudo, rôle, groupe(s) en chips, statut/présence.
 - [x] Multi‑personnages: carrousel + filtres, tag “actif”, duplication rapide, import/export.
 - [x] Personnalisation: bannière, couleur d’accent, bio riche (markdown léger), liens sociaux.
-- [ ] Actions rapides: changer thème, raccourcis admin, accès “Mes lieux favoris”.
+- [x] Actions rapides: changer thème, raccourcis admin, accès “Mes lieux favoris”.
 - [ ] Feedback clair: état de sauvegarde, erreurs inline, historique des edits récents.
 - [ ] Sécurité/compte: bouton “révoquer session”, infos Discord, date dernière connexion.
 - [ ] Polish UI

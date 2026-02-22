@@ -234,9 +234,13 @@ export class UiController {
             availabilitySave: document.getElementById('availability-save'),
             availabilityStatus: document.getElementById('availability-status'),
             availabilityTimezone: document.getElementById('availability-timezone'),
+            quickThemeToggle: document.getElementById('quick-theme-toggle'),
+            quickFavorites: document.getElementById('quick-favorites'),
+            quickAdminUsers: document.getElementById('quick-admin-users'),
+            quickAdminGroups: document.getElementById('quick-admin-groups'),
             loginButton: document.getElementById('login-button'),
             logoutButton: document.getElementById('logout-button'),
-            adminPanelButton: document.getElementById('admin-panel-button'),
+            adminPanelButton: document.getElementById('quick-admin-panel'),
             clusteringToggle: document.getElementById('clustering-toggle'),
             clusteringMetrics: document.getElementById('clustering-metrics'),
             markerScaleInput: document.getElementById('marker-size'),
@@ -1816,6 +1820,26 @@ export class UiController {
             this.dom.adminPanelButton.hidden = shouldHide;
             this.dom.adminPanelButton.classList.toggle('admin-locked', shouldHide);
         }
+        if (this.dom.quickAdminUsers) {
+            const shouldHide = !isAdmin;
+            this.dom.quickAdminUsers.hidden = shouldHide;
+            this.dom.quickAdminUsers.classList.toggle('admin-locked', shouldHide);
+        }
+        if (this.dom.quickAdminGroups) {
+            const shouldHide = !isAdmin;
+            this.dom.quickAdminGroups.hidden = shouldHide;
+            this.dom.quickAdminGroups.classList.toggle('admin-locked', shouldHide);
+        }
+        if (this.dom.quickThemeToggle) {
+            const nextTheme = this.state.theme === 'light' ? 'sombre' : 'clair';
+            this.dom.quickThemeToggle.textContent = `Theme ${nextTheme}`;
+        }
+        if (this.dom.quickFavorites) {
+            const count = this.state.getFavorites().length;
+            this.dom.quickFavorites.textContent = count > 0
+                ? `Mes lieux favoris (${count})`
+                : 'Mes lieux favoris';
+        }
         if (this.adminDom.userButton) {
             this.adminDom.userButton.disabled = !isAdmin;
         }
@@ -3039,6 +3063,29 @@ export class UiController {
                 this.setProfilePanelOpen(false);
             });
         }
+        if (this.dom.quickThemeToggle && !this.dom.quickThemeToggle.dataset.bound) {
+            this.dom.quickThemeToggle.addEventListener('click', () => this.toggleThemeQuickAction());
+            this.dom.quickThemeToggle.dataset.bound = 'true';
+        }
+        if (this.dom.quickFavorites && !this.dom.quickFavorites.dataset.bound) {
+            this.dom.quickFavorites.addEventListener('click', () => this.openFavoritesQuickAction());
+            this.dom.quickFavorites.dataset.bound = 'true';
+        }
+        if (this.dom.adminPanelButton && !this.dom.adminPanelButton.dataset.bound) {
+            this.dom.adminPanelButton.addEventListener('click', () => {
+                this.setProfilePanelOpen(false);
+                this.openAdminPanel();
+            });
+            this.dom.adminPanelButton.dataset.bound = 'true';
+        }
+        if (this.dom.quickAdminUsers && !this.dom.quickAdminUsers.dataset.bound) {
+            this.dom.quickAdminUsers.addEventListener('click', () => this.openAdminShortcut('users'));
+            this.dom.quickAdminUsers.dataset.bound = 'true';
+        }
+        if (this.dom.quickAdminGroups && !this.dom.quickAdminGroups.dataset.bound) {
+            this.dom.quickAdminGroups.addEventListener('click', () => this.openAdminShortcut('groups'));
+            this.dom.quickAdminGroups.dataset.bound = 'true';
+        }
         const markProfileCustomizationDirty = () => {
             this.profileCustomizationDirty = true;
             this.setProfileCustomizationStatus('');
@@ -3196,16 +3243,34 @@ export class UiController {
             this.dom.availabilitySave.dataset.bound = 'true';
         }
         this.buildAvailabilityGrid();
-        if (this.dom.adminPanelButton && !this.dom.adminPanelButton.dataset.bound) {
-            this.dom.adminPanelButton.addEventListener('click', () => {
-                this.setProfilePanelOpen(false);
-                this.openAdminPanel();
-            });
-            this.dom.adminPanelButton.dataset.bound = 'true';
-        }
         this.setProfilePanelOpen(false);
         this.updateAuthUI();
         this.fetchSession();
+    }
+
+    toggleThemeQuickAction() {
+        const nextTheme = this.state.theme === 'light' ? 'dark' : 'light';
+        this.themeManager.setTheme(nextTheme);
+        this.updateAuthUI();
+    }
+
+    openFavoritesQuickAction() {
+        this.setSidebarView('favorites');
+        this.setProfilePanelOpen(false);
+        this.announcer?.polite?.('Affichage des lieux favoris.');
+    }
+
+    openAdminShortcut(mode = 'users') {
+        if (!this.isAdmin()) {
+            this.announcer?.assertive?.('Connexion administrateur requise.');
+            return;
+        }
+        this.setProfilePanelOpen(false);
+        if (mode === 'users' || mode === 'groups') {
+            this.openUserAdminPanel(mode);
+            return;
+        }
+        this.openAdminPanel();
     }
 
     setupUserAdminPanel() {
@@ -5867,6 +5932,12 @@ export class UiController {
         }
 
         this.renderFavoritesView();
+        if (this.dom.quickFavorites) {
+            const count = this.state.getFavorites().length;
+            this.dom.quickFavorites.textContent = count > 0
+                ? `Mes lieux favoris (${count})`
+                : 'Mes lieux favoris';
+        }
         this.updateRandomButtonState();
     }
 

@@ -922,6 +922,37 @@ body[data-theme="light"] .profile-character-tag {
     opacity: 1;
 }
 
+.profile-quick-actions {
+    margin: 0;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(15, 23, 42, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.profile-quick-actions-title {
+    margin: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.75;
+}
+
+.profile-quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.profile-quick-actions-grid .secondary-button {
+    border-radius: 10px;
+    font-weight: 600;
+    min-height: 36px;
+}
+
 .profile-actions {
     display: flex;
     flex-direction: column;
@@ -1053,6 +1084,10 @@ body[data-theme="light"] .profile-character-fields select {
 }
 
 body[data-theme="light"] .profile-availability {
+    background: rgba(148, 163, 184, 0.12);
+}
+
+body[data-theme="light"] .profile-quick-actions {
     background: rgba(148, 163, 184, 0.12);
 }
 
@@ -2515,6 +2550,10 @@ body[data-theme="light"] #events-filter option {
 
     .profile-name {
         font-size: 18px;
+    }
+
+    .profile-quick-actions-grid {
+        grid-template-columns: 1fr;
     }
 
     @supports (height: 100dvh) {
