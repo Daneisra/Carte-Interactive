@@ -1073,6 +1073,21 @@ const resolveUserCharacters = user => {
 
 const sanitizeRole = value => (value && value.toLowerCase() === 'admin') ? 'admin' : 'user';
 
+const sanitizeIsoDateString = value => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const timestamp = Date.parse(trimmed);
+  if (!Number.isFinite(timestamp)) {
+    return null;
+  }
+  return new Date(timestamp).toISOString();
+};
+
 const sanitizeUserRecord = user => {
   const characters = sanitizeCharacterList(resolveUserCharacters(user));
   return ({
@@ -1087,6 +1102,10 @@ const sanitizeUserRecord = user => {
   characters,
   profile: sanitizeProfileRecord(user?.profile),
   availability: sanitizeAvailabilityRecord(user?.availability),
+  account: {
+    lastLoginAt: sanitizeIsoDateString(user?.lastLoginAt),
+    lastSeenAt: sanitizeIsoDateString(user?.lastSeenAt)
+  },
   apiTokens: Array.isArray(user?.apiTokens) && user?.provider !== 'discord' ? [...user.apiTokens] : undefined
   });
 };
@@ -1169,6 +1188,8 @@ const createManualUser = async ({ username = '', role = 'user', token = null }) 
     character: null,
     profile: null,
     availability: null,
+    lastLoginAt: null,
+    lastSeenAt: null,
     groups: [],
     apiTokens: [apiToken]
   };
@@ -1177,10 +1198,11 @@ const createManualUser = async ({ username = '', role = 'user', token = null }) 
   return { user, token: apiToken };
 };
 
-const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, avatar = null }) => {
+const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, avatar = null, markLogin = false }) => {
   const users = await readUsersFile();
   let user = users.find(entry => entry.provider === 'discord' && entry.discordId === discordId);
   const avatarValue = typeof avatar === 'string' && avatar.trim() ? avatar.trim() : null;
+  const loginTimestamp = markLogin ? new Date().toISOString() : null;
   if (!user) {
     const shouldBeAdmin = roleHint
       ? sanitizeRole(roleHint) === 'admin'
@@ -1196,6 +1218,8 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
       character: null,
       profile: null,
       availability: null,
+      lastLoginAt: loginTimestamp,
+      lastSeenAt: loginTimestamp,
       groups: [],
       apiTokens: []
     };
@@ -1213,6 +1237,10 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
         user.role = sanitized;
       }
     }
+    if (markLogin) {
+      user.lastLoginAt = loginTimestamp;
+      user.lastSeenAt = loginTimestamp;
+    }
   }
   await writeUsersFile(users);
   updateSessionsForUser(user.id, {
@@ -1221,7 +1249,11 @@ const upsertDiscordUser = async ({ discordId, username = '', roleHint = null, av
     avatar: user.avatar || null,
     characters: Array.isArray(user.characters) ? user.characters : [],
     profile: sanitizeProfileRecord(user?.profile),
-    availability: sanitizeAvailabilityRecord(user?.availability)
+    availability: sanitizeAvailabilityRecord(user?.availability),
+    account: {
+      lastLoginAt: sanitizeIsoDateString(user?.lastLoginAt),
+      lastSeenAt: sanitizeIsoDateString(user?.lastSeenAt)
+    }
   });
   return user;
 };
@@ -1989,9 +2021,15 @@ const server = http.createServer(async (req, res) => {
           profile: {
             username: user.username || '',
             avatar: user.avatar || null,
+            provider: user.provider || 'manual',
+            discordId: user.provider === 'discord' ? user.discordId || null : null,
             groups: Array.isArray(user.groups) ? user.groups : [],
             characters,
             availability,
+            account: {
+              lastLoginAt: sanitizeIsoDateString(user?.lastLoginAt),
+              lastSeenAt: sanitizeIsoDateString(user?.lastSeenAt)
+            },
             profile,
             customization: profile
           }
@@ -2048,9 +2086,15 @@ const server = http.createServer(async (req, res) => {
           profile: {
             username: result.user.username || '',
             avatar: result.user.avatar || null,
+            provider: result.user.provider || 'manual',
+            discordId: result.user.provider === 'discord' ? result.user.discordId || null : null,
             groups: Array.isArray(result.user.groups) ? result.user.groups : [],
             characters,
             availability,
+            account: {
+              lastLoginAt: sanitizeIsoDateString(result.user?.lastLoginAt),
+              lastSeenAt: sanitizeIsoDateString(result.user?.lastSeenAt)
+            },
             profile,
             customization: profile
           }

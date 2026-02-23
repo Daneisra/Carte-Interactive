@@ -446,6 +446,11 @@ body.info-sidebar-open .profile-panel {
     opacity: 1;
 }
 
+.profile-character-status.is-success {
+    color: #86efac;
+    opacity: 1;
+}
+
 .profile-inline-errors {
     margin: 0;
     padding: 8px 10px 8px 24px;
@@ -1130,6 +1135,85 @@ body[data-theme="light"] .profile-character-tag {
     min-height: 36px;
 }
 
+.profile-account-security {
+    margin: 0;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(15, 23, 42, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-account-security-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.profile-account-security-title {
+    margin: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.75;
+}
+
+.profile-account-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(148, 163, 184, 0.12);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #cbd5e1;
+}
+
+.profile-account-pill.is-connected {
+    border-color: rgba(34, 197, 94, 0.45);
+    background: rgba(34, 197, 94, 0.14);
+    color: #bbf7d0;
+}
+
+.profile-account-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.profile-account-row {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+}
+
+.profile-account-label {
+    opacity: 0.72;
+}
+
+.profile-account-value {
+    font-weight: 600;
+    color: #f1f5f9;
+    word-break: break-word;
+}
+
+.profile-account-security .danger-button {
+    min-height: 36px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.profile-account-security.is-guest .profile-account-row {
+    opacity: 0.8;
+}
+
 .profile-actions {
     display: flex;
     flex-direction: column;
@@ -1229,6 +1313,26 @@ body[data-theme="light"] .profile-customization {
 
 body[data-theme="light"] .profile-feedback {
     background: rgba(148, 163, 184, 0.12);
+}
+
+body[data-theme="light"] .profile-account-security {
+    background: rgba(148, 163, 184, 0.12);
+}
+
+body[data-theme="light"] .profile-account-pill {
+    color: #334155;
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(100, 116, 139, 0.28);
+}
+
+body[data-theme="light"] .profile-account-pill.is-connected {
+    color: #166534;
+    border-color: rgba(34, 197, 94, 0.35);
+    background: rgba(34, 197, 94, 0.12);
+}
+
+body[data-theme="light"] .profile-account-value {
+    color: #1f2937;
 }
 
 body[data-theme="light"] .profile-inline-errors {

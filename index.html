@@ -120,6 +120,28 @@
                     <button id="quick-admin-groups" class="secondary-button admin-locked" type="button" hidden>Admin groupes</button>
                 </div>
             </div>
+            <div id="profile-account-security" class="profile-account-security">
+                <div class="profile-account-security-header">
+                    <p class="profile-account-security-title">Securite / compte</p>
+                    <span id="profile-account-oauth" class="profile-account-pill">Discord: --</span>
+                </div>
+                <div class="profile-account-grid">
+                    <div class="profile-account-row">
+                        <span class="profile-account-label">Provider</span>
+                        <span id="profile-account-provider" class="profile-account-value">Invite</span>
+                    </div>
+                    <div class="profile-account-row">
+                        <span class="profile-account-label">Discord</span>
+                        <span id="profile-account-discord" class="profile-account-value">Non connecte</span>
+                    </div>
+                    <div class="profile-account-row">
+                        <span class="profile-account-label">Derniere connexion</span>
+                        <span id="profile-account-last-login" class="profile-account-value">--</span>
+                    </div>
+                </div>
+                <button id="profile-revoke-session" class="danger-button" type="button">Revoquer cette session</button>
+                <p id="profile-revoke-status" class="profile-character-status" role="status" aria-live="polite" hidden></p>
+            </div>
             <div class="profile-actions">
                 <button id="login-button" class="secondary-button" type="button">Connexion Discord</button>
                 <button id="logout-button" class="secondary-button" type="button" hidden>Se deconnecter</button>

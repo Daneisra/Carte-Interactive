@@ -123,11 +123,13 @@ module.exports = (register, context) => {
                 session.data.role = sanitized.role;
                 session.data.username = sanitized.username;
                 session.data.provider = sanitized.provider;
+                session.data.discordId = sanitized.discordId || null;
                 session.data.avatar = sanitized.avatar || null;
                 session.data.groups = Array.isArray(sanitized.groups) ? sanitized.groups : [];
                 session.data.characters = Array.isArray(sanitized.characters) ? sanitized.characters : [];
                 session.data.profile = sanitized.profile || null;
                 session.data.availability = sanitized.availability || null;
+                session.data.account = sanitized.account || null;
             }
             return { user: sanitized };
         }
@@ -144,7 +146,8 @@ module.exports = (register, context) => {
                 groups: Array.isArray(data.groups) ? data.groups : [],
                 characters: Array.isArray(data.characters) ? data.characters : legacyCharacter,
                 profile: data.profile || null,
-                availability: data.availability || null
+                availability: data.availability || null,
+                account: data.account || null
             };
             if (session.data) {
                 session.data.role = role;
@@ -167,6 +170,9 @@ module.exports = (register, context) => {
                 characters: [],
                 profile: null,
                 availability: null,
+                provider: 'manual',
+                discordId: null,
+                account: { lastLoginAt: null, lastSeenAt: null },
                 authRequired: false,
                 oauth: { discord: discordEnabled }
             };
@@ -183,6 +189,9 @@ module.exports = (register, context) => {
                 characters: [],
                 profile: null,
                 availability: null,
+                provider: null,
+                discordId: null,
+                account: { lastLoginAt: null, lastSeenAt: null },
                 authRequired: true,
                 oauth: { discord: discordEnabled }
             };
@@ -199,6 +208,8 @@ module.exports = (register, context) => {
             profile: user.profile || null,
             availability: user.availability || null,
             provider: user.provider || 'manual',
+            discordId: user.discordId || null,
+            account: user.account || { lastLoginAt: null, lastSeenAt: null },
             authRequired: true,
             oauth: { discord: discordEnabled }
         };
@@ -276,6 +287,17 @@ module.exports = (register, context) => {
         }
     });
 
+    register('DELETE', '/auth/session', async (req, res) => {
+        try {
+            destroySession(req);
+            clearSessionCookie(res);
+            json(res, 200, { status: 'ok', message: 'Session revoquee.' });
+        } catch (error) {
+            log.error('Session revoke failed', { error: error.message });
+            json(res, 500, { status: 'error', message: 'Impossible de revoquer la session.' });
+        }
+    });
+
     register('GET', '/auth/discord/login', async (req, res, urlObj) => {
         if (!discordEnabled) {
             log.warn('Discord login attempted but OAuth is disabled');
@@ -349,7 +371,8 @@ module.exports = (register, context) => {
                 discordId: normalizeString(profile.id),
                 username: displayName,
                 roleHint: null,
-                avatar: avatarUrl
+                avatar: avatarUrl,
+                markLogin: true
             });
 
             const sessionId = createSession({
@@ -362,7 +385,8 @@ module.exports = (register, context) => {
                 groups: Array.isArray(user.groups) ? user.groups : [],
                 characters: Array.isArray(user.characters) ? user.characters : [],
                 profile: user.profile || null,
-                availability: user.availability || null
+                availability: user.availability || null,
+                account: user.account || null
             });
             sendSessionCookie(res, sessionId);
 

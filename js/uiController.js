@@ -246,6 +246,13 @@ export class UiController {
             quickFavorites: document.getElementById('quick-favorites'),
             quickAdminUsers: document.getElementById('quick-admin-users'),
             quickAdminGroups: document.getElementById('quick-admin-groups'),
+            profileAccountSecurity: document.getElementById('profile-account-security'),
+            profileAccountOauth: document.getElementById('profile-account-oauth'),
+            profileAccountProvider: document.getElementById('profile-account-provider'),
+            profileAccountDiscord: document.getElementById('profile-account-discord'),
+            profileAccountLastLogin: document.getElementById('profile-account-last-login'),
+            profileRevokeSession: document.getElementById('profile-revoke-session'),
+            profileRevokeStatus: document.getElementById('profile-revoke-status'),
             loginButton: document.getElementById('login-button'),
             logoutButton: document.getElementById('logout-button'),
             adminPanelButton: document.getElementById('quick-admin-panel'),
@@ -341,7 +348,20 @@ export class UiController {
         });
 
         this.authRequired = true;
-        this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [], availability: null, profile: null };
+        this.auth = {
+            authenticated: false,
+            role: 'guest',
+            username: '',
+            avatar: null,
+            provider: null,
+            discordId: null,
+            groups: [],
+            groupDetails: [],
+            characters: [],
+            availability: null,
+            profile: null,
+            account: { lastLoginAt: null, lastSeenAt: null }
+        };
 
         this.pageSize = PAGE_SIZE;
         this.entries = [];
@@ -1654,11 +1674,14 @@ export class UiController {
         role = 'guest',
         username = '',
         avatar = null,
+        provider = null,
+        discordId = null,
         groups = [],
         groupDetails = [],
         characters = [],
         availability = null,
-        profile = null
+        profile = null,
+        account = null
     } = {}) {
         const previouslyAuthenticated = Boolean(this.auth?.authenticated);
         if (!this.authRequired) {
@@ -1668,14 +1691,30 @@ export class UiController {
                     role: 'admin',
                     username: username || this.auth.username || '',
                     avatar: avatar || this.auth.avatar || null,
+                    provider: provider || this.auth.provider || null,
+                    discordId: discordId || this.auth.discordId || null,
                     groups: Array.isArray(groups) ? groups : (this.auth.groups || []),
                     groupDetails: Array.isArray(groupDetails) ? groupDetails : (this.auth.groupDetails || []),
                     characters: Array.isArray(characters) ? characters : (this.auth.characters || []),
                     availability: availability ?? this.auth.availability ?? null,
-                    profile: profile ?? this.auth.profile ?? null
+                    profile: profile ?? this.auth.profile ?? null,
+                    account: account ?? this.auth.account ?? { lastLoginAt: null, lastSeenAt: null }
                 };
             } else {
-                this.auth = { authenticated: false, role: 'guest', username: '', avatar: null, groups: [], groupDetails: [], characters: [], availability: null, profile: null };
+                this.auth = {
+                    authenticated: false,
+                    role: 'guest',
+                    username: '',
+                    avatar: null,
+                    provider: null,
+                    discordId: null,
+                    groups: [],
+                    groupDetails: [],
+                    characters: [],
+                    availability: null,
+                    profile: null,
+                    account: { lastLoginAt: null, lastSeenAt: null }
+                };
             }
         } else {
             this.auth = {
@@ -1683,11 +1722,14 @@ export class UiController {
                 role: (role || 'guest').toLowerCase(),
                 username: username || '',
                 avatar: avatar || null,
+                provider: provider || null,
+                discordId: discordId || null,
                 groups: Array.isArray(groups) ? groups : [],
                 groupDetails: Array.isArray(groupDetails) ? groupDetails : [],
                 characters: Array.isArray(characters) ? characters : [],
                 availability: availability ?? null,
-                profile: profile ?? null
+                profile: profile ?? null,
+                account: account ?? { lastLoginAt: null, lastSeenAt: null }
             };
         }
         if (previouslyAuthenticated !== this.auth.authenticated) {
@@ -1861,6 +1903,43 @@ export class UiController {
                 ? `Mes lieux favoris (${count})`
                 : 'Mes lieux favoris';
         }
+        if (this.dom.profileAccountSecurity) {
+            this.dom.profileAccountSecurity.classList.toggle('is-guest', !authenticated);
+        }
+        if (this.dom.profileAccountOauth) {
+            const oauthLabel = this.authRequired
+                ? (authenticated && this.auth?.provider === 'discord' ? 'Discord: connecte' : 'Discord: disponible')
+                : 'Discord: local';
+            this.dom.profileAccountOauth.textContent = oauthLabel;
+            this.dom.profileAccountOauth.classList.toggle('is-connected', authenticated && this.auth?.provider === 'discord');
+            this.dom.profileAccountOauth.classList.remove('is-disabled');
+        }
+        if (this.dom.profileAccountProvider) {
+            this.dom.profileAccountProvider.textContent = authenticated
+                ? (this.auth?.provider === 'discord' ? 'Discord' : (this.auth?.provider || 'manuel'))
+                : 'Invite';
+        }
+        if (this.dom.profileAccountDiscord) {
+            if (authenticated && this.auth?.provider === 'discord') {
+                const id = (this.auth?.discordId || '').trim();
+                this.dom.profileAccountDiscord.textContent = id ? `ID ${id}` : 'Compte Discord';
+            } else {
+                this.dom.profileAccountDiscord.textContent = 'Non connecte';
+            }
+        }
+        if (this.dom.profileAccountLastLogin) {
+            const lastLoginAt = this.auth?.account?.lastLoginAt || null;
+            this.dom.profileAccountLastLogin.textContent = authenticated
+                ? this.formatAuthTimestamp(lastLoginAt)
+                : '--';
+        }
+        if (this.dom.profileRevokeSession) {
+            this.dom.profileRevokeSession.hidden = !this.authRequired || !authenticated;
+            this.dom.profileRevokeSession.disabled = !this.authRequired || !authenticated;
+        }
+        if (!authenticated) {
+            this.setProfileRevokeStatus('');
+        }
         if (this.adminDom.userButton) {
             this.adminDom.userButton.disabled = !isAdmin;
         }
@@ -1894,6 +1973,76 @@ export class UiController {
         this.syncCharacterForm();
         this.syncAvailabilityUI();
         this.syncProfileFeedbackUI();
+    }
+
+    formatAuthTimestamp(value) {
+        if (!value || typeof value !== 'string') {
+            return '--';
+        }
+        const timestamp = Date.parse(value);
+        if (!Number.isFinite(timestamp)) {
+            return '--';
+        }
+        try {
+            return new Intl.DateTimeFormat('fr-FR', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            }).format(new Date(timestamp));
+        } catch (_error) {
+            return new Date(timestamp).toLocaleString('fr-FR');
+        }
+    }
+
+    setProfileRevokeStatus(message, type = 'neutral') {
+        if (!this.dom.profileRevokeStatus) {
+            return;
+        }
+        const text = typeof message === 'string' ? message.trim() : '';
+        this.dom.profileRevokeStatus.textContent = text;
+        this.dom.profileRevokeStatus.hidden = !text;
+        this.dom.profileRevokeStatus.classList.remove('is-error', 'is-success');
+        if (text && type === 'error') {
+            this.dom.profileRevokeStatus.classList.add('is-error');
+        }
+        if (text && type === 'success') {
+            this.dom.profileRevokeStatus.classList.add('is-success');
+        }
+    }
+
+    async revokeCurrentSession() {
+        if (!this.authRequired || !this.auth?.authenticated) {
+            return;
+        }
+        this.setProfileRevokeStatus('Revocation en cours...');
+        if (this.dom.profileRevokeSession) {
+            this.dom.profileRevokeSession.disabled = true;
+        }
+        try {
+            let response = await fetch('/auth/session', {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (response.status === 404 || response.status === 405) {
+                response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            }
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            this.setProfileRevokeStatus('Session revoquee.', 'success');
+        } catch (error) {
+            console.error('[auth] session revoke failed', error);
+            this.setProfileRevokeStatus('Impossible de revoquer la session.', 'error');
+            if (this.dom.profileRevokeSession) {
+                this.dom.profileRevokeSession.disabled = false;
+            }
+            return;
+        }
+        await this.fetchSession();
+        this.closeCharacterOverlay();
+        this.setProfilePanelOpen(false);
     }
 
     syncCharacterForm() {
@@ -3249,12 +3398,15 @@ export class UiController {
             const role = payload?.role || (authenticated ? 'user' : 'guest');
             const username = payload?.username || '';
             const avatar = payload?.avatar || null;
+            const provider = payload?.provider || null;
+            const discordId = payload?.discordId || null;
             const groups = Array.isArray(payload?.groups) ? payload.groups : [];
             const groupDetails = Array.isArray(payload?.groupDetails) ? payload.groupDetails : [];
             const characters = Array.isArray(payload?.characters) ? payload.characters : [];
             const availability = payload?.availability ?? null;
             const profile = payload?.profile ?? null;
-            this.setAuthState({ authenticated, role, username, avatar, groups, groupDetails, characters, availability, profile });
+            const account = (payload?.account && typeof payload.account === 'object') ? payload.account : null;
+            this.setAuthState({ authenticated, role, username, avatar, provider, discordId, groups, groupDetails, characters, availability, profile, account });
         } catch (error) {
             console.error('[auth] session fetch failed', error);
             this.authRequired = true;
@@ -3338,6 +3490,10 @@ export class UiController {
                 this.closeCharacterOverlay();
                 this.setProfilePanelOpen(false);
             });
+        }
+        if (this.dom.profileRevokeSession && !this.dom.profileRevokeSession.dataset.bound) {
+            this.dom.profileRevokeSession.addEventListener('click', () => this.revokeCurrentSession());
+            this.dom.profileRevokeSession.dataset.bound = 'true';
         }
         if (this.dom.quickThemeToggle && !this.dom.quickThemeToggle.dataset.bound) {
             this.dom.quickThemeToggle.addEventListener('click', () => this.toggleThemeQuickAction());

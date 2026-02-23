@@ -52,7 +52,7 @@
 - [x] Personnalisation: bannière, couleur d’accent, bio riche (markdown léger), liens sociaux.
 - [x] Actions rapides: changer thème, raccourcis admin, accès “Mes lieux favoris”.
 - [x] Feedback clair: état de sauvegarde, erreurs inline, historique des edits récents.
-- [ ] Sécurité/compte: bouton “révoquer session”, infos Discord, date dernière connexion.
+- [x] Sécurité/compte: bouton “révoquer session”, infos Discord, date dernière connexion.
 - [ ] Polish UI
 
 ### P3 — Différenciants
