@@ -53,7 +53,7 @@
 - [x] Actions rapides: changer thème, raccourcis admin, accès “Mes lieux favoris”.
 - [x] Feedback clair: état de sauvegarde, erreurs inline, historique des edits récents.
 - [x] Sécurité/compte: bouton “révoquer session”, infos Discord, date dernière connexion.
-- [ ] Polish UI
+- [x] Polish UI
 
 ### P3 — Différenciants
 - [ ] Intégration et personalisation d'une frise chronologique

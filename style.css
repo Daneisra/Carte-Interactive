@@ -79,6 +79,17 @@ body.info-sidebar-open .profile-panel {
     cursor: pointer;
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.45);
     backdrop-filter: blur(6px);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.profile-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.5);
+}
+
+.profile-button[aria-expanded="true"] {
+    background: rgba(15, 23, 42, 0.92);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.55);
 }
 
 .profile-button:focus-visible {
@@ -132,6 +143,31 @@ body.info-sidebar-open .profile-panel {
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.45) rgba(15, 23, 42, 0.2);
+    scroll-padding-top: 84px;
+    transform-origin: top right;
+    animation: profileMenuIn 0.16s ease-out;
+}
+
+.profile-menu::-webkit-scrollbar {
+    width: 10px;
+}
+
+.profile-menu::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.22);
+    border-radius: 999px;
+}
+
+.profile-menu::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.42);
+    border-radius: 999px;
+    border: 2px solid rgba(15, 23, 42, 0.18);
+}
+
+.profile-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.56);
 }
 
 @supports (height: 100dvh) {
@@ -146,6 +182,85 @@ body.info-sidebar-open .profile-panel {
 
 .profile-menu[hidden] {
     display: none;
+}
+
+@keyframes profileMenuIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.profile-menu > :is(
+    .profile-identity-card,
+    .profile-customization,
+    .profile-character,
+    .profile-availability,
+    .profile-feedback,
+    .profile-quick-actions,
+    .profile-account-security
+) {
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.profile-menu > :is(
+    .profile-customization,
+    .profile-character,
+    .profile-availability,
+    .profile-feedback,
+    .profile-quick-actions,
+    .profile-account-security
+)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(120px 56px at 0% 0%, rgba(96, 165, 250, 0.08), transparent 70%),
+        radial-gradient(120px 64px at 100% 100%, rgba(59, 130, 246, 0.05), transparent 72%);
+}
+
+.profile-menu > :is(
+    .profile-customization,
+    .profile-character,
+    .profile-availability,
+    .profile-feedback,
+    .profile-quick-actions,
+    .profile-account-security
+):hover {
+    border-color: rgba(148, 163, 184, 0.4);
+    background: rgba(15, 23, 42, 0.34);
+}
+
+.profile-menu > :is(
+    .profile-customization,
+    .profile-character,
+    .profile-availability,
+    .profile-feedback,
+    .profile-quick-actions,
+    .profile-account-security
+):focus-within {
+    border-color: rgba(96, 165, 250, 0.45);
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.18) inset;
+}
+
+.profile-menu > :is(
+    .profile-identity-card,
+    .profile-customization,
+    .profile-character,
+    .profile-availability,
+    .profile-feedback,
+    .profile-quick-actions,
+    .profile-account-security
+) > * {
+    position: relative;
+    z-index: 1;
 }
 
 .profile-summary {
@@ -184,6 +299,10 @@ body.info-sidebar-open .profile-panel {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    position: sticky;
+    top: -2px;
+    z-index: 4;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.26);
 }
 
 .profile-meta-row {
@@ -347,6 +466,13 @@ body.info-sidebar-open .profile-panel {
 
 .profile-character-card:hover {
     transform: translateY(-1px);
+    border-color: rgba(148, 163, 184, 0.38);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+}
+
+.profile-character-card:focus-visible {
+    outline: 2px solid rgba(96, 165, 250, 0.75);
+    outline-offset: 2px;
 }
 
 .profile-character-avatar {
@@ -590,6 +716,25 @@ body.info-sidebar-open .profile-panel {
     padding: 0;
     display: grid;
     gap: 6px;
+    max-height: 148px;
+    overflow-y: auto;
+    padding-right: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.4) rgba(15, 23, 42, 0.16);
+}
+
+.profile-edit-history-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.profile-edit-history-list::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.16);
+    border-radius: 999px;
+}
+
+.profile-edit-history-list::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 999px;
 }
 
 .profile-edit-history-item {
@@ -849,6 +994,25 @@ body.info-sidebar-open .profile-panel {
     max-height: min(28vh, 240px);
     overflow-y: auto;
     padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.45) rgba(15, 23, 42, 0.2);
+}
+
+.character-carousel-track::-webkit-scrollbar,
+.character-dialog .profile-character-fields::-webkit-scrollbar {
+    width: 8px;
+}
+
+.character-carousel-track::-webkit-scrollbar-track,
+.character-dialog .profile-character-fields::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.2);
+    border-radius: 999px;
+}
+
+.character-carousel-track::-webkit-scrollbar-thumb,
+.character-dialog .profile-character-fields::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.42);
+    border-radius: 999px;
 }
 
 .character-carousel-nav {
@@ -894,6 +1058,8 @@ body.info-sidebar-open .profile-panel {
     overflow-y: auto;
     max-height: min(34vh, 280px);
     padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.45) rgba(15, 23, 42, 0.2);
 }
 
 .character-dialog .profile-character-fields label[for="character-bio"],
@@ -1223,6 +1389,8 @@ body[data-theme="light"] .profile-character-tag {
     padding-top: 10px;
     padding-bottom: calc(4px + env(safe-area-inset-bottom));
     background: linear-gradient(180deg, rgba(17, 24, 39, 0) 0%, rgba(17, 24, 39, 0.96) 35%);
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    margin-top: 2px;
 }
 
 .profile-actions .secondary-button {
@@ -1254,9 +1422,23 @@ body[data-theme="light"] .profile-button {
     color: #1f2933;
 }
 
+body[data-theme="light"] .profile-button[aria-expanded="true"] {
+    background: rgba(255, 255, 255, 0.98);
+}
+
 body[data-theme="light"] .profile-menu {
     background: rgba(255, 255, 255, 0.97);
     color: #1f2933;
+    scrollbar-color: rgba(100, 116, 139, 0.42) rgba(148, 163, 184, 0.12);
+}
+
+body[data-theme="light"] .profile-menu::-webkit-scrollbar-track {
+    background: rgba(148, 163, 184, 0.12);
+}
+
+body[data-theme="light"] .profile-menu::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.35);
+    border-color: rgba(255, 255, 255, 0.35);
 }
 
 body[data-theme="light"] .profile-identity-card {
@@ -1333,6 +1515,30 @@ body[data-theme="light"] .profile-account-pill.is-connected {
 
 body[data-theme="light"] .profile-account-value {
     color: #1f2937;
+}
+
+body[data-theme="light"] .profile-menu > :is(
+    .profile-customization,
+    .profile-character,
+    .profile-availability,
+    .profile-feedback,
+    .profile-quick-actions,
+    .profile-account-security
+):hover {
+    background: rgba(148, 163, 184, 0.15);
+    border-color: rgba(100, 116, 139, 0.34);
+}
+
+body[data-theme="light"] .profile-menu > :is(
+    .profile-customization,
+    .profile-character,
+    .profile-availability,
+    .profile-feedback,
+    .profile-quick-actions,
+    .profile-account-security
+):focus-within {
+    border-color: rgba(59, 130, 246, 0.42);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.16) inset;
 }
 
 body[data-theme="light"] .profile-inline-errors {
@@ -2840,6 +3046,8 @@ body[data-theme="light"] #events-filter option {
     .profile-menu {
         width: 100%;
         max-height: calc(100vh - 74px - env(safe-area-inset-bottom));
+        padding: 12px 12px 10px;
+        gap: 10px;
     }
 
     .profile-avatar-lg {
@@ -2854,6 +3062,23 @@ body[data-theme="light"] #events-filter option {
 
     .profile-quick-actions-grid {
         grid-template-columns: 1fr;
+    }
+
+    .profile-summary {
+        gap: 10px;
+    }
+
+    .profile-account-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+
+    .profile-account-label {
+        font-size: 11px;
+    }
+
+    .profile-account-value {
+        font-size: 12px;
     }
 
     @supports (height: 100dvh) {
@@ -2898,6 +3123,19 @@ body[data-theme="light"] #events-filter option {
     #history-container {
         width: calc(100% - 32px);
         top: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-button,
+    .profile-menu,
+    .profile-menu .secondary-button,
+    .profile-menu .danger-button,
+    .profile-menu .primary-button,
+    .profile-menu .tertiary-button,
+    .profile-character-card {
+        transition: none !important;
+        animation: none !important;
     }
 }
 
