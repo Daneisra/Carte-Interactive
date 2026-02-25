@@ -219,6 +219,9 @@ export class UiController {
             characterErrors: document.getElementById('character-errors'),
             characterList: document.getElementById('character-list'),
             characterEmpty: document.getElementById('character-empty'),
+            characterEmptyState: document.getElementById('character-empty-state'),
+            characterEmptyCreate: document.getElementById('character-empty-create'),
+            characterEmptyImport: document.getElementById('character-empty-import'),
             characterPageIndicator: document.getElementById('character-page-indicator'),
             characterCarouselPrev: document.getElementById('character-carousel-prev'),
             characterCarouselNext: document.getElementById('character-carousel-next'),
@@ -235,6 +238,8 @@ export class UiController {
             characterAvatar: document.getElementById('character-avatar'),
             characterGroup: document.getElementById('character-group'),
             characterActive: document.getElementById('character-active'),
+            characterFormFields: document.getElementById('character-form-fields'),
+            characterFormActions: document.getElementById('character-form-actions'),
             characterSave: document.getElementById('character-save'),
             characterDelete: document.getElementById('character-delete'),
             characterStatus: document.getElementById('character-status'),
@@ -377,6 +382,7 @@ export class UiController {
         this.characterFormDirty = false;
         this.characterSyncPending = false;
         this.charactersDirty = false;
+        this.characterDraftMode = false;
         this.profileCharacters = [];
         this.activeCharacterId = null;
         this.characterFilterSearch = '';
@@ -1735,6 +1741,7 @@ export class UiController {
         if (previouslyAuthenticated !== this.auth.authenticated) {
             this.characterFormDirty = false;
             this.charactersDirty = false;
+            this.characterDraftMode = false;
             this.availabilityDirty = false;
             this.profileCustomizationDirty = false;
             this.characterSyncPending = false;
@@ -2059,6 +2066,21 @@ export class UiController {
         this.updateCharacterSummary();
         this.refreshCharacterGroupOptions();
         this.renderCharacterList();
+        const hasCharacters = Array.isArray(this.profileCharacters) && this.profileCharacters.length > 0;
+        const hasSelectedCharacter = Boolean(this.getActiveCharacter());
+        const showEditor = hasSelectedCharacter || this.characterDraftMode;
+        if (this.dom.characterEmptyState) {
+            this.dom.characterEmptyState.hidden = !(authenticated && !hasCharacters && !this.characterDraftMode);
+        }
+        if (this.dom.characterEmpty && this.dom.characterEmptyState && !this.dom.characterEmptyState.hidden) {
+            this.dom.characterEmpty.hidden = true;
+        }
+        if (this.dom.characterFormFields) {
+            this.dom.characterFormFields.hidden = !showEditor;
+        }
+        if (this.dom.characterFormActions) {
+            this.dom.characterFormActions.hidden = !showEditor;
+        }
         const inputs = [
             this.dom.characterName,
             this.dom.characterBio,
@@ -2067,30 +2089,37 @@ export class UiController {
             this.dom.characterActive
         ].filter(Boolean);
         inputs.forEach(input => {
-            input.disabled = !authenticated || this.characterSyncPending;
+            input.disabled = !authenticated || this.characterSyncPending || !showEditor;
         });
         if (this.dom.characterOpen) {
             this.dom.characterOpen.disabled = false;
             this.dom.characterOpen.setAttribute('aria-expanded', String(this.isCharacterOverlayOpen));
         }
         if (this.dom.characterSave) {
-            this.dom.characterSave.disabled = !authenticated || this.characterSyncPending;
+            this.dom.characterSave.disabled = !authenticated || this.characterSyncPending || !showEditor;
         }
         if (this.dom.characterDelete) {
-            this.dom.characterDelete.disabled = !authenticated || !this.activeCharacterId || this.characterSyncPending;
-            this.dom.characterDelete.hidden = !this.activeCharacterId;
+            this.dom.characterDelete.disabled = !authenticated || !this.activeCharacterId || this.characterSyncPending || !showEditor;
+            this.dom.characterDelete.hidden = !this.activeCharacterId || !showEditor;
         }
         if (this.dom.characterAdd) {
             this.dom.characterAdd.disabled = !authenticated || this.characterSyncPending;
         }
         if (this.dom.characterDuplicate) {
-            this.dom.characterDuplicate.disabled = !authenticated || !this.activeCharacterId || this.characterSyncPending;
+            this.dom.characterDuplicate.disabled = !authenticated || !this.activeCharacterId || this.characterSyncPending || !showEditor;
+            this.dom.characterDuplicate.hidden = !showEditor;
         }
         if (this.dom.characterImport) {
             this.dom.characterImport.disabled = !authenticated || this.characterSyncPending;
         }
         if (this.dom.characterExport) {
             this.dom.characterExport.disabled = this.characterSyncPending || !this.profileCharacters.length;
+        }
+        if (this.dom.characterErrors && !showEditor) {
+            this.dom.characterErrors.hidden = true;
+        }
+        if (this.dom.characterStatus) {
+            this.dom.characterStatus.classList.toggle('is-muted-empty', !showEditor && authenticated && !hasCharacters);
         }
         if (!this.characterFormDirty) {
             const character = this.getActiveCharacter() || {};
@@ -2300,6 +2329,7 @@ export class UiController {
         const currentPage = totalPages > 0 ? Math.min(this.characterPageIndex + 1, totalPages) : 0;
         if (this.dom.characterPageIndicator) {
             this.dom.characterPageIndicator.textContent = `Page ${currentPage}/${totalPages}`;
+            this.dom.characterPageIndicator.hidden = totalPages <= 0;
         }
         if (this.dom.characterCarouselPrev) {
             this.dom.characterCarouselPrev.disabled = totalPages <= 1 || this.characterPageIndex <= 0;
@@ -2314,9 +2344,13 @@ export class UiController {
         if (!container) {
             return;
         }
+        const carousel = container.closest('.character-carousel');
         clearElement(container);
         const filtered = this.getFilteredCharacters();
         const totalItems = filtered.length;
+        if (carousel) {
+            carousel.classList.toggle('is-empty', totalItems <= 0);
+        }
         const totalPages = totalItems > 0 ? Math.max(1, Math.ceil(totalItems / this.characterPageSize)) : 0;
         if (this.characterPageIndex >= totalPages) {
             this.characterPageIndex = Math.max(0, totalPages - 1);
@@ -2383,6 +2417,7 @@ export class UiController {
             return;
         }
         this.activeCharacterId = characterId;
+        this.characterDraftMode = false;
         const activeCharacter = this.getActiveCharacter();
         if (activeCharacter) {
             this.characterPageIndex = Math.floor(this.getFilteredCharacters().findIndex(entry => entry.id === characterId) / this.characterPageSize);
@@ -2398,6 +2433,7 @@ export class UiController {
 
     startNewCharacter() {
         this.activeCharacterId = null;
+        this.characterDraftMode = true;
         this.characterFormDirty = false;
         this.charactersDirty = true;
         if (this.dom.characterName) {
@@ -2447,6 +2483,7 @@ export class UiController {
             this.dom.characterActive.checked = false;
         }
         this.activeCharacterId = null;
+        this.characterDraftMode = true;
         this.characterFormDirty = true;
         this.charactersDirty = true;
         this.setCharacterStatus('Copie prete. Enregistrez pour creer le personnage.');
@@ -2501,12 +2538,17 @@ export class UiController {
             this.syncCharacterForm();
             if (focusName && this.dom.characterName) {
                 window.requestAnimationFrame(() => {
-                    this.dom.characterName?.focus?.();
+                    if (this.dom.characterFormFields && !this.dom.characterFormFields.hidden) {
+                        this.dom.characterName?.focus?.();
+                        return;
+                    }
+                    this.dom.characterEmptyCreate?.focus?.();
                 });
             }
             return;
         }
         this.characterFormDirty = false;
+        this.characterDraftMode = false;
         this.setCharacterStatus('');
     }
 
@@ -2543,6 +2585,7 @@ export class UiController {
             this.auth.characters = characters;
             this.characterFormDirty = false;
             this.charactersDirty = false;
+            this.characterDraftMode = false;
             if (!characters.some(entry => entry.id === this.activeCharacterId)) {
                 const preferred = characters.find(entry => entry.active);
                 this.activeCharacterId = preferred?.id || characters[0]?.id || null;
@@ -3658,6 +3701,10 @@ export class UiController {
             this.dom.characterAdd.addEventListener('click', () => this.startNewCharacter());
             this.dom.characterAdd.dataset.bound = 'true';
         }
+        if (this.dom.characterEmptyCreate && !this.dom.characterEmptyCreate.dataset.bound) {
+            this.dom.characterEmptyCreate.addEventListener('click', () => this.startNewCharacter());
+            this.dom.characterEmptyCreate.dataset.bound = 'true';
+        }
         if (this.dom.characterDuplicate && !this.dom.characterDuplicate.dataset.bound) {
             this.dom.characterDuplicate.addEventListener('click', () => this.duplicateCharacterProfile());
             this.dom.characterDuplicate.dataset.bound = 'true';
@@ -3669,6 +3716,10 @@ export class UiController {
         if (this.dom.characterImport && !this.dom.characterImport.dataset.bound) {
             this.dom.characterImport.addEventListener('click', () => this.triggerCharacterImport());
             this.dom.characterImport.dataset.bound = 'true';
+        }
+        if (this.dom.characterEmptyImport && !this.dom.characterEmptyImport.dataset.bound) {
+            this.dom.characterEmptyImport.addEventListener('click', () => this.triggerCharacterImport());
+            this.dom.characterEmptyImport.dataset.bound = 'true';
         }
         if (this.dom.characterImportFile && !this.dom.characterImportFile.dataset.bound) {
             this.dom.characterImportFile.addEventListener('change', () => this.importCharacterProfiles());

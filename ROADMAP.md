@@ -55,7 +55,75 @@
 - [x] Sécurité/compte: bouton “révoquer session”, infos Discord, date dernière connexion.
 - [x] Polish UI
 
-### P3 — Différenciants
+### P3.1 — Page d’accueil (MVP pré-carte)
+- [ ] Créer une page d’accueil dédiée avant la carte (route `/`).
+- [ ] Déplacer l’accès carte sur une route dédiée (`/map`) ou équivalent sans casser l’accès direct.
+- [ ] Ajouter un CTA principal **“Entrer sur la carte”**.
+- [ ] Ajouter un bouton secondaire **“Continuer sans se connecter”** (lecture seule).
+- [ ] Ajouter **Connexion Discord** sur la page d’accueil.
+- [ ] Afficher état session si connecté (avatar, pseudo, rôle, bouton “Aller à la carte”).
+- [ ] Ajouter une section courte de présentation (univers + objectif de la carte).
+- [ ] Ajouter une section **Réseaux / Communauté** : YouTube, Discord, Reddit.
+- [ ] Ajouter un footer avec **copyright**, crédits, contact, mentions du projet.
+- [ ] Design responsive propre (mobile + desktop).
+
+### P3.2 — UX & contenu de l’accueil
+- [ ] Hero immersif (visuel/illustration + tagline).
+- [ ] Bloc **Fonctionnalités** (exploration, quêtes live, groupes, audio, annotations).
+- [ ] Bloc **Comment commencer** (3 étapes simples).
+- [ ] Bloc **Nouveautés** (derniers événements/ajouts majeurs).
+- [ ] CTA **Rejoindre le Discord**.
+- [ ] CTA **Voir le contenu YouTube**.
+- [ ] Bloc “Reprendre” pour utilisateur connecté (favoris / accès rapide carte).
+- [ ] Message d’état clair si API/session indisponible.
+
+### P3.3 — Auth, session & navigation
+- [ ] Réutiliser `/auth/session` pour hydrater l’accueil.
+- [ ] Gérer les états `guest / user / admin` sur l’accueil.
+- [ ] Gérer redirects login propres (`/auth/discord/login?redirect=/map` ou retour accueil).
+- [ ] Ajouter bouton **Se déconnecter** depuis l’accueil.
+- [ ] Afficher infos compte minimales (provider, Discord, dernière connexion).
+- [ ] Prévoir accès rapide admin (si admin connecté).
+
+### P3.4 — Réseaux sociaux & footer (propre / maintenable)
+- [ ] Externaliser les URLs sociales (config JSON ou `.env`) pour éviter le hardcode.
+- [ ] Icônes sociales accessibles (labels/aria).
+- [ ] Liens externes sécurisés (`target="_blank"` + `rel="noopener noreferrer"`).
+- [ ] Footer avec crédits assets (images/audio/icônes).
+- [ ] Mention “fan project” / cadre IP (si nécessaire).
+- [ ] Lien vers support / bugs / contact.
+
+### P3.5 — Perf, SEO, accessibilité
+- [ ] Ne pas charger Leaflet + assets carte lourds sur l’accueil (chargement à la demande).
+- [ ] Meta `title` + `description` dédiés à l’accueil.
+- [ ] Open Graph (image de partage, titre, description).
+- [ ] Structure HTML sémantique (`header`, `main`, `section`, `footer`).
+- [ ] Navigation clavier complète + focus visibles.
+- [ ] Support `prefers-reduced-motion`.
+- [ ] Vérifier contraste et lisibilité mobile.
+
+### P3.6 — Polish UI (accueil)
+- [ ] Direction artistique forte (hero, textures, typo, ambiance).
+- [ ] Animations légères (entrées, hover CTA, transitions sections).
+- [ ] Version mobile soignée (CTA visibles sans trop scroller).
+- [ ] États de chargement élégants (session/auth/API).
+- [ ] Cohérence visuelle avec la carte et le menu profil.
+
+### P3.7 — Bonus (plus tard)
+- [ ] Preview du flux temps réel sur l’accueil (mini bloc live).
+- [ ] Mise en avant de lieux/continents (cards).
+- [ ] Changelog / patch notes visibles depuis l’accueil.
+- [ ] Widget communauté (ex: lien invitation Discord enrichi).
+- [ ] Écran d’accueil personnalisable côté admin (textes/liens/hero).
+
+### Ordre recommandé (exécution)
+- [ ] Phase 1 : `/` + CTA carte + login + footer/socials.
+- [ ] Phase 2 : états de session + redirects auth.
+- [ ] Phase 3 : contenu (hero, fonctionnalités, nouveautés).
+- [ ] Phase 4 : perf/SEO/accessibilité.
+- [ ] Phase 5 : polish UI final.
+
+### P4 — Différenciants
 - [ ] Intégration et personalisation d'une frise chronologique
 - [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schéma, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).
@@ -66,7 +134,7 @@
 - [ ] Narateur audio
 - [ ] Polish UI
 
-### P4 — Hygiène & dette
+### P5 — Hygiène & dette
 - [ ] Modularisation fine de `UiController` et nettoyage des artefacts legacy.
 - [ ] Harmonisation encodages (UTF-8) & lint assets. :contentReference[oaicite:7]{index=7}
 - [ ] Polish UI

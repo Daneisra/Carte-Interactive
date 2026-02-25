@@ -115,7 +115,6 @@
                 <div class="profile-quick-actions-grid">
                     <button id="quick-theme-toggle" class="secondary-button" type="button">Changer le theme</button>
                     <button id="quick-favorites" class="secondary-button" type="button">Mes lieux favoris</button>
-                    <button id="quick-admin-panel" class="secondary-button admin-locked" type="button" hidden>Panneau admin</button>
                     <button id="quick-admin-users" class="secondary-button admin-locked" type="button" hidden>Admin utilisateurs</button>
                     <button id="quick-admin-groups" class="secondary-button admin-locked" type="button" hidden>Admin groupes</button>
                 </div>
@@ -143,6 +142,7 @@
                 <p id="profile-revoke-status" class="profile-character-status" role="status" aria-live="polite" hidden></p>
             </div>
             <div class="profile-actions">
+                <button id="quick-admin-panel" class="secondary-button admin-locked" type="button" hidden>Panneau admin</button>
                 <button id="login-button" class="secondary-button" type="button">Connexion Discord</button>
                 <button id="logout-button" class="secondary-button" type="button" hidden>Se deconnecter</button>
             </div>
@@ -178,7 +178,15 @@
             </div>
             <p id="character-empty" class="profile-character-empty" hidden>Aucun personnage enregistre.</p>
             <p id="character-page-indicator" class="character-page-indicator">Page 1/1</p>
-            <div class="profile-character-fields">
+            <div id="character-empty-state" class="character-empty-state" hidden>
+                <p class="character-empty-state-title">Aucun personnage pour le moment</p>
+                <p class="character-empty-state-text">Créez un premier personnage ou importez un fichier JSON existant.</p>
+                <div class="character-empty-state-actions">
+                    <button id="character-empty-create" class="primary-button" type="button">Créer un personnage</button>
+                    <button id="character-empty-import" class="secondary-button" type="button">Importer JSON</button>
+                </div>
+            </div>
+            <div id="character-form-fields" class="profile-character-fields">
                 <label for="character-name">Nom</label>
                 <input id="character-name" type="text" placeholder="Nom du personnage" autocomplete="off" />
                 <label for="character-bio">Bio</label>
@@ -194,7 +202,7 @@
                     <span>Tag actif</span>
                 </label>
             </div>
-            <div class="profile-character-actions">
+            <div id="character-form-actions" class="profile-character-actions">
                 <button id="character-add" class="secondary-button" type="button">Nouveau</button>
                 <button id="character-duplicate" class="secondary-button" type="button">Dupliquer</button>
                 <button id="character-save" class="primary-button" type="button">Enregistrer</button>
