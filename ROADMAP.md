@@ -64,34 +64,34 @@
 - [x] Afficher état session si connecté (avatar, pseudo, rôle, bouton “Aller à la carte”).
 - [x] Ajouter une section courte de présentation (univers + objectif de la carte).
 - [x] Ajouter une section **Réseaux / Communauté** : YouTube, Discord, Reddit.
-- [ ] Ajouter un footer avec **copyright**, crédits, contact, mentions du projet.
+- [x] Ajouter un footer avec **copyright**, crédits, contact, mentions du projet.
 - [x] Design responsive propre (mobile + desktop).
 
 ### P3.2 — UX & contenu de l’accueil
-- [ ] Hero immersif (visuel/illustration + tagline).
-- [ ] Bloc **Fonctionnalités** (exploration, quêtes live, groupes, audio, annotations).
-- [ ] Bloc **Comment commencer** (3 étapes simples).
-- [ ] Bloc **Nouveautés** (derniers événements/ajouts majeurs).
-- [ ] CTA **Rejoindre le Discord**.
-- [ ] CTA **Voir le contenu YouTube**.
-- [ ] Bloc “Reprendre” pour utilisateur connecté (favoris / accès rapide carte).
-- [ ] Message d’état clair si API/session indisponible.
+- [x] Hero immersif (visuel/illustration + tagline).
+- [x] Bloc **Fonctionnalités** (exploration, quêtes live, groupes, audio, annotations).
+- [x] Bloc **Comment commencer** (3 étapes simples).
+- [x] Bloc **Nouveautés** (derniers événements/ajouts majeurs).
+- [x] CTA **Rejoindre le Discord**.
+- [x] CTA **Voir le contenu YouTube**.
+- [x] Bloc “Reprendre” pour utilisateur connecté (favoris / accès rapide carte).
+- [x] Message d’état clair si API/session indisponible.
 
 ### P3.3 — Auth, session & navigation
 - [x] Réutiliser `/auth/session` pour hydrater l’accueil.
 - [x] Gérer les états `guest / user / admin` sur l’accueil.
 - [x] Gérer redirects login propres (`/auth/discord/login?redirect=/map` ou retour accueil).
 - [x] Ajouter bouton **Se déconnecter** depuis l’accueil.
-- [ ] Afficher infos compte minimales (provider, Discord, dernière connexion).
-- [ ] Prévoir accès rapide admin (si admin connecté).
+- [x] Afficher infos compte minimales (provider, Discord, dernière connexion).
+- [x] Prévoir accès rapide admin (si admin connecté).
 
 ### P3.4 — Réseaux sociaux & footer (propre / maintenable)
 - [ ] Externaliser les URLs sociales (config JSON ou `.env`) pour éviter le hardcode.
 - [x] Icônes sociales accessibles (labels/aria).
 - [x] Liens externes sécurisés (`target="_blank"` + `rel="noopener noreferrer"`).
 - [ ] Footer avec crédits assets (images/audio/icônes).
-- [ ] Mention “fan project” / cadre IP (si nécessaire).
-- [ ] Lien vers support / bugs / contact.
+- [x] Mention “fan project” / cadre IP (si nécessaire).
+- [x] Lien vers support / bugs / contact.
 
 ### P3.5 — Perf, SEO, accessibilité
 - [x] Ne pas charger Leaflet + assets carte lourds sur l’accueil (chargement à la demande).
@@ -119,7 +119,7 @@
 ### Ordre recommandé (exécution)
 - [x] Phase 1 : `/` + CTA carte + login + footer/socials.
 - [x] Phase 2 : états de session + redirects auth.
-- [ ] Phase 3 : contenu (hero, fonctionnalités, nouveautés).
+- [x] Phase 3 : contenu (hero, fonctionnalités, nouveautés).
 - [ ] Phase 4 : perf/SEO/accessibilité.
 - [ ] Phase 5 : polish UI final.
 

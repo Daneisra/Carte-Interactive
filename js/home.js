@@ -9,9 +9,20 @@
     status: document.getElementById('home-session-status'),
     avatar: document.getElementById('home-avatar'),
     provider: document.getElementById('home-provider'),
+    discord: document.getElementById('home-discord'),
     lastLogin: document.getElementById('home-last-login'),
-    sessionMap: document.getElementById('home-session-map')
+    sessionMap: document.getElementById('home-session-map'),
+    adminLink: document.getElementById('home-admin-link'),
+    resumeCard: document.getElementById('home-resume-card'),
+    resumeFavorites: document.getElementById('home-resume-favorites'),
+    resumeLastLocation: document.getElementById('home-resume-last-location'),
+    resumeNote: document.getElementById('home-resume-note'),
+    newsStatus: document.getElementById('home-news-status'),
+    newsNote: document.getElementById('home-news-note'),
+    newsList: document.getElementById('home-news-list')
 };
+
+const PREFERENCES_STORAGE_KEY = 'interactive-map-preferences';
 
 const formatLastLogin = value => {
     if (!value || typeof value !== 'string') {
@@ -29,6 +40,31 @@ const formatLastLogin = value => {
 };
 
 const getLoginRedirect = () => '/auth/discord/login?redirect=%2Fmap%2F';
+
+const escapeHtml = value => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+const readPreferencesSummary = () => {
+    try {
+        const raw = window.localStorage?.getItem(PREFERENCES_STORAGE_KEY);
+        if (!raw) {
+            return { favorites: 0, lastLocation: '' };
+        }
+        const parsed = JSON.parse(raw);
+        const favorites = Array.isArray(parsed?.favorites)
+            ? parsed.favorites.filter(name => typeof name === 'string' && name.trim())
+            : [];
+        const uniqueFavorites = Array.from(new Set(favorites.map(name => name.trim()).filter(Boolean)));
+        const lastLocation = typeof parsed?.lastLocation === 'string' ? parsed.lastLocation.trim() : '';
+        return { favorites: uniqueFavorites.length, lastLocation };
+    } catch (_error) {
+        return { favorites: 0, lastLocation: '' };
+    }
+};
 
 const setAuthNote = (message, tone = 'neutral') => {
     if (!dom.authNote) {
@@ -60,6 +96,103 @@ const applyAvatar = (avatarUrl, fallbackText) => {
     dom.avatar.textContent = (fallbackText || '?').charAt(0).toUpperCase();
 };
 
+const setNewsStatus = (message, tone = 'neutral') => {
+    if (!dom.newsStatus) {
+        return;
+    }
+    dom.newsStatus.textContent = message;
+    dom.newsStatus.classList.remove('is-ok', 'is-error');
+    if (tone === 'ok') {
+        dom.newsStatus.classList.add('is-ok');
+    }
+    if (tone === 'error') {
+        dom.newsStatus.classList.add('is-error');
+    }
+};
+
+const renderNewsItems = events => {
+    if (!dom.newsList) {
+        return;
+    }
+    if (!Array.isArray(events) || events.length === 0) {
+        dom.newsList.innerHTML = '<li class="home-news-empty">Aucune nouveaute recente pour le moment.</li>';
+        return;
+    }
+    dom.newsList.innerHTML = events.map(event => {
+        const title = escapeHtml(event?.questId || event?.id || 'Quete');
+        const location = escapeHtml(event?.locationName || 'Lieu inconnu');
+        const status = escapeHtml(event?.status || 'inconnu');
+        const milestone = escapeHtml(event?.milestone || '');
+        const note = escapeHtml(event?.note || '');
+        const date = escapeHtml(formatLastLogin(event?.updatedAt || event?.createdAt || ''));
+        const metaSuffix = milestone ? ` · ${milestone}` : '';
+        return `
+<li class="home-news-item">
+    <div class="home-news-head">
+        <strong>${title}</strong>
+        <span>${date}</span>
+    </div>
+    <p class="home-news-meta">${location} · ${status}${metaSuffix}</p>
+    <p class="home-news-text">${note || 'Mise a jour de quete enregistree.'}</p>
+</li>`;
+    }).join('');
+};
+
+const fetchQuestNews = async () => {
+    setNewsStatus('Chargement...');
+    if (dom.newsNote) {
+        dom.newsNote.textContent = 'Derniers evenements de quete detectes. Ce bloc reste lisible meme si l API est indisponible.';
+    }
+    try {
+        const response = await fetch('/api/quest-events', { cache: 'no-store', credentials: 'include' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        const events = Array.isArray(payload?.events) ? payload.events : [];
+        const sorted = events
+            .slice()
+            .sort((a, b) => Date.parse(b?.updatedAt || b?.createdAt || 0) - Date.parse(a?.updatedAt || a?.createdAt || 0))
+            .slice(0, 5);
+        renderNewsItems(sorted);
+        setNewsStatus(sorted.length ? `${sorted.length} recentes` : 'A jour', 'ok');
+        if (dom.newsNote) {
+            dom.newsNote.textContent = sorted.length
+                ? 'Apercu des derniers evenements de quete. Ouvrez la carte pour voir le flux complet.'
+                : 'Aucun evenement de quete recent pour le moment.';
+        }
+    } catch (error) {
+        console.error('[home] quest news fetch failed', error);
+        renderNewsItems([]);
+        setNewsStatus('API indisponible', 'error');
+        if (dom.newsNote) {
+            dom.newsNote.textContent = 'Impossible de charger les nouveautes (API /api/quest-events indisponible). Vous pouvez quand meme acceder a la carte.';
+        }
+    }
+};
+
+const updateResumeCard = ({ authenticated = false } = {}) => {
+    if (!dom.resumeCard) {
+        return;
+    }
+    dom.resumeCard.hidden = !authenticated;
+    if (!authenticated) {
+        return;
+    }
+    const summary = readPreferencesSummary();
+    if (dom.resumeFavorites) {
+        dom.resumeFavorites.textContent = String(summary.favorites);
+    }
+    if (dom.resumeLastLocation) {
+        dom.resumeLastLocation.textContent = summary.lastLocation || '--';
+    }
+    if (dom.resumeNote) {
+        dom.resumeNote.textContent = summary.favorites || summary.lastLocation
+            ? 'Favoris et dernier lieu recuperes depuis vos preferences locales.'
+            : 'Aucun repere local detecte pour le moment. Ouvrez la carte et ajoutez des favoris.';
+    }
+};
+
 const setGuestState = (options = {}) => {
     const {
         authRequired = true,
@@ -70,28 +203,42 @@ const setGuestState = (options = {}) => {
     dom.role.textContent = authRequired ? 'Mode lecture' : 'Edition locale';
     dom.status.textContent = message;
     dom.provider.textContent = authRequired ? 'Invite' : 'Local';
+    dom.discord.textContent = '--';
     dom.lastLogin.textContent = '--';
     applyAvatar('', authRequired ? '?' : 'L');
     dom.logout.hidden = true;
     dom.login.hidden = !authRequired || !oauthDiscord;
     dom.loginInline.hidden = !authRequired || !oauthDiscord;
+    dom.adminLink.hidden = true;
+    updateResumeCard({ authenticated: false });
 };
 
 const setAuthenticatedState = payload => {
     const username = (payload?.username || '').trim() || 'Utilisateur';
     const role = (payload?.role || 'user').toLowerCase() === 'admin' ? 'Administrateur' : 'Utilisateur';
+    const isAdmin = role === 'Administrateur';
     const provider = payload?.provider === 'discord' ? 'Discord' : (payload?.provider || 'manuel');
+    const discordId = (payload?.discordId || payload?.account?.discordId || '').toString().trim();
     dom.username.textContent = username;
     dom.role.textContent = role;
-    dom.status.textContent = role === 'Administrateur'
+    dom.status.textContent = isAdmin
         ? 'Connecte. Vous pouvez acceder a la carte et aux outils d administration.'
         : 'Connecte. Vous pouvez acceder a vos personnages, groupes et a la carte.';
     dom.provider.textContent = provider;
+    dom.discord.textContent = provider === 'Discord'
+        ? (discordId || 'Compte Discord connecte')
+        : '--';
     dom.lastLogin.textContent = formatLastLogin(payload?.account?.lastLoginAt || null);
     applyAvatar(payload?.avatar || '', username);
     dom.logout.hidden = false;
     dom.login.hidden = true;
     dom.loginInline.hidden = true;
+    dom.adminLink.hidden = !isAdmin;
+    if (!dom.adminLink.hidden) {
+        dom.adminLink.textContent = 'Acces admin rapide (carte)';
+        dom.adminLink.href = '/map/';
+    }
+    updateResumeCard({ authenticated: true });
 };
 
 const fetchSession = async () => {
@@ -152,4 +299,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     bindActions();
     fetchSession();
+    fetchQuestNews();
 });

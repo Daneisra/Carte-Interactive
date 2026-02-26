@@ -34,6 +34,12 @@
                         Explorez les lieux, suivez les quetes en direct, retrouvez votre groupe JDR et centralisez vos personnages.
                         Cette page sert de point d'entree rapide pour la carte et la communaute.
                     </p>
+                    <div class="home-hero-tags" aria-label="Points forts">
+                        <span class="home-hero-tag">Carte narrative</span>
+                        <span class="home-hero-tag">Quetes live</span>
+                        <span class="home-hero-tag">Groupes JDR</span>
+                        <span class="home-hero-tag">Profils & personnages</span>
+                    </div>
                     <div class="home-hero-actions">
                         <a id="home-enter-map" class="home-cta home-cta-primary" href="/map/">Entrer sur la carte</a>
                         <a id="home-enter-guest" class="home-cta home-cta-secondary" href="/map/">Continuer sans se connecter</a>
@@ -55,31 +61,78 @@
                             <strong id="home-provider">Invite</strong>
                         </div>
                         <div>
+                            <span class="label">Discord</span>
+                            <strong id="home-discord">--</strong>
+                        </div>
+                        <div>
                             <span class="label">Derniere connexion</span>
                             <strong id="home-last-login">--</strong>
                         </div>
                     </div>
-                    <a id="home-session-map" class="home-inline-map-link" href="/map/">Aller a la carte</a>
+                    <div class="home-session-links">
+                        <a id="home-session-map" class="home-inline-map-link" href="/map/">Aller a la carte</a>
+                        <a id="home-admin-link" class="home-inline-map-link home-inline-map-link-admin" href="/map/" hidden>Acces admin rapide</a>
+                    </div>
+                    <div class="home-session-atmosphere" aria-hidden="true">
+                        <div class="home-orb"></div>
+                        <div class="home-lines"></div>
+                        <p>Hub pre-carte - entree rapide vers l'univers, la carte et la communaute.</p>
+                    </div>
                 </aside>
             </section>
 
             <section class="home-grid" aria-label="Sections d'accueil">
                 <article class="home-card">
-                    <h2>Ce que vous pouvez faire</h2>
-                    <ul>
-                        <li>Explorer les continents et lieux de l'univers</li>
-                        <li>Suivre les quetes et evenements en temps reel</li>
-                        <li>Gerer vos personnages et disponibilites</li>
-                        <li>Coordonner les groupes JDR sur la carte</li>
-                    </ul>
+                    <h2>Fonctionnalites</h2>
+                    <div class="home-feature-list" role="list">
+                        <div class="home-feature-item" role="listitem">
+                            <strong>Exploration</strong>
+                            <p>Continents, lieux, favoris, filtres avances et navigation rapide.</p>
+                        </div>
+                        <div class="home-feature-item" role="listitem">
+                            <strong>Quetes live</strong>
+                            <p>Evenements de quete et flux temps reel pour suivre les evolutions.</p>
+                        </div>
+                        <div class="home-feature-item" role="listitem">
+                            <strong>Profils & persos</strong>
+                            <p>Personnages, groupes JDR, disponibilites et personnalisation du profil.</p>
+                        </div>
+                    </div>
                 </article>
                 <article class="home-card">
-                    <h2>Acces rapide</h2>
-                    <div class="home-card-actions">
-                        <a class="home-cta home-cta-secondary" href="/map/">Carte interactive</a>
-                        <button id="home-login-inline" class="home-cta home-cta-secondary" type="button">Connexion Discord</button>
+                    <h2>Comment commencer</h2>
+                    <ol class="home-steps">
+                        <li>
+                            <strong>Entrez sur la carte</strong>
+                            <p>Explorez en lecture seule ou connectez-vous ensuite.</p>
+                        </li>
+                        <li>
+                            <strong>Connectez-vous via Discord</strong>
+                            <p>Debloquez l'edition, le profil, les personnages et les groupes.</p>
+                        </li>
+                        <li>
+                            <strong>Reprenez vos favoris</strong>
+                            <p>Utilisez vos lieux favoris et votre dernier contexte pour repartir vite.</p>
+                        </li>
+                    </ol>
+                </article>
+                <article id="home-resume-card" class="home-card" hidden>
+                    <h2>Reprendre</h2>
+                    <div class="home-resume-grid">
+                        <div class="home-resume-metric">
+                            <span class="label">Favoris locaux</span>
+                            <strong id="home-resume-favorites">0</strong>
+                        </div>
+                        <div class="home-resume-metric">
+                            <span class="label">Dernier lieu</span>
+                            <strong id="home-resume-last-location">--</strong>
+                        </div>
                     </div>
-                    <p class="home-muted">La connexion permet l'edition, les personnages, les groupes et les fonctions admin (selon votre role).</p>
+                    <div class="home-card-actions">
+                        <a class="home-cta home-cta-secondary" href="/map/">Reprendre la carte</a>
+                        <a class="home-cta home-cta-secondary" href="/map/">Mes lieux favoris</a>
+                    </div>
+                    <p id="home-resume-note" class="home-muted">Connecte pour retrouver vos reperes plus rapidement.</p>
                 </article>
                 <article class="home-card home-card-community">
                     <h2>Communaute</h2>
@@ -94,7 +147,25 @@
                             <span aria-hidden="true">RD</span> Reddit
                         </a>
                     </div>
+                    <div class="home-card-actions">
+                        <a class="home-cta home-cta-secondary" href="https://discord.com/" target="_blank" rel="noopener noreferrer">Rejoindre le Discord</a>
+                        <a class="home-cta home-cta-secondary" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">Voir le contenu YouTube</a>
+                    </div>
+                    <div class="home-card-actions">
+                        <a class="home-cta home-cta-secondary" href="/map/">Carte interactive</a>
+                        <button id="home-login-inline" class="home-cta home-cta-secondary" type="button">Connexion Discord</button>
+                    </div>
                     <p class="home-muted">Remplacez ces liens par vos URLs communautaires definitives lors du polish P3.</p>
+                </article>
+                <article class="home-card home-card-wide" aria-labelledby="home-news-title">
+                    <div class="home-card-header">
+                        <h2 id="home-news-title">Nouveautes</h2>
+                        <span id="home-news-status" class="home-status-pill">Chargement...</span>
+                    </div>
+                    <p id="home-news-note" class="home-muted">Derniers evenements de quete detectes. Ce bloc reste lisible meme si l'API est indisponible.</p>
+                    <ul id="home-news-list" class="home-news-list">
+                        <li class="home-news-empty">Chargement des nouveautes...</li>
+                    </ul>
                 </article>
             </section>
         </main>
@@ -102,11 +173,14 @@
         <footer class="home-footer">
             <div class="home-footer-left">
                 <p>&copy; <span id="home-year"></span> Carte Hesta. Tous droits reserves.</p>
-                <p class="home-footer-note">Projet narratif / JDR - page d'accueil pre-carte (P3.1 MVP).</p>
+                <p class="home-footer-note">Projet narratif / JDR - fan project / page d'accueil pre-carte (P3.1 MVP).</p>
             </div>
             <div class="home-footer-right">
                 <a href="/map/">Acceder a la carte</a>
                 <a href="/auth/session">Etat session</a>
+                <a href="https://github.com/Daneisra/Carte-Interactive/issues" target="_blank" rel="noopener noreferrer">Bugs / support</a>
+                <a href="mailto:contact@cartehesta.local">Contact</a>
+                <a href="/ROADMAP.md">Credits & mentions</a>
             </div>
         </footer>
     </div>
