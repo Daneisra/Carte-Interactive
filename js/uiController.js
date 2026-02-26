@@ -3519,7 +3519,11 @@ export class UiController {
         }
         if (this.dom.loginButton) {
             this.dom.loginButton.addEventListener('click', () => {
-                window.location.href = '/auth/discord/login';
+                const redirectPath = (window.location?.pathname || '/').startsWith('/')
+                    ? (window.location.pathname || '/')
+                    : '/';
+                const loginUrl = `/auth/discord/login?redirect=${encodeURIComponent(redirectPath)}`;
+                window.location.href = loginUrl;
             });
         }
         if (this.dom.logoutButton) {

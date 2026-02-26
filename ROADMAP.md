@@ -1,4 +1,4 @@
-# Carte Interactive — Roadmap & Ops (2025–2026)
+﻿# Carte Interactive — Roadmap & Ops (2025–2026)
 
 > But : carte narrative immersive, fiable et maintenable, utilisée en jeu et comme référentiel vivant de l’univers.  
 > Axes : qualité des données, excellence UX, industrialisation (CI/CD & ops).
@@ -56,16 +56,16 @@
 - [x] Polish UI
 
 ### P3.1 — Page d’accueil (MVP pré-carte)
-- [ ] Créer une page d’accueil dédiée avant la carte (route `/`).
-- [ ] Déplacer l’accès carte sur une route dédiée (`/map`) ou équivalent sans casser l’accès direct.
-- [ ] Ajouter un CTA principal **“Entrer sur la carte”**.
-- [ ] Ajouter un bouton secondaire **“Continuer sans se connecter”** (lecture seule).
-- [ ] Ajouter **Connexion Discord** sur la page d’accueil.
-- [ ] Afficher état session si connecté (avatar, pseudo, rôle, bouton “Aller à la carte”).
-- [ ] Ajouter une section courte de présentation (univers + objectif de la carte).
-- [ ] Ajouter une section **Réseaux / Communauté** : YouTube, Discord, Reddit.
+- [x] Créer une page d’accueil dédiée avant la carte (route `/`).
+- [x] Déplacer l’accès carte sur une route dédiée (`/map`) ou équivalent sans casser l’accès direct.
+- [x] Ajouter un CTA principal **“Entrer sur la carte”**.
+- [x] Ajouter un bouton secondaire **“Continuer sans se connecter”** (lecture seule).
+- [x] Ajouter **Connexion Discord** sur la page d’accueil.
+- [x] Afficher état session si connecté (avatar, pseudo, rôle, bouton “Aller à la carte”).
+- [x] Ajouter une section courte de présentation (univers + objectif de la carte).
+- [x] Ajouter une section **Réseaux / Communauté** : YouTube, Discord, Reddit.
 - [ ] Ajouter un footer avec **copyright**, crédits, contact, mentions du projet.
-- [ ] Design responsive propre (mobile + desktop).
+- [x] Design responsive propre (mobile + desktop).
 
 ### P3.2 — UX & contenu de l’accueil
 - [ ] Hero immersif (visuel/illustration + tagline).
@@ -78,28 +78,28 @@
 - [ ] Message d’état clair si API/session indisponible.
 
 ### P3.3 — Auth, session & navigation
-- [ ] Réutiliser `/auth/session` pour hydrater l’accueil.
-- [ ] Gérer les états `guest / user / admin` sur l’accueil.
-- [ ] Gérer redirects login propres (`/auth/discord/login?redirect=/map` ou retour accueil).
-- [ ] Ajouter bouton **Se déconnecter** depuis l’accueil.
+- [x] Réutiliser `/auth/session` pour hydrater l’accueil.
+- [x] Gérer les états `guest / user / admin` sur l’accueil.
+- [x] Gérer redirects login propres (`/auth/discord/login?redirect=/map` ou retour accueil).
+- [x] Ajouter bouton **Se déconnecter** depuis l’accueil.
 - [ ] Afficher infos compte minimales (provider, Discord, dernière connexion).
 - [ ] Prévoir accès rapide admin (si admin connecté).
 
 ### P3.4 — Réseaux sociaux & footer (propre / maintenable)
 - [ ] Externaliser les URLs sociales (config JSON ou `.env`) pour éviter le hardcode.
-- [ ] Icônes sociales accessibles (labels/aria).
-- [ ] Liens externes sécurisés (`target="_blank"` + `rel="noopener noreferrer"`).
+- [x] Icônes sociales accessibles (labels/aria).
+- [x] Liens externes sécurisés (`target="_blank"` + `rel="noopener noreferrer"`).
 - [ ] Footer avec crédits assets (images/audio/icônes).
 - [ ] Mention “fan project” / cadre IP (si nécessaire).
 - [ ] Lien vers support / bugs / contact.
 
 ### P3.5 — Perf, SEO, accessibilité
-- [ ] Ne pas charger Leaflet + assets carte lourds sur l’accueil (chargement à la demande).
-- [ ] Meta `title` + `description` dédiés à l’accueil.
+- [x] Ne pas charger Leaflet + assets carte lourds sur l’accueil (chargement à la demande).
+- [x] Meta `title` + `description` dédiés à l’accueil.
 - [ ] Open Graph (image de partage, titre, description).
-- [ ] Structure HTML sémantique (`header`, `main`, `section`, `footer`).
+- [x] Structure HTML sémantique (`header`, `main`, `section`, `footer`).
 - [ ] Navigation clavier complète + focus visibles.
-- [ ] Support `prefers-reduced-motion`.
+- [x] Support `prefers-reduced-motion`.
 - [ ] Vérifier contraste et lisibilité mobile.
 
 ### P3.6 — Polish UI (accueil)
@@ -117,8 +117,8 @@
 - [ ] Écran d’accueil personnalisable côté admin (textes/liens/hero).
 
 ### Ordre recommandé (exécution)
-- [ ] Phase 1 : `/` + CTA carte + login + footer/socials.
-- [ ] Phase 2 : états de session + redirects auth.
+- [x] Phase 1 : `/` + CTA carte + login + footer/socials.
+- [x] Phase 2 : états de session + redirects auth.
 - [ ] Phase 3 : contenu (hero, fonctionnalités, nouveautés).
 - [ ] Phase 4 : perf/SEO/accessibilité.
 - [ ] Phase 5 : polish UI final.
