@@ -373,6 +373,7 @@ const bindActions = () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('home-ready');
     if (dom.year) {
         dom.year.textContent = String(new Date().getFullYear());
     }
@@ -385,4 +386,5 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchSession();
     fetchQuestNews();
 });
+
 

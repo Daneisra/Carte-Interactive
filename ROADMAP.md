@@ -100,14 +100,14 @@
 - [x] Structure HTML sémantique (`header`, `main`, `section`, `footer`).
 - [x] Navigation clavier complète + focus visibles.
 - [x] Support `prefers-reduced-motion`.
-- [ ] Vérifier contraste et lisibilité mobile.
+- [x] Vérifier contraste et lisibilité mobile.
 
 ### P3.6 — Polish UI (accueil)
-- [ ] Direction artistique forte (hero, textures, typo, ambiance).
-- [ ] Animations légères (entrées, hover CTA, transitions sections).
-- [ ] Version mobile soignée (CTA visibles sans trop scroller).
-- [ ] États de chargement élégants (session/auth/API).
-- [ ] Cohérence visuelle avec la carte et le menu profil.
+- [x] Direction artistique forte (hero, textures, typo, ambiance).
+- [x] Animations légères (entrées, hover CTA, transitions sections).
+- [x] Version mobile soignée (CTA visibles sans trop scroller).
+- [x] États de chargement élégants (session/auth/API).
+- [x] Cohérence visuelle avec la carte et le menu profil.
 
 ### P3.7 — Bonus (plus tard)
 - [ ] Preview du flux temps réel sur l’accueil (mini bloc live).
@@ -120,8 +120,8 @@
 - [x] Phase 1 : `/` + CTA carte + login + footer/socials.
 - [x] Phase 2 : états de session + redirects auth.
 - [x] Phase 3 : contenu (hero, fonctionnalités, nouveautés).
-- [ ] Phase 4 : perf/SEO/accessibilité.
-- [ ] Phase 5 : polish UI final.
+- [x] Phase 4 : perf/SEO/accessibilité.
+- [x] Phase 5 : polish UI final.
 
 ### P4 — Différenciants
 - [ ] Intégration et personalisation d'une frise chronologique
