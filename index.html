@@ -5,10 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carte Hesta | Accueil</title>
     <meta name="description" content="Accueil de la carte narrative interactive. Accedez a la carte, connectez-vous via Discord et retrouvez les liens de la communaute." />
+    <meta property="og:title" content="Carte Hesta | Accueil" />
+    <meta property="og:description" content="Hub d entree vers la carte narrative interactive, les quetes live et la communaute." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cartehesta.dannytech.fr/" />
+    <meta property="og:image" content="https://cartehesta.dannytech.fr/assets/icons/default.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Carte Hesta | Accueil" />
+    <meta name="twitter:description" content="Entrez sur la carte, connectez-vous via Discord et suivez les quetes en direct." />
+    <meta name="twitter:image" content="https://cartehesta.dannytech.fr/assets/icons/default.png" />
     <link rel="stylesheet" href="/home.css">
     <link rel="icon" type="image/png" href="/assets/icons/default.png">
 </head>
 <body>
+    <a class="home-skip-link" href="#home-main">Aller au contenu principal</a>
     <div class="home-shell">
         <header class="home-header">
             <a class="home-brand" href="/" aria-label="Accueil Carte Hesta">
@@ -25,7 +35,7 @@
             </div>
         </header>
 
-        <main class="home-main">
+        <main id="home-main" class="home-main">
             <section class="home-hero" aria-labelledby="home-hero-title">
                 <div class="home-hero-copy">
                     <p class="home-kicker">P3.1 - Accueil pre-carte</p>
@@ -137,19 +147,19 @@
                 <article class="home-card home-card-community">
                     <h2>Communaute</h2>
                     <div class="home-socials" role="list" aria-label="Reseaux sociaux">
-                        <a role="listitem" class="home-social home-social-youtube" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">
+                        <a id="home-social-youtube" role="listitem" class="home-social home-social-youtube" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">
                             <span aria-hidden="true">YT</span> YouTube
                         </a>
-                        <a role="listitem" class="home-social home-social-discord" href="https://discord.com/" target="_blank" rel="noopener noreferrer">
+                        <a id="home-social-discord" role="listitem" class="home-social home-social-discord" href="https://discord.com/" target="_blank" rel="noopener noreferrer">
                             <span aria-hidden="true">DS</span> Discord
                         </a>
-                        <a role="listitem" class="home-social home-social-reddit" href="https://www.reddit.com/" target="_blank" rel="noopener noreferrer">
+                        <a id="home-social-reddit" role="listitem" class="home-social home-social-reddit" href="https://www.reddit.com/" target="_blank" rel="noopener noreferrer">
                             <span aria-hidden="true">RD</span> Reddit
                         </a>
                     </div>
                     <div class="home-card-actions">
-                        <a class="home-cta home-cta-secondary" href="https://discord.com/" target="_blank" rel="noopener noreferrer">Rejoindre le Discord</a>
-                        <a class="home-cta home-cta-secondary" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">Voir le contenu YouTube</a>
+                        <a id="home-social-discord-cta" class="home-cta home-cta-secondary" href="https://discord.com/" target="_blank" rel="noopener noreferrer">Rejoindre le Discord</a>
+                        <a id="home-social-youtube-cta" class="home-cta home-cta-secondary" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">Voir le contenu YouTube</a>
                     </div>
                     <div class="home-card-actions">
                         <a class="home-cta home-cta-secondary" href="/map/">Carte interactive</a>
@@ -178,9 +188,9 @@
             <div class="home-footer-right">
                 <a href="/map/">Acceder a la carte</a>
                 <a href="/auth/session">Etat session</a>
-                <a href="https://github.com/Daneisra/Carte-Interactive/issues" target="_blank" rel="noopener noreferrer">Bugs / support</a>
-                <a href="mailto:contact@cartehesta.local">Contact</a>
-                <a href="/ROADMAP.md">Credits & mentions</a>
+                <a id="home-footer-support" href="https://github.com/Daneisra/Carte-Interactive/issues" target="_blank" rel="noopener noreferrer">Bugs / support</a>
+                <a id="home-footer-contact" href="mailto:contact@cartehesta.local">Contact</a>
+                <a id="home-footer-credits" href="/docs/credits-assets.md">Credits assets</a>
             </div>
         </footer>
     </div>

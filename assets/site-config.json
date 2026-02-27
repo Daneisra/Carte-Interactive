@@ -1,0 +1,14 @@
+{
+    "community": {
+        "youtubeUrl": "https://www.youtube.com/",
+        "discordUrl": "https://discord.com/",
+        "redditUrl": "https://www.reddit.com/"
+    },
+    "support": {
+        "issuesUrl": "https://github.com/Daneisra/Carte-Interactive/issues",
+        "contactEmail": "contact@cartehesta.local"
+    },
+    "legal": {
+        "creditsUrl": "/docs/credits-assets.md"
+    }
+}

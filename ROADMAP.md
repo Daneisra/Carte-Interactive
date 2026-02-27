@@ -86,19 +86,19 @@
 - [x] Prévoir accès rapide admin (si admin connecté).
 
 ### P3.4 — Réseaux sociaux & footer (propre / maintenable)
-- [ ] Externaliser les URLs sociales (config JSON ou `.env`) pour éviter le hardcode.
+- [x] Externaliser les URLs sociales (config JSON ou `.env`) pour éviter le hardcode.
 - [x] Icônes sociales accessibles (labels/aria).
 - [x] Liens externes sécurisés (`target="_blank"` + `rel="noopener noreferrer"`).
-- [ ] Footer avec crédits assets (images/audio/icônes).
+- [x] Footer avec crédits assets (images/audio/icônes).
 - [x] Mention “fan project” / cadre IP (si nécessaire).
 - [x] Lien vers support / bugs / contact.
 
 ### P3.5 — Perf, SEO, accessibilité
 - [x] Ne pas charger Leaflet + assets carte lourds sur l’accueil (chargement à la demande).
 - [x] Meta `title` + `description` dédiés à l’accueil.
-- [ ] Open Graph (image de partage, titre, description).
+- [x] Open Graph (image de partage, titre, description).
 - [x] Structure HTML sémantique (`header`, `main`, `section`, `footer`).
-- [ ] Navigation clavier complète + focus visibles.
+- [x] Navigation clavier complète + focus visibles.
 - [x] Support `prefers-reduced-motion`.
 - [ ] Vérifier contraste et lisibilité mobile.
 

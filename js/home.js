@@ -19,10 +19,38 @@
     resumeNote: document.getElementById('home-resume-note'),
     newsStatus: document.getElementById('home-news-status'),
     newsNote: document.getElementById('home-news-note'),
-    newsList: document.getElementById('home-news-list')
+    newsList: document.getElementById('home-news-list'),
+    socialYoutube: document.getElementById('home-social-youtube'),
+    socialDiscord: document.getElementById('home-social-discord'),
+    socialReddit: document.getElementById('home-social-reddit'),
+    socialYoutubeCta: document.getElementById('home-social-youtube-cta'),
+    socialDiscordCta: document.getElementById('home-social-discord-cta'),
+    footerSupport: document.getElementById('home-footer-support'),
+    footerContact: document.getElementById('home-footer-contact'),
+    footerCredits: document.getElementById('home-footer-credits')
 };
 
 const PREFERENCES_STORAGE_KEY = 'interactive-map-preferences';
+const SITE_CONFIG_URL = '/assets/site-config.json';
+
+const DEFAULT_SITE_CONFIG = {
+    community: {
+        youtubeUrl: 'https://www.youtube.com/',
+        discordUrl: 'https://discord.com/',
+        redditUrl: 'https://www.reddit.com/'
+    },
+    support: {
+        issuesUrl: 'https://github.com/Daneisra/Carte-Interactive/issues',
+        contactEmail: 'contact@cartehesta.local'
+    },
+    legal: {
+        creditsUrl: '/docs/credits-assets.md'
+    }
+};
+
+const isSafeExternalUrl = value => typeof value === 'string' && /^https?:\/\//i.test(value.trim());
+const isSafeRelativeUrl = value => typeof value === 'string' && value.trim().startsWith('/');
+const isSafeMailto = value => typeof value === 'string' && /^mailto:[^@\s]+@[^@\s]+\.[^@\s]+$/i.test(value.trim());
 
 const formatLastLogin = value => {
     if (!value || typeof value !== 'string') {
@@ -47,6 +75,60 @@ const escapeHtml = value => String(value ?? '')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+
+const setLinkHref = (element, url, fallback) => {
+    if (!element) {
+        return;
+    }
+    const next = typeof url === 'string' ? url.trim() : '';
+    if (isSafeExternalUrl(next) || isSafeRelativeUrl(next) || isSafeMailto(next)) {
+        element.href = next;
+        return;
+    }
+    element.href = fallback;
+};
+
+const applySiteConfig = config => {
+    const merged = {
+        ...DEFAULT_SITE_CONFIG,
+        ...(config || {}),
+        community: {
+            ...DEFAULT_SITE_CONFIG.community,
+            ...(config?.community || {})
+        },
+        support: {
+            ...DEFAULT_SITE_CONFIG.support,
+            ...(config?.support || {})
+        },
+        legal: {
+            ...DEFAULT_SITE_CONFIG.legal,
+            ...(config?.legal || {})
+        }
+    };
+
+    setLinkHref(dom.socialYoutube, merged.community.youtubeUrl, DEFAULT_SITE_CONFIG.community.youtubeUrl);
+    setLinkHref(dom.socialYoutubeCta, merged.community.youtubeUrl, DEFAULT_SITE_CONFIG.community.youtubeUrl);
+    setLinkHref(dom.socialDiscord, merged.community.discordUrl, DEFAULT_SITE_CONFIG.community.discordUrl);
+    setLinkHref(dom.socialDiscordCta, merged.community.discordUrl, DEFAULT_SITE_CONFIG.community.discordUrl);
+    setLinkHref(dom.socialReddit, merged.community.redditUrl, DEFAULT_SITE_CONFIG.community.redditUrl);
+    setLinkHref(dom.footerSupport, merged.support.issuesUrl, DEFAULT_SITE_CONFIG.support.issuesUrl);
+    setLinkHref(dom.footerContact, `mailto:${merged.support.contactEmail}`, `mailto:${DEFAULT_SITE_CONFIG.support.contactEmail}`);
+    setLinkHref(dom.footerCredits, merged.legal.creditsUrl, DEFAULT_SITE_CONFIG.legal.creditsUrl);
+};
+
+const loadSiteConfig = async () => {
+    try {
+        const response = await fetch(SITE_CONFIG_URL, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        applySiteConfig(payload);
+    } catch (error) {
+        console.warn('[home] site config unavailable, fallback defaults used', error);
+        applySiteConfig(DEFAULT_SITE_CONFIG);
+    }
+};
 
 const readPreferencesSummary = () => {
     try {
@@ -297,7 +379,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dom.sessionMap) {
         dom.sessionMap.setAttribute('href', '/map/');
     }
+    applySiteConfig(DEFAULT_SITE_CONFIG);
     bindActions();
+    loadSiteConfig();
     fetchSession();
     fetchQuestNews();
 });
+
