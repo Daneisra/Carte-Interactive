@@ -368,6 +368,132 @@ body[data-theme="light"] .auth-panel .auth-status {
     font-size: 14px;
 }
 
+.admin-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-section-heading h3 {
+    margin: 0;
+}
+
+.admin-section-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-home-hint {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.admin-home-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.admin-home-fieldset {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(15, 23, 42, 0.42);
+    display: grid;
+    gap: 8px;
+}
+
+.admin-home-fieldset legend {
+    padding: 0 6px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #cbd5e1;
+}
+
+.admin-home-fieldset label {
+    font-size: 12px;
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+.admin-home-fieldset input,
+.admin-home-fieldset textarea {
+    width: 100%;
+    min-width: 0;
+    border-radius: 10px;
+    border: 1px solid rgba(96, 165, 250, 0.28);
+    background: rgba(15, 23, 42, 0.68);
+    color: #f8fafc;
+    padding: 10px 12px;
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.admin-home-fieldset textarea {
+    resize: vertical;
+    min-height: 88px;
+}
+
+.admin-home-fieldset input:focus-visible,
+.admin-home-fieldset textarea:focus-visible {
+    outline: 2px solid rgba(96, 165, 250, 0.7);
+    outline-offset: 2px;
+    border-color: rgba(96, 165, 250, 0.8);
+}
+
+.admin-home-status {
+    font-size: 13px;
+    color: #cbd5e1;
+}
+
+.admin-home-status.is-error {
+    color: #fca5a5;
+}
+
+body[data-theme="light"] .admin-dialog {
+    background: #eef2ff;
+    color: #0f172a;
+}
+
+body[data-theme="light"] .admin-header {
+    background: #eef2ff;
+}
+
+body[data-theme="light"] .admin-home-fieldset {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(99, 102, 241, 0.16);
+}
+
+body[data-theme="light"] .admin-home-fieldset label,
+body[data-theme="light"] .admin-home-fieldset legend,
+body[data-theme="light"] .admin-home-hint {
+    color: #334155;
+}
+
+body[data-theme="light"] .admin-home-fieldset input,
+body[data-theme="light"] .admin-home-fieldset textarea {
+    background: #ffffff;
+    color: #0f172a;
+    border-color: rgba(99, 102, 241, 0.24);
+}
+
+@media (max-width: 720px) {
+    .admin-section-heading,
+    .admin-section-heading-actions {
+        align-items: stretch;
+    }
+
+    .admin-section-heading-actions .secondary-button,
+    .admin-section-heading-actions .tertiary-button {
+        width: 100%;
+    }
+}
+
 .editor-dialog {
     width: min(900px, 94vw);
     max-height: 92vh;

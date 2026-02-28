@@ -684,6 +684,70 @@
                     </div>
                 </section>
 
+                <section class="admin-section" id="admin-section-home-config">
+                    <div class="admin-section-heading">
+                        <h3>Accueil</h3>
+                        <div class="admin-section-heading-actions">
+                            <button id="admin-home-reload" class="tertiary-button" type="button">Recharger</button>
+                            <button id="admin-home-save" class="secondary-button" type="button">Enregistrer l'accueil</button>
+                        </div>
+                    </div>
+                    <p class="admin-home-hint">Textes, hero, liens communautaires et patch notes de la page d'accueil.</p>
+                    <ul id="admin-home-errors" class="profile-inline-errors" hidden></ul>
+                    <div class="admin-home-grid">
+                        <fieldset class="admin-home-fieldset">
+                            <legend>Hero</legend>
+                            <label for="admin-home-kicker">Kicker</label>
+                            <input id="admin-home-kicker" type="text" autocomplete="off" />
+                            <label for="admin-home-title">Titre</label>
+                            <input id="admin-home-title" type="text" autocomplete="off" />
+                            <label for="admin-home-lead">Intro</label>
+                            <textarea id="admin-home-lead" rows="4"></textarea>
+                            <label for="admin-home-atmosphere">Bloc ambiance</label>
+                            <input id="admin-home-atmosphere" type="text" autocomplete="off" />
+                            <label for="admin-home-tags">Tags hero (une ligne = un tag)</label>
+                            <textarea id="admin-home-tags" rows="5" placeholder="Carte narrative&#10;Quetes live"></textarea>
+                            <label for="admin-home-metrics">Metriques hero (Label | Valeur)</label>
+                            <textarea id="admin-home-metrics" rows="5" placeholder="Hub | Carte + Communaute&#10;Acces | Lecture / Discord / Admin"></textarea>
+                        </fieldset>
+                        <fieldset class="admin-home-fieldset">
+                            <legend>Communaute & liens</legend>
+                            <label for="admin-home-discord-url">URL Discord</label>
+                            <input id="admin-home-discord-url" type="url" placeholder="https://discord.gg/..." autocomplete="off" />
+                            <label for="admin-home-discord-title">Bloc Discord</label>
+                            <input id="admin-home-discord-title" type="text" autocomplete="off" />
+                            <label for="admin-home-discord-copy">Texte Discord</label>
+                            <textarea id="admin-home-discord-copy" rows="3"></textarea>
+                            <label for="admin-home-youtube-url">URL YouTube</label>
+                            <input id="admin-home-youtube-url" type="url" placeholder="https://youtube.com/..." autocomplete="off" />
+                            <label for="admin-home-youtube-title">Bloc YouTube</label>
+                            <input id="admin-home-youtube-title" type="text" autocomplete="off" />
+                            <label for="admin-home-youtube-copy">Texte YouTube</label>
+                            <textarea id="admin-home-youtube-copy" rows="3"></textarea>
+                            <label for="admin-home-reddit-url">URL Reddit</label>
+                            <input id="admin-home-reddit-url" type="url" placeholder="https://reddit.com/..." autocomplete="off" />
+                            <label for="admin-home-reddit-title">Bloc Reddit</label>
+                            <input id="admin-home-reddit-title" type="text" autocomplete="off" />
+                            <label for="admin-home-reddit-copy">Texte Reddit</label>
+                            <textarea id="admin-home-reddit-copy" rows="3"></textarea>
+                        </fieldset>
+                        <fieldset class="admin-home-fieldset">
+                            <legend>Footer & support</legend>
+                            <label for="admin-home-support-url">URL support / bugs</label>
+                            <input id="admin-home-support-url" type="url" placeholder="https://..." autocomplete="off" />
+                            <label for="admin-home-contact-email">Contact</label>
+                            <input id="admin-home-contact-email" type="text" placeholder="contact@..." autocomplete="off" />
+                            <label for="admin-home-credits-url">URL credits</label>
+                            <input id="admin-home-credits-url" type="text" placeholder="/docs/credits-assets.md" autocomplete="off" />
+                            <label for="admin-home-footer-note">Note footer</label>
+                            <textarea id="admin-home-footer-note" rows="4"></textarea>
+                            <label for="admin-home-changelog">Patch notes (Date | Titre | Resume)</label>
+                            <textarea id="admin-home-changelog" rows="8" placeholder="2026-02-28 | Accueil pre-carte en ligne | Nouvelle page d'accueil..."></textarea>
+                        </fieldset>
+                    </div>
+                    <p id="admin-home-status" class="admin-home-status" role="status" aria-live="polite" hidden></p>
+                </section>
+
                 <section class="admin-section" id="admin-section-availability">
                     <h3>Disponibilites joueurs</h3>
                     <p id="admin-availability-hint" class="admin-availability-hint">Aucune disponibilite recue.</p>

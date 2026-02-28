@@ -50,6 +50,7 @@ const SESSION_STORE_FILE = path.join(AUDIT_DIR, 'sessions.json');
 const USERS_FILE = path.join(ASSETS_PATH, 'users.json');
 const GROUPS_FILE = path.join(ASSETS_PATH, 'groups.json');
 const ANNOTATIONS_FILE = path.join(ASSETS_PATH, 'annotations.json');
+const SITE_CONFIG_FILE = path.join(ASSETS_PATH, 'site-config.json');
 const REMOTE_SYNC_URL = (process.env.REMOTE_SYNC_URL || '').trim();
 const REMOTE_SYNC_TOKEN = (process.env.REMOTE_SYNC_TOKEN || '').trim();
 const rawRemoteSyncMethod = (process.env.REMOTE_SYNC_METHOD || 'POST').trim().toUpperCase();
@@ -59,6 +60,55 @@ const MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
 const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
+const DEFAULT_SITE_CONFIG = {
+  home: {
+    kicker: 'P3.1 - Accueil pre-carte',
+    title: "Entrez dans l'univers avant d'ouvrir la carte",
+    lead: "Explorez les lieux, suivez les quetes en direct, retrouvez votre groupe JDR et centralisez vos personnages. Cette page sert de point d'entree rapide pour la carte et la communaute.",
+    atmosphere: "Hub pre-carte - entree rapide vers l'univers, la carte et la communaute.",
+    tags: ['Carte narrative', 'Quetes live', 'Groupes JDR', 'Profils & personnages'],
+    metrics: [
+      { label: 'Hub', value: 'Carte + Communaute' },
+      { label: 'Acces', value: 'Lecture / Discord / Admin' },
+      { label: 'Etat', value: 'Pre-P3 en production' }
+    ]
+  },
+  community: {
+    youtubeUrl: 'https://www.youtube.com/',
+    discordUrl: 'https://discord.com/',
+    redditUrl: 'https://www.reddit.com/',
+    discord: {
+      badge: 'Discord',
+      title: 'Serveur principal',
+      copy: "Organisation des sessions, annonces JDR et coordination des groupes."
+    },
+    youtube: {
+      badge: 'YouTube',
+      title: 'Lore & recaps',
+      copy: "Recaps, videos d univers et ambiances pour prolonger les campagnes."
+    },
+    reddit: {
+      badge: 'Reddit',
+      title: 'Discussions',
+      copy: "Partage d idees, feedback et archives communautaires."
+    }
+  },
+  support: {
+    issuesUrl: 'https://github.com/Daneisra/Carte-Interactive/issues',
+    contactEmail: 'contact@cartehesta.local'
+  },
+  legal: {
+    creditsUrl: '/docs/credits-assets.md',
+    footerNote: "Projet narratif / JDR - fan project / page d'accueil pre-carte (P3.1 MVP)."
+  },
+  changelog: [
+    {
+      date: '2026-02-28',
+      title: 'Accueil pre-carte en ligne',
+      summary: "Nouvelle page d'accueil avant la carte avec session, communaute, flux live, lieux mis en avant et patch notes."
+    }
+  ]
+};
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -616,6 +666,136 @@ const isHttpUrl = value => {
     return false;
   }
 };
+
+const cloneSiteConfigDefaults = () => JSON.parse(JSON.stringify(DEFAULT_SITE_CONFIG));
+
+const sanitizeSiteConfigText = (value, maxLength = 1200) => {
+  const normalized = normalizeString(value);
+  if (!normalized) {
+    return '';
+  }
+  return normalized.slice(0, maxLength);
+};
+
+const sanitizeSiteConfigDate = value => {
+  const normalized = normalizeString(value);
+  if (!normalized) {
+    return '';
+  }
+  const parsed = Date.parse(normalized);
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString().slice(0, 10) : normalized.slice(0, 32);
+};
+
+const sanitizeSiteConfigUrl = (value, { allowRelative = false } = {}) => {
+  const normalized = normalizeString(value);
+  if (!normalized) {
+    return '';
+  }
+  if (allowRelative && normalized.startsWith('/')) {
+    return normalized;
+  }
+  return isHttpUrl(normalized) ? normalized : '';
+};
+
+const sanitizeSiteConfigContact = value => {
+  const normalized = normalizeString(value);
+  if (!normalized) {
+    return '';
+  }
+  if (/^mailto:[^@\s]+@[^@\s]+\.[^@\s]+$/i.test(normalized)) {
+    return normalized;
+  }
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/i.test(normalized) ? normalized : '';
+};
+
+const sanitizeSiteConfigMetric = value => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const label = sanitizeSiteConfigText(value.label, 60);
+  const metricValue = sanitizeSiteConfigText(value.value, 120);
+  if (!label || !metricValue) {
+    return null;
+  }
+  return { label, value: metricValue };
+};
+
+const sanitizeSiteConfigChangelogEntry = value => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const date = sanitizeSiteConfigDate(value.date);
+  const title = sanitizeSiteConfigText(value.title, 120);
+  const summary = sanitizeSiteConfigText(value.summary, 400);
+  if (!date && !title && !summary) {
+    return null;
+  }
+  return {
+    date: date || '',
+    title: title || 'Mise a jour',
+    summary: summary || ''
+  };
+};
+
+const sanitizeSiteConfig = value => {
+  const defaults = cloneSiteConfigDefaults();
+  const source = value && typeof value === 'object' ? value : {};
+  const homeSource = source.home && typeof source.home === 'object' ? source.home : {};
+  const communitySource = source.community && typeof source.community === 'object' ? source.community : {};
+  const supportSource = source.support && typeof source.support === 'object' ? source.support : {};
+  const legalSource = source.legal && typeof source.legal === 'object' ? source.legal : {};
+
+  const tags = Array.isArray(homeSource.tags)
+    ? homeSource.tags.map(entry => sanitizeSiteConfigText(entry, 60)).filter(Boolean).slice(0, 8)
+    : defaults.home.tags;
+  const metrics = Array.isArray(homeSource.metrics)
+    ? homeSource.metrics.map(sanitizeSiteConfigMetric).filter(Boolean).slice(0, 6)
+    : defaults.home.metrics;
+
+  const sanitizeCommunityCard = (key, fallback) => {
+    const cardSource = communitySource[key] && typeof communitySource[key] === 'object' ? communitySource[key] : {};
+    return {
+      badge: sanitizeSiteConfigText(cardSource.badge, 30) || fallback.badge,
+      title: sanitizeSiteConfigText(cardSource.title, 80) || fallback.title,
+      copy: sanitizeSiteConfigText(cardSource.copy, 240) || fallback.copy
+    };
+  };
+
+  const changelog = Array.isArray(source.changelog)
+    ? source.changelog.map(sanitizeSiteConfigChangelogEntry).filter(Boolean).slice(0, 12)
+    : defaults.changelog;
+
+  return {
+    home: {
+      kicker: sanitizeSiteConfigText(homeSource.kicker, 80) || defaults.home.kicker,
+      title: sanitizeSiteConfigText(homeSource.title, 180) || defaults.home.title,
+      lead: sanitizeSiteConfigText(homeSource.lead, 600) || defaults.home.lead,
+      atmosphere: sanitizeSiteConfigText(homeSource.atmosphere, 180) || defaults.home.atmosphere,
+      tags: tags.length ? tags : defaults.home.tags,
+      metrics: metrics.length ? metrics : defaults.home.metrics
+    },
+    community: {
+      youtubeUrl: sanitizeSiteConfigUrl(communitySource.youtubeUrl) || defaults.community.youtubeUrl,
+      discordUrl: sanitizeSiteConfigUrl(communitySource.discordUrl) || defaults.community.discordUrl,
+      redditUrl: sanitizeSiteConfigUrl(communitySource.redditUrl) || defaults.community.redditUrl,
+      discord: sanitizeCommunityCard('discord', defaults.community.discord),
+      youtube: sanitizeCommunityCard('youtube', defaults.community.youtube),
+      reddit: sanitizeCommunityCard('reddit', defaults.community.reddit)
+    },
+    support: {
+      issuesUrl: sanitizeSiteConfigUrl(supportSource.issuesUrl) || defaults.support.issuesUrl,
+      contactEmail: sanitizeSiteConfigContact(supportSource.contactEmail) || defaults.support.contactEmail
+    },
+    legal: {
+      creditsUrl: sanitizeSiteConfigUrl(legalSource.creditsUrl, { allowRelative: true }) || defaults.legal.creditsUrl,
+      footerNote: sanitizeSiteConfigText(legalSource.footerNote, 240) || defaults.legal.footerNote
+    },
+    changelog: changelog.length ? changelog : defaults.changelog
+  };
+};
+
+const readSiteConfigFile = async () => sanitizeSiteConfig(await readJsonFile(SITE_CONFIG_FILE, DEFAULT_SITE_CONFIG));
+const writeSiteConfigFile = async config => writeJsonFile(SITE_CONFIG_FILE, sanitizeSiteConfig(config));
 
 const resolveAssetPath = relative => {
   const target = path.join(ROOT, relative);
@@ -2145,6 +2325,33 @@ const server = http.createServer(async (req, res) => {
         counts,
         timezones
       }), { 'Content-Type': 'application/json' });
+      return;
+    }
+
+    if (urlObj.pathname === '/api/admin/site-config') {
+      if (!(await ensureAuthorized(req, res, 'admin'))) {
+        return;
+      }
+      if (req.method === 'GET') {
+        const config = await readSiteConfigFile();
+        send(res, 200, JSON.stringify({ status: 'ok', config }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      if (req.method === 'PATCH' || req.method === 'PUT') {
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const nextConfig = sanitizeSiteConfig(payload?.config && typeof payload.config === 'object' ? payload.config : payload);
+        await writeSiteConfigFile(nextConfig);
+        send(res, 200, JSON.stringify({ status: 'ok', config: nextConfig }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET,PATCH,PUT' });
       return;
     }
 

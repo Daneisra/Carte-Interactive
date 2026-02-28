@@ -324,6 +324,30 @@ export class UiController {
             userButton: document.getElementById('admin-user-button'),
             groupButton: document.getElementById('admin-group-button'),
             downloadAssetsButton: document.getElementById('download-assets-button'),
+            homeReloadButton: document.getElementById('admin-home-reload'),
+            homeSaveButton: document.getElementById('admin-home-save'),
+            homeErrors: document.getElementById('admin-home-errors'),
+            homeStatus: document.getElementById('admin-home-status'),
+            homeKicker: document.getElementById('admin-home-kicker'),
+            homeTitle: document.getElementById('admin-home-title'),
+            homeLead: document.getElementById('admin-home-lead'),
+            homeAtmosphere: document.getElementById('admin-home-atmosphere'),
+            homeTags: document.getElementById('admin-home-tags'),
+            homeMetrics: document.getElementById('admin-home-metrics'),
+            homeDiscordUrl: document.getElementById('admin-home-discord-url'),
+            homeDiscordTitle: document.getElementById('admin-home-discord-title'),
+            homeDiscordCopy: document.getElementById('admin-home-discord-copy'),
+            homeYoutubeUrl: document.getElementById('admin-home-youtube-url'),
+            homeYoutubeTitle: document.getElementById('admin-home-youtube-title'),
+            homeYoutubeCopy: document.getElementById('admin-home-youtube-copy'),
+            homeRedditUrl: document.getElementById('admin-home-reddit-url'),
+            homeRedditTitle: document.getElementById('admin-home-reddit-title'),
+            homeRedditCopy: document.getElementById('admin-home-reddit-copy'),
+            homeSupportUrl: document.getElementById('admin-home-support-url'),
+            homeContactEmail: document.getElementById('admin-home-contact-email'),
+            homeCreditsUrl: document.getElementById('admin-home-credits-url'),
+            homeFooterNote: document.getElementById('admin-home-footer-note'),
+            homeChangelog: document.getElementById('admin-home-changelog'),
             availabilityHint: document.getElementById('admin-availability-hint'),
             availabilityGrid: document.getElementById('admin-availability-grid'),
             availabilityEmpty: document.getElementById('admin-availability-empty'),
@@ -407,6 +431,10 @@ export class UiController {
         this.adminAvailability = null;
         this.adminMetrics = null;
         this.adminMetricsInterval = null;
+        this.adminSiteConfig = null;
+        this.adminSiteConfigDirty = false;
+        this.adminSiteConfigPending = false;
+        this.adminSiteConfigErrors = [];
         this.mapClickUnsubscribe = null;
         this.tooltipMeta = new WeakMap();
         this.visibleTooltips = new Set();
@@ -1956,6 +1984,7 @@ export class UiController {
         if (this.adminDom.downloadAssetsButton) {
             this.adminDom.downloadAssetsButton.hidden = !isAdmin;
         }
+        this.syncAdminHomeEditor();
         if (!isAdmin) {
             this.closeUserAdminPanel(true);
             this.closeAdminPanel(true);
@@ -3810,6 +3839,7 @@ export class UiController {
         this.syncAdminStatus();
         this.syncAdminValidationWarnings();
         this.syncAdminTelemetry();
+        this.fetchAdminSiteConfig();
         this.fetchAdminAvailability();
         this.startAdminMetrics();
         this.closeCharacterOverlay();
@@ -3858,6 +3888,46 @@ export class UiController {
             this.adminDom.downloadAssetsButton.addEventListener('click', () => this.downloadAssetsArchive());
             this.adminDom.downloadAssetsButton.dataset.bound = 'true';
         }
+        if (this.adminDom.homeReloadButton && !this.adminDom.homeReloadButton.dataset.bound) {
+            this.adminDom.homeReloadButton.addEventListener('click', () => this.fetchAdminSiteConfig());
+            this.adminDom.homeReloadButton.dataset.bound = 'true';
+        }
+        if (this.adminDom.homeSaveButton && !this.adminDom.homeSaveButton.dataset.bound) {
+            this.adminDom.homeSaveButton.addEventListener('click', () => this.saveAdminSiteConfig());
+            this.adminDom.homeSaveButton.dataset.bound = 'true';
+        }
+        [
+            this.adminDom.homeKicker,
+            this.adminDom.homeTitle,
+            this.adminDom.homeLead,
+            this.adminDom.homeAtmosphere,
+            this.adminDom.homeTags,
+            this.adminDom.homeMetrics,
+            this.adminDom.homeDiscordUrl,
+            this.adminDom.homeDiscordTitle,
+            this.adminDom.homeDiscordCopy,
+            this.adminDom.homeYoutubeUrl,
+            this.adminDom.homeYoutubeTitle,
+            this.adminDom.homeYoutubeCopy,
+            this.adminDom.homeRedditUrl,
+            this.adminDom.homeRedditTitle,
+            this.adminDom.homeRedditCopy,
+            this.adminDom.homeSupportUrl,
+            this.adminDom.homeContactEmail,
+            this.adminDom.homeCreditsUrl,
+            this.adminDom.homeFooterNote,
+            this.adminDom.homeChangelog
+        ].forEach(element => {
+            if (element && !element.dataset.bound) {
+                element.addEventListener('input', () => this.markAdminSiteConfigDirty());
+                element.dataset.bound = 'true';
+            }
+        });
+        if (!this.adminSiteConfig) {
+            this.adminSiteConfig = this.normalizeAdminSiteConfig({});
+            this.renderAdminSiteConfig();
+        }
+        this.syncAdminHomeEditor();
     }
 
     syncAdminStatus() {
@@ -3910,6 +3980,354 @@ export class UiController {
             li.textContent = entry?.description || entry?.title || 'Erreur/évènement';
             this.adminDom.telemetryList.appendChild(li);
         });
+    }
+
+    normalizeAdminSiteConfig(config = {}) {
+        const home = config?.home && typeof config.home === 'object' ? config.home : {};
+        const community = config?.community && typeof config.community === 'object' ? config.community : {};
+        const support = config?.support && typeof config.support === 'object' ? config.support : {};
+        const legal = config?.legal && typeof config.legal === 'object' ? config.legal : {};
+        const changelog = Array.isArray(config?.changelog) ? config.changelog : [];
+        const normalizeCard = (card, fallback) => ({
+            badge: sanitizeString(card?.badge || fallback.badge),
+            title: sanitizeString(card?.title || fallback.title),
+            copy: sanitizeString(card?.copy || fallback.copy)
+        });
+        const normalizeMetrics = Array.isArray(home.metrics) && home.metrics.length
+            ? home.metrics
+                .map(metric => ({
+                    label: sanitizeString(metric?.label),
+                    value: sanitizeString(metric?.value)
+                }))
+                .filter(metric => metric.label && metric.value)
+            : [
+                { label: 'Hub', value: 'Carte + Communaute' },
+                { label: 'Acces', value: 'Lecture / Discord / Admin' },
+                { label: 'Etat', value: 'Pre-P3 en production' }
+            ];
+        const normalizeTags = Array.isArray(home.tags) && home.tags.length
+            ? home.tags.map(tag => sanitizeString(tag)).filter(Boolean)
+            : ['Carte narrative', 'Quetes live', 'Groupes JDR', 'Profils & personnages'];
+        return {
+            home: {
+                kicker: sanitizeString(home.kicker || 'P3.1 - Accueil pre-carte'),
+                title: sanitizeString(home.title || "Entrez dans l'univers avant d'ouvrir la carte"),
+                lead: sanitizeString(home.lead || "Explorez les lieux, suivez les quetes en direct, retrouvez votre groupe JDR et centralisez vos personnages. Cette page sert de point d'entree rapide pour la carte et la communaute."),
+                atmosphere: sanitizeString(home.atmosphere || "Hub pre-carte - entree rapide vers l'univers, la carte et la communaute."),
+                tags: normalizeTags,
+                metrics: normalizeMetrics
+            },
+            community: {
+                discordUrl: sanitizeString(community.discordUrl || 'https://discord.com/'),
+                youtubeUrl: sanitizeString(community.youtubeUrl || 'https://www.youtube.com/'),
+                redditUrl: sanitizeString(community.redditUrl || 'https://www.reddit.com/'),
+                discord: normalizeCard(community.discord, {
+                    badge: 'Discord',
+                    title: 'Serveur principal',
+                    copy: 'Organisation des sessions, annonces JDR et coordination des groupes.'
+                }),
+                youtube: normalizeCard(community.youtube, {
+                    badge: 'YouTube',
+                    title: 'Lore & recaps',
+                    copy: "Recaps, videos d univers et ambiances pour prolonger les campagnes."
+                }),
+                reddit: normalizeCard(community.reddit, {
+                    badge: 'Reddit',
+                    title: 'Discussions',
+                    copy: "Partage d idees, feedback et archives communautaires."
+                })
+            },
+            support: {
+                issuesUrl: sanitizeString(support.issuesUrl || 'https://github.com/Daneisra/Carte-Interactive/issues'),
+                contactEmail: sanitizeString(support.contactEmail || 'contact@cartehesta.local')
+            },
+            legal: {
+                creditsUrl: sanitizeString(legal.creditsUrl || '/docs/credits-assets.md'),
+                footerNote: sanitizeString(legal.footerNote || "Projet narratif / JDR - fan project / page d'accueil pre-carte (P3.1 MVP).")
+            },
+            changelog: changelog
+                .map(entry => ({
+                    date: sanitizeString(entry?.date),
+                    title: sanitizeString(entry?.title),
+                    summary: sanitizeString(entry?.summary)
+                }))
+                .filter(entry => entry.date || entry.title || entry.summary)
+        };
+    }
+
+    formatAdminSiteConfigTags(tags = []) {
+        return Array.isArray(tags) ? tags.filter(Boolean).join('\n') : '';
+    }
+
+    formatAdminSiteConfigMetrics(metrics = []) {
+        return Array.isArray(metrics)
+            ? metrics
+                .filter(metric => metric?.label && metric?.value)
+                .map(metric => `${metric.label} | ${metric.value}`)
+                .join('\n')
+            : '';
+    }
+
+    formatAdminSiteConfigChangelog(entries = []) {
+        return Array.isArray(entries)
+            ? entries
+                .filter(entry => entry?.date || entry?.title || entry?.summary)
+                .map(entry => `${entry.date || ''} | ${entry.title || ''} | ${entry.summary || ''}`.trim())
+                .join('\n')
+            : '';
+    }
+
+    parseAdminDelimitedLines(value = '') {
+        return String(value || '')
+            .split(/\r?\n/)
+            .map(line => line.trim())
+            .filter(Boolean);
+    }
+
+    parseAdminMetrics(value = '') {
+        return this.parseAdminDelimitedLines(value)
+            .map(line => {
+                const [label, ...rest] = line.split('|');
+                const metricLabel = sanitizeString(label);
+                const metricValue = sanitizeString(rest.join('|'));
+                if (!metricLabel || !metricValue) {
+                    return null;
+                }
+                return { label: metricLabel, value: metricValue };
+            })
+            .filter(Boolean);
+    }
+
+    parseAdminChangelog(value = '') {
+        return this.parseAdminDelimitedLines(value)
+            .map(line => {
+                const [date, title, ...summaryParts] = line.split('|');
+                const parsed = {
+                    date: sanitizeString(date),
+                    title: sanitizeString(title),
+                    summary: sanitizeString(summaryParts.join('|'))
+                };
+                if (!parsed.date && !parsed.title && !parsed.summary) {
+                    return null;
+                }
+                return parsed;
+            })
+            .filter(Boolean);
+    }
+
+    setAdminHomeStatus(message, isError = false) {
+        if (!this.adminDom.homeStatus) {
+            return;
+        }
+        if (!message) {
+            this.adminDom.homeStatus.hidden = true;
+            this.adminDom.homeStatus.textContent = '';
+            this.adminDom.homeStatus.classList.remove('is-error');
+            return;
+        }
+        this.adminDom.homeStatus.hidden = false;
+        this.adminDom.homeStatus.textContent = message;
+        this.adminDom.homeStatus.classList.toggle('is-error', Boolean(isError));
+    }
+
+    renderAdminHomeErrors(errors = []) {
+        if (!this.adminDom.homeErrors) {
+            return;
+        }
+        const list = Array.isArray(errors) ? errors.filter(Boolean) : [];
+        this.adminDom.homeErrors.innerHTML = '';
+        if (!list.length) {
+            this.adminDom.homeErrors.hidden = true;
+            return;
+        }
+        list.forEach(message => {
+            this.adminDom.homeErrors.appendChild(createElement('li', { text: message }));
+        });
+        this.adminDom.homeErrors.hidden = false;
+    }
+
+    syncAdminHomeEditor() {
+        const isAdmin = this.isAdmin();
+        const disabled = !isAdmin || this.adminSiteConfigPending;
+        [
+            this.adminDom.homeKicker,
+            this.adminDom.homeTitle,
+            this.adminDom.homeLead,
+            this.adminDom.homeAtmosphere,
+            this.adminDom.homeTags,
+            this.adminDom.homeMetrics,
+            this.adminDom.homeDiscordUrl,
+            this.adminDom.homeDiscordTitle,
+            this.adminDom.homeDiscordCopy,
+            this.adminDom.homeYoutubeUrl,
+            this.adminDom.homeYoutubeTitle,
+            this.adminDom.homeYoutubeCopy,
+            this.adminDom.homeRedditUrl,
+            this.adminDom.homeRedditTitle,
+            this.adminDom.homeRedditCopy,
+            this.adminDom.homeSupportUrl,
+            this.adminDom.homeContactEmail,
+            this.adminDom.homeCreditsUrl,
+            this.adminDom.homeFooterNote,
+            this.adminDom.homeChangelog,
+            this.adminDom.homeReloadButton,
+            this.adminDom.homeSaveButton
+        ].forEach(element => {
+            if (element) {
+                element.disabled = disabled;
+            }
+        });
+        if (this.adminDom.homeSaveButton) {
+            this.adminDom.homeSaveButton.textContent = this.adminSiteConfigPending
+                ? "Enregistrement..."
+                : (this.adminSiteConfigDirty ? "Enregistrer l'accueil *" : "Enregistrer l'accueil");
+        }
+    }
+
+    renderAdminSiteConfig() {
+        const config = this.normalizeAdminSiteConfig(this.adminSiteConfig || {});
+        if (this.adminDom.homeKicker) {
+            this.adminDom.homeKicker.value = config.home.kicker || '';
+        }
+        if (this.adminDom.homeTitle) {
+            this.adminDom.homeTitle.value = config.home.title || '';
+        }
+        if (this.adminDom.homeLead) {
+            this.adminDom.homeLead.value = config.home.lead || '';
+        }
+        if (this.adminDom.homeAtmosphere) {
+            this.adminDom.homeAtmosphere.value = config.home.atmosphere || '';
+        }
+        if (this.adminDom.homeTags) {
+            this.adminDom.homeTags.value = this.formatAdminSiteConfigTags(config.home.tags);
+        }
+        if (this.adminDom.homeMetrics) {
+            this.adminDom.homeMetrics.value = this.formatAdminSiteConfigMetrics(config.home.metrics);
+        }
+        if (this.adminDom.homeDiscordUrl) {
+            this.adminDom.homeDiscordUrl.value = config.community.discordUrl || '';
+        }
+        if (this.adminDom.homeDiscordTitle) {
+            this.adminDom.homeDiscordTitle.value = config.community.discord?.title || '';
+        }
+        if (this.adminDom.homeDiscordCopy) {
+            this.adminDom.homeDiscordCopy.value = config.community.discord?.copy || '';
+        }
+        if (this.adminDom.homeYoutubeUrl) {
+            this.adminDom.homeYoutubeUrl.value = config.community.youtubeUrl || '';
+        }
+        if (this.adminDom.homeYoutubeTitle) {
+            this.adminDom.homeYoutubeTitle.value = config.community.youtube?.title || '';
+        }
+        if (this.adminDom.homeYoutubeCopy) {
+            this.adminDom.homeYoutubeCopy.value = config.community.youtube?.copy || '';
+        }
+        if (this.adminDom.homeRedditUrl) {
+            this.adminDom.homeRedditUrl.value = config.community.redditUrl || '';
+        }
+        if (this.adminDom.homeRedditTitle) {
+            this.adminDom.homeRedditTitle.value = config.community.reddit?.title || '';
+        }
+        if (this.adminDom.homeRedditCopy) {
+            this.adminDom.homeRedditCopy.value = config.community.reddit?.copy || '';
+        }
+        if (this.adminDom.homeSupportUrl) {
+            this.adminDom.homeSupportUrl.value = config.support.issuesUrl || '';
+        }
+        if (this.adminDom.homeContactEmail) {
+            this.adminDom.homeContactEmail.value = config.support.contactEmail || '';
+        }
+        if (this.adminDom.homeCreditsUrl) {
+            this.adminDom.homeCreditsUrl.value = config.legal.creditsUrl || '';
+        }
+        if (this.adminDom.homeFooterNote) {
+            this.adminDom.homeFooterNote.value = config.legal.footerNote || '';
+        }
+        if (this.adminDom.homeChangelog) {
+            this.adminDom.homeChangelog.value = this.formatAdminSiteConfigChangelog(config.changelog);
+        }
+        this.renderAdminHomeErrors([]);
+        this.syncAdminHomeEditor();
+    }
+
+    collectAdminSiteConfigDraft() {
+        return this.normalizeAdminSiteConfig({
+            home: {
+                kicker: this.adminDom.homeKicker?.value || '',
+                title: this.adminDom.homeTitle?.value || '',
+                lead: this.adminDom.homeLead?.value || '',
+                atmosphere: this.adminDom.homeAtmosphere?.value || '',
+                tags: this.parseAdminDelimitedLines(this.adminDom.homeTags?.value || ''),
+                metrics: this.parseAdminMetrics(this.adminDom.homeMetrics?.value || '')
+            },
+            community: {
+                discordUrl: this.adminDom.homeDiscordUrl?.value || '',
+                youtubeUrl: this.adminDom.homeYoutubeUrl?.value || '',
+                redditUrl: this.adminDom.homeRedditUrl?.value || '',
+                discord: {
+                    badge: 'Discord',
+                    title: this.adminDom.homeDiscordTitle?.value || '',
+                    copy: this.adminDom.homeDiscordCopy?.value || ''
+                },
+                youtube: {
+                    badge: 'YouTube',
+                    title: this.adminDom.homeYoutubeTitle?.value || '',
+                    copy: this.adminDom.homeYoutubeCopy?.value || ''
+                },
+                reddit: {
+                    badge: 'Reddit',
+                    title: this.adminDom.homeRedditTitle?.value || '',
+                    copy: this.adminDom.homeRedditCopy?.value || ''
+                }
+            },
+            support: {
+                issuesUrl: this.adminDom.homeSupportUrl?.value || '',
+                contactEmail: this.adminDom.homeContactEmail?.value || ''
+            },
+            legal: {
+                creditsUrl: this.adminDom.homeCreditsUrl?.value || '',
+                footerNote: this.adminDom.homeFooterNote?.value || ''
+            },
+            changelog: this.parseAdminChangelog(this.adminDom.homeChangelog?.value || '')
+        });
+    }
+
+    validateAdminSiteConfigDraft(config) {
+        const errors = [];
+        const isHttp = value => /^https?:\/\//i.test((value || '').trim());
+        const isRelative = value => (value || '').trim().startsWith('/');
+        const isMail = value => /^(mailto:)?[^@\s]+@[^@\s]+\.[^@\s]+$/i.test((value || '').trim());
+        if (!sanitizeString(config?.home?.title)) {
+            errors.push("Le titre de l'accueil est requis.");
+        }
+        if (!sanitizeString(config?.home?.lead)) {
+            errors.push("Le texte d'introduction de l'accueil est requis.");
+        }
+        if (!Array.isArray(config?.home?.metrics) || !config.home.metrics.length) {
+            errors.push('Ajoutez au moins une metrique hero (Label | Valeur).');
+        }
+        if (config?.community?.discordUrl && !isHttp(config.community.discordUrl)) {
+            errors.push('URL Discord invalide.');
+        }
+        if (config?.community?.youtubeUrl && !isHttp(config.community.youtubeUrl)) {
+            errors.push('URL YouTube invalide.');
+        }
+        if (config?.community?.redditUrl && !isHttp(config.community.redditUrl)) {
+            errors.push('URL Reddit invalide.');
+        }
+        if (config?.support?.issuesUrl && !isHttp(config.support.issuesUrl)) {
+            errors.push('URL support / bugs invalide.');
+        }
+        if (config?.support?.contactEmail && !isMail(config.support.contactEmail)) {
+            errors.push('Contact invalide (email ou mailto: attendu).');
+        }
+        if (config?.legal?.creditsUrl && !(isHttp(config.legal.creditsUrl) || isRelative(config.legal.creditsUrl))) {
+            errors.push('URL credits invalide (http(s) ou chemin relatif attendu).');
+        }
+        if (!Array.isArray(config?.changelog) || !config.changelog.length) {
+            errors.push('Ajoutez au moins une patch note.');
+        }
+        return errors;
     }
 
     syncAdminAvailability() {
@@ -4007,6 +4425,104 @@ export class UiController {
             });
             this.adminAvailability = null;
             this.syncAdminAvailability();
+        }
+    }
+
+    markAdminSiteConfigDirty() {
+        if (!this.isAdmin()) {
+            return;
+        }
+        this.adminSiteConfigDirty = true;
+        this.setAdminHomeStatus('');
+        this.renderAdminHomeErrors([]);
+        this.syncAdminHomeEditor();
+    }
+
+    async fetchAdminSiteConfig() {
+        if (!this.adminDom.homeSaveButton) {
+            return;
+        }
+        if (!this.isAdmin()) {
+            this.adminSiteConfig = null;
+            this.adminSiteConfigDirty = false;
+            this.syncAdminHomeEditor();
+            return;
+        }
+        try {
+            const response = await fetch('/api/admin/site-config', {
+                credentials: 'include',
+                cache: 'no-store'
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            this.adminSiteConfig = this.normalizeAdminSiteConfig(payload?.config || {});
+            this.adminSiteConfigDirty = false;
+            this.renderAdminSiteConfig();
+            this.setAdminHomeStatus("Configuration de l'accueil chargee.");
+        } catch (error) {
+            console.error('[admin] site config fetch failed', error);
+            this.setAdminHomeStatus("Impossible de charger la configuration de l'accueil.", true);
+            this.logTelemetryEvent({
+                title: 'Admin accueil - chargement',
+                description: error?.message || "Echec chargement configuration d'accueil",
+                route: '/api/admin/site-config',
+                method: 'GET',
+                status: error?.status || null
+            });
+        } finally {
+            this.syncAdminHomeEditor();
+        }
+    }
+
+    async saveAdminSiteConfig() {
+        if (!this.isAdmin()) {
+            this.announcer?.assertive?.('Connexion administrateur requise.');
+            return;
+        }
+        const draft = this.collectAdminSiteConfigDraft();
+        const errors = this.validateAdminSiteConfigDraft(draft);
+        this.adminSiteConfigErrors = errors;
+        this.renderAdminHomeErrors(errors);
+        if (errors.length) {
+            this.setAdminHomeStatus('Corrigez les erreurs avant enregistrement.', true);
+            return;
+        }
+        this.adminSiteConfigPending = true;
+        this.syncAdminHomeEditor();
+        this.setAdminHomeStatus("Enregistrement de l'accueil...");
+        try {
+            const response = await fetch('/api/admin/site-config', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ config: draft })
+            });
+            if (!response.ok) {
+                const error = new Error(`HTTP ${response.status}`);
+                error.status = response.status;
+                throw error;
+            }
+            const payload = await response.json();
+            this.adminSiteConfig = this.normalizeAdminSiteConfig(payload?.config || draft);
+            this.adminSiteConfigDirty = false;
+            this.renderAdminSiteConfig();
+            this.setAdminHomeStatus("Accueil mis a jour. Rechargez '/' pour verifier le rendu.");
+            this.announcer?.polite?.("Configuration de l'accueil enregistree.");
+        } catch (error) {
+            console.error('[admin] site config save failed', error);
+            this.setAdminHomeStatus("Impossible d'enregistrer l'accueil.", true);
+            this.logTelemetryEvent({
+                title: 'Admin accueil - sauvegarde',
+                description: error?.message || "Echec sauvegarde configuration d'accueil",
+                route: '/api/admin/site-config',
+                method: 'PATCH',
+                status: error?.status || null
+            });
+        } finally {
+            this.adminSiteConfigPending = false;
+            this.syncAdminHomeEditor();
         }
     }
 

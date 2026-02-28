@@ -1,14 +1,73 @@
 {
-    "community": {
-        "youtubeUrl": "https://www.youtube.com/",
-        "discordUrl": "https://discord.com/",
-        "redditUrl": "https://www.reddit.com/"
+  "home": {
+    "kicker": "P3.1 - Accueil pre-carte",
+    "title": "Entrez dans l'univers avant d'ouvrir la carte",
+    "lead": "Explorez les lieux, suivez les quetes en direct, retrouvez votre groupe JDR et centralisez vos personnages. Cette page sert de point d'entree rapide pour la carte et la communaute.",
+    "atmosphere": "Hub pre-carte - entree rapide vers l'univers, la carte et la communaute.",
+    "tags": [
+      "Carte narrative",
+      "Quetes live",
+      "Groupes JDR",
+      "Profils & personnages"
+    ],
+    "metrics": [
+      {
+        "label": "Hub",
+        "value": "Carte + Communaute"
+      },
+      {
+        "label": "Acces",
+        "value": "Lecture / Discord / Admin"
+      },
+      {
+        "label": "Etat",
+        "value": "Pre-P3 en production"
+      }
+    ]
+  },
+  "community": {
+        "youtubeUrl": "https://www.youtube.com/@Daneisra",
+        "discordUrl": "https://discord.gg/a67SVZtZXk",
+        "redditUrl": "https://www.reddit.com/",
+        "discord": {
+            "badge": "Discord",
+            "title": "Serveur principal",
+            "copy": "Organisation des sessions, annonces JDR et coordination des groupes."
+        },
+        "youtube": {
+            "badge": "YouTube",
+            "title": "Lore & recaps",
+            "copy": "Recaps, videos d'univers et ambiances pour prolonger les campagnes."
+        },
+        "reddit": {
+            "badge": "Reddit",
+            "title": "Discussions",
+            "copy": "Partage d'idees, feedback et archives communautaires."
+        }
     },
     "support": {
         "issuesUrl": "https://github.com/Daneisra/Carte-Interactive/issues",
-        "contactEmail": "contact@cartehesta.local"
+        "contactEmail": "contact@dannytech.fr"
     },
-    "legal": {
-        "creditsUrl": "/docs/credits-assets.md"
-    }
+  "legal": {
+    "creditsUrl": "/docs/credits-assets.md",
+    "footerNote": "Projet narratif / JDR - fan project / page d'accueil pre-carte (P3.1 MVP)."
+  },
+  "changelog": [
+        {
+            "date": "2026-02-28",
+            "title": "Accueil pre-carte en ligne",
+            "summary": "Nouvelle page d'accueil avant la carte avec session, communaute, flux live, lieux mis en avant et patch notes."
+        },
+        {
+            "date": "2026-02-27",
+            "title": "Panneau profil et personnages enrichis",
+            "summary": "Menu profil repense, multi-personnages, disponibilites hebdomadaires et groupes visibles sur la carte."
+        },
+        {
+            "date": "2026-02-26",
+            "title": "Panneau admin consolide",
+            "summary": "Telemetrie, erreurs, validation, groupes JDR, utilisateurs et dashboard SSE centralises."
+        }
+    ]
 }

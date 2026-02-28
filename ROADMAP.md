@@ -110,11 +110,11 @@
 - [x] Cohérence visuelle avec la carte et le menu profil.
 
 ### P3.7 — Bonus (plus tard)
-- [ ] Preview du flux temps réel sur l’accueil (mini bloc live).
-- [ ] Mise en avant de lieux/continents (cards).
-- [ ] Changelog / patch notes visibles depuis l’accueil.
-- [ ] Widget communauté (ex: lien invitation Discord enrichi).
-- [ ] Écran d’accueil personnalisable côté admin (textes/liens/hero).
+- [x] Preview du flux temps réel sur l’accueil (mini bloc live).
+- [x] Mise en avant de lieux/continents (cards).
+- [x] Changelog / patch notes visibles depuis l’accueil.
+- [x] Widget communauté (ex: lien invitation Discord enrichi).
+- [x] Écran d’accueil personnalisable côté admin (textes/liens/hero).
 
 ### Ordre recommandé (exécution)
 - [x] Phase 1 : `/` + CTA carte + login + footer/socials.

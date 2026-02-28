@@ -38,19 +38,19 @@
         <main id="home-main" class="home-main">
             <section class="home-hero" aria-labelledby="home-hero-title">
                 <div class="home-hero-copy">
-                    <p class="home-kicker">P3.1 - Accueil pre-carte</p>
+                    <p id="home-kicker" class="home-kicker">P3.1 - Accueil pre-carte</p>
                     <h1 id="home-hero-title">Entrez dans l'univers avant d'ouvrir la carte</h1>
-                    <p class="home-lead">
+                    <p id="home-hero-lead" class="home-lead">
                         Explorez les lieux, suivez les quetes en direct, retrouvez votre groupe JDR et centralisez vos personnages.
                         Cette page sert de point d'entree rapide pour la carte et la communaute.
                     </p>
-                    <div class="home-hero-tags" aria-label="Points forts">
+                    <div id="home-hero-tags" class="home-hero-tags" aria-label="Points forts">
                         <span class="home-hero-tag">Carte narrative</span>
                         <span class="home-hero-tag">Quetes live</span>
                         <span class="home-hero-tag">Groupes JDR</span>
                         <span class="home-hero-tag">Profils & personnages</span>
                     </div>
-                    <div class="home-hero-metrics" aria-label="Resume accueil">
+                    <div id="home-hero-metrics" class="home-hero-metrics" aria-label="Resume accueil">
                         <div class="home-hero-metric">
                             <span>Hub</span>
                             <strong>Carte + Communaute</strong>
@@ -100,7 +100,7 @@
                     <div class="home-session-atmosphere" aria-hidden="true">
                         <div class="home-orb"></div>
                         <div class="home-lines"></div>
-                        <p>Hub pre-carte - entree rapide vers l'univers, la carte et la communaute.</p>
+                        <p id="home-atmosphere-copy">Hub pre-carte - entree rapide vers l'univers, la carte et la communaute.</p>
                     </div>
                 </aside>
             </section>
@@ -160,6 +160,23 @@
                 </article>
                 <article class="home-card home-card-community">
                     <h2>Communaute</h2>
+                    <div class="home-community-highlights">
+                        <article class="home-community-highlight">
+                            <span id="home-community-discord-badge" class="home-community-badge">Discord</span>
+                            <strong id="home-community-discord-title">Serveur principal</strong>
+                            <p id="home-community-discord-copy">Organisation de parties, annonces et coordination des groupes JDR.</p>
+                        </article>
+                        <article class="home-community-highlight">
+                            <span id="home-community-youtube-badge" class="home-community-badge">YouTube</span>
+                            <strong id="home-community-youtube-title">Lore & recaps</strong>
+                            <p id="home-community-youtube-copy">Videos, recaps et ambiances pour prolonger l'univers hors session.</p>
+                        </article>
+                        <article class="home-community-highlight">
+                            <span id="home-community-reddit-badge" class="home-community-badge">Reddit</span>
+                            <strong id="home-community-reddit-title">Discussions</strong>
+                            <p id="home-community-reddit-copy">Partage d'idees, retours et archives communautaires.</p>
+                        </article>
+                    </div>
                     <div class="home-socials" role="list" aria-label="Reseaux sociaux">
                         <a id="home-social-youtube" role="listitem" class="home-social home-social-youtube" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">
                             <span aria-hidden="true">YT</span> YouTube
@@ -179,7 +196,7 @@
                         <a class="home-cta home-cta-secondary" href="/map/">Carte interactive</a>
                         <button id="home-login-inline" class="home-cta home-cta-secondary" type="button">Connexion Discord</button>
                     </div>
-                    <p class="home-muted">Remplacez ces liens par vos URLs communautaires definitives lors du polish P3.</p>
+                    <p id="home-community-note" class="home-muted">Remplacez ces liens par vos URLs communautaires definitives lors du polish P3.</p>
                 </article>
                 <article class="home-card home-card-wide" aria-labelledby="home-news-title">
                     <div class="home-card-header">
@@ -191,13 +208,43 @@
                         <li class="home-news-empty">Chargement des nouveautes...</li>
                     </ul>
                 </article>
+                <article class="home-card" aria-labelledby="home-live-title">
+                    <div class="home-card-header">
+                        <h2 id="home-live-title">Flux live</h2>
+                        <span id="home-live-status" class="home-status-pill">Connexion...</span>
+                    </div>
+                    <p id="home-live-note" class="home-muted">Apercu temps reel des quetes, annotations et synchronisations.</p>
+                    <ul id="home-live-list" class="home-live-list">
+                        <li class="home-news-empty">En attente d'evenements live...</li>
+                    </ul>
+                </article>
+                <article class="home-card home-card-featured" aria-labelledby="home-featured-title">
+                    <div class="home-card-header">
+                        <h2 id="home-featured-title">Lieux mis en avant</h2>
+                        <span id="home-featured-status" class="home-status-pill">Chargement...</span>
+                    </div>
+                    <p id="home-featured-note" class="home-muted">Selection de lieux riches en medias, tags ou quetes pour reprendre rapidement l'exploration.</p>
+                    <div id="home-featured-list" class="home-featured-grid">
+                        <article class="home-featured-empty">Chargement des lieux mis en avant...</article>
+                    </div>
+                </article>
+                <article class="home-card home-card-wide" aria-labelledby="home-changelog-title">
+                    <div class="home-card-header">
+                        <h2 id="home-changelog-title">Patch notes</h2>
+                        <span id="home-changelog-status" class="home-status-pill">Chargement...</span>
+                    </div>
+                    <p id="home-changelog-note" class="home-muted">Resume des derniers chantiers et correctifs majeurs de la carte.</p>
+                    <ul id="home-changelog-list" class="home-changelog-list">
+                        <li class="home-news-empty">Chargement des patch notes...</li>
+                    </ul>
+                </article>
             </section>
         </main>
 
         <footer class="home-footer">
             <div class="home-footer-left">
                 <p>&copy; <span id="home-year"></span> Carte Hesta. Tous droits reserves.</p>
-                <p class="home-footer-note">Projet narratif / JDR - fan project / page d'accueil pre-carte (P3.1 MVP).</p>
+                <p id="home-footer-note" class="home-footer-note">Projet narratif / JDR - fan project / page d'accueil pre-carte (P3.1 MVP).</p>
             </div>
             <div class="home-footer-right">
                 <a href="/map/">Acceder a la carte</a>
