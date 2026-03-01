@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="editor.css">
-    <link rel="icon" type="image/png" href="assets/icons/default.png">
+    <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
 <body>
     <div id="aria-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -718,6 +718,19 @@
                             <input id="admin-home-discord-title" type="text" autocomplete="off" />
                             <label for="admin-home-discord-copy">Texte Discord</label>
                             <textarea id="admin-home-discord-copy" rows="3"></textarea>
+                            <label for="admin-home-discord-proof-mode">Compteur Discord</label>
+                            <select id="admin-home-discord-proof-mode">
+                                <option value="discord">Auto (widget Discord)</option>
+                                <option value="manual">Manuel</option>
+                            </select>
+                            <label for="admin-home-discord-guild-id">Guild ID / Widget</label>
+                            <input id="admin-home-discord-guild-id" type="text" placeholder="123456789012345678" autocomplete="off" />
+                            <label for="admin-home-discord-manual-count">Compteur manuel</label>
+                            <input id="admin-home-discord-manual-count" type="number" min="0" step="1" placeholder="0" autocomplete="off" />
+                            <label for="admin-home-discord-proof-label">Libelle compteur</label>
+                            <input id="admin-home-discord-proof-label" type="text" placeholder="membres sur Discord" autocomplete="off" />
+                            <label for="admin-home-discord-proof-note">Sous-texte compteur</label>
+                            <input id="admin-home-discord-proof-note" type="text" placeholder="Sessions, annonces et coordination." autocomplete="off" />
                             <label for="admin-home-youtube-url">URL YouTube</label>
                             <input id="admin-home-youtube-url" type="url" placeholder="https://youtube.com/..." autocomplete="off" />
                             <label for="admin-home-youtube-title">Bloc YouTube</label>
@@ -786,4 +799,5 @@
 
 </body>
 </html>
+
 

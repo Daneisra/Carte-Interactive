@@ -123,6 +123,34 @@
 - [x] Phase 4 : perf/SEO/accessibilité.
 - [x] Phase 5 : polish UI final.
 
+### P3.8 - Refonte premium de l'accueil
+- [ ] Refaire le hero en version premium plein ecran.
+- [ ] Ajouter un fond illustre immersif avec profondeur, brume et halos.
+- [ ] Ajouter un render personnage HD integre au hero.
+- [ ] Ajouter une preview mockup de la carte avec mini fiche lieu flottante.
+- [x] Ajouter une preuve sociale visuelle (membres Discord, groupes actifs, avatars).
+- [ ] Ajouter un header plus premium (logo, navigation courte, CTA clairs).
+- [ ] Brancher les visuels/textes hero dans la configuration admin de l'accueil.
+- [x] Prevoir un compteur Discord dynamique ou une valeur editable cote admin.
+- [ ] Finaliser responsive mobile/tablette de la landing premium.
+- [ ] Polish final : ombres, micro-interactions, animations legeres, coherence typographique.
+
+### Direction artistique recommandee - Hesta
+- [ ] Palette : bleu nuit, ivoire, or doux, cyan froid pour les accents interactifs.
+- [ ] Typographies : une fonte editoriale pour les titres + une fonte UI tres lisible pour l'interface.
+- [ ] Composition : grand titre centre, sous-texte court, CTA alignes, preuve sociale sous les CTA.
+- [ ] Showcase : carte en mockup central avec perspective legere et overlays narratifs.
+- [ ] Personnage : silhouette detouree cote droit avec halo discret et ancrage visuel fort.
+- [ ] Background : illustration panoramique avec gradients, texture et profondeur atmospherique.
+- [ ] UI tone : sobre, premium, epure, plus 'univers vivant' que 'dashboard'.
+
+### Assets a produire / reunir
+- [ ] Un fond hero large HD (desktop + mobile).
+- [ ] Un render personnage detoure propre (PNG/WebP).
+- [ ] Un screenshot tres propre de la carte pour le mockup.
+- [ ] 3 a 5 avatars ou portraits pour la preuve sociale.
+- [ ] Une variante mobile du cadrage hero si necessaire.
+
 ### P4 — Différenciants
 - [ ] Intégration et personalisation d'une frise chronologique
 - [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schéma, créer des routes, instruction etc
@@ -350,3 +378,4 @@ ssh debian@<VPS> "cd /srv/cartehesta/app && pm2 restart carte-api --update-env &
 * Données : `assets/locations.json`, `assets/types.json`
 * Tests : `tests/`, `test-results/` (legacy)
 * Historique et chantiers : **cf. sections 1 & 2** de ce fichier.
+

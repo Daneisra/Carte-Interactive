@@ -82,6 +82,13 @@ const DEFAULT_SITE_CONFIG = {
       title: 'Serveur principal',
       copy: "Organisation des sessions, annonces JDR et coordination des groupes."
     },
+    proof: {
+      mode: 'manual',
+      guildId: '',
+      manualCount: 200,
+      label: 'membres sur Discord',
+      note: 'Sessions, annonces et coordination des groupes JDR.'
+    },
     youtube: {
       badge: 'YouTube',
       title: 'Lore & recaps',
@@ -708,6 +715,11 @@ const sanitizeSiteConfigContact = value => {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/i.test(normalized) ? normalized : '';
 };
 
+const sanitizeSiteConfigMode = value => {
+  const normalized = normalizeString(value).toLowerCase();
+  return normalized === 'discord' ? 'discord' : 'manual';
+};
+
 const sanitizeSiteConfigMetric = value => {
   if (!value || typeof value !== 'object') {
     return null;
@@ -737,6 +749,55 @@ const sanitizeSiteConfigChangelogEntry = value => {
   };
 };
 
+
+const extractDiscordInviteCode = value => {
+  const normalized = normalizeString(value);
+  if (!normalized) {
+    return '';
+  }
+  try {
+    const parsed = new URL(normalized);
+    const parts = parsed.pathname.split('/').map(part => part.trim()).filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : '';
+  } catch (_error) {
+    return normalized.replace(/^https?:\/\/[^/]+\//i, '').trim();
+  }
+};
+
+const fetchDiscordInviteStats = async inviteUrl => {
+  const inviteCode = extractDiscordInviteCode(inviteUrl);
+  if (!inviteCode) {
+    return null;
+  }
+  const url = `${DISCORD_API_ORIGIN}/api/${DISCORD_API_VERSION}/invites/${encodeURIComponent(inviteCode)}?with_counts=true`;
+  const payload = await fetchJson(url);
+  return {
+    inviteCode,
+    memberCount: Math.max(0, Number(payload?.approximate_member_count) || 0),
+    presenceCount: Math.max(0, Number(payload?.approximate_presence_count) || 0),
+    guildId: normalizeString(payload?.guild?.id || ''),
+    guildName: normalizeString(payload?.guild?.name || ''),
+    source: 'discord'
+  };
+};
+
+const fetchDiscordWidgetStats = async guildId => {
+  const normalizedGuildId = normalizeString(guildId);
+  if (!normalizedGuildId) {
+    return null;
+  }
+  const widgetUrl = `${DISCORD_API_ORIGIN}/api/guilds/${encodeURIComponent(normalizedGuildId)}/widget.json`;
+  const payload = await fetchJson(widgetUrl);
+  const presenceCount = Math.max(0, Number(payload?.presence_count) || 0);
+  const memberCount = Array.isArray(payload?.members) ? payload.members.length : 0;
+  return {
+    guildId: normalizedGuildId,
+    presenceCount,
+    memberCount,
+    instantInvite: typeof payload?.instant_invite === 'string' ? payload.instant_invite : null,
+    source: 'discord'
+  };
+};
 const sanitizeSiteConfig = value => {
   const defaults = cloneSiteConfigDefaults();
   const source = value && typeof value === 'object' ? value : {};
@@ -779,6 +840,7 @@ const sanitizeSiteConfig = value => {
       discordUrl: sanitizeSiteConfigUrl(communitySource.discordUrl) || defaults.community.discordUrl,
       redditUrl: sanitizeSiteConfigUrl(communitySource.redditUrl) || defaults.community.redditUrl,
       discord: sanitizeCommunityCard('discord', defaults.community.discord),
+      proof,
       youtube: sanitizeCommunityCard('youtube', defaults.community.youtube),
       reddit: sanitizeCommunityCard('reddit', defaults.community.reddit)
     },
@@ -2086,8 +2148,8 @@ const server = http.createServer(async (req, res) => {
       } catch (error) {
         const isMissingZip = error?.code === 'ENOENT';
         const message = isMissingZip
-          ? 'Outil d’archivage introuvable (zip/tar). Installez zip ou tar, ou configurez ZIP_COMMAND.'
-          : (error?.message || 'Echec de la generation de l’archive.');
+          ? 'Outil dâ€™archivage introuvable (zip/tar). Installez zip ou tar, ou configurez ZIP_COMMAND.'
+          : (error?.message || 'Echec de la generation de lâ€™archive.');
         logger.error('[assets-zip] generation failed', { error: message });
         send(res, isMissingZip ? 501 : 500, JSON.stringify({ status: 'error', message }), { 'Content-Type': 'application/json' });
         await cleanup();
@@ -2095,6 +2157,74 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+
+    if (urlObj.pathname === '/api/community/discord') {
+      if (req.method !== 'GET') {
+        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
+        return;
+      }
+      try {
+        const config = await readSiteConfigFile();
+        const proof = config?.community?.proof || {};
+        const manualCount = Math.max(0, Number(proof.manualCount) || 0);
+        const label = normalizeString(proof.label) || 'membres sur Discord';
+        const note = normalizeString(proof.note) || 'Sessions, annonces et coordination des groupes JDR.';
+        if (proof.mode === 'discord') {
+          try {
+            const inviteStats = await fetchDiscordInviteStats(config?.community?.discordUrl || '');
+            if (inviteStats) {
+              send(res, 200, JSON.stringify({
+                status: 'ok',
+                mode: 'discord',
+                source: 'discord',
+                count: Math.max(inviteStats.memberCount, inviteStats.presenceCount),
+                label,
+                note,
+                guildId: inviteStats.guildId || normalizeString(proof.guildId) || null,
+                inviteUrl: config?.community?.discordUrl || null,
+                live: true
+              }), { 'Content-Type': 'application/json' });
+              return;
+            }
+          } catch (error) {
+            logger.warn('[community] discord invite unavailable', { error: error.message, url: config?.community?.discordUrl || null });
+          }
+          if (normalizeString(proof.guildId)) {
+            try {
+              const live = await fetchDiscordWidgetStats(proof.guildId);
+              send(res, 200, JSON.stringify({
+                status: 'ok',
+                mode: 'discord',
+                source: 'discord',
+                count: Math.max(live.presenceCount, live.memberCount),
+                label,
+                note,
+                guildId: live.guildId,
+                inviteUrl: live.instantInvite || config?.community?.discordUrl || null,
+                live: true
+              }), { 'Content-Type': 'application/json' });
+              return;
+            } catch (error) {
+              logger.warn('[community] discord widget unavailable', { error: error.message, guildId: proof.guildId });
+            }
+          }
+        }
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          mode: proof.mode === 'discord' ? 'discord' : 'manual',
+          source: 'manual',
+          count: manualCount,
+          label,
+          note,
+          guildId: normalizeString(proof.guildId) || null,
+          inviteUrl: config?.community?.discordUrl || null,
+          live: false
+        }), { 'Content-Type': 'application/json' });
+      } catch (error) {
+        send(res, 500, JSON.stringify({ status: 'error', message: 'Discord community stats unavailable.' }), { 'Content-Type': 'application/json' });
+      }
+      return;
+    }
     if (urlObj.pathname === '/api/groups') {
       if (req.method !== 'GET') {
         send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
@@ -2666,3 +2796,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   logger.info(`Running at http://${HOST}:${PORT}`);
 });
+
+
+
+

@@ -337,6 +337,11 @@ export class UiController {
             homeDiscordUrl: document.getElementById('admin-home-discord-url'),
             homeDiscordTitle: document.getElementById('admin-home-discord-title'),
             homeDiscordCopy: document.getElementById('admin-home-discord-copy'),
+            homeDiscordProofMode: document.getElementById('admin-home-discord-proof-mode'),
+            homeDiscordGuildId: document.getElementById('admin-home-discord-guild-id'),
+            homeDiscordManualCount: document.getElementById('admin-home-discord-manual-count'),
+            homeDiscordProofLabel: document.getElementById('admin-home-discord-proof-label'),
+            homeDiscordProofNote: document.getElementById('admin-home-discord-proof-note'),
             homeYoutubeUrl: document.getElementById('admin-home-youtube-url'),
             homeYoutubeTitle: document.getElementById('admin-home-youtube-title'),
             homeYoutubeCopy: document.getElementById('admin-home-youtube-copy'),
@@ -3906,6 +3911,11 @@ export class UiController {
             this.adminDom.homeDiscordUrl,
             this.adminDom.homeDiscordTitle,
             this.adminDom.homeDiscordCopy,
+            this.adminDom.homeDiscordProofMode,
+            this.adminDom.homeDiscordGuildId,
+            this.adminDom.homeDiscordManualCount,
+            this.adminDom.homeDiscordProofLabel,
+            this.adminDom.homeDiscordProofNote,
             this.adminDom.homeYoutubeUrl,
             this.adminDom.homeYoutubeTitle,
             this.adminDom.homeYoutubeCopy,
@@ -4026,6 +4036,13 @@ export class UiController {
                     title: 'Serveur principal',
                     copy: 'Organisation des sessions, annonces JDR et coordination des groupes.'
                 }),
+                proof: {
+                    mode: sanitizeString(community?.proof?.mode) === 'discord' ? 'discord' : 'manual',
+                    guildId: sanitizeString(community?.proof?.guildId || ''),
+                    manualCount: Math.max(0, Number(community?.proof?.manualCount) || 0),
+                    label: sanitizeString(community?.proof?.label || 'membres sur Discord'),
+                    note: sanitizeString(community?.proof?.note || 'Sessions, annonces et coordination des groupes JDR.')
+                },
                 youtube: normalizeCard(community.youtube, {
                     badge: 'YouTube',
                     title: 'Lore & recaps',
@@ -4159,6 +4176,11 @@ export class UiController {
             this.adminDom.homeDiscordUrl,
             this.adminDom.homeDiscordTitle,
             this.adminDom.homeDiscordCopy,
+            this.adminDom.homeDiscordProofMode,
+            this.adminDom.homeDiscordGuildId,
+            this.adminDom.homeDiscordManualCount,
+            this.adminDom.homeDiscordProofLabel,
+            this.adminDom.homeDiscordProofNote,
             this.adminDom.homeYoutubeUrl,
             this.adminDom.homeYoutubeTitle,
             this.adminDom.homeYoutubeCopy,
@@ -4212,6 +4234,21 @@ export class UiController {
         }
         if (this.adminDom.homeDiscordCopy) {
             this.adminDom.homeDiscordCopy.value = config.community.discord?.copy || '';
+        }
+        if (this.adminDom.homeDiscordProofMode) {
+            this.adminDom.homeDiscordProofMode.value = config.community.proof?.mode || 'manual';
+        }
+        if (this.adminDom.homeDiscordGuildId) {
+            this.adminDom.homeDiscordGuildId.value = config.community.proof?.guildId || '';
+        }
+        if (this.adminDom.homeDiscordManualCount) {
+            this.adminDom.homeDiscordManualCount.value = String(config.community.proof?.manualCount ?? 0);
+        }
+        if (this.adminDom.homeDiscordProofLabel) {
+            this.adminDom.homeDiscordProofLabel.value = config.community.proof?.label || '';
+        }
+        if (this.adminDom.homeDiscordProofNote) {
+            this.adminDom.homeDiscordProofNote.value = config.community.proof?.note || '';
         }
         if (this.adminDom.homeYoutubeUrl) {
             this.adminDom.homeYoutubeUrl.value = config.community.youtubeUrl || '';
@@ -4269,6 +4306,13 @@ export class UiController {
                     title: this.adminDom.homeDiscordTitle?.value || '',
                     copy: this.adminDom.homeDiscordCopy?.value || ''
                 },
+                proof: {
+                    mode: this.adminDom.homeDiscordProofMode?.value || 'manual',
+                    guildId: this.adminDom.homeDiscordGuildId?.value || '',
+                    manualCount: this.adminDom.homeDiscordManualCount?.value || 0,
+                    label: this.adminDom.homeDiscordProofLabel?.value || '',
+                    note: this.adminDom.homeDiscordProofNote?.value || ''
+                },
                 youtube: {
                     badge: 'YouTube',
                     title: this.adminDom.homeYoutubeTitle?.value || '',
@@ -4308,6 +4352,12 @@ export class UiController {
         }
         if (config?.community?.discordUrl && !isHttp(config.community.discordUrl)) {
             errors.push('URL Discord invalide.');
+        }
+        if (config?.community?.proof?.mode === 'discord' && !sanitizeString(config?.community?.proof?.guildId) && !sanitizeString(config?.community?.discordUrl)) {
+            errors.push('Renseignez une URL Discord ou un Guild ID pour le compteur auto.');
+        }
+        if (Number(config?.community?.proof?.manualCount) < 0) {
+            errors.push('Le compteur manuel Discord doit etre positif.');
         }
         if (config?.community?.youtubeUrl && !isHttp(config.community.youtubeUrl)) {
             errors.push('URL YouTube invalide.');
@@ -7081,4 +7131,11 @@ export class UiController {
         this.updateToggleAllLabel();
     }
 }
+
+
+
+
+
+
+
 

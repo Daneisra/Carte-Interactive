@@ -1,4 +1,4 @@
-{
+﻿{
   "home": {
     "kicker": "P3.1 - Accueil pre-carte",
     "title": "Entrez dans l'univers avant d'ouvrir la carte",
@@ -29,6 +29,13 @@
         "youtubeUrl": "https://www.youtube.com/@Daneisra",
         "discordUrl": "https://discord.gg/a67SVZtZXk",
         "redditUrl": "https://www.reddit.com/",
+        "proof": {
+            "mode": "manual",
+            "guildId": "",
+            "manualCount": 200,
+            "label": "membres sur Discord",
+            "note": "Sessions, annonces et coordination des groupes JDR."
+        },
         "discord": {
             "badge": "Discord",
             "title": "Serveur principal",
@@ -71,3 +78,4 @@
         }
     ]
 }
+

@@ -83,6 +83,13 @@ const DEFAULT_SITE_CONFIG = {
             title: 'Serveur principal',
             copy: 'Organisation des sessions, annonces JDR et coordination des groupes.'
         },
+        proof: {
+            mode: 'manual',
+            guildId: '',
+            manualCount: 200,
+            label: 'membres sur Discord',
+            note: 'Sessions, annonces et coordination des groupes JDR.'
+        },
         youtube: {
             badge: 'YouTube',
             title: 'Lore & recaps',
@@ -113,7 +120,8 @@ const DEFAULT_SITE_CONFIG = {
 
 const state = {
     liveItems: [],
-    eventSource: null
+    eventSource: null,
+    siteConfig: DEFAULT_SITE_CONFIG
 };
 
 const isSafeExternalUrl = value => typeof value === 'string' && /^https?:\/\//i.test(value.trim());
@@ -173,6 +181,10 @@ const applySiteConfig = config => {
                 ...DEFAULT_SITE_CONFIG.community.discord,
                 ...(config?.community?.discord || {})
             },
+            proof: {
+                ...DEFAULT_SITE_CONFIG.community.proof,
+                ...(config?.community?.proof || {})
+            },
             youtube: {
                 ...DEFAULT_SITE_CONFIG.community.youtube,
                 ...(config?.community?.youtube || {})
@@ -192,6 +204,7 @@ const applySiteConfig = config => {
         }
     };
 
+    state.siteConfig = merged;
     applyHomeHero(merged.home);
     setLinkHref(dom.socialYoutube, merged.community.youtubeUrl, DEFAULT_SITE_CONFIG.community.youtubeUrl);
     setLinkHref(dom.socialYoutubeCta, merged.community.youtubeUrl, DEFAULT_SITE_CONFIG.community.youtubeUrl);
@@ -356,6 +369,34 @@ const applyHomeHero = home => {
     renderHeroMetrics(Array.isArray(next.metrics) ? next.metrics : DEFAULT_SITE_CONFIG.home.metrics);
 };
 
+
+const renderDiscordProof = payload => {
+    const proof = payload && typeof payload === 'object'
+        ? payload
+        : (state.siteConfig?.community?.proof || DEFAULT_SITE_CONFIG.community.proof);
+    const count = Math.max(0, Number(proof?.count ?? proof?.manualCount) || 0);
+    const label = normalizeText(proof?.label) || DEFAULT_SITE_CONFIG.community.proof.label;
+    const note = normalizeText(proof?.note) || DEFAULT_SITE_CONFIG.community.proof.note;
+    const source = proof?.source === 'discord' ? 'discord' : 'manual';
+    setTextContent(dom.proofTitle, `${count} ${label}`.trim());
+    const suffix = source === 'discord' && proof?.live
+        ? 'Compteur live Discord.'
+        : "Compteur configurable depuis l'admin.";
+    setTextContent(dom.proofNote, `${note} ${suffix}`.trim());
+};
+const fetchDiscordProof = async () => {
+    try {
+        const response = await fetch('/api/community/discord', { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        renderDiscordProof(payload);
+    } catch (error) {
+        console.warn('[home] discord proof unavailable, fallback config used', error);
+        renderDiscordProof(state.siteConfig?.community?.proof || DEFAULT_SITE_CONFIG.community.proof);
+    }
+};
 const applyCommunityHighlights = community => {
     const discord = community?.discord || {};
     const youtube = community?.youtube || {};
@@ -372,7 +413,7 @@ const applyCommunityHighlights = community => {
     setTextContent(dom.communityRedditBadge, reddit.badge || DEFAULT_SITE_CONFIG.community.reddit.badge);
     setTextContent(dom.communityRedditTitle, reddit.title || DEFAULT_SITE_CONFIG.community.reddit.title);
     setTextContent(dom.communityRedditCopy, reddit.copy || DEFAULT_SITE_CONFIG.community.reddit.copy);
-    setTextContent(dom.communityNote, 'Liens et textes communautaires pilotes depuis assets/site-config.json.');
+    setTextContent(dom.communityNote, 'Liens, textes communautaires et compteur Discord pilotes depuis assets/site-config.json.');
 };
 
 const renderChangelogItems = entries => {
@@ -840,3 +881,11 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchFeaturedLocations();
     connectLiveFeed();
 });
+
+
+
+
+
+
+
+
