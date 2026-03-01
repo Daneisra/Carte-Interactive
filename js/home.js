@@ -57,7 +57,15 @@
     footerSupport: document.getElementById('home-footer-support'),
     footerContact: document.getElementById('home-footer-contact'),
     footerCredits: document.getElementById('home-footer-credits'),
-    footerNote: document.getElementById('home-footer-note')
+    footerNote: document.getElementById('home-footer-note'),
+    statDiscordValue: document.getElementById('home-stat-discord-value'),
+    statDiscordLabel: document.getElementById('home-stat-discord-label'),
+    statNewsValue: document.getElementById('home-stat-news-value'),
+    statNewsLabel: document.getElementById('home-stat-news-label'),
+    statFeaturedValue: document.getElementById('home-stat-featured-value'),
+    statFeaturedLabel: document.getElementById('home-stat-featured-label'),
+    statChangelogValue: document.getElementById('home-stat-changelog-value'),
+    statChangelogLabel: document.getElementById('home-stat-changelog-label')
 };
 
 const PREFERENCES_STORAGE_KEY = 'interactive-map-preferences';
@@ -405,6 +413,11 @@ const applyHomeHero = home => {
     document.documentElement.style.setProperty('--home-hero-bg-image', `url("${backgroundUrl}")`);
 };
 
+const renderStat = (valueNode, labelNode, value, label) => {
+    setTextContent(valueNode, String(value ?? '0'));
+    setTextContent(labelNode, label || '');
+};
+
 
 const renderDiscordProof = payload => {
     const proof = payload && typeof payload === 'object'
@@ -415,6 +428,7 @@ const renderDiscordProof = payload => {
     const note = normalizeText(proof?.note) || DEFAULT_SITE_CONFIG.community.proof.note;
     const source = proof?.source === 'discord' ? 'discord' : 'manual';
     setTextContent(dom.proofTitle, `${count} ${label}`.trim());
+    renderStat(dom.statDiscordValue, dom.statDiscordLabel, count, label);
     const suffix = source === 'discord' && proof?.live
         ? 'Compteur live Discord.'
         : "Compteur configurable depuis l'admin.";
@@ -459,6 +473,7 @@ const renderChangelogItems = entries => {
     if (!Array.isArray(entries) || entries.length === 0) {
         dom.changelogList.innerHTML = '<li class="home-news-empty">Aucune patch note configuree pour le moment.</li>';
         setStatusPill(dom.changelogStatus, 'A jour', 'ok');
+        renderStat(dom.statChangelogValue, dom.statChangelogLabel, 0, 'patch notes visibles');
         return;
     }
     const normalized = entries
@@ -467,6 +482,7 @@ const renderChangelogItems = entries => {
     if (!normalized.length) {
         dom.changelogList.innerHTML = '<li class="home-news-empty">Aucune patch note configuree pour le moment.</li>';
         setStatusPill(dom.changelogStatus, 'A jour', 'ok');
+        renderStat(dom.statChangelogValue, dom.statChangelogLabel, 0, 'patch notes visibles');
         return;
     }
     dom.changelogList.innerHTML = normalized.map(entry => `
@@ -478,6 +494,7 @@ const renderChangelogItems = entries => {
     <p class="home-changelog-text">${escapeHtml(entry.summary || '')}</p>
 </li>`).join('');
     setStatusPill(dom.changelogStatus, `${normalized.length} notes`, 'ok');
+    renderStat(dom.statChangelogValue, dom.statChangelogLabel, normalized.length, 'patch notes visibles');
     if (dom.changelogNote) {
         dom.changelogNote.textContent = 'Patch notes pilotes depuis assets/site-config.json pour mettre en avant les evolutions recentes.';
     }
@@ -489,8 +506,10 @@ const renderNewsItems = events => {
     }
     if (!Array.isArray(events) || events.length === 0) {
         dom.newsList.innerHTML = '<li class="home-news-empty">Aucune nouveaute recente pour le moment.</li>';
+        renderStat(dom.statNewsValue, dom.statNewsLabel, 0, 'mises a jour recentes');
         return;
     }
+    renderStat(dom.statNewsValue, dom.statNewsLabel, events.length, 'mises a jour recentes');
     dom.newsList.innerHTML = events.map(event => {
         const title = escapeHtml(event?.questId || event?.id || 'Quete');
         const location = escapeHtml(event?.locationName || 'Lieu inconnu');
@@ -661,8 +680,10 @@ const renderFeaturedLocations = locations => {
     }
     if (!Array.isArray(locations) || locations.length === 0) {
         dom.featuredList.innerHTML = '<article class="home-featured-empty">Aucun lieu mis en avant disponible pour le moment.</article>';
+        renderStat(dom.statFeaturedValue, dom.statFeaturedLabel, 0, 'lieux a reprendre');
         return;
     }
+    renderStat(dom.statFeaturedValue, dom.statFeaturedLabel, locations.length, 'lieux a reprendre');
     dom.featuredList.innerHTML = locations.map(location => {
         const chips = [];
         if (location.type) {

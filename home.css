@@ -69,7 +69,7 @@ body::before {
 .home-shell {
     position: relative;
     z-index: 1;
-    max-width: 1200px;
+    max-width: 1320px;
     margin: 0 auto;
     min-height: 100vh;
     padding: 18px 18px 22px;
@@ -287,23 +287,75 @@ button:focus-visible {
 
 .home-main {
     display: grid;
-    gap: 18px;
+    gap: 22px;
     align-content: start;
+}
+
+.home-stats-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.home-stat-card {
+    position: relative;
+    overflow: hidden;
+    padding: 18px 18px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background:
+        linear-gradient(180deg, rgba(8, 15, 29, 0.88), rgba(9, 16, 31, 0.72)),
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.12), transparent 32%);
+    box-shadow: 0 20px 46px rgba(0, 0, 0, 0.28);
+}
+
+.home-stat-card::after {
+    content: '';
+    position: absolute;
+    inset: auto 16px 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(148, 163, 184, 0.28), rgba(255, 255, 255, 0.02));
+}
+
+.home-stat-kicker,
+.home-card-kicker {
+    margin: 0 0 8px;
+    color: #bfd7ff;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+}
+
+.home-stat-card strong {
+    display: block;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(32px, 3.6vw, 48px);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: #f3f7ff;
+}
+
+.home-stat-label {
+    display: block;
+    margin-top: 6px;
+    color: #c7d4ea;
+    font-size: 13px;
+    line-height: 1.45;
 }
 
 .home-hero {
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
-    gap: 18px;
-    padding: 20px;
-    min-height: min(820px, calc(100vh - 150px));
+    gap: 22px;
+    padding: 26px 24px;
+    min-height: min(680px, calc(100vh - 136px));
     border-radius: 22px;
     border: 1px solid var(--home-panel-border);
     background:
-        linear-gradient(115deg, rgba(3, 8, 19, 0.92) 12%, rgba(5, 12, 25, 0.84) 48%, rgba(7, 15, 30, 0.72) 100%),
+        linear-gradient(115deg, rgba(3, 8, 19, 0.82) 12%, rgba(5, 12, 25, 0.7) 48%, rgba(7, 15, 30, 0.56) 100%),
         radial-gradient(circle at 12% 18%, rgba(216, 182, 106, 0.12), transparent 34%),
-        radial-gradient(circle at 84% 18%, rgba(96, 165, 250, 0.12), transparent 28%),
-        var(--home-hero-bg-image) center center/cover;
+        radial-gradient(circle at 84% 18%, rgba(96, 165, 250, 0.12), transparent 28%);
     box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
     align-items: stretch;
 }
@@ -332,20 +384,21 @@ button:focus-visible {
 
 .home-hero-copy h1 {
     margin: 0;
-    font-size: clamp(42px, 5.4vw, 78px);
-    line-height: 0.96;
-    letter-spacing: -0.03em;
-    max-width: 10.6ch;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(48px, 5.6vw, 82px);
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    max-width: 9.8ch;
     text-wrap: balance;
     text-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
 }
 
 .home-lead {
-    margin: 18px 0 0;
+    margin: 16px 0 0;
     color: #c6d3e8;
-    line-height: 1.78;
-    font-size: 18px;
-    max-width: 62ch;
+    line-height: 1.72;
+    font-size: 17px;
+    max-width: 58ch;
 }
 
 .home-hero-visual {
@@ -407,14 +460,18 @@ button:focus-visible {
 
 .home-map-showcase {
     position: relative;
-    min-height: 520px;
-    padding: 68px 0 0 18px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(190px, 29%, 290px);
+    align-items: center;
+    gap: 14px;
+    min-height: 430px;
+    padding: 56px 0 0 8px;
 }
 
 .home-map-frame {
     position: relative;
-    width: min(100%, 620px);
-    margin-left: auto;
+    width: 100%;
+    margin: 44px 0 0;
     border-radius: 24px;
     overflow: hidden;
     border: 1px solid rgba(148, 163, 184, 0.25);
@@ -424,6 +481,7 @@ button:focus-visible {
         inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     transform: perspective(1200px) rotateY(-9deg) rotateX(2deg);
     transform-origin: right center;
+    z-index: 1;
 }
 
 .home-map-frame img {
@@ -435,7 +493,7 @@ button:focus-visible {
 .home-map-floating-card {
     position: absolute;
     top: 0;
-    left: 0;
+    left: -6px;
     width: min(270px, 46%);
     z-index: 2;
     padding: 16px;
@@ -500,14 +558,20 @@ button:focus-visible {
 }
 
 .home-character-art {
-    position: absolute;
-    right: -12px;
-    bottom: -12px;
-    width: min(48%, 360px);
-    max-height: 520px;
+    position: relative;
+    align-self: center;
+    justify-self: end;
+    right: auto;
+    bottom: auto;
+    width: min(100%, 270px);
+    max-height: 500px;
     object-fit: contain;
     pointer-events: none;
     filter: drop-shadow(0 26px 40px rgba(0, 0, 0, 0.56));
+    z-index: 3;
+    margin-left: -46px;
+    transform: translateY(22px) scale(1.06);
+    transform-origin: center bottom;
 }
 
 .home-hero-tags {
@@ -582,11 +646,14 @@ button:focus-visible {
 .home-session-card {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 16px;
+    gap: 10px;
+    padding: 14px;
     border-radius: 18px;
     background: linear-gradient(180deg, rgba(10, 18, 35, 0.82), rgba(11, 20, 39, 0.72));
     border: 1px solid rgba(148, 163, 184, 0.22);
+    width: min(100%, 380px);
+    justify-self: end;
+    align-self: start;
 }
 
 .home-session-header {
@@ -616,7 +683,7 @@ button:focus-visible {
 
 .home-session-name {
     margin: 0;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
 }
 
@@ -630,22 +697,22 @@ button:focus-visible {
 
 .home-session-status {
     margin: 0;
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 12px;
+    line-height: 1.45;
     color: #dce5f3;
 }
 
 .home-session-meta {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
 }
 
 .home-session-meta > div {
     border: 1px solid rgba(148, 163, 184, 0.16);
     border-radius: 12px;
     background: rgba(15, 23, 42, 0.35);
-    padding: 10px;
+    padding: 8px 9px;
     display: grid;
     gap: 4px;
 }
@@ -658,7 +725,7 @@ button:focus-visible {
 }
 
 .home-session-meta strong {
-    font-size: 13px;
+    font-size: 12px;
     word-break: break-word;
 }
 
@@ -673,7 +740,7 @@ button:focus-visible {
 .home-session-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 14px;
+    gap: 8px 12px;
 }
 
 .home-inline-map-link-admin {
@@ -684,14 +751,14 @@ button:focus-visible {
 .home-session-atmosphere {
     position: relative;
     overflow: hidden;
-    min-height: 92px;
+    min-height: 72px;
     border-radius: 14px;
     border: 1px solid rgba(148, 163, 184, 0.16);
     background:
         radial-gradient(160px 90px at 20% 20%, rgba(59, 130, 246, 0.2), transparent 70%),
         radial-gradient(180px 100px at 80% 70%, rgba(124, 58, 237, 0.18), transparent 70%),
         linear-gradient(180deg, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.26));
-    padding: 10px;
+    padding: 9px 10px;
     display: flex;
     align-items: flex-end;
 }
@@ -707,8 +774,8 @@ button:focus-visible {
 
 .home-orb {
     position: absolute;
-    width: 72px;
-    height: 72px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
     top: 8px;
     right: 16px;
@@ -730,13 +797,16 @@ button:focus-visible {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
+    align-items: start;
 }
 
 .home-card {
-    padding: 16px;
-    border-radius: 18px;
+    padding: 18px;
+    border-radius: 22px;
     border: 1px solid var(--home-panel-border);
-    background: linear-gradient(180deg, rgba(8, 14, 26, 0.85), rgba(8, 14, 26, 0.74));
+    background:
+        linear-gradient(180deg, rgba(8, 14, 26, 0.88), rgba(8, 14, 26, 0.72)),
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.08), transparent 30%);
     box-shadow: var(--home-shadow);
 }
 
@@ -745,9 +815,34 @@ button:focus-visible {
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
 }
 
+.home-grid-topics {
+    grid-template-columns: minmax(0, 0.96fr) minmax(0, 0.96fr) minmax(320px, 1.08fr);
+}
+
+.home-grid-newsband,
+.home-grid-changelog {
+    grid-template-columns: 1fr;
+}
+
+.home-grid-discovery {
+    grid-template-columns: minmax(300px, 0.74fr) minmax(0, 1.26fr);
+    gap: 20px;
+}
+
+.home-discovery-stack {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+}
+
+#home-resume-card:not([hidden]) {
+    grid-column: 1 / span 2;
+}
+
 .home-card h2 {
     margin: 0;
-    font-size: 17px;
+    font-size: 22px;
+    letter-spacing: -0.03em;
 }
 
 .home-card-header {
@@ -755,6 +850,7 @@ button:focus-visible {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    margin-bottom: 4px;
 }
 
 .home-status-pill {
@@ -790,51 +886,54 @@ button:focus-visible {
 }
 
 .home-feature-list {
-    margin-top: 10px;
+    margin-top: 12px;
     display: grid;
-    gap: 10px;
+    gap: 12px;
 }
 
 .home-feature-item {
     border: 1px solid rgba(148, 163, 184, 0.14);
-    border-radius: 14px;
-    padding: 12px;
-    background: rgba(15, 23, 42, 0.26);
+    border-radius: 18px;
+    padding: 14px;
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.34), rgba(15, 23, 42, 0.2)),
+        radial-gradient(circle at top right, rgba(106, 168, 255, 0.08), transparent 42%);
 }
 
 .home-feature-item strong {
     display: block;
-    font-size: 13px;
+    font-size: 15px;
 }
 
 .home-feature-item p {
     margin: 5px 0 0;
     color: #c7d4ea;
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: 13px;
+    line-height: 1.55;
 }
 
 .home-steps {
-    margin: 10px 0 0;
+    margin: 12px 0 0;
     padding-left: 18px;
     display: grid;
-    gap: 10px;
+    gap: 12px;
 }
 
 .home-steps li {
     padding-left: 4px;
     color: #dbe5f3;
+    font-size: 15px;
 }
 
 .home-steps li p {
     margin: 4px 0 0;
     color: #c7d4ea;
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: 13px;
+    line-height: 1.55;
 }
 
 .home-resume-grid {
-    margin-top: 10px;
+    margin-top: 12px;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
@@ -842,9 +941,9 @@ button:focus-visible {
 
 .home-resume-metric {
     border: 1px solid rgba(148, 163, 184, 0.16);
-    border-radius: 12px;
+    border-radius: 16px;
     background: rgba(15, 23, 42, 0.35);
-    padding: 10px;
+    padding: 12px;
     display: grid;
     gap: 4px;
 }
@@ -861,7 +960,7 @@ button:focus-visible {
 }
 
 .home-card-actions {
-    margin-top: 12px;
+    margin-top: 14px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -872,10 +971,10 @@ button:focus-visible {
 }
 
 .home-muted {
-    margin: 10px 0 0;
+    margin: 12px 0 0;
     color: #c7d4ea;
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.6;
 }
 
 .home-socials {
@@ -890,7 +989,7 @@ button:focus-visible {
 
 .home-news-list {
     list-style: none;
-    margin: 12px 0 0;
+    margin: 14px 0 0;
     padding: 0;
     display: grid;
     gap: 10px;
@@ -898,9 +997,9 @@ button:focus-visible {
 
 .home-news-item {
     border: 1px solid rgba(148, 163, 184, 0.14);
-    border-radius: 14px;
+    border-radius: 18px;
     background: rgba(15, 23, 42, 0.25);
-    padding: 12px;
+    padding: 14px;
     display: grid;
     gap: 6px;
 }
@@ -913,7 +1012,7 @@ button:focus-visible {
 }
 
 .home-news-head strong {
-    font-size: 13px;
+    font-size: 15px;
     color: #e8eefb;
 }
 
@@ -926,8 +1025,8 @@ button:focus-visible {
 .home-news-meta,
 .home-news-text {
     margin: 0;
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: 13px;
+    line-height: 1.55;
 }
 
 .home-news-meta {
@@ -940,11 +1039,11 @@ button:focus-visible {
 
 .home-news-empty {
     border: 1px dashed rgba(148, 163, 184, 0.22);
-    border-radius: 14px;
+    border-radius: 18px;
     background: rgba(15, 23, 42, 0.2);
-    padding: 12px;
+    padding: 14px;
     color: #c7d4ea;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .home-social {
@@ -1000,8 +1099,8 @@ button:focus-visible {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 14px;
-    border-radius: 18px;
+    padding: 16px 18px;
+    border-radius: 22px;
     background: linear-gradient(180deg, rgba(7, 14, 27, 0.84), rgba(9, 15, 28, 0.76));
     border: 1px solid var(--home-panel-border);
     box-shadow: var(--home-shadow);
@@ -1056,6 +1155,10 @@ button:focus-visible {
 }
 
 @media (max-width: 980px) {
+    .home-stats-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .home-nav {
         order: 3;
         width: 100%;
@@ -1067,13 +1170,19 @@ button:focus-visible {
         min-height: 0;
     }
 
+    .home-session-card {
+        width: 100%;
+        justify-self: stretch;
+    }
+
     .home-map-showcase {
-        min-height: 400px;
+        min-height: 360px;
+        grid-template-columns: minmax(0, 1fr) clamp(160px, 26%, 220px);
         padding-left: 0;
     }
 
     .home-map-frame {
-        margin: 44px auto 0;
+        margin: 44px 0 0;
     }
 
     .home-map-floating-card {
@@ -1081,10 +1190,14 @@ button:focus-visible {
     }
 
     .home-character-art {
-        width: min(40%, 280px);
+        width: 100%;
+        margin-left: -24px;
+        transform: translateY(10px) scale(1.02);
     }
 
-    .home-grid {
+    .home-grid,
+    .home-grid-topics,
+    .home-grid-discovery {
         grid-template-columns: 1fr;
     }
 
@@ -1103,7 +1216,8 @@ button:focus-visible {
     .home-footer,
     .home-hero,
     .home-card,
-    .home-session-card {
+    .home-session-card,
+    .home-stat-card {
         padding: 12px;
         border-radius: 16px;
     }
@@ -1142,12 +1256,18 @@ button:focus-visible {
         gap: 14px;
     }
 
+    .home-stats-strip {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
     .home-proof {
         padding: 10px 12px;
     }
 
     .home-map-showcase {
         min-height: 0;
+        grid-template-columns: 1fr;
         padding-top: 12px;
     }
 
@@ -1165,16 +1285,16 @@ button:focus-visible {
 
     .home-character-art {
         position: relative;
-        right: auto;
-        bottom: auto;
-        width: min(76%, 320px);
-        margin: 14px auto 0;
+        justify-self: center;
+        width: min(72vw, 280px);
+        margin: -6px auto 0;
         display: block;
+        transform: none;
     }
 
     .home-hero-copy h1 {
         max-width: none;
-        font-size: 32px;
+        font-size: 36px;
     }
 
     .home-hero-tags {
@@ -1274,17 +1394,17 @@ button:focus-visible {
 
 .home-live-list {
     list-style: none;
-    margin: 12px 0 0;
+    margin: 14px 0 0;
     padding: 0;
     display: grid;
-    gap: 10px;
+    gap: 12px;
 }
 
 .home-live-item {
     border: 1px solid rgba(148, 163, 184, 0.14);
-    border-radius: 14px;
+    border-radius: 18px;
     background: rgba(15, 23, 42, 0.24);
-    padding: 12px;
+    padding: 14px;
     display: grid;
     gap: 6px;
 }
@@ -1297,7 +1417,7 @@ button:focus-visible {
 }
 
 .home-live-head strong {
-    font-size: 13px;
+    font-size: 15px;
 }
 
 .home-live-head span {
@@ -1309,23 +1429,25 @@ button:focus-visible {
 .home-live-meta {
     margin: 0;
     color: #c7d4ea;
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: 13px;
+    line-height: 1.55;
 }
 
 .home-featured-grid {
-    margin-top: 12px;
+    margin-top: 14px;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 14px;
 }
 
 .home-featured-card,
 .home-featured-empty {
     border: 1px solid rgba(148, 163, 184, 0.16);
-    border-radius: 16px;
-    background: rgba(15, 23, 42, 0.26);
-    padding: 14px;
+    border-radius: 20px;
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.32), rgba(15, 23, 42, 0.22)),
+        radial-gradient(circle at top right, rgba(216, 182, 106, 0.08), transparent 34%);
+    padding: 16px;
 }
 
 .home-featured-card {
@@ -1335,7 +1457,8 @@ button:focus-visible {
 
 .home-featured-body h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 22px;
+    line-height: 1.05;
 }
 
 .home-featured-chips {
@@ -1367,8 +1490,8 @@ button:focus-visible {
 .home-featured-text,
 .home-featured-summary {
     margin: 0;
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.6;
 }
 
 .home-featured-text {
@@ -1397,15 +1520,17 @@ button:focus-visible {
 
 .home-community-highlights {
     display: grid;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: 12px;
+    margin-bottom: 14px;
 }
 
 .home-community-highlight {
     border: 1px solid rgba(148, 163, 184, 0.14);
-    border-radius: 14px;
-    background: rgba(15, 23, 42, 0.24);
-    padding: 12px;
+    border-radius: 18px;
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.2)),
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.07), transparent 36%);
+    padding: 14px;
     display: grid;
     gap: 6px;
 }
@@ -1427,29 +1552,29 @@ button:focus-visible {
 }
 
 .home-community-highlight strong {
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .home-community-highlight p {
     margin: 0;
     color: #c7d4ea;
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: 13px;
+    line-height: 1.55;
 }
 
 .home-changelog-list {
     list-style: none;
-    margin: 12px 0 0;
+    margin: 14px 0 0;
     padding: 0;
     display: grid;
-    gap: 10px;
+    gap: 12px;
 }
 
 .home-changelog-item {
     border: 1px solid rgba(148, 163, 184, 0.14);
-    border-radius: 14px;
+    border-radius: 18px;
     background: rgba(15, 23, 42, 0.24);
-    padding: 12px;
+    padding: 14px;
     display: grid;
     gap: 6px;
 }
@@ -1462,7 +1587,7 @@ button:focus-visible {
 }
 
 .home-changelog-head strong {
-    font-size: 13px;
+    font-size: 15px;
     color: #e8eefb;
 }
 
@@ -1475,8 +1600,21 @@ button:focus-visible {
 .home-changelog-text {
     margin: 0;
     color: #c7d4ea;
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.home-card-live,
+.home-card-changelog {
+    background:
+        linear-gradient(180deg, rgba(7, 14, 27, 0.86), rgba(10, 18, 35, 0.7)),
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.08), transparent 34%);
+}
+
+.home-card-featured {
+    background:
+        linear-gradient(180deg, rgba(8, 15, 29, 0.9), rgba(10, 18, 35, 0.74)),
+        radial-gradient(circle at top right, rgba(216, 182, 106, 0.1), transparent 32%);
 }
 
 @media (max-width: 720px) {
