@@ -30,6 +30,12 @@
                     <small>Hub narratif & carte interactive</small>
                 </span>
             </a>
+            <nav class="home-nav" aria-label="Navigation accueil">
+                <a href="#home-main">Accueil</a>
+                <a href="#home-features">Fonctionnalites</a>
+                <a href="#home-community">Communaute</a>
+                <a href="#home-live-title">Live</a>
+            </nav>
             <div class="home-header-actions">
                 <a class="home-link-button home-link-button-primary" href="/map/">Entrer sur la carte</a>
                 <button id="home-login" class="home-link-button" type="button">Connexion Discord</button>
@@ -89,9 +95,9 @@
                             <article class="home-map-floating-card" aria-hidden="true">
                                 <div class="home-map-floating-header">
                                     <span class="home-map-floating-pill">Lieu mis en avant</span>
-                                    <strong>Bridgetown Crossing</strong>
+                                    <strong id="home-floating-title">Bridgetown Crossing</strong>
                                 </div>
-                                <p>Une fiche lieu riche, une carte lisible et un univers qui se parcourt avant meme d'entrer en jeu.</p>
+                                <p id="home-floating-copy">Une fiche lieu riche, une carte lisible et un univers qui se parcourt avant meme d'entrer en jeu.</p>
                                 <div class="home-map-floating-tags">
                                     <span>Carte</span>
                                     <span>Lore</span>
@@ -99,9 +105,9 @@
                                 </div>
                             </article>
                             <div class="home-map-frame">
-                                <img src="/assets/home/mockups/map-preview-main.png" alt="Apercu de la carte Hesta" />
+                                <img id="home-map-preview-image" src="/assets/home/mockups/map-preview-main.png" alt="Apercu de la carte Hesta" />
                             </div>
-                            <img class="home-character-art" src="/assets/home/characters/character.png" alt="Personnage de l'univers Hesta" />
+                            <img id="home-character-art" class="home-character-art" src="/assets/home/characters/character.png" alt="Personnage de l'univers Hesta" />
                         </div>
                     </section>
                     <section id="home-session-card" class="home-session-card" aria-live="polite">
@@ -141,7 +147,7 @@
             </section>
 
             <section class="home-grid" aria-label="Sections d'accueil">
-                <article class="home-card">
+                <article id="home-features" class="home-card">
                     <h2>Fonctionnalites</h2>
                     <div class="home-feature-list" role="list">
                         <div class="home-feature-item" role="listitem">
@@ -193,7 +199,7 @@
                     </div>
                     <p id="home-resume-note" class="home-muted">Connecte pour retrouver vos reperes plus rapidement.</p>
                 </article>
-                <article class="home-card home-card-community">
+                <article id="home-community" class="home-card home-card-community">
                     <h2>Communaute</h2>
                     <div class="home-community-highlights">
                         <article class="home-community-highlight">

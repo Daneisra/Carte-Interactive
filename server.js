@@ -71,7 +71,14 @@ const DEFAULT_SITE_CONFIG = {
       { label: 'Hub', value: 'Carte + Communaute' },
       { label: 'Acces', value: 'Lecture / Discord / Admin' },
       { label: 'Etat', value: 'Pre-P3 en production' }
-    ]
+    ],
+    visuals: {
+      backgroundImage: '/assets/home/backgrounds/hero-main.png',
+      mapPreviewImage: '/assets/home/mockups/map-preview-main.png',
+      characterImage: '/assets/home/characters/character.png',
+      floatingTitle: 'Bridgetown Crossing',
+      floatingCopy: "Une fiche lieu riche, une carte lisible et un univers qui se parcourt avant meme d'entrer en jeu."
+    }
   },
   community: {
     youtubeUrl: 'https://www.youtube.com/',
@@ -812,6 +819,7 @@ const sanitizeSiteConfig = value => {
   const metrics = Array.isArray(homeSource.metrics)
     ? homeSource.metrics.map(sanitizeSiteConfigMetric).filter(Boolean).slice(0, 6)
     : defaults.home.metrics;
+  const visualsSource = homeSource.visuals && typeof homeSource.visuals === 'object' ? homeSource.visuals : {};
 
   const sanitizeCommunityCard = (key, fallback) => {
     const cardSource = communitySource[key] && typeof communitySource[key] === 'object' ? communitySource[key] : {};
@@ -833,7 +841,14 @@ const sanitizeSiteConfig = value => {
       lead: sanitizeSiteConfigText(homeSource.lead, 600) || defaults.home.lead,
       atmosphere: sanitizeSiteConfigText(homeSource.atmosphere, 180) || defaults.home.atmosphere,
       tags: tags.length ? tags : defaults.home.tags,
-      metrics: metrics.length ? metrics : defaults.home.metrics
+      metrics: metrics.length ? metrics : defaults.home.metrics,
+      visuals: {
+        backgroundImage: sanitizeSiteConfigUrl(visualsSource.backgroundImage, { allowRelative: true }) || defaults.home.visuals.backgroundImage,
+        mapPreviewImage: sanitizeSiteConfigUrl(visualsSource.mapPreviewImage, { allowRelative: true }) || defaults.home.visuals.mapPreviewImage,
+        characterImage: sanitizeSiteConfigUrl(visualsSource.characterImage, { allowRelative: true }) || defaults.home.visuals.characterImage,
+        floatingTitle: sanitizeSiteConfigText(visualsSource.floatingTitle, 120) || defaults.home.visuals.floatingTitle,
+        floatingCopy: sanitizeSiteConfigText(visualsSource.floatingCopy, 260) || defaults.home.visuals.floatingCopy
+      }
     },
     community: {
       youtubeUrl: sanitizeSiteConfigUrl(communitySource.youtubeUrl) || defaults.community.youtubeUrl,

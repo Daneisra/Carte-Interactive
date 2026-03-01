@@ -50,6 +50,10 @@
     socialYoutubeCta: document.getElementById('home-social-youtube-cta'),
     socialDiscordCta: document.getElementById('home-social-discord-cta'),
     communityNote: document.getElementById('home-community-note'),
+    mapPreviewImage: document.getElementById('home-map-preview-image'),
+    characterArt: document.getElementById('home-character-art'),
+    floatingTitle: document.getElementById('home-floating-title'),
+    floatingCopy: document.getElementById('home-floating-copy'),
     footerSupport: document.getElementById('home-footer-support'),
     footerContact: document.getElementById('home-footer-contact'),
     footerCredits: document.getElementById('home-footer-credits'),
@@ -72,7 +76,14 @@ const DEFAULT_SITE_CONFIG = {
             { label: 'Hub', value: 'Carte + Communaute' },
             { label: 'Acces', value: 'Lecture / Discord / Admin' },
             { label: 'Etat', value: 'Pre-P3 en production' }
-        ]
+        ],
+        visuals: {
+            backgroundImage: '/assets/home/backgrounds/hero-main.png',
+            mapPreviewImage: '/assets/home/mockups/map-preview-main.png',
+            characterImage: '/assets/home/characters/character.png',
+            floatingTitle: 'Bridgetown Crossing',
+            floatingCopy: "Une fiche lieu riche, une carte lisible et un univers qui se parcourt avant meme d'entrer en jeu."
+        }
     },
     community: {
         youtubeUrl: 'https://www.youtube.com/',
@@ -166,13 +177,32 @@ const setLinkHref = (element, url, fallback) => {
     element.href = fallback;
 };
 
+const resolveAssetUrl = (value, fallback) => {
+    const next = typeof value === 'string' ? value.trim() : '';
+    if (isSafeExternalUrl(next) || isSafeRelativeUrl(next)) {
+        return next;
+    }
+    return fallback;
+};
+
+const setImageSource = (element, url, fallback) => {
+    if (!element) {
+        return;
+    }
+    element.src = resolveAssetUrl(url, fallback);
+};
+
 const applySiteConfig = config => {
     const merged = {
         ...DEFAULT_SITE_CONFIG,
         ...(config || {}),
         home: {
             ...DEFAULT_SITE_CONFIG.home,
-            ...(config?.home || {})
+            ...(config?.home || {}),
+            visuals: {
+                ...DEFAULT_SITE_CONFIG.home.visuals,
+                ...(config?.home?.visuals || {})
+            }
         },
         community: {
             ...DEFAULT_SITE_CONFIG.community,
@@ -367,6 +397,12 @@ const applyHomeHero = home => {
     setTextContent(dom.atmosphereCopy, next.atmosphere || DEFAULT_SITE_CONFIG.home.atmosphere);
     renderHeroTags(Array.isArray(next.tags) ? next.tags : DEFAULT_SITE_CONFIG.home.tags);
     renderHeroMetrics(Array.isArray(next.metrics) ? next.metrics : DEFAULT_SITE_CONFIG.home.metrics);
+    setImageSource(dom.mapPreviewImage, next?.visuals?.mapPreviewImage, DEFAULT_SITE_CONFIG.home.visuals.mapPreviewImage);
+    setImageSource(dom.characterArt, next?.visuals?.characterImage, DEFAULT_SITE_CONFIG.home.visuals.characterImage);
+    setTextContent(dom.floatingTitle, next?.visuals?.floatingTitle || DEFAULT_SITE_CONFIG.home.visuals.floatingTitle);
+    setTextContent(dom.floatingCopy, next?.visuals?.floatingCopy || DEFAULT_SITE_CONFIG.home.visuals.floatingCopy);
+    const backgroundUrl = resolveAssetUrl(next?.visuals?.backgroundImage, DEFAULT_SITE_CONFIG.home.visuals.backgroundImage);
+    document.documentElement.style.setProperty('--home-hero-bg-image', `url("${backgroundUrl}")`);
 };
 
 

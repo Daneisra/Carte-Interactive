@@ -334,6 +334,11 @@ export class UiController {
             homeAtmosphere: document.getElementById('admin-home-atmosphere'),
             homeTags: document.getElementById('admin-home-tags'),
             homeMetrics: document.getElementById('admin-home-metrics'),
+            homeBackgroundImage: document.getElementById('admin-home-background-image'),
+            homeMapImage: document.getElementById('admin-home-map-image'),
+            homeCharacterImage: document.getElementById('admin-home-character-image'),
+            homeFloatingTitle: document.getElementById('admin-home-floating-title'),
+            homeFloatingCopy: document.getElementById('admin-home-floating-copy'),
             homeDiscordUrl: document.getElementById('admin-home-discord-url'),
             homeDiscordTitle: document.getElementById('admin-home-discord-title'),
             homeDiscordCopy: document.getElementById('admin-home-discord-copy'),
@@ -3908,6 +3913,11 @@ export class UiController {
             this.adminDom.homeAtmosphere,
             this.adminDom.homeTags,
             this.adminDom.homeMetrics,
+            this.adminDom.homeBackgroundImage,
+            this.adminDom.homeMapImage,
+            this.adminDom.homeCharacterImage,
+            this.adminDom.homeFloatingTitle,
+            this.adminDom.homeFloatingCopy,
             this.adminDom.homeDiscordUrl,
             this.adminDom.homeDiscordTitle,
             this.adminDom.homeDiscordCopy,
@@ -4025,7 +4035,14 @@ export class UiController {
                 lead: sanitizeString(home.lead || "Explorez les lieux, suivez les quetes en direct, retrouvez votre groupe JDR et centralisez vos personnages. Cette page sert de point d'entree rapide pour la carte et la communaute."),
                 atmosphere: sanitizeString(home.atmosphere || "Hub pre-carte - entree rapide vers l'univers, la carte et la communaute."),
                 tags: normalizeTags,
-                metrics: normalizeMetrics
+                metrics: normalizeMetrics,
+                visuals: {
+                    backgroundImage: sanitizeString(home?.visuals?.backgroundImage || '/assets/home/backgrounds/hero-main.png'),
+                    mapPreviewImage: sanitizeString(home?.visuals?.mapPreviewImage || '/assets/home/mockups/map-preview-main.png'),
+                    characterImage: sanitizeString(home?.visuals?.characterImage || '/assets/home/characters/character.png'),
+                    floatingTitle: sanitizeString(home?.visuals?.floatingTitle || 'Bridgetown Crossing'),
+                    floatingCopy: sanitizeString(home?.visuals?.floatingCopy || "Une fiche lieu riche, une carte lisible et un univers qui se parcourt avant meme d'entrer en jeu.")
+                }
             },
             community: {
                 discordUrl: sanitizeString(community.discordUrl || 'https://discord.com/'),
@@ -4173,6 +4190,11 @@ export class UiController {
             this.adminDom.homeAtmosphere,
             this.adminDom.homeTags,
             this.adminDom.homeMetrics,
+            this.adminDom.homeBackgroundImage,
+            this.adminDom.homeMapImage,
+            this.adminDom.homeCharacterImage,
+            this.adminDom.homeFloatingTitle,
+            this.adminDom.homeFloatingCopy,
             this.adminDom.homeDiscordUrl,
             this.adminDom.homeDiscordTitle,
             this.adminDom.homeDiscordCopy,
@@ -4225,6 +4247,21 @@ export class UiController {
         }
         if (this.adminDom.homeMetrics) {
             this.adminDom.homeMetrics.value = this.formatAdminSiteConfigMetrics(config.home.metrics);
+        }
+        if (this.adminDom.homeBackgroundImage) {
+            this.adminDom.homeBackgroundImage.value = config.home.visuals?.backgroundImage || '';
+        }
+        if (this.adminDom.homeMapImage) {
+            this.adminDom.homeMapImage.value = config.home.visuals?.mapPreviewImage || '';
+        }
+        if (this.adminDom.homeCharacterImage) {
+            this.adminDom.homeCharacterImage.value = config.home.visuals?.characterImage || '';
+        }
+        if (this.adminDom.homeFloatingTitle) {
+            this.adminDom.homeFloatingTitle.value = config.home.visuals?.floatingTitle || '';
+        }
+        if (this.adminDom.homeFloatingCopy) {
+            this.adminDom.homeFloatingCopy.value = config.home.visuals?.floatingCopy || '';
         }
         if (this.adminDom.homeDiscordUrl) {
             this.adminDom.homeDiscordUrl.value = config.community.discordUrl || '';
@@ -4295,7 +4332,14 @@ export class UiController {
                 lead: this.adminDom.homeLead?.value || '',
                 atmosphere: this.adminDom.homeAtmosphere?.value || '',
                 tags: this.parseAdminDelimitedLines(this.adminDom.homeTags?.value || ''),
-                metrics: this.parseAdminMetrics(this.adminDom.homeMetrics?.value || '')
+                metrics: this.parseAdminMetrics(this.adminDom.homeMetrics?.value || ''),
+                visuals: {
+                    backgroundImage: this.adminDom.homeBackgroundImage?.value || '',
+                    mapPreviewImage: this.adminDom.homeMapImage?.value || '',
+                    characterImage: this.adminDom.homeCharacterImage?.value || '',
+                    floatingTitle: this.adminDom.homeFloatingTitle?.value || '',
+                    floatingCopy: this.adminDom.homeFloatingCopy?.value || ''
+                }
             },
             community: {
                 discordUrl: this.adminDom.homeDiscordUrl?.value || '',
@@ -4350,6 +4394,16 @@ export class UiController {
         if (!Array.isArray(config?.home?.metrics) || !config.home.metrics.length) {
             errors.push('Ajoutez au moins une metrique hero (Label | Valeur).');
         }
+        [
+            ['Fond hero', config?.home?.visuals?.backgroundImage],
+            ['Mockup carte', config?.home?.visuals?.mapPreviewImage],
+            ['Render personnage', config?.home?.visuals?.characterImage]
+        ].forEach(([label, value]) => {
+            const raw = sanitizeString(value);
+            if (raw && !(isHttp(raw) || isRelative(raw))) {
+                errors.push(`${label} invalide (http(s) ou chemin relatif attendu).`);
+            }
+        });
         if (config?.community?.discordUrl && !isHttp(config.community.discordUrl)) {
             errors.push('URL Discord invalide.');
         }
