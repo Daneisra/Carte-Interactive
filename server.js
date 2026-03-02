@@ -147,6 +147,7 @@ const SECURITY_HEADERS = {
     "font-src 'self' data: https://unpkg.com https://cdn.jsdelivr.net",
     "media-src 'self' data: blob:",
     "connect-src 'self'",
+    "frame-src 'self' https://discord.com https://*.discord.com",
     "frame-ancestors 'self'"
   ].join('; '),
   'X-Content-Type-Options': 'nosniff'

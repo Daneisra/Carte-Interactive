@@ -38,6 +38,9 @@
     communityDiscordBadge: document.getElementById('home-community-discord-badge'),
     communityDiscordTitle: document.getElementById('home-community-discord-title'),
     communityDiscordCopy: document.getElementById('home-community-discord-copy'),
+    discordWidgetCard: document.getElementById('home-discord-widget-card'),
+    discordWidget: document.getElementById('home-discord-widget'),
+    discordWidgetLink: document.getElementById('home-discord-widget-link'),
     communityYoutubeBadge: document.getElementById('home-community-youtube-badge'),
     communityYoutubeTitle: document.getElementById('home-community-youtube-title'),
     communityYoutubeCopy: document.getElementById('home-community-youtube-copy'),
@@ -418,6 +421,24 @@ const renderStat = (valueNode, labelNode, value, label) => {
     setTextContent(labelNode, label || '');
 };
 
+const renderDiscordWidget = community => {
+    const guildId = normalizeText(community?.proof?.guildId);
+    const discordUrl = normalizeText(community?.discordUrl) || DEFAULT_SITE_CONFIG.community.discordUrl;
+    if (dom.discordWidgetLink) {
+        setLinkHref(dom.discordWidgetLink, discordUrl, DEFAULT_SITE_CONFIG.community.discordUrl);
+    }
+    if (!dom.discordWidgetCard || !dom.discordWidget) {
+        return;
+    }
+    if (!guildId) {
+        dom.discordWidgetCard.hidden = true;
+        dom.discordWidget.removeAttribute('src');
+        return;
+    }
+    dom.discordWidgetCard.hidden = false;
+    dom.discordWidget.src = `https://discord.com/widget?id=${encodeURIComponent(guildId)}&theme=dark`;
+};
+
 
 const renderDiscordProof = payload => {
     const proof = payload && typeof payload === 'object'
@@ -464,6 +485,7 @@ const applyCommunityHighlights = community => {
     setTextContent(dom.communityRedditTitle, reddit.title || DEFAULT_SITE_CONFIG.community.reddit.title);
     setTextContent(dom.communityRedditCopy, reddit.copy || DEFAULT_SITE_CONFIG.community.reddit.copy);
     setTextContent(dom.communityNote, 'Liens, textes communautaires et compteur Discord pilotes depuis assets/site-config.json.');
+    renderDiscordWidget(community);
 };
 
 const renderChangelogItems = entries => {

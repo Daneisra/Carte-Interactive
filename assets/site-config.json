@@ -34,10 +34,10 @@
   },
   "community": {
         "youtubeUrl": "https://www.youtube.com/@Daneisra",
-        "discordUrl": "https://discord.gg/a67SVZtZXk",
+        "discordUrl": "https://discord.gg/sCFWb87SBY",
         "redditUrl": "https://www.reddit.com/",
         "proof": {
-            "mode": "manual",
+            "mode": "discord",
             "guildId": "1193915594567843921",
             "manualCount": 200,
             "label": "membres sur Discord",
