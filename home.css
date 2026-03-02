@@ -28,10 +28,10 @@ body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: var(--home-text);
     background:
-        radial-gradient(800px 400px at 15% 10%, rgba(124, 92, 255, 0.18), transparent 70%),
-        radial-gradient(700px 360px at 82% 18%, rgba(216, 182, 106, 0.14), transparent 72%),
-        radial-gradient(900px 520px at 95% 5%, rgba(59, 130, 246, 0.15), transparent 70%),
-        linear-gradient(180deg, rgba(4, 8, 18, 0.95), rgba(3, 8, 18, 0.96)),
+        radial-gradient(900px 460px at 14% 10%, rgba(124, 92, 255, 0.2), transparent 70%),
+        radial-gradient(860px 420px at 84% 16%, rgba(216, 182, 106, 0.16), transparent 72%),
+        radial-gradient(980px 560px at 92% 4%, rgba(59, 130, 246, 0.18), transparent 72%),
+        linear-gradient(180deg, rgba(4, 8, 18, 0.8), rgba(3, 8, 18, 0.9)),
         var(--home-hero-bg-image) center top/cover fixed;
 }
 
@@ -41,8 +41,9 @@ body::before {
     inset: 0;
     pointer-events: none;
     background:
-        linear-gradient(180deg, rgba(2, 6, 13, 0.72), rgba(2, 6, 13, 0.9)),
-        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.05), transparent 40%);
+        linear-gradient(180deg, rgba(2, 6, 13, 0.38), rgba(2, 6, 13, 0.72)),
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.06), transparent 40%),
+        radial-gradient(circle at 82% 12%, rgba(96, 165, 250, 0.08), transparent 28%);
 }
 
 .home-skip-link {
@@ -346,23 +347,33 @@ button:focus-visible {
 
 .home-hero {
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
+    grid-template-columns: minmax(0, 1.26fr) minmax(360px, 0.92fr);
     gap: 22px;
     padding: 26px 24px;
     min-height: min(680px, calc(100vh - 136px));
     border-radius: 22px;
     border: 1px solid var(--home-panel-border);
     background:
-        linear-gradient(115deg, rgba(3, 8, 19, 0.82) 12%, rgba(5, 12, 25, 0.7) 48%, rgba(7, 15, 30, 0.56) 100%),
+        linear-gradient(115deg, rgba(3, 8, 19, 0.58) 10%, rgba(5, 12, 25, 0.42) 48%, rgba(7, 15, 30, 0.32) 100%),
         radial-gradient(circle at 12% 18%, rgba(216, 182, 106, 0.12), transparent 34%),
         radial-gradient(circle at 84% 18%, rgba(96, 165, 250, 0.12), transparent 28%);
     box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
     align-items: stretch;
 }
 
+.home-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(520px 320px at 84% 52%, rgba(255, 255, 255, 0.05), transparent 60%),
+        linear-gradient(90deg, rgba(4, 9, 19, 0.12) 0%, rgba(4, 9, 19, 0.08) 40%, transparent 72%);
+}
+
 .home-hero-side {
     display: grid;
-    align-content: space-between;
+    align-content: start;
     gap: 18px;
     min-width: 0;
 }
@@ -385,12 +396,13 @@ button:focus-visible {
 .home-hero-copy h1 {
     margin: 0;
     font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(48px, 5.6vw, 82px);
-    line-height: 0.92;
+    font-size: clamp(46px, 5.2vw, 76px);
+    line-height: 0.94;
     letter-spacing: -0.04em;
-    max-width: 9.8ch;
+    max-width: 10.6ch;
     text-wrap: balance;
-    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+    color: #f3efe4;
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.34);
 }
 
 .home-lead {
@@ -398,7 +410,7 @@ button:focus-visible {
     color: #c6d3e8;
     line-height: 1.72;
     font-size: 17px;
-    max-width: 58ch;
+    max-width: 50ch;
 }
 
 .home-hero-visual {
@@ -416,6 +428,8 @@ button:focus-visible {
     border: 1px solid rgba(148, 163, 184, 0.18);
     background: linear-gradient(180deg, rgba(9, 16, 31, 0.82), rgba(12, 21, 40, 0.68));
     box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+    width: min(100%, 420px);
+    justify-self: end;
 }
 
 .home-proof-avatars {
@@ -461,17 +475,20 @@ button:focus-visible {
 .home-map-showcase {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(190px, 29%, 290px);
+    grid-template-columns: minmax(0, 1fr) clamp(240px, 34%, 370px);
     align-items: center;
-    gap: 14px;
+    gap: 0;
     min-height: 430px;
-    padding: 56px 0 0 8px;
+    padding: 68px 0 0 8px;
+    overflow: visible;
 }
 
 .home-map-frame {
     position: relative;
     width: 100%;
-    margin: 44px 0 0;
+    max-width: 620px;
+    justify-self: end;
+    margin: 62px 0 0;
     border-radius: 24px;
     overflow: hidden;
     border: 1px solid rgba(148, 163, 184, 0.25);
@@ -479,7 +496,7 @@ button:focus-visible {
     box-shadow:
         0 26px 80px rgba(0, 0, 0, 0.42),
         inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-    transform: perspective(1200px) rotateY(-9deg) rotateX(2deg);
+    transform: perspective(1200px) rotateY(-7deg) rotateX(2deg);
     transform-origin: right center;
     z-index: 1;
 }
@@ -493,8 +510,8 @@ button:focus-visible {
 .home-map-floating-card {
     position: absolute;
     top: 0;
-    left: -6px;
-    width: min(270px, 46%);
+    left: 0;
+    width: min(312px, 50%);
     z-index: 2;
     padding: 16px;
     border-radius: 18px;
@@ -563,14 +580,14 @@ button:focus-visible {
     justify-self: end;
     right: auto;
     bottom: auto;
-    width: min(100%, 270px);
+    width: min(100%, 360px);
     max-height: 500px;
     object-fit: contain;
     pointer-events: none;
     filter: drop-shadow(0 26px 40px rgba(0, 0, 0, 0.56));
     z-index: 3;
-    margin-left: -46px;
-    transform: translateY(22px) scale(1.06);
+    margin-left: -108px;
+    transform: translateY(42px) scale(1.18);
     transform-origin: center bottom;
 }
 
@@ -808,6 +825,7 @@ button:focus-visible {
         linear-gradient(180deg, rgba(8, 14, 26, 0.88), rgba(8, 14, 26, 0.72)),
         radial-gradient(circle at top right, rgba(96, 165, 250, 0.08), transparent 30%);
     box-shadow: var(--home-shadow);
+    align-self: start;
 }
 
 .home-card:hover {
@@ -1263,6 +1281,8 @@ button:focus-visible {
 
     .home-proof {
         padding: 10px 12px;
+        width: 100%;
+        justify-self: stretch;
     }
 
     .home-map-showcase {

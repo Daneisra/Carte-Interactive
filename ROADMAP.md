@@ -132,8 +132,8 @@
 - [x] Ajouter un header plus premium (logo, navigation courte, CTA clairs).
 - [x] Brancher les visuels/textes hero dans la configuration admin de l'accueil.
 - [x] Prevoir un compteur Discord dynamique ou une valeur editable cote admin.
-- [ ] Finaliser responsive mobile/tablette de la landing premium.
-- [ ] Polish final : ombres, micro-interactions, animations legeres, coherence typographique.
+- [x] Finaliser responsive mobile/tablette de la landing premium.
+- [x] Polish final : ombres, micro-interactions, animations legeres, coherence typographique.
 
 ### Direction artistique recommandee - Hesta
 - [ ] Palette : bleu nuit, ivoire, or doux, cyan froid pour les accents interactifs.
@@ -142,7 +142,7 @@
 - [x] Showcase : carte en mockup central avec perspective legere et overlays narratifs.
 - [x] Personnage : silhouette detouree cote droit avec halo discret et ancrage visuel fort.
 - [x] Background : illustration panoramique avec gradients, texture et profondeur atmospherique.
-- [ ] UI tone : sobre, premium, epure, plus 'univers vivant' que 'dashboard'.
+- [x] UI tone : sobre, premium, epure, plus 'univers vivant' que 'dashboard'.
 
 ### Assets a produire / reunir
 - [x] Un fond hero large HD (desktop + mobile).
