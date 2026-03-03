@@ -442,6 +442,7 @@ export class UiController {
         this.adminMetrics = null;
         this.adminMetricsInterval = null;
         this.adminSiteConfig = null;
+        this.adminSiteConfigSource = 'unloaded';
         this.adminSiteConfigDirty = false;
         this.adminSiteConfigPending = false;
         this.adminSiteConfigErrors = [];
@@ -3944,8 +3945,7 @@ export class UiController {
             }
         });
         if (!this.adminSiteConfig) {
-            this.adminSiteConfig = this.normalizeAdminSiteConfig({});
-            this.renderAdminSiteConfig();
+            this.setAdminHomeStatus("Chargement de la configuration de l'accueil...");
         }
         this.syncAdminHomeEditor();
     }
@@ -4040,8 +4040,8 @@ export class UiController {
                     backgroundImage: sanitizeString(home?.visuals?.backgroundImage || '/assets/home/backgrounds/hero-main.png'),
                     mapPreviewImage: sanitizeString(home?.visuals?.mapPreviewImage || '/assets/home/mockups/map-preview-main.png'),
                     characterImage: sanitizeString(home?.visuals?.characterImage || '/assets/home/characters/character.png'),
-                    floatingTitle: sanitizeString(home?.visuals?.floatingTitle || 'Bridgetown Crossing'),
-                    floatingCopy: sanitizeString(home?.visuals?.floatingCopy || "Une fiche lieu riche, une carte lisible et un univers qui se parcourt avant meme d'entrer en jeu.")
+                    floatingTitle: sanitizeString(home?.visuals?.floatingTitle || "Les terres d'Hesta"),
+                    floatingCopy: sanitizeString(home?.visuals?.floatingCopy || "Un apercu clair du monde, des routes, des capitales et des quetes qui structurent vos campagnes.")
                 }
             },
             community: {
@@ -4182,7 +4182,9 @@ export class UiController {
 
     syncAdminHomeEditor() {
         const isAdmin = this.isAdmin();
-        const disabled = !isAdmin || this.adminSiteConfigPending;
+        const hasConfig = !!this.adminSiteConfig;
+        const readOnlyFallback = this.adminSiteConfigSource === 'fallback';
+        const disabled = !isAdmin || this.adminSiteConfigPending || !hasConfig;
         [
             this.adminDom.homeKicker,
             this.adminDom.homeTitle,
@@ -4213,18 +4215,24 @@ export class UiController {
             this.adminDom.homeContactEmail,
             this.adminDom.homeCreditsUrl,
             this.adminDom.homeFooterNote,
-            this.adminDom.homeChangelog,
-            this.adminDom.homeReloadButton,
-            this.adminDom.homeSaveButton
+            this.adminDom.homeChangelog
         ].forEach(element => {
             if (element) {
                 element.disabled = disabled;
             }
         });
+        if (this.adminDom.homeReloadButton) {
+            this.adminDom.homeReloadButton.disabled = !isAdmin || this.adminSiteConfigPending;
+        }
+        if (this.adminDom.homeSaveButton) {
+            this.adminDom.homeSaveButton.disabled = !isAdmin || this.adminSiteConfigPending || !hasConfig || readOnlyFallback;
+        }
         if (this.adminDom.homeSaveButton) {
             this.adminDom.homeSaveButton.textContent = this.adminSiteConfigPending
                 ? "Enregistrement..."
-                : (this.adminSiteConfigDirty ? "Enregistrer l'accueil *" : "Enregistrer l'accueil");
+                : (readOnlyFallback
+                    ? "API admin indisponible"
+                    : (this.adminSiteConfigDirty ? "Enregistrer l'accueil *" : "Enregistrer l'accueil"));
         }
     }
 
@@ -4548,10 +4556,12 @@ export class UiController {
         }
         if (!this.isAdmin()) {
             this.adminSiteConfig = null;
+            this.adminSiteConfigSource = 'unloaded';
             this.adminSiteConfigDirty = false;
             this.syncAdminHomeEditor();
             return;
         }
+        this.setAdminHomeStatus("Chargement de la configuration de l'accueil...");
         try {
             const response = await fetch('/api/admin/site-config', {
                 credentials: 'include',
@@ -4562,12 +4572,12 @@ export class UiController {
             }
             const payload = await response.json();
             this.adminSiteConfig = this.normalizeAdminSiteConfig(payload?.config || {});
+            this.adminSiteConfigSource = 'api';
             this.adminSiteConfigDirty = false;
             this.renderAdminSiteConfig();
-            this.setAdminHomeStatus("Configuration de l'accueil chargee.");
+            this.setAdminHomeStatus("Configuration de l'accueil chargee depuis l'API admin.");
         } catch (error) {
             console.error('[admin] site config fetch failed', error);
-            this.setAdminHomeStatus("Impossible de charger la configuration de l'accueil.", true);
             this.logTelemetryEvent({
                 title: 'Admin accueil - chargement',
                 description: error?.message || "Echec chargement configuration d'accueil",
@@ -4575,6 +4585,25 @@ export class UiController {
                 method: 'GET',
                 status: error?.status || null
             });
+            try {
+                const fallbackResponse = await fetch('/assets/site-config.json', {
+                    cache: 'no-store'
+                });
+                if (!fallbackResponse.ok) {
+                    throw new Error(`HTTP ${fallbackResponse.status}`);
+                }
+                const fallbackPayload = await fallbackResponse.json();
+                this.adminSiteConfig = this.normalizeAdminSiteConfig(fallbackPayload || {});
+                this.adminSiteConfigSource = 'fallback';
+                this.adminSiteConfigDirty = false;
+                this.renderAdminSiteConfig();
+                this.setAdminHomeStatus("API admin indisponible. Formulaire charge depuis assets/site-config.json en lecture seule.", true);
+            } catch (fallbackError) {
+                console.error('[admin] site config fallback fetch failed', fallbackError);
+                this.adminSiteConfig = null;
+                this.adminSiteConfigSource = 'unloaded';
+                this.setAdminHomeStatus("Impossible de charger la configuration de l'accueil depuis l'API admin ou assets/site-config.json.", true);
+            }
         } finally {
             this.syncAdminHomeEditor();
         }
@@ -4610,6 +4639,7 @@ export class UiController {
             }
             const payload = await response.json();
             this.adminSiteConfig = this.normalizeAdminSiteConfig(payload?.config || draft);
+            this.adminSiteConfigSource = 'api';
             this.adminSiteConfigDirty = false;
             this.renderAdminSiteConfig();
             this.setAdminHomeStatus("Accueil mis a jour. Rechargez '/' pour verifier le rendu.");

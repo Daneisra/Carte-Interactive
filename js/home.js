@@ -92,8 +92,8 @@ const DEFAULT_SITE_CONFIG = {
             backgroundImage: '/assets/home/backgrounds/hero-main.png',
             mapPreviewImage: '/assets/home/mockups/map-preview-main.png',
             characterImage: '/assets/home/characters/character.png',
-            floatingTitle: 'Bridgetown Crossing',
-            floatingCopy: "Une fiche lieu riche, une carte lisible et un univers qui se parcourt avant meme d'entrer en jeu."
+            floatingTitle: "Les terres d'Hesta",
+            floatingCopy: "Un apercu clair du monde, des routes, des capitales et des quetes qui structurent vos campagnes."
         }
     },
     community: {
