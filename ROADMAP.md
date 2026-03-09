@@ -112,7 +112,7 @@
 ### P3.7 — Bonus (plus tard)
 - [x] Preview du flux temps réel sur l’accueil (mini bloc live).
 - [x] Mise en avant de lieux/continents (cards).
-- [x] Changelog / patch notes visibles depuis l’accueil.
+- [ ] Changelog / patch notes automatiques visibles depuis l’accueil.
 - [x] Widget communauté (ex: lien invitation Discord enrichi).
 - [x] Écran d’accueil personnalisable côté admin (textes/liens/hero).
 
@@ -128,10 +128,10 @@
 - [x] Ajouter un fond illustre immersif avec profondeur, brume et halos.
 - [x] Ajouter un render personnage HD integre au hero.
 - [x] Ajouter une preview mockup de la carte avec mini fiche lieu flottante.
-- [x] Ajouter une preuve sociale visuelle (membres Discord, groupes actifs, avatars).
+- [x] Ajouter une preuve sociale visuelle (bloc communauté, widget Discord, avatars).
 - [x] Ajouter un header plus premium (logo, navigation courte, CTA clairs).
 - [x] Brancher les visuels/textes hero dans la configuration admin de l'accueil.
-- [x] Prevoir un compteur Discord dynamique ou une valeur editable cote admin.
+- [ ] Prevoir un compteur Discord dynamique ou une valeur editable cote admin.
 - [x] Finaliser responsive mobile/tablette de la landing premium.
 - [x] Polish final : ombres, micro-interactions, animations legeres, coherence typographique.
 
@@ -166,6 +166,8 @@
 - [ ] Modularisation fine de `UiController` et nettoyage des artefacts legacy.
 - [ ] Harmonisation encodages (UTF-8) & lint assets. :contentReference[oaicite:7]{index=7}
 - [ ] Polish UI
+- [ ] Fiabiliser le compteur Discord automatique de l’accueil (invite/widget/API) avec fallback propre.
+- [ ] Automatiser les patch notes de l’accueil depuis GitHub ou l’historique git de production.
 
 
 

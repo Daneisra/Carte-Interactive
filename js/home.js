@@ -62,14 +62,10 @@
     footerContact: document.getElementById('home-footer-contact'),
     footerCredits: document.getElementById('home-footer-credits'),
     footerNote: document.getElementById('home-footer-note'),
-    statDiscordValue: document.getElementById('home-stat-discord-value'),
-    statDiscordLabel: document.getElementById('home-stat-discord-label'),
     statNewsValue: document.getElementById('home-stat-news-value'),
     statNewsLabel: document.getElementById('home-stat-news-label'),
     statFeaturedValue: document.getElementById('home-stat-featured-value'),
-    statFeaturedLabel: document.getElementById('home-stat-featured-label'),
-    statChangelogValue: document.getElementById('home-stat-changelog-value'),
-    statChangelogLabel: document.getElementById('home-stat-changelog-label')
+    statFeaturedLabel: document.getElementById('home-stat-featured-label')
 };
 
 const PREFERENCES_STORAGE_KEY = 'interactive-map-preferences';
@@ -281,7 +277,6 @@ const applySiteConfig = config => {
     setLinkHref(dom.footerCredits, merged.legal.creditsUrl, DEFAULT_SITE_CONFIG.legal.creditsUrl);
     setTextContent(dom.footerNote, merged.legal.footerNote || DEFAULT_SITE_CONFIG.legal.footerNote);
     applyCommunityHighlights(merged.community);
-    renderChangelogItems(Array.isArray(merged.changelog) ? merged.changelog : []);
 };
 
 const loadSiteConfig = async () => {
@@ -292,13 +287,9 @@ const loadSiteConfig = async () => {
         }
         const payload = await response.json();
         applySiteConfig(payload);
-        fetchDiscordProof();
-        fetchChangelog();
     } catch (error) {
         console.warn('[home] site config unavailable, fallback defaults used', error);
         applySiteConfig(DEFAULT_SITE_CONFIG);
-        fetchDiscordProof();
-        fetchChangelog();
     }
 };
 
@@ -482,34 +473,6 @@ const renderDiscordWidget = community => {
 };
 
 
-const renderDiscordProof = payload => {
-    const proof = payload && typeof payload === 'object'
-        ? payload
-        : (state.siteConfig?.community?.proof || DEFAULT_SITE_CONFIG.community.proof);
-    const count = Math.max(0, Number(proof?.count ?? proof?.manualCount) || 0);
-    const label = normalizeText(proof?.label) || DEFAULT_SITE_CONFIG.community.proof.label;
-    const note = normalizeText(proof?.note) || DEFAULT_SITE_CONFIG.community.proof.note;
-    const source = proof?.source === 'discord' ? 'discord' : 'manual';
-    setTextContent(dom.proofTitle, `${count} ${label}`.trim());
-    renderStat(dom.statDiscordValue, dom.statDiscordLabel, count, label);
-    const suffix = source === 'discord' && proof?.live
-        ? 'Compteur live Discord.'
-        : "Compteur configurable depuis l'admin.";
-    setTextContent(dom.proofNote, `${note} ${suffix}`.trim());
-};
-const fetchDiscordProof = async () => {
-    try {
-        const response = await fetch('/api/community/discord', { cache: 'no-store' });
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        const payload = await response.json();
-        renderDiscordProof(payload);
-    } catch (error) {
-        console.warn('[home] discord proof unavailable, fallback config used', error);
-        renderDiscordProof(state.siteConfig?.community?.proof || DEFAULT_SITE_CONFIG.community.proof);
-    }
-};
 const applyCommunityHighlights = community => {
     const discord = community?.discord || {};
     const youtube = community?.youtube || {};
@@ -526,76 +489,10 @@ const applyCommunityHighlights = community => {
     setTextContent(dom.communityRedditBadge, reddit.badge || DEFAULT_SITE_CONFIG.community.reddit.badge);
     setTextContent(dom.communityRedditTitle, reddit.title || DEFAULT_SITE_CONFIG.community.reddit.title);
     setTextContent(dom.communityRedditCopy, reddit.copy || DEFAULT_SITE_CONFIG.community.reddit.copy);
+    setTextContent(dom.proofTitle, 'Communaute Hesta en croissance');
+    setTextContent(dom.proofNote, 'Discord reste le point d entree principal. Retrouvez aussi les recaps YouTube et les discussions communautaires.');
     setTextContent(dom.communityNote, 'Discord reste le point d entree principal. Le widget ci-dessous reprend l activite du serveur en direct.');
     renderDiscordWidget(community);
-};
-
-const renderChangelogItems = (entries, options = {}) => {
-    const source = options?.source === 'git' ? 'git' : 'config';
-    if (!dom.changelogList) {
-        return;
-    }
-    if (!Array.isArray(entries) || entries.length === 0) {
-        dom.changelogList.innerHTML = source === 'git'
-            ? '<li class="home-news-empty">Historique git indisponible pour le moment.</li>'
-            : '<li class="home-news-empty">Aucune patch note configuree pour le moment.</li>';
-        setStatusPill(dom.changelogStatus, source === 'git' ? 'Indisponible' : 'A jour', source === 'git' ? 'error' : 'ok');
-        renderStat(dom.statChangelogValue, dom.statChangelogLabel, 0, 'patch notes visibles');
-        if (dom.changelogNote) {
-            dom.changelogNote.textContent = source === 'git'
-                ? "Aucune donnee automatique disponible depuis l'historique git sur cette instance."
-                : 'Patch notes pilotes depuis assets/site-config.json pour mettre en avant les evolutions recentes.';
-        }
-        return;
-    }
-    const normalized = entries
-        .filter(entry => entry && typeof entry === 'object')
-        .slice(0, 6);
-    if (!normalized.length) {
-        dom.changelogList.innerHTML = source === 'git'
-            ? '<li class="home-news-empty">Historique git indisponible pour le moment.</li>'
-            : '<li class="home-news-empty">Aucune patch note configuree pour le moment.</li>';
-        setStatusPill(dom.changelogStatus, source === 'git' ? 'Indisponible' : 'A jour', source === 'git' ? 'error' : 'ok');
-        renderStat(dom.statChangelogValue, dom.statChangelogLabel, 0, 'patch notes visibles');
-        if (dom.changelogNote) {
-            dom.changelogNote.textContent = source === 'git'
-                ? "Aucune donnee automatique disponible depuis l'historique git sur cette instance."
-                : 'Patch notes pilotes depuis assets/site-config.json pour mettre en avant les evolutions recentes.';
-        }
-        return;
-    }
-    dom.changelogList.innerHTML = normalized.map(entry => `
-<li class="home-changelog-item">
-    <div class="home-changelog-head">
-        <strong>${escapeHtml(entry.title || 'Mise a jour')}</strong>
-        <span>${escapeHtml(formatDisplayDate(entry.date || ''))}</span>
-    </div>
-    <p class="home-changelog-text">${escapeHtml(entry.summary || '')}</p>
-</li>`).join('');
-    setStatusPill(dom.changelogStatus, source === 'git' ? `${normalized.length} commits` : `${normalized.length} notes`, 'ok');
-    renderStat(dom.statChangelogValue, dom.statChangelogLabel, normalized.length, 'patch notes visibles');
-    if (dom.changelogNote) {
-        dom.changelogNote.textContent = source === 'git'
-            ? "Patch notes automatiques alimentees par l'historique git recent de l'instance."
-            : 'Patch notes pilotes depuis assets/site-config.json pour mettre en avant les evolutions recentes.';
-    }
-};
-
-const fetchChangelog = async () => {
-    try {
-        const response = await fetch('/api/changelog', { cache: 'no-store' });
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        const payload = await response.json();
-        const entries = Array.isArray(payload?.entries)
-            ? payload.entries
-            : (Array.isArray(payload?.changelog) ? payload.changelog : []);
-        renderChangelogItems(entries, { source: payload?.source === 'git' ? 'git' : 'config' });
-    } catch (error) {
-        console.warn('[home] automatic changelog unavailable, fallback config used', error);
-        renderChangelogItems(state.siteConfig?.changelog || DEFAULT_SITE_CONFIG.changelog, { source: 'config' });
-    }
 };
 
 const renderNewsItems = events => {
