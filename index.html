@@ -39,7 +39,48 @@
             <div class="home-header-actions">
                 <a class="home-link-button home-link-button-primary" href="/map/">Entrer sur la carte</a>
                 <button id="home-login" class="home-link-button" type="button">Connexion Discord</button>
-                <button id="home-logout" class="home-link-button" type="button" hidden>Se deconnecter</button>
+                <button id="home-profile-toggle" class="home-link-button home-profile-toggle" type="button" aria-expanded="false" aria-controls="home-profile-popover" hidden>
+                    <span id="home-profile-toggle-avatar" class="home-profile-toggle-avatar" aria-hidden="true">?</span>
+                    <span id="home-profile-toggle-name" class="home-profile-toggle-name">Profil</span>
+                </button>
+            </div>
+            <div id="home-profile-popover" class="home-profile-popover" hidden>
+                <section id="home-session-card" class="home-session-card home-session-popover" aria-live="polite">
+                    <div class="home-session-header">
+                        <span id="home-avatar" class="home-avatar" aria-hidden="true">?</span>
+                        <div>
+                            <p id="home-username" class="home-session-name">Invite</p>
+                            <p id="home-role" class="home-session-role">Mode lecture</p>
+                        </div>
+                    </div>
+                    <p id="home-session-status" class="home-session-status">Connectez-vous pour modifier des lieux, gerer vos personnages et utiliser les outils admin.</p>
+                    <div class="home-session-meta">
+                        <div>
+                            <span class="label">Provider</span>
+                            <strong id="home-provider">Invite</strong>
+                        </div>
+                        <div>
+                            <span class="label">Discord</span>
+                            <strong id="home-discord">--</strong>
+                        </div>
+                        <div>
+                            <span class="label">Derniere connexion</span>
+                            <strong id="home-last-login">--</strong>
+                        </div>
+                    </div>
+                    <div class="home-session-links">
+                        <a id="home-session-map" class="home-inline-map-link" href="/map/">Aller a la carte</a>
+                        <a id="home-admin-link" class="home-inline-map-link home-inline-map-link-admin" href="/map/" hidden>Acces admin rapide</a>
+                    </div>
+                    <div class="home-session-atmosphere" aria-hidden="true">
+                        <div class="home-orb"></div>
+                        <div class="home-lines"></div>
+                        <p id="home-atmosphere-copy">Hub pre-carte - entree rapide vers l'univers, la carte et la communaute.</p>
+                    </div>
+                    <div class="home-session-actions">
+                        <button id="home-logout" class="home-link-button home-session-logout" type="button" hidden>Se deconnecter</button>
+                    </div>
+                </section>
             </div>
         </header>
 
@@ -74,7 +115,6 @@
                     </div>
                     <div class="home-hero-actions">
                         <a id="home-enter-map" class="home-cta home-cta-primary" href="/map/">Entrer sur la carte</a>
-                        <a id="home-enter-guest" class="home-cta home-cta-secondary" href="/map/">Continuer sans se connecter</a>
                     </div>
                     <p id="home-auth-note" class="home-auth-note" role="status" aria-live="polite">Verification de la session...</p>
                 </div>
@@ -108,39 +148,6 @@
                                 <img id="home-map-preview-image" src="/assets/home/mockups/map-preview-main.png" alt="Apercu de la carte Hesta" />
                             </div>
                             <img id="home-character-art" class="home-character-art" src="/assets/home/characters/character.png" alt="Personnage de l'univers Hesta" />
-                        </div>
-                    </section>
-                    <section id="home-session-card" class="home-session-card" aria-live="polite">
-                        <div class="home-session-header">
-                            <span id="home-avatar" class="home-avatar" aria-hidden="true">?</span>
-                            <div>
-                                <p id="home-username" class="home-session-name">Invite</p>
-                                <p id="home-role" class="home-session-role">Mode lecture</p>
-                            </div>
-                        </div>
-                        <p id="home-session-status" class="home-session-status">Connectez-vous pour modifier des lieux, gerer vos personnages et utiliser les outils admin.</p>
-                        <div class="home-session-meta">
-                            <div>
-                                <span class="label">Provider</span>
-                                <strong id="home-provider">Invite</strong>
-                            </div>
-                            <div>
-                                <span class="label">Discord</span>
-                                <strong id="home-discord">--</strong>
-                            </div>
-                            <div>
-                                <span class="label">Derniere connexion</span>
-                                <strong id="home-last-login">--</strong>
-                            </div>
-                        </div>
-                        <div class="home-session-links">
-                            <a id="home-session-map" class="home-inline-map-link" href="/map/">Aller a la carte</a>
-                            <a id="home-admin-link" class="home-inline-map-link home-inline-map-link-admin" href="/map/" hidden>Acces admin rapide</a>
-                        </div>
-                        <div class="home-session-atmosphere" aria-hidden="true">
-                            <div class="home-orb"></div>
-                            <div class="home-lines"></div>
-                            <p id="home-atmosphere-copy">Hub pre-carte - entree rapide vers l'univers, la carte et la communaute.</p>
                         </div>
                     </section>
                 </aside>
@@ -228,21 +235,24 @@
                     <p class="home-card-kicker">Rester connecte</p>
                     <h2>Communaute</h2>
                     <div class="home-community-highlights">
-                        <article class="home-community-highlight">
+                        <a id="home-community-discord-link" class="home-community-highlight home-community-highlight-link" href="https://discord.com/" target="_blank" rel="noopener noreferrer">
                             <span id="home-community-discord-badge" class="home-community-badge">Discord</span>
                             <strong id="home-community-discord-title">Serveur principal</strong>
                             <p id="home-community-discord-copy">Organisation de parties, annonces et coordination des groupes JDR.</p>
-                        </article>
-                        <article class="home-community-highlight">
+                            <span class="home-community-link-label">Ouvrir</span>
+                        </a>
+                        <a id="home-community-youtube-link" class="home-community-highlight home-community-highlight-link" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">
                             <span id="home-community-youtube-badge" class="home-community-badge">YouTube</span>
                             <strong id="home-community-youtube-title">Lore & recaps</strong>
                             <p id="home-community-youtube-copy">Videos, recaps et ambiances pour prolonger l'univers hors session.</p>
-                        </article>
-                        <article class="home-community-highlight">
+                            <span class="home-community-link-label">Regarder</span>
+                        </a>
+                        <a id="home-community-reddit-link" class="home-community-highlight home-community-highlight-link" href="https://www.reddit.com/" target="_blank" rel="noopener noreferrer">
                             <span id="home-community-reddit-badge" class="home-community-badge">Reddit</span>
                             <strong id="home-community-reddit-title">Discussions</strong>
                             <p id="home-community-reddit-copy">Partage d'idees, retours et archives communautaires.</p>
-                        </article>
+                            <span class="home-community-link-label">Explorer</span>
+                        </a>
                     </div>
                     <section id="home-discord-widget-card" class="home-discord-widget-card" aria-labelledby="home-discord-widget-title" hidden>
                         <div class="home-card-header">
@@ -263,26 +273,7 @@
                             sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts">
                         </iframe>
                     </section>
-                    <div class="home-socials" role="list" aria-label="Reseaux sociaux">
-                        <a id="home-social-youtube" role="listitem" class="home-social home-social-youtube" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">
-                            <span aria-hidden="true">YT</span> YouTube
-                        </a>
-                        <a id="home-social-discord" role="listitem" class="home-social home-social-discord" href="https://discord.com/" target="_blank" rel="noopener noreferrer">
-                            <span aria-hidden="true">DS</span> Discord
-                        </a>
-                        <a id="home-social-reddit" role="listitem" class="home-social home-social-reddit" href="https://www.reddit.com/" target="_blank" rel="noopener noreferrer">
-                            <span aria-hidden="true">RD</span> Reddit
-                        </a>
-                    </div>
-                    <div class="home-card-actions">
-                        <a id="home-social-discord-cta" class="home-cta home-cta-secondary" href="https://discord.com/" target="_blank" rel="noopener noreferrer">Rejoindre le Discord</a>
-                        <a id="home-social-youtube-cta" class="home-cta home-cta-secondary" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">Voir le contenu YouTube</a>
-                    </div>
-                    <div class="home-card-actions">
-                        <a class="home-cta home-cta-secondary" href="/map/">Carte interactive</a>
-                        <button id="home-login-inline" class="home-cta home-cta-secondary" type="button">Connexion Discord</button>
-                    </div>
-                    <p id="home-community-note" class="home-muted">Remplacez ces liens par vos URLs communautaires definitives lors du polish P3.</p>
+                    <p id="home-community-note" class="home-muted home-community-note">Les cartes ci-dessus ouvrent directement vos canaux externes. Le widget Discord reprend l'activite du serveur en direct.</p>
                 </article>
             </section>
             <section class="home-grid home-grid-newsband" aria-label="Nouveautes de la carte">

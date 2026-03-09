@@ -157,6 +157,7 @@ body.home-ready .home-card:nth-of-type(5) { transition-delay: 0.3s; }
 body.home-ready .home-footer { transition-delay: 0.34s; }
 
 .home-header {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -248,6 +249,53 @@ body.home-ready .home-footer { transition-delay: 0.34s; }
     justify-content: flex-end;
     gap: 8px;
     flex-wrap: wrap;
+}
+
+.home-profile-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.home-profile-toggle.is-open {
+    border-color: rgba(125, 211, 252, 0.38);
+    box-shadow: 0 12px 28px rgba(8, 21, 44, 0.32);
+}
+
+.home-profile-toggle-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border: 1px solid rgba(125, 211, 252, 0.4);
+    background: rgba(59, 130, 246, 0.2);
+    box-shadow: inset 0 0 0 2px rgba(15, 23, 42, 0.45);
+    font-weight: 700;
+}
+
+.home-profile-toggle-avatar.has-avatar {
+    color: transparent;
+    background-size: cover;
+    background-position: center;
+}
+
+.home-profile-toggle-name {
+    max-width: 132px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.home-profile-popover {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 18px;
+    width: min(360px, calc(100vw - 36px));
+    z-index: 35;
 }
 
 .home-link-button,
@@ -347,8 +395,8 @@ button:focus-visible {
 
 .home-hero {
     display: grid;
-    grid-template-columns: minmax(0, 1.04fr) minmax(460px, 1.08fr);
-    gap: 18px;
+    grid-template-columns: minmax(0, 0.94fr) minmax(560px, 1.2fr);
+    gap: 24px;
     padding: 26px 24px;
     min-height: min(700px, calc(100vh - 124px));
     border-radius: 22px;
@@ -374,7 +422,7 @@ button:focus-visible {
 .home-hero-side {
     display: grid;
     align-content: start;
-    gap: 14px;
+    gap: 12px;
     min-width: 0;
 }
 
@@ -428,7 +476,7 @@ button:focus-visible {
     border: 1px solid rgba(148, 163, 184, 0.18);
     background: linear-gradient(180deg, rgba(9, 16, 31, 0.82), rgba(12, 21, 40, 0.68));
     box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
-    width: min(100%, 450px);
+    width: min(100%, 430px);
     justify-self: end;
 }
 
@@ -475,20 +523,20 @@ button:focus-visible {
 .home-map-showcase {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(280px, 36%, 430px);
+    grid-template-columns: minmax(0, 1.08fr) clamp(320px, 34%, 470px);
     align-items: center;
     gap: 0;
-    min-height: 510px;
-    padding: 56px 0 0;
+    min-height: 580px;
+    padding: 40px 0 0;
     overflow: visible;
 }
 
 .home-map-frame {
     position: relative;
-    width: min(100%, 760px);
-    max-width: 760px;
-    justify-self: end;
-    margin: 84px 10px 0 0;
+    width: min(100%, 920px);
+    max-width: 920px;
+    justify-self: start;
+    margin: 108px 0 0 26px;
     border-radius: 24px;
     overflow: hidden;
     border: 1px solid rgba(148, 163, 184, 0.25);
@@ -496,8 +544,8 @@ button:focus-visible {
     box-shadow:
         0 26px 80px rgba(0, 0, 0, 0.42),
         inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-    transform: perspective(1400px) rotateY(-6deg) rotateX(2deg);
-    transform-origin: right center;
+    transform: perspective(1480px) rotateY(-5deg) rotateX(1.5deg);
+    transform-origin: center center;
     z-index: 1;
 }
 
@@ -509,9 +557,9 @@ button:focus-visible {
 
 .home-map-floating-card {
     position: absolute;
-    top: 8px;
-    left: 0;
-    width: min(288px, 40%);
+    top: 0;
+    left: 8px;
+    width: min(320px, 38%);
     z-index: 2;
     padding: 15px;
     border-radius: 18px;
@@ -580,14 +628,14 @@ button:focus-visible {
     justify-self: end;
     right: auto;
     bottom: auto;
-    width: min(100%, 430px);
-    max-height: 580px;
+    width: min(100%, 510px);
+    max-height: 640px;
     object-fit: contain;
     pointer-events: none;
     filter: drop-shadow(0 26px 40px rgba(0, 0, 0, 0.56));
     z-index: 3;
-    margin-left: -154px;
-    transform: translateY(56px) scale(1.23);
+    margin-left: -232px;
+    transform: translateY(62px) scale(1.3);
     transform-origin: center bottom;
 }
 
@@ -646,6 +694,12 @@ button:focus-visible {
     gap: 10px;
 }
 
+.home-hero-actions .home-cta-primary {
+    min-width: 220px;
+    justify-content: center;
+    text-align: center;
+}
+
 .home-auth-note {
     margin: 12px 0 0;
     color: #c7d4ea;
@@ -671,6 +725,22 @@ button:focus-visible {
     width: min(100%, 350px);
     justify-self: end;
     align-self: start;
+}
+
+.home-session-popover {
+    width: 100%;
+    justify-self: stretch;
+    box-shadow: 0 28px 56px rgba(0, 0, 0, 0.34);
+}
+
+.home-session-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.home-session-logout {
+    min-width: 160px;
+    justify-content: center;
 }
 
 .home-session-header {
@@ -995,12 +1065,6 @@ button:focus-visible {
     line-height: 1.6;
 }
 
-.home-socials {
-    margin-top: 12px;
-    display: grid;
-    gap: 8px;
-}
-
 .home-card-wide {
     grid-column: 1 / -1;
 }
@@ -1062,54 +1126,6 @@ button:focus-visible {
     padding: 14px;
     color: #c7d4ea;
     font-size: 13px;
-}
-
-.home-social {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 12px;
-    border-radius: 13px;
-    color: var(--home-text);
-    text-decoration: none;
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    background: rgba(15, 23, 42, 0.45);
-    font-weight: 600;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
-}
-
-.home-social:hover,
-.home-social:focus-visible {
-    transform: translateY(-1px);
-    border-color: rgba(148, 163, 184, 0.35);
-    outline: none;
-}
-
-.home-social span {
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-}
-
-.home-social-youtube span {
-    background: rgba(239, 68, 68, 0.22);
-    color: #fecaca;
-}
-
-.home-social-discord span {
-    background: rgba(99, 102, 241, 0.22);
-    color: #c7d2fe;
-}
-
-.home-social-reddit span {
-    background: rgba(249, 115, 22, 0.22);
-    color: #fed7aa;
 }
 
 .home-footer {
@@ -1188,30 +1204,25 @@ button:focus-visible {
         min-height: 0;
     }
 
-    .home-session-card {
-        width: 100%;
-        justify-self: stretch;
-    }
-
     .home-map-showcase {
-        min-height: 420px;
-        grid-template-columns: minmax(0, 1fr) clamp(190px, 28%, 260px);
+        min-height: 480px;
+        grid-template-columns: minmax(0, 1fr) clamp(220px, 28%, 320px);
         padding-left: 0;
     }
 
     .home-map-frame {
-        width: min(100%, 640px);
-        margin: 56px 0 0;
+        width: min(100%, 760px);
+        margin: 72px 0 0 12px;
     }
 
     .home-map-floating-card {
-        width: min(300px, 56%);
+        width: min(320px, 54%);
     }
 
     .home-character-art {
         width: 100%;
-        margin-left: -68px;
-        transform: translateY(24px) scale(1.08);
+        margin-left: -118px;
+        transform: translateY(34px) scale(1.14);
     }
 
     .home-grid,
@@ -1263,12 +1274,18 @@ button:focus-visible {
         width: 100%;
         justify-content: stretch;
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .home-link-button {
         width: 100%;
         text-align: center;
+    }
+
+    .home-profile-popover {
+        left: 12px;
+        right: 12px;
+        width: auto;
     }
 
     .home-hero {
@@ -1308,7 +1325,7 @@ button:focus-visible {
         position: relative;
         justify-self: center;
         width: min(72vw, 280px);
-        margin: -6px auto 0;
+        margin: -16px auto 0;
         display: block;
         transform: none;
     }
@@ -1334,6 +1351,14 @@ button:focus-visible {
     .home-hero-actions {
         display: grid;
         grid-template-columns: 1fr;
+    }
+
+    .home-session-actions {
+        justify-content: stretch;
+    }
+
+    .home-session-logout {
+        width: 100%;
     }
 
     .home-proof {
@@ -1393,7 +1418,6 @@ button:focus-visible {
 @media (prefers-reduced-motion: reduce) {
     .home-link-button,
     .home-cta,
-    .home-social,
     .home-skip-link,
     body.home-ready .home-header,
     body.home-ready .home-footer,
@@ -1458,7 +1482,7 @@ button:focus-visible {
     margin-top: 14px;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
+    gap: 16px;
 }
 
 .home-featured-card,
@@ -1473,7 +1497,85 @@ button:focus-visible {
 
 .home-featured-card {
     display: grid;
-    gap: 12px;
+    grid-template-rows: auto 1fr auto;
+    gap: 14px;
+    min-height: 100%;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.home-featured-card:hover,
+.home-featured-card:focus-within {
+    transform: translateY(-2px);
+    border-color: rgba(148, 163, 184, 0.26);
+    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.24);
+}
+
+.home-featured-cover {
+    aspect-ratio: 16 / 8.8;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background:
+        linear-gradient(135deg, rgba(17, 24, 39, 0.92), rgba(20, 36, 66, 0.82)),
+        radial-gradient(circle at top right, rgba(216, 182, 106, 0.16), transparent 34%);
+}
+
+.home-featured-cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.home-featured-cover-fallback {
+    display: grid;
+    place-items: center;
+}
+
+.home-featured-cover-fallback span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    background: rgba(106, 168, 255, 0.16);
+    border: 1px solid rgba(106, 168, 255, 0.22);
+    color: #e7f0ff;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.home-featured-body {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+}
+
+.home-featured-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.home-featured-continent,
+.home-featured-score {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.home-featured-continent {
+    color: #bfd7ff;
+}
+
+.home-featured-score {
+    color: #f3dfb2;
 }
 
 .home-featured-body h3 {
@@ -1516,16 +1618,49 @@ button:focus-visible {
 }
 
 .home-featured-text {
-    margin-top: 10px;
     color: #dbe5f3;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .home-featured-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
     color: #c7d4ea;
+}
+
+.home-featured-meta-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.58);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    color: #dbeafe;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.home-featured-summary-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #b7c7df;
+}
+
+.home-featured-footer {
+    display: grid;
+    gap: 12px;
+    padding-top: 2px;
 }
 
 .home-featured-open {
     width: 100%;
+    min-height: 44px;
 }
 
 @media (max-width: 720px) {
@@ -1556,6 +1691,21 @@ button:focus-visible {
     gap: 6px;
 }
 
+.home-community-highlight-link {
+    position: relative;
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.home-community-highlight-link:hover,
+.home-community-highlight-link:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(148, 163, 184, 0.28);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
+    outline: none;
+}
+
 .home-community-badge {
     display: inline-flex;
     align-items: center;
@@ -1583,6 +1733,22 @@ button:focus-visible {
     line-height: 1.55;
 }
 
+.home-community-link-label {
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    color: #dce8ff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.home-community-link-label::after {
+    content: '\2192';
+    margin-left: 7px;
+    font-size: 12px;
+}
+
 .home-discord-widget-card {
     margin-bottom: 14px;
     border: 1px solid rgba(148, 163, 184, 0.14);
@@ -1604,11 +1770,17 @@ button:focus-visible {
 .home-discord-widget {
     display: block;
     width: 100%;
-    min-height: 380px;
+    min-height: 340px;
     border: 0;
     border-radius: 16px;
     background: rgba(7, 14, 27, 0.76);
     box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.1);
+}
+
+.home-community-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #b7c8e3;
 }
 
 .home-changelog-list {
@@ -1673,6 +1845,6 @@ button:focus-visible {
     }
 
     .home-discord-widget {
-        min-height: 320px;
+        min-height: 300px;
     }
 }

@@ -1,7 +1,10 @@
 ﻿const dom = {
     year: document.getElementById('home-year'),
     login: document.getElementById('home-login'),
-    loginInline: document.getElementById('home-login-inline'),
+    profileToggle: document.getElementById('home-profile-toggle'),
+    profileToggleAvatar: document.getElementById('home-profile-toggle-avatar'),
+    profileToggleName: document.getElementById('home-profile-toggle-name'),
+    profilePopover: document.getElementById('home-profile-popover'),
     logout: document.getElementById('home-logout'),
     authNote: document.getElementById('home-auth-note'),
     username: document.getElementById('home-username'),
@@ -38,20 +41,18 @@
     communityDiscordBadge: document.getElementById('home-community-discord-badge'),
     communityDiscordTitle: document.getElementById('home-community-discord-title'),
     communityDiscordCopy: document.getElementById('home-community-discord-copy'),
+    communityDiscordLink: document.getElementById('home-community-discord-link'),
     discordWidgetCard: document.getElementById('home-discord-widget-card'),
     discordWidget: document.getElementById('home-discord-widget'),
     discordWidgetLink: document.getElementById('home-discord-widget-link'),
     communityYoutubeBadge: document.getElementById('home-community-youtube-badge'),
     communityYoutubeTitle: document.getElementById('home-community-youtube-title'),
     communityYoutubeCopy: document.getElementById('home-community-youtube-copy'),
+    communityYoutubeLink: document.getElementById('home-community-youtube-link'),
     communityRedditBadge: document.getElementById('home-community-reddit-badge'),
     communityRedditTitle: document.getElementById('home-community-reddit-title'),
     communityRedditCopy: document.getElementById('home-community-reddit-copy'),
-    socialYoutube: document.getElementById('home-social-youtube'),
-    socialDiscord: document.getElementById('home-social-discord'),
-    socialReddit: document.getElementById('home-social-reddit'),
-    socialYoutubeCta: document.getElementById('home-social-youtube-cta'),
-    socialDiscordCta: document.getElementById('home-social-discord-cta'),
+    communityRedditLink: document.getElementById('home-community-reddit-link'),
     communityNote: document.getElementById('home-community-note'),
     mapPreviewImage: document.getElementById('home-map-preview-image'),
     characterArt: document.getElementById('home-character-art'),
@@ -143,7 +144,8 @@ const DEFAULT_SITE_CONFIG = {
 const state = {
     liveItems: [],
     eventSource: null,
-    siteConfig: DEFAULT_SITE_CONFIG
+    siteConfig: DEFAULT_SITE_CONFIG,
+    profileOpen: false
 };
 
 const isSafeExternalUrl = value => typeof value === 'string' && /^https?:\/\//i.test(value.trim());
@@ -175,6 +177,28 @@ const escapeHtml = value => String(value ?? '')
     .replace(/'/g, '&#39;');
 
 const normalizeText = value => typeof value === 'string' ? value.trim() : '';
+
+const stripMarkdown = value => normalizeText(value)
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[`*_>#~]+/g, ' ')
+    .replace(/\n+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+const resolveLocationAssetUrl = value => {
+    const next = normalizeText(value);
+    if (!next) {
+        return '';
+    }
+    if (isSafeExternalUrl(next) || isSafeRelativeUrl(next)) {
+        return next;
+    }
+    if (/^(assets|images|uploads)\//i.test(next)) {
+        return `/${next.replace(/^\/+/, '')}`;
+    }
+    return '';
+};
 
 const setLinkHref = (element, url, fallback) => {
     if (!element) {
@@ -247,11 +271,9 @@ const applySiteConfig = config => {
 
     state.siteConfig = merged;
     applyHomeHero(merged.home);
-    setLinkHref(dom.socialYoutube, merged.community.youtubeUrl, DEFAULT_SITE_CONFIG.community.youtubeUrl);
-    setLinkHref(dom.socialYoutubeCta, merged.community.youtubeUrl, DEFAULT_SITE_CONFIG.community.youtubeUrl);
-    setLinkHref(dom.socialDiscord, merged.community.discordUrl, DEFAULT_SITE_CONFIG.community.discordUrl);
-    setLinkHref(dom.socialDiscordCta, merged.community.discordUrl, DEFAULT_SITE_CONFIG.community.discordUrl);
-    setLinkHref(dom.socialReddit, merged.community.redditUrl, DEFAULT_SITE_CONFIG.community.redditUrl);
+    setLinkHref(dom.communityYoutubeLink, merged.community.youtubeUrl, DEFAULT_SITE_CONFIG.community.youtubeUrl);
+    setLinkHref(dom.communityDiscordLink, merged.community.discordUrl, DEFAULT_SITE_CONFIG.community.discordUrl);
+    setLinkHref(dom.communityRedditLink, merged.community.redditUrl, DEFAULT_SITE_CONFIG.community.redditUrl);
     setLinkHref(dom.footerSupport, merged.support.issuesUrl, DEFAULT_SITE_CONFIG.support.issuesUrl);
     const contactValue = normalizeText(merged.support.contactEmail);
     const contactHref = contactValue.startsWith('mailto:') ? contactValue : `mailto:${contactValue}`;
@@ -333,16 +355,32 @@ const applyAvatar = (avatarUrl, fallbackText) => {
     if (!dom.avatar) {
         return;
     }
+    const targets = [dom.avatar, dom.profileToggleAvatar].filter(Boolean);
     const url = typeof avatarUrl === 'string' ? avatarUrl.trim() : '';
     if (url) {
-        dom.avatar.style.backgroundImage = `url("${url}")`;
-        dom.avatar.classList.add('has-avatar');
-        dom.avatar.textContent = '';
+        targets.forEach(target => {
+            target.style.backgroundImage = `url("${url}")`;
+            target.classList.add('has-avatar');
+            target.textContent = '';
+        });
         return;
     }
-    dom.avatar.style.backgroundImage = '';
-    dom.avatar.classList.remove('has-avatar');
-    dom.avatar.textContent = (fallbackText || '?').charAt(0).toUpperCase();
+    targets.forEach(target => {
+        target.style.backgroundImage = '';
+        target.classList.remove('has-avatar');
+        target.textContent = (fallbackText || '?').charAt(0).toUpperCase();
+    });
+};
+
+const setProfilePopoverOpen = open => {
+    state.profileOpen = Boolean(open) && !dom.profileToggle?.hidden;
+    if (dom.profilePopover) {
+        dom.profilePopover.hidden = !state.profileOpen;
+    }
+    if (dom.profileToggle) {
+        dom.profileToggle.setAttribute('aria-expanded', state.profileOpen ? 'true' : 'false');
+        dom.profileToggle.classList.toggle('is-open', state.profileOpen);
+    }
 };
 
 const setStatusPill = (element, message, tone = 'neutral') => {
@@ -484,7 +522,7 @@ const applyCommunityHighlights = community => {
     setTextContent(dom.communityRedditBadge, reddit.badge || DEFAULT_SITE_CONFIG.community.reddit.badge);
     setTextContent(dom.communityRedditTitle, reddit.title || DEFAULT_SITE_CONFIG.community.reddit.title);
     setTextContent(dom.communityRedditCopy, reddit.copy || DEFAULT_SITE_CONFIG.community.reddit.copy);
-    setTextContent(dom.communityNote, 'Liens, textes communautaires et compteur Discord pilotes depuis assets/site-config.json.');
+    setTextContent(dom.communityNote, 'Discord reste le point d entree principal. Le widget ci-dessous reprend l activite du serveur en direct.');
     renderDiscordWidget(community);
 };
 
@@ -702,10 +740,10 @@ const renderFeaturedLocations = locations => {
     }
     if (!Array.isArray(locations) || locations.length === 0) {
         dom.featuredList.innerHTML = '<article class="home-featured-empty">Aucun lieu mis en avant disponible pour le moment.</article>';
-        renderStat(dom.statFeaturedValue, dom.statFeaturedLabel, 0, 'lieux a reprendre');
+        renderStat(dom.statFeaturedValue, dom.statFeaturedLabel, 0, 'lieux mis en avant');
         return;
     }
-    renderStat(dom.statFeaturedValue, dom.statFeaturedLabel, locations.length, 'lieux a reprendre');
+    renderStat(dom.statFeaturedValue, dom.statFeaturedLabel, locations.length, 'lieux mis en avant');
     dom.featuredList.innerHTML = locations.map(location => {
         const chips = [];
         if (location.type) {
@@ -730,16 +768,49 @@ const renderFeaturedLocations = locations => {
         if (Array.isArray(location.questEvents) && location.questEvents.length) {
             summary.push(`${location.questEvents.length} evenement${location.questEvents.length > 1 ? 's' : ''}`);
         }
-        const description = normalizeText(location.description) || 'Ouvrez la carte pour explorer ce lieu plus en detail.';
+        if (Array.isArray(location.instances) && location.instances.length) {
+            summary.push(`${location.instances.length} instance${location.instances.length > 1 ? 's' : ''}`);
+        }
+        const coverImage = resolveLocationAssetUrl(Array.isArray(location.images) && location.images.length ? location.images[0] : '');
+        const description = stripMarkdown(location.description) || 'Ouvrez la carte pour explorer ce lieu plus en detail.';
+        const excerpt = description.length > 150 ? `${description.slice(0, 150).trim()}...` : description;
+        const mediaBadges = [];
+        if (location.audio) {
+            mediaBadges.push('<span class="home-featured-meta-pill">Audio</span>');
+        }
+        if (Array.isArray(location.images) && location.images.length) {
+            mediaBadges.push(`<span class="home-featured-meta-pill">${location.images.length} image${location.images.length > 1 ? 's' : ''}</span>`);
+        }
+        if (Array.isArray(location.videos) && location.videos.length) {
+            mediaBadges.push(`<span class="home-featured-meta-pill">${location.videos.length} video${location.videos.length > 1 ? 's' : ''}</span>`);
+        }
+        if (Array.isArray(location.questEvents) && location.questEvents.length) {
+            mediaBadges.push(`<span class="home-featured-meta-pill">${location.questEvents.length} quete${location.questEvents.length > 1 ? 's' : ''}</span>`);
+        }
+        const fallbackMonogram = escapeHtml((location.name || '?').slice(0, 2).toUpperCase());
         return `
 <article class="home-featured-card">
+    <div class="home-featured-cover${coverImage ? '' : ' home-featured-cover-fallback'}">
+        ${coverImage
+            ? `<img src="${escapeHtml(coverImage)}" alt="${escapeHtml(location.name)}" loading="lazy" />`
+            : `<span>${fallbackMonogram}</span>`}
+    </div>
     <div class="home-featured-body">
+        <div class="home-featured-topline">
+            <span class="home-featured-continent">${escapeHtml(location.continent || 'Continent inconnu')}</span>
+            <span class="home-featured-score">Score ${escapeHtml(String(location.__score || 0))}</span>
+        </div>
         <h3>${escapeHtml(location.name)}</h3>
         <div class="home-featured-chips">${chips.join('')}</div>
-        <p class="home-featured-text">${escapeHtml(description.slice(0, 140))}${description.length > 140 ? '...' : ''}</p>
-        <p class="home-featured-summary">${escapeHtml(summary.join(' · ') || 'Exploration recommande')}</p>
+        <p class="home-featured-text">${escapeHtml(excerpt)}</p>
     </div>
-    <button class="home-cta home-cta-secondary home-featured-open" type="button" data-location-name="${escapeHtml(location.name)}">Ouvrir sur la carte</button>
+    <div class="home-featured-footer">
+        <div class="home-featured-summary">
+            ${mediaBadges.join('') || '<span class="home-featured-meta-pill">Exploration recommandee</span>'}
+            <span class="home-featured-summary-text">${escapeHtml(summary.join(' · ') || 'Narratif, media ou quetes detectes')}</span>
+        </div>
+        <button class="home-cta home-cta-secondary home-featured-open" type="button" data-location-name="${escapeHtml(location.name)}">Explorer sur la carte</button>
+    </div>
 </article>`;
     }).join('');
 
@@ -779,7 +850,7 @@ const fetchFeaturedLocations = async () => {
         setStatusPill(dom.featuredStatus, featured.length ? `${featured.length} selectionnes` : 'A jour', 'ok');
         if (dom.featuredNote) {
             dom.featuredNote.textContent = featured.length
-                ? 'Selection automatique de lieux a fort potentiel narratif ou media.'
+                ? 'Selection automatique de lieux avec bon potentiel narratif, media ou quetes a reprendre.'
                 : 'Aucun lieu suffisamment riche n a ete detecte pour la mise en avant.';
         }
     } catch (error) {
@@ -862,7 +933,13 @@ const setGuestState = (options = {}) => {
     applyAvatar('', authRequired ? '?' : 'L');
     dom.logout.hidden = true;
     dom.login.hidden = !authRequired || !oauthDiscord;
-    dom.loginInline.hidden = !authRequired || !oauthDiscord;
+    if (dom.profileToggleName) {
+        dom.profileToggleName.textContent = 'Profil';
+    }
+    if (dom.profileToggle) {
+        dom.profileToggle.hidden = true;
+    }
+    setProfilePopoverOpen(false);
     dom.adminLink.hidden = true;
     updateResumeCard({ authenticated: false });
 };
@@ -886,7 +963,12 @@ const setAuthenticatedState = payload => {
     applyAvatar(payload?.avatar || '', username);
     dom.logout.hidden = false;
     dom.login.hidden = true;
-    dom.loginInline.hidden = true;
+    if (dom.profileToggleName) {
+        dom.profileToggleName.textContent = username;
+    }
+    if (dom.profileToggle) {
+        dom.profileToggle.hidden = false;
+    }
     dom.adminLink.hidden = !isAdmin;
     if (!dom.adminLink.hidden) {
         dom.adminLink.textContent = 'Acces admin rapide (carte)';
@@ -910,7 +992,7 @@ const fetchSession = async () => {
             setAuthNote('Session active detectee.', 'ok');
         } else {
             const guestMessage = authRequired
-                ? 'Connectez-vous via Discord ou entrez directement sur la carte en lecture seule.'
+                ? 'Connectez-vous via Discord pour debloquer les outils de contribution. La carte reste accessible sans connexion.'
                 : 'Mode local detecte: acces direct a la carte disponible.';
             setGuestState({ authRequired, oauthDiscord, message: guestMessage });
             setAuthNote(guestMessage, authRequired ? 'neutral' : 'ok');
@@ -929,8 +1011,23 @@ const bindActions = () => {
     const login = () => {
         window.location.href = getLoginRedirect();
     };
+    const closeProfileIfOutside = event => {
+        if (!state.profileOpen) {
+            return;
+        }
+        const target = event.target;
+        if (dom.profilePopover?.contains(target) || dom.profileToggle?.contains(target)) {
+            return;
+        }
+        setProfilePopoverOpen(false);
+    };
     dom.login?.addEventListener('click', login);
-    dom.loginInline?.addEventListener('click', login);
+    dom.profileToggle?.addEventListener('click', () => {
+        if (dom.profileToggle.hidden) {
+            return;
+        }
+        setProfilePopoverOpen(!state.profileOpen);
+    });
     dom.logout?.addEventListener('click', async () => {
         dom.logout.disabled = true;
         try {
@@ -940,7 +1037,15 @@ const bindActions = () => {
         } finally {
             dom.logout.disabled = false;
         }
+        setProfilePopoverOpen(false);
         await fetchSession();
+    });
+    document.addEventListener('pointerdown', closeProfileIfOutside);
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && state.profileOpen) {
+            setProfilePopoverOpen(false);
+            dom.profileToggle?.focus();
+        }
     });
 };
 
