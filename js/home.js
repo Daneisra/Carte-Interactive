@@ -292,9 +292,13 @@ const loadSiteConfig = async () => {
         }
         const payload = await response.json();
         applySiteConfig(payload);
+        fetchDiscordProof();
+        fetchChangelog();
     } catch (error) {
         console.warn('[home] site config unavailable, fallback defaults used', error);
         applySiteConfig(DEFAULT_SITE_CONFIG);
+        fetchDiscordProof();
+        fetchChangelog();
     }
 };
 
@@ -526,23 +530,38 @@ const applyCommunityHighlights = community => {
     renderDiscordWidget(community);
 };
 
-const renderChangelogItems = entries => {
+const renderChangelogItems = (entries, options = {}) => {
+    const source = options?.source === 'git' ? 'git' : 'config';
     if (!dom.changelogList) {
         return;
     }
     if (!Array.isArray(entries) || entries.length === 0) {
-        dom.changelogList.innerHTML = '<li class="home-news-empty">Aucune patch note configuree pour le moment.</li>';
-        setStatusPill(dom.changelogStatus, 'A jour', 'ok');
+        dom.changelogList.innerHTML = source === 'git'
+            ? '<li class="home-news-empty">Historique git indisponible pour le moment.</li>'
+            : '<li class="home-news-empty">Aucune patch note configuree pour le moment.</li>';
+        setStatusPill(dom.changelogStatus, source === 'git' ? 'Indisponible' : 'A jour', source === 'git' ? 'error' : 'ok');
         renderStat(dom.statChangelogValue, dom.statChangelogLabel, 0, 'patch notes visibles');
+        if (dom.changelogNote) {
+            dom.changelogNote.textContent = source === 'git'
+                ? "Aucune donnee automatique disponible depuis l'historique git sur cette instance."
+                : 'Patch notes pilotes depuis assets/site-config.json pour mettre en avant les evolutions recentes.';
+        }
         return;
     }
     const normalized = entries
         .filter(entry => entry && typeof entry === 'object')
         .slice(0, 6);
     if (!normalized.length) {
-        dom.changelogList.innerHTML = '<li class="home-news-empty">Aucune patch note configuree pour le moment.</li>';
-        setStatusPill(dom.changelogStatus, 'A jour', 'ok');
+        dom.changelogList.innerHTML = source === 'git'
+            ? '<li class="home-news-empty">Historique git indisponible pour le moment.</li>'
+            : '<li class="home-news-empty">Aucune patch note configuree pour le moment.</li>';
+        setStatusPill(dom.changelogStatus, source === 'git' ? 'Indisponible' : 'A jour', source === 'git' ? 'error' : 'ok');
         renderStat(dom.statChangelogValue, dom.statChangelogLabel, 0, 'patch notes visibles');
+        if (dom.changelogNote) {
+            dom.changelogNote.textContent = source === 'git'
+                ? "Aucune donnee automatique disponible depuis l'historique git sur cette instance."
+                : 'Patch notes pilotes depuis assets/site-config.json pour mettre en avant les evolutions recentes.';
+        }
         return;
     }
     dom.changelogList.innerHTML = normalized.map(entry => `
@@ -553,10 +572,29 @@ const renderChangelogItems = entries => {
     </div>
     <p class="home-changelog-text">${escapeHtml(entry.summary || '')}</p>
 </li>`).join('');
-    setStatusPill(dom.changelogStatus, `${normalized.length} notes`, 'ok');
+    setStatusPill(dom.changelogStatus, source === 'git' ? `${normalized.length} commits` : `${normalized.length} notes`, 'ok');
     renderStat(dom.statChangelogValue, dom.statChangelogLabel, normalized.length, 'patch notes visibles');
     if (dom.changelogNote) {
-        dom.changelogNote.textContent = 'Patch notes pilotes depuis assets/site-config.json pour mettre en avant les evolutions recentes.';
+        dom.changelogNote.textContent = source === 'git'
+            ? "Patch notes automatiques alimentees par l'historique git recent de l'instance."
+            : 'Patch notes pilotes depuis assets/site-config.json pour mettre en avant les evolutions recentes.';
+    }
+};
+
+const fetchChangelog = async () => {
+    try {
+        const response = await fetch('/api/changelog', { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        const entries = Array.isArray(payload?.entries)
+            ? payload.entries
+            : (Array.isArray(payload?.changelog) ? payload.changelog : []);
+        renderChangelogItems(entries, { source: payload?.source === 'git' ? 'git' : 'config' });
+    } catch (error) {
+        console.warn('[home] automatic changelog unavailable, fallback config used', error);
+        renderChangelogItems(state.siteConfig?.changelog || DEFAULT_SITE_CONFIG.changelog, { source: 'config' });
     }
 };
 

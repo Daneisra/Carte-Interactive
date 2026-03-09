@@ -580,6 +580,45 @@ const fetchJson = (url, options = {}) => new Promise((resolve, reject) => {
   request.end();
 });
 
+const execFileText = (file, args, options = {}) => new Promise((resolve, reject) => {
+  execFile(file, args, { ...options, encoding: 'utf8', windowsHide: true, maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
+    if (error) {
+      error.stderr = stderr;
+      reject(error);
+      return;
+    }
+    resolve(stdout || '');
+  });
+});
+
+const readGitChangelogEntries = async (limit = 6) => {
+  const count = Math.max(1, Math.min(12, Number(limit) || 6));
+  const output = await execFileText('git', [
+    'log',
+    `-n=${count}`,
+    '--date=short',
+    '--pretty=format:%ad%x1f%s%x1f%b%x1e'
+  ], { cwd: ROOT });
+  return output
+    .split('\x1e')
+    .map(entry => entry.trim())
+    .filter(Boolean)
+    .map(entry => {
+      const [dateRaw = '', titleRaw = '', bodyRaw = ''] = entry.split('\x1f');
+      const title = normalizeString(titleRaw) || 'Mise a jour';
+      const bodyLine = normalizeString(bodyRaw)
+        .split(/\r?\n/)
+        .map(line => normalizeString(line))
+        .find(Boolean);
+      return {
+        date: normalizeString(dateRaw) || '',
+        title,
+        summary: bodyLine || title
+      };
+    })
+    .filter(entry => entry.title);
+};
+
 const AUTH_PRIORITY = { user: 1, admin: 2 };
 
 const extractBearerToken = req => {
@@ -2173,6 +2212,35 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+
+    if (urlObj.pathname === '/api/changelog') {
+      if (req.method !== 'GET') {
+        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
+        return;
+      }
+      try {
+        const limit = Math.max(1, Math.min(12, Number(urlObj.searchParams.get('limit')) || 6));
+        const entries = await readGitChangelogEntries(limit);
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          source: 'git',
+          entries
+        }), { 'Content-Type': 'application/json' });
+      } catch (error) {
+        logger.warn('[changelog] git history unavailable', { error: error.message });
+        try {
+          const config = await readSiteConfigFile();
+          send(res, 200, JSON.stringify({
+            status: 'ok',
+            source: 'config',
+            entries: Array.isArray(config?.changelog) ? config.changelog : []
+          }), { 'Content-Type': 'application/json' });
+        } catch (configError) {
+          send(res, 500, JSON.stringify({ status: 'error', message: 'Changelog unavailable.' }), { 'Content-Type': 'application/json' });
+        }
+      }
+      return;
+    }
 
     if (urlObj.pathname === '/api/community/discord') {
       if (req.method !== 'GET') {
