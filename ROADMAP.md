@@ -112,7 +112,6 @@
 ### P3.7 — Bonus (plus tard)
 - [x] Preview du flux temps réel sur l’accueil (mini bloc live).
 - [x] Mise en avant de lieux/continents (cards).
-- [ ] Changelog / patch notes automatiques visibles depuis l’accueil.
 - [x] Widget communauté (ex: lien invitation Discord enrichi).
 - [x] Écran d’accueil personnalisable côté admin (textes/liens/hero).
 
@@ -131,13 +130,12 @@
 - [x] Ajouter une preuve sociale visuelle (bloc communauté, widget Discord, avatars).
 - [x] Ajouter un header plus premium (logo, navigation courte, CTA clairs).
 - [x] Brancher les visuels/textes hero dans la configuration admin de l'accueil.
-- [ ] Prevoir un compteur Discord dynamique ou une valeur editable cote admin.
 - [x] Finaliser responsive mobile/tablette de la landing premium.
 - [x] Polish final : ombres, micro-interactions, animations legeres, coherence typographique.
 
 ### Direction artistique recommandee - Hesta
-- [ ] Palette : bleu nuit, ivoire, or doux, cyan froid pour les accents interactifs.
-- [ ] Typographies : une fonte editoriale pour les titres + une fonte UI tres lisible pour l'interface.
+- [x] Palette : bleu nuit, ivoire, or doux, cyan froid pour les accents interactifs.
+- [x] Typographies : une fonte editoriale pour les titres + une fonte UI tres lisible pour l'interface.
 - [x] Composition : grand titre centre, sous-texte court, CTA alignes, preuve sociale sous les CTA.
 - [x] Showcase : carte en mockup central avec perspective legere et overlays narratifs.
 - [x] Personnage : silhouette detouree cote droit avec halo discret et ancrage visuel fort.
@@ -148,8 +146,6 @@
 - [x] Un fond hero large HD (desktop + mobile).
 - [x] Un render personnage detoure propre (PNG/WebP).
 - [x] Un screenshot tres propre de la carte pour le mockup.
-- [ ] 3 a 5 avatars ou portraits pour la preuve sociale.
-- [ ] Une variante mobile du cadrage hero si necessaire.
 
 ### P4 — Différenciants
 - [ ] Intégration et personalisation d'une frise chronologique

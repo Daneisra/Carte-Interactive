@@ -115,6 +115,10 @@ body::before {
     overflow: hidden;
 }
 
+.home-header {
+    overflow: visible;
+}
+
 .home-header::after,
 .home-footer::after,
 .home-card::after,

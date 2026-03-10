@@ -53,6 +53,7 @@
     communityRedditTitle: document.getElementById('home-community-reddit-title'),
     communityRedditCopy: document.getElementById('home-community-reddit-copy'),
     communityRedditLink: document.getElementById('home-community-reddit-link'),
+    communityGithubLink: document.getElementById('home-community-github-link'),
     communityNote: document.getElementById('home-community-note'),
     mapPreviewImage: document.getElementById('home-map-preview-image'),
     characterArt: document.getElementById('home-character-art'),
@@ -174,6 +175,15 @@ const escapeHtml = value => String(value ?? '')
 
 const normalizeText = value => typeof value === 'string' ? value.trim() : '';
 
+const normalizeGithubProjectUrl = value => {
+    const normalized = normalizeText(value);
+    if (!normalized) {
+        return '';
+    }
+    const match = normalized.match(/^(https?:\/\/github\.com\/[^/\s]+\/[^/\s?#]+)(?:\/issues(?:[/?#].*)?)?$/i);
+    return match ? match[1] : normalized;
+};
+
 const stripMarkdown = value => normalizeText(value)
     .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
@@ -271,6 +281,11 @@ const applySiteConfig = config => {
     setLinkHref(dom.communityDiscordLink, merged.community.discordUrl, DEFAULT_SITE_CONFIG.community.discordUrl);
     setLinkHref(dom.communityRedditLink, merged.community.redditUrl, DEFAULT_SITE_CONFIG.community.redditUrl);
     setLinkHref(dom.footerSupport, merged.support.issuesUrl, DEFAULT_SITE_CONFIG.support.issuesUrl);
+    setLinkHref(
+        dom.communityGithubLink,
+        normalizeGithubProjectUrl(merged.support.issuesUrl),
+        normalizeGithubProjectUrl(DEFAULT_SITE_CONFIG.support.issuesUrl)
+    );
     const contactValue = normalizeText(merged.support.contactEmail);
     const contactHref = contactValue.startsWith('mailto:') ? contactValue : `mailto:${contactValue}`;
     setLinkHref(dom.footerContact, contactHref, `mailto:${DEFAULT_SITE_CONFIG.support.contactEmail}`);
