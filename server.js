@@ -75,9 +75,9 @@ const DEFAULT_SITE_CONFIG = {
     visuals: {
       backgroundImage: '/assets/home/backgrounds/hero-main.png',
       mapPreviewImage: '/assets/home/mockups/map-preview-main.png',
-      characterImage: '/assets/home/characters/character.png',
+      characterImage: '/assets/home/characters/Chevalier.png',
       floatingTitle: "Les terres d'Hesta",
-      floatingCopy: "Un apercu clair du monde, des routes, des capitales et des quetes qui structurent vos campagnes."
+      floatingCopy: "Un apercu clair du monde, des routes, des villes et des quetes qui structurent vos campagnes."
     }
   },
   community: {

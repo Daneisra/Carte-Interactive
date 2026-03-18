@@ -117,6 +117,7 @@ body::before {
 
 .home-header {
     overflow: visible;
+    z-index: 40;
 }
 
 .home-header::after,
@@ -641,6 +642,32 @@ button:focus-visible {
     margin-left: -232px;
     transform: translateY(62px) scale(1.3);
     transform-origin: center bottom;
+}
+
+.home-character-bertholo {
+    position: absolute;
+    left: 34px;
+    bottom: 26px;
+    width: min(24vw, 220px);
+    object-fit: contain;
+    pointer-events: none;
+    filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.46));
+    opacity: 0.92;
+    z-index: 2;
+}
+
+.home-character-alienor-egg {
+    position: absolute;
+    top: 26px;
+    right: 86px;
+    width: min(20vw, 196px);
+    object-fit: contain;
+    pointer-events: none;
+    opacity: 0.16;
+    filter: blur(0.4px) drop-shadow(0 24px 46px rgba(0, 0, 0, 0.42));
+    mix-blend-mode: screen;
+    transform: rotate(-7deg) translateY(-8px);
+    z-index: 1;
 }
 
 .home-hero-tags {
@@ -1229,6 +1256,18 @@ button:focus-visible {
         transform: translateY(34px) scale(1.14);
     }
 
+    .home-character-bertholo {
+        left: 16px;
+        bottom: 12px;
+        width: min(26vw, 180px);
+    }
+
+    .home-character-alienor-egg {
+        right: 24px;
+        width: min(18vw, 144px);
+        opacity: 0.12;
+    }
+
     .home-grid,
     .home-grid-topics,
     .home-grid-discovery {
@@ -1332,6 +1371,19 @@ button:focus-visible {
         margin: -16px auto 0;
         display: block;
         transform: none;
+    }
+
+    .home-character-bertholo {
+        position: relative;
+        left: auto;
+        bottom: auto;
+        justify-self: start;
+        width: min(42vw, 150px);
+        margin: -36px 0 0 8px;
+    }
+
+    .home-character-alienor-egg {
+        display: none;
     }
 
     .home-hero-copy h1 {

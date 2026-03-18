@@ -4039,9 +4039,9 @@ export class UiController {
                 visuals: {
                     backgroundImage: sanitizeString(home?.visuals?.backgroundImage || '/assets/home/backgrounds/hero-main.png'),
                     mapPreviewImage: sanitizeString(home?.visuals?.mapPreviewImage || '/assets/home/mockups/map-preview-main.png'),
-                    characterImage: sanitizeString(home?.visuals?.characterImage || '/assets/home/characters/character.png'),
+                    characterImage: sanitizeString(home?.visuals?.characterImage || '/assets/home/characters/Chevalier.png'),
                     floatingTitle: sanitizeString(home?.visuals?.floatingTitle || "Les terres d'Hesta"),
-                    floatingCopy: sanitizeString(home?.visuals?.floatingCopy || "Un apercu clair du monde, des routes, des capitales et des quetes qui structurent vos campagnes.")
+                    floatingCopy: sanitizeString(home?.visuals?.floatingCopy || "Un apercu clair du monde, des routes, des villes et des quetes qui structurent vos campagnes.")
                 }
             },
             community: {
