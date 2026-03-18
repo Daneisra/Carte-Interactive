@@ -55,6 +55,7 @@
     communityRedditLink: document.getElementById('home-community-reddit-link'),
     communityGithubLink: document.getElementById('home-community-github-link'),
     communityNote: document.getElementById('home-community-note'),
+    donateLink: document.getElementById('home-donate-link'),
     mapPreviewImage: document.getElementById('home-map-preview-image'),
     characterArt: document.getElementById('home-character-art'),
     floatingTitle: document.getElementById('home-floating-title'),
@@ -73,6 +74,7 @@ const PREFERENCES_STORAGE_KEY = 'interactive-map-preferences';
 const SITE_CONFIG_URL = '/assets/site-config.json';
 const LOCATIONS_DATA_URL = '/assets/locations.json';
 const LIVE_ITEMS_LIMIT = 5;
+const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr_FR';
 
 const DEFAULT_SITE_CONFIG = {
     home: {
@@ -289,6 +291,7 @@ const applySiteConfig = config => {
     const contactValue = normalizeText(merged.support.contactEmail);
     const contactHref = contactValue.startsWith('mailto:') ? contactValue : `mailto:${contactValue}`;
     setLinkHref(dom.footerContact, contactHref, `mailto:${DEFAULT_SITE_CONFIG.support.contactEmail}`);
+    setLinkHref(dom.donateLink, PAYPAL_DONATION_URL, PAYPAL_DONATION_URL);
     setLinkHref(dom.footerCredits, merged.legal.creditsUrl, DEFAULT_SITE_CONFIG.legal.creditsUrl);
     setTextContent(dom.footerNote, merged.legal.footerNote || DEFAULT_SITE_CONFIG.legal.footerNote);
     applyCommunityHighlights(merged.community);
