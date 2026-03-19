@@ -148,6 +148,7 @@
 - [x] Un screenshot tres propre de la carte pour le mockup.
 
 ### P4 — Différenciants
+- [x] Fix la suppression des annotations
 - [ ] Intégration et personalisation d'une frise chronologique
 - [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schéma, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).

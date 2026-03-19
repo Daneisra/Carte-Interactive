@@ -505,12 +505,13 @@ export class MapController {
         if (!annotation || typeof annotation !== 'object') {
             return null;
         }
-        if (!annotation.id || !Number.isFinite(annotation.x) || !Number.isFinite(annotation.y)) {
+        const annotationId = this.normalizeAnnotationId(annotation.id);
+        if (!annotationId || !Number.isFinite(annotation.x) || !Number.isFinite(annotation.y)) {
             return null;
         }
         const latlng = [annotation.y, annotation.x];
         const color = annotation.color || '#ff8a00';
-        const existing = this.annotationMarkers.get(annotation.id);
+        const existing = this.annotationMarkers.get(annotationId);
         if (existing) {
             existing.setLatLng(latlng);
             existing.setStyle({
@@ -520,7 +521,7 @@ export class MapController {
             if (existing.getTooltip()) {
                 existing.setTooltipContent(annotation.label || 'Annotation');
             }
-            existing.annotation = annotation;
+            existing.annotation = { ...annotation, id: annotationId };
             return existing;
         }
         const marker = L.circleMarker(latlng, {
@@ -532,7 +533,7 @@ export class MapController {
             opacity: 1,
             bubblingMouseEvents: true
         });
-        marker.annotation = annotation;
+        marker.annotation = { ...annotation, id: annotationId };
         marker.bindTooltip(annotation.label || 'Annotation', {
             direction: 'top',
             offset: [0, -8],
@@ -544,18 +545,29 @@ export class MapController {
             this.map.flyTo(latlng, this.clampZoom(Math.min(this.maxZoom, desiredZoom)), { animate: true, duration: 0.6 });
         });
         this.annotationLayer.addLayer(marker);
-        this.annotationMarkers.set(annotation.id, marker);
+        this.annotationMarkers.set(annotationId, marker);
         return marker;
     }
 
     removeAnnotation(annotationId) {
-        if (!annotationId) {
+        const normalizedId = this.normalizeAnnotationId(annotationId);
+        if (!normalizedId) {
             return;
         }
-        const marker = this.annotationMarkers.get(annotationId);
+        const marker = this.annotationMarkers.get(normalizedId);
         if (marker) {
             this.annotationLayer.removeLayer(marker);
-            this.annotationMarkers.delete(annotationId);
+            marker.remove?.();
+            this.annotationMarkers.delete(normalizedId);
+        }
+        this.annotationMarkers.forEach((entry, key) => {
+            const entryId = this.normalizeAnnotationId(entry?.annotation?.id);
+            if (entryId !== normalizedId) {
+                return;
+            }
+            this.annotationLayer.removeLayer(entry);
+            entry.remove?.();
+            this.annotationMarkers.delete(key);
         }
     }
 
@@ -564,6 +576,13 @@ export class MapController {
             this.annotationLayer.removeLayer(marker);
         });
         this.annotationMarkers.clear();
+    }
+
+    normalizeAnnotationId(annotationId) {
+        if (annotationId === null || annotationId === undefined) {
+            return '';
+        }
+        return String(annotationId).trim();
     }
 
     setGroups(groups = []) {

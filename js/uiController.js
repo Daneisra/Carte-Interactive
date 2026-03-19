@@ -76,6 +76,12 @@ const PROFILE_SOCIAL_LABELS = {
     youtube: 'YouTube',
     x: 'X/Twitter'
 };
+const normalizeAnnotationId = annotationId => {
+    if (annotationId === null || annotationId === undefined) {
+        return '';
+    }
+    return String(annotationId).trim();
+};
 
 const resolveLocalTimezone = () => {
     try {
@@ -5688,8 +5694,13 @@ export class UiController {
             }
             const payload = await response.json();
             if (payload?.annotation) {
+                const annotationId = normalizeAnnotationId(payload.annotation.id);
+                if (!annotationId) {
+                    throw new Error('Missing annotation id');
+                }
+                payload.annotation.id = annotationId;
                 this.announcer?.polite('Annotation ajoutee. Elle apparaitra sur la carte.');
-                this.annotations.set(payload.annotation.id, payload.annotation);
+                this.annotations.set(annotationId, payload.annotation);
                 this.mapController.addAnnotation(payload.annotation);
             }
         } catch (error) {
@@ -5699,7 +5710,8 @@ export class UiController {
     }
 
     async requestAnnotationDeletion(annotationId) {
-        if (!this.isAdmin() || !annotationId) {
+        const normalizedId = normalizeAnnotationId(annotationId);
+        if (!this.isAdmin() || !normalizedId) {
             return;
         }
         const confirmation = window.confirm('Supprimer cette annotation ?');
@@ -5707,7 +5719,7 @@ export class UiController {
             return;
         }
         try {
-            const response = await fetch(`/api/annotations/${encodeURIComponent(annotationId)}`, {
+            const response = await fetch(`/api/annotations/${encodeURIComponent(normalizedId)}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });
@@ -5715,8 +5727,8 @@ export class UiController {
                 throw new Error(`HTTP ${response.status}`);
             }
             this.announcer?.polite('Annotation supprimee.');
-            this.annotations.delete(annotationId);
-            this.mapController.removeAnnotation(annotationId);
+            this.annotations.delete(normalizedId);
+            this.mapController.removeAnnotation(normalizedId);
         } catch (error) {
             console.error('[annotations] suppression impossible', error);
             this.announcer?.assertive?.('Erreur lors de la suppression de l\'annotation.');
@@ -6191,8 +6203,9 @@ export class UiController {
     applyAnnotationBootstrap(list = []) {
         const registry = new Map();
         list.forEach(annotation => {
-            if (annotation?.id) {
-                registry.set(annotation.id, annotation);
+            const annotationId = normalizeAnnotationId(annotation?.id);
+            if (annotationId) {
+                registry.set(annotationId, { ...annotation, id: annotationId });
             }
         });
         this.annotations = registry;
@@ -6212,11 +6225,13 @@ export class UiController {
             return;
         }
         const annotation = data.annotation || data;
-        if (!annotation?.id) {
+        const annotationId = normalizeAnnotationId(annotation?.id);
+        if (!annotationId) {
             return;
         }
-        this.annotations.set(annotation.id, annotation);
-        this.mapController.addAnnotation(annotation);
+        const normalizedAnnotation = { ...annotation, id: annotationId };
+        this.annotations.set(annotationId, normalizedAnnotation);
+        this.mapController.addAnnotation(normalizedAnnotation);
         const locationLabel = sanitizeString(annotation.locationName);
         const messageParts = [
             annotation.label || 'Annotation ajoutee',
@@ -6233,17 +6248,17 @@ export class UiController {
                 : null
         ].filter(Boolean);
         this.eventsFeed.addEvent({
-            id: `annotation-${annotation.id}-${annotation.updatedAt || annotation.createdAt || Date.now()}`,
+            id: `annotation-${annotationId}-${annotation.updatedAt || annotation.createdAt || Date.now()}`,
             type: 'annotations',
             title: annotation.label || 'Annotation ajoutee',
             description: descriptionParts.join(' - ') || 'Annotation creee.',
             timestamp: annotation.updatedAt || annotation.createdAt || new Date().toISOString(),
-            annotationId: annotation.id
+            annotationId
         });
     }
 
     handleAnnotationDeleted(payload) {
-        const annotationId = payload?.id || payload?.annotationId || payload?.annotation?.id;
+        const annotationId = normalizeAnnotationId(payload?.id || payload?.annotationId || payload?.annotation?.id);
         if (!annotationId) {
             return;
         }
