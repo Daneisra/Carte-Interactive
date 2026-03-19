@@ -23,12 +23,15 @@ export class EventsFeed {
         this.listElement = listElement;
         this.filterSelect = filterSelect;
         this.emptyState = emptyState;
+        this.toggleButton = this.container?.querySelector('#events-feed-toggle') || null;
 
         this.events = [];
         this.filter = 'all';
+        this.collapsed = false;
         this.onDeleteAnnotation = () => {};
         this.canDeleteAnnotation = () => false;
         this.storageKey = 'interactive-map-events-filter';
+        this.collapsedStorageKey = 'interactive-map-events-collapsed';
     }
 
     initialize({ onDeleteAnnotation, canDeleteAnnotation } = {}) {
@@ -51,6 +54,14 @@ export class EventsFeed {
             });
         }
 
+        this.collapsed = this.readPersistedCollapsedState();
+        if (this.toggleButton) {
+            this.toggleButton.addEventListener('click', () => {
+                this.setCollapsed(!this.collapsed);
+            });
+        }
+
+        this.syncCollapsedState();
         this.render();
     }
 
@@ -74,10 +85,50 @@ export class EventsFeed {
         }
     }
 
+    readPersistedCollapsedState() {
+        try {
+            return window.localStorage?.getItem(this.collapsedStorageKey) === 'true';
+        } catch (error) {
+            return false;
+        }
+    }
+
+    persistCollapsedState(value) {
+        try {
+            window.localStorage?.setItem(this.collapsedStorageKey, String(Boolean(value)));
+        } catch (error) {
+            // storage might be disabled - ignore
+        }
+    }
+
     setFilter(filterValue) {
         this.filter = filterValue || 'all';
         this.persistFilter(this.filter);
         this.render();
+    }
+
+    setCollapsed(value) {
+        this.collapsed = Boolean(value);
+        this.persistCollapsedState(this.collapsed);
+        this.syncCollapsedState();
+    }
+
+    syncCollapsedState() {
+        if (!this.container) {
+            return;
+        }
+        this.container.classList.toggle('is-collapsed', this.collapsed);
+        if (this.toggleButton) {
+            this.toggleButton.setAttribute('aria-expanded', String(!this.collapsed));
+            this.toggleButton.setAttribute('title', this.collapsed ? 'Ouvrir le flux temps réel' : 'Réduire le flux temps réel');
+            const label = this.collapsed ? '+' : '−';
+            const icon = this.toggleButton.querySelector('span');
+            if (icon) {
+                icon.textContent = label;
+            } else {
+                this.toggleButton.textContent = label;
+            }
+        }
     }
 
     setCanDeleteResolver(resolver) {

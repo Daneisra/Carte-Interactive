@@ -150,8 +150,9 @@
 ### P4 — Différenciants
 - [x] Fix la suppression des annotations
 - [x] Sur la carte ajouter un bouton pour revenir a l'acceuil
-- [ ] Intégration et personalisation d'une frise chronologique
-- [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schéma, créer des routes, instruction etc
+- [x] Possibilité de fermer/réduire le panneaux "Flux temps réel"
+- [ ] Intégration et personalisation d'une frise chronologique complète
+- [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schémas, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
 - [ ] Marqueurs évolutifs (temps/événements).

@@ -2823,6 +2823,12 @@ body[data-theme="light"] .validation-warnings {
     gap: 12px;
 }
 
+.feed-header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
 #events-feed-title {
     font-size: 13px;
     text-transform: uppercase;
@@ -2853,6 +2859,38 @@ body[data-theme="light"] .validation-warnings {
     background: #e5e7eb;
 }
 
+.feed-toggle {
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+.feed-toggle:hover,
+.feed-toggle:focus-visible {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(148, 180, 255, 0.4);
+}
+
+.feed-toggle:active {
+    transform: scale(0.96);
+}
+
+.feed-toggle span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+}
+
 body[data-theme="light"] #events-filter {
     background: rgba(0, 0, 0, 0.04);
     border-color: rgba(0, 0, 0, 0.1);
@@ -2879,6 +2917,17 @@ body[data-theme="light"] #events-filter option {
     overflow-y: auto;
     max-height: 200px;
     scrollbar-width: thin;
+}
+
+#events-feed.is-collapsed {
+    width: auto;
+    min-width: 220px;
+}
+
+#events-feed.is-collapsed #events-feed-empty,
+#events-feed.is-collapsed #events-feed-list,
+#events-feed.is-collapsed #events-filter {
+    display: none;
 }
 
 #events-feed-list li {
@@ -4349,6 +4398,18 @@ body[data-theme="light"] #events-filter {
     background: rgba(0, 0, 0, 0.04);
     border-color: rgba(0, 0, 0, 0.12);
     color: #1f2933;
+}
+
+body[data-theme="light"] .feed-toggle {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #1f2933;
+}
+
+body[data-theme="light"] .feed-toggle:hover,
+body[data-theme="light"] .feed-toggle:focus-visible {
+    background: rgba(72, 124, 215, 0.14);
+    border-color: rgba(72, 124, 215, 0.24);
 }
 
 body[data-theme="light"] #events-feed-empty {

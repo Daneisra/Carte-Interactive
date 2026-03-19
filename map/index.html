@@ -403,14 +403,19 @@
         <div id="events-feed" aria-live="polite" aria-atomic="false">
             <div class="feed-header">
                 <h4 id="events-feed-title">Flux temps réel</h4>
-                <label for="events-filter" class="sr-only">Filtrer les événements</label>
-                <select id="events-filter">
-                    <option value="all">Tous</option>
-                    <option value="annotations">Annotations</option>
-                    <option value="quests">Quêtes</option>
-                    <option value="sync">Synchronisations</option>
-                    <option value="telemetry">Erreurs</option>
-                </select>
+                <div class="feed-header-actions">
+                    <label for="events-filter" class="sr-only">Filtrer les événements</label>
+                    <select id="events-filter">
+                        <option value="all">Tous</option>
+                        <option value="annotations">Annotations</option>
+                        <option value="quests">Quêtes</option>
+                        <option value="sync">Synchronisations</option>
+                        <option value="telemetry">Erreurs</option>
+                    </select>
+                    <button id="events-feed-toggle" class="feed-toggle" type="button" aria-expanded="true" aria-controls="events-feed-empty events-feed-list" title="Réduire le flux temps réel">
+                        <span aria-hidden="true">−</span>
+                    </button>
+                </div>
             </div>
             <div id="events-feed-empty">Aucun événement pour le moment.</div>
             <ul id="events-feed-list"></ul>
