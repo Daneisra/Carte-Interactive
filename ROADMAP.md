@@ -164,6 +164,7 @@
 - [ ] Polish UI
 - [ ] Fiabiliser le compteur Discord automatique de l’accueil (invite/widget/API) avec fallback propre.
 - [ ] Automatiser les patch notes de l’accueil depuis GitHub ou l’historique git de production.
+- [ ] Créer un panneau admin accessible depuis la page d'acceuil pour gérer la page d'acceuil et dédiée le panneau admin de la carte aux éléments de la carte, de sorte a avoir deux gestion séparer plus propre et ordonées plutôt que de tout faire depuis la carte.
 
 
 
