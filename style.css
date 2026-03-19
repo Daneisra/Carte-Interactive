@@ -2980,6 +2980,23 @@ body[data-theme="light"] #events-filter option {
     justify-content: center;
 }
 
+#map-controls .map-home-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: rgba(59, 130, 246, 0.18);
+    border: 1px solid rgba(96, 165, 250, 0.34);
+    transition: background 0.3s ease-in-out, transform 0.1s, border-color 0.3s ease-in-out;
+}
+
 #map-controls button.map-control-button {
     font-size: 16px;
 }
@@ -3003,6 +3020,12 @@ body[data-theme="light"] #events-filter option {
     border-radius: 5px;
 }
 
+#map-controls .map-home-link:hover,
+#map-controls .map-home-link:focus-visible {
+    background: rgba(59, 130, 246, 0.32);
+    border-color: rgba(147, 197, 253, 0.7);
+}
+
 #map-controls button.active,
 #map-controls button[aria-pressed="true"] {
     background: rgba(255, 255, 255, 0.24);
@@ -3011,6 +3034,10 @@ body[data-theme="light"] #events-filter option {
 
 #map-controls button:active {
     transform: scale(0.9);
+}
+
+#map-controls .map-home-link:active {
+    transform: scale(0.97);
 }
 
 @media (max-width: 1024px) {
@@ -3108,6 +3135,12 @@ body[data-theme="light"] #events-filter option {
     #map-controls button {
         font-size: 22px;
         padding: 12px;
+    }
+
+    #map-controls .map-home-link {
+        min-height: 46px;
+        padding: 0 18px;
+        font-size: 16px;
     }
 
     #zoom-level {
@@ -4354,8 +4387,20 @@ body[data-theme="light"] #map-controls button {
     color: #1f2933;
 }
 
+body[data-theme="light"] #map-controls .map-home-link {
+    color: #1f2933;
+    background: rgba(72, 124, 215, 0.12);
+    border-color: rgba(72, 124, 215, 0.24);
+}
+
 body[data-theme="light"] #map-controls button:hover {
     background: rgba(31, 41, 51, 0.1);
+}
+
+body[data-theme="light"] #map-controls .map-home-link:hover,
+body[data-theme="light"] #map-controls .map-home-link:focus-visible {
+    background: rgba(72, 124, 215, 0.2);
+    border-color: rgba(72, 124, 215, 0.42);
 }
 
 body[data-theme="light"] #map-controls button.map-control-button[aria-pressed="true"] {

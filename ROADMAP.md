@@ -149,6 +149,7 @@
 
 ### P4 — Différenciants
 - [x] Fix la suppression des annotations
+- [x] Sur la carte ajouter un bouton pour revenir a l'acceuil
 - [ ] Intégration et personalisation d'une frise chronologique
 - [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schéma, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).

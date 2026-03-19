@@ -557,7 +557,9 @@ export class MapController {
         const marker = this.annotationMarkers.get(normalizedId);
         if (marker) {
             this.annotationLayer.removeLayer(marker);
-            marker.remove?.();
+            if (typeof marker.remove === 'function') {
+                marker.remove();
+            }
             this.annotationMarkers.delete(normalizedId);
         }
         this.annotationMarkers.forEach((entry, key) => {
@@ -566,9 +568,11 @@ export class MapController {
                 return;
             }
             this.annotationLayer.removeLayer(entry);
-            entry.remove?.();
+            if (typeof entry.remove === 'function') {
+                entry.remove();
+            }
             this.annotationMarkers.delete(key);
-        }
+        });
     }
 
     clearAnnotations() {
