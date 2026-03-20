@@ -1,4 +1,3 @@
-
 const { test, expect } = require('@playwright/test');
 
 const expandAllContinents = async page => {
@@ -27,42 +26,91 @@ const getVisibleLocationNames = async page => {
   return names.map(name => name.trim());
 };
 
+const searchLocations = async (page, params = {}) => {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach(entry => search.append(key, entry));
+      return;
+    }
+    if (value !== undefined && value !== null && value !== '') {
+      search.set(key, value);
+    }
+  });
+  const suffix = search.toString();
+  const response = await page.request.get(`/api/locations/search${suffix ? `?${suffix}` : ''}`);
+  expect(response.ok()).toBeTruthy();
+  return response.json();
+};
+
 test.describe('Filtres avancés', () => {
-test.beforeEach(async ({ page }) => {
-  page.on('console', msg => console.log(`[console:${msg.type()}] ${msg.text()}`));
-  page.on('pageerror', error => console.log(`[pageerror] ${error.message}`));
-});
+  test.beforeEach(async ({ page }) => {
+    page.on('console', msg => console.log(`[console:${msg.type()}] ${msg.text()}`));
+    page.on('pageerror', error => console.log(`[pageerror] ${error.message}`));
+  });
 
   test('filtre par tag, statut et réinitialisation', async ({ page }) => {
     await waitForAppReady(page);
 
+    const baselineNames = await getVisibleLocationNames(page);
+    const dataset = await searchLocations(page);
+    const availableTags = dataset.facets?.dataset?.tags || [];
+    const availableStatuses = dataset.facets?.dataset?.statuses || [];
+
+    let tagCandidate = null;
+    let tagResults = null;
+    for (const facet of availableTags) {
+      const candidate = await searchLocations(page, { tags: facet.value });
+      if (candidate.count > 0) {
+        tagCandidate = facet;
+        tagResults = candidate;
+        break;
+      }
+    }
+
+    expect(tagCandidate).toBeTruthy();
+    expect(tagResults).toBeTruthy();
+
     await page.locator('#filters-advanced-toggle').click();
-    const tagChip = page.locator('#filter-tags label', { hasText: /forteresse/i });
+    const tagChip = page.locator('#filter-tags label', { hasText: new RegExp(tagCandidate.label, 'i') });
     await tagChip.click();
 
     let names = await getVisibleLocationNames(page);
-    expect(names).toContain('Imossa');
-    expect(names.length).toBe(1);
+    expect(names.sort()).toEqual(tagResults.results.map(entry => entry.name).sort());
 
-    // Activer le filtre "sans quêtes" doit masquer Imossa
     await page.locator('input[name="filter-quests"][value="without"]').check();
     names = await getVisibleLocationNames(page);
-    expect(names.length).toBe(0);
+    const withoutQuests = await searchLocations(page, { tags: tagCandidate.value, quests: 'without' });
+    expect(names.sort()).toEqual(withoutQuests.results.map(entry => entry.name).sort());
 
-    // Revenir à tous les lieux et basculer sur un autre tag/statut
     await page.locator('input[name="filter-quests"][value="any"]').check();
-    await tagChip.click(); // retire forteresse
-    await page.locator('#filter-tags label', { hasText: /commerce/i }).click();
-    const completedStatus = page.locator('#filter-statuses label', { hasText: /completed/i });
-    await completedStatus.click();
+    await tagChip.click();
+
+    let combination = null;
+    for (const tag of availableTags) {
+      for (const status of availableStatuses) {
+        const candidate = await searchLocations(page, { tags: tag.value, statuses: status.value });
+        if (candidate.count > 0) {
+          combination = { tag, status, results: candidate.results };
+          break;
+        }
+      }
+      if (combination) {
+        break;
+      }
+    }
+
+    expect(combination).toBeTruthy();
+
+    await page.locator('#filter-tags label', { hasText: new RegExp(combination.tag.label, 'i') }).click();
+    await page.locator('#filter-statuses label', { hasText: new RegExp(combination.status.label, 'i') }).click();
 
     names = await getVisibleLocationNames(page);
-    expect(names).toContain('Kitha');
-    expect(names.length).toBe(1);
+    expect(names.sort()).toEqual(combination.results.map(entry => entry.name).sort());
 
     await page.locator('#reset-filters').click();
     names = await getVisibleLocationNames(page);
-    expect(names.length).toBeGreaterThan(1);
+    expect(names.sort()).toEqual(baselineNames.sort());
   });
 
   test('API de recherche retourne les résultats attendus', async ({ page }) => {

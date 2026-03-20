@@ -13,6 +13,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [
         "mer",
@@ -33,6 +34,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [
         "mer",
@@ -53,6 +55,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -72,6 +75,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [
         "caravane",
@@ -92,6 +96,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -109,6 +114,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -121,13 +127,12 @@
       "description": "Description du lieu de Archipel Trekrerith",
       "images": [],
       "videos": [],
-      "audio": null,
+      "audio": "assets/audio/sham-rock-tell-me-ma.mp3",
       "history": [],
-      "quests": [
-        "[LIVE] QST-KITHA-01 - Routes commerciales securisees - completed - 5/5 - Port rouvert au commerce. - @ Kitha"
-      ],
+      "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [
         "commerce",
@@ -148,6 +153,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -167,6 +173,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [
         "Port",
@@ -187,6 +194,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [
         {
           "name": "Tola Skardsson",
@@ -213,29 +221,13 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [
         "Viking",
         "Raid",
         "Port"
       ],
-      "questEvents": []
-    },
-    {
-      "name": "Lieu de Dipovia",
-      "type": "Crater",
-      "x": 3579,
-      "y": 5243,
-      "description": "Kjolrd\nHanatun\nHestfjoror\nHitara\nKjarra\nSkjalfandi\nMjors\nGeirvor\nKjadalr\nHafnarfjoll\nOsta\nRangaross\nGrenmarr\nSioa\nMyrr",
-      "images": [],
-      "videos": [],
-      "audio": null,
-      "history": [],
-      "quests": [],
-      "lore": [],
-      "instances": [],
-      "pnjs": [],
-      "tags": [],
       "questEvents": []
     },
     {
@@ -251,6 +243,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [
         "Viking",
@@ -273,6 +266,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [
         {
           "name": "Almos Progoni",
@@ -298,6 +292,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -324,6 +319,9 @@
         "Aguilar n’est pas seulement une forteresse ; c’est une déclaration, une promesse de la Maison Valdefer à ses ennemis. Tant que ses murs tiendront, aucune armée ne franchira le Pas-du-Roc. Les Valdefer ont toujours vécu dans l’ombre de cette citadelle, sachant que leur destin est lié à celui de la forteresse. Et tandis que le faucon d'or flotte fièrement au-dessus de ses remparts, Aguilar reste un bastion inviolé, un symbole de la ténacité et de la force d'une maison qui ne ploie jamais devant l'adversité."
       ],
       "instances": [],
+      "nobleFamilies": [
+        "Valdefer"
+      ],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -343,6 +341,7 @@
       "instances": [
         "La confrérie des assassins"
       ],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -360,6 +359,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -369,7 +369,7 @@
       "type": "Large City Stone Wall + Towers",
       "x": 7606,
       "y": 466,
-      "description": "**Brumeport** : La ville Brumeuse du Sud\n\nBrumeport est une ville enclavée entre une chaîne de montagne et l’océan. Cette situation géographique a développé un climat particulier, la ville est toujours enveloppée dans une brume plus ou moins épaisse et n’est accessible que par la mer. Cela a permis de garder la ville secrète pendant de nombreuses années. Elle était au début un repaire de pirates et de contrebandiers en tout genre. Au fil des décennies, la vie était plutôt belle et agitée (malgré quelques incivilités), certains marchands véreux l’appelaient « la petite Trekerith ».  Néanmoins, un jour, les rats ont infesté la ville. Les rumeurs parlaient d’un homme qui était capable de leur parler et de les commander. Très vite, il parvint à prendre le contrôle de la ville et à en devenir le premier seigneur, Archibald de Rongefrey « le Seigneur des rats ».\n\nDepuis, la ville est gouvernée par la maison Rongefrey. Les seigneurs de Brumeport ont toujours gouverné la ville par la terreur. Les gardes de la ville se contentent de battre les malandrins qui ne paient pas la taxe du « rat » (taxe qui autorise à enfreindre la loi du royaume mais pas celle du seigneur). Mais la véritable force qui fait la loi est l’ensemble des spadassins au service des Rongefrey. Quand ils patrouillaient en ville, tous savient qu’ils nétaient pas à l’abris, sauf le tavernier. Tant que les spadassins pouvaient festoyer librement et gratuitement, il pouvait jouir d’une immunité diplomatique.\n\nLa ville est constamment baignée dans la brume et le silence, les volets et portes sont fermées et seuls les rires des spadassins et les travailleurs du port peuvent-être entendus. En plus de la maltraitance subie, l’air humide mêlée à la chaleur du sud rend l’air peu respirable et fait renoncer aux habitants toute activité extérieure. L’entrée de la ville est décorée de quelques pendus qui pensaient être plus malins que les seigneurs du Brumeport. Elle est aussi surplombée par « Noirterrier », le château des Rongefrey. \n\nNoirterrier est un château en pierre sombres. L’intérieur est mal entretenu et mal éclairé. Les visiteurs doivent souvent se munir de torche afin de voir où ils vont. Le parquet grinçant et les brèches dans les murs qui laissent siffler le vent dans le château couvrent les murmures des comploteurs et glacent le sang de ceux qui n’ont pas le cœur aux intrigues.\nLes seigneurs et les membres de la famille sortent rarement du château. A part certains bâtards servant en tant que capitaine spadassin ont pu être aperçu régulièrement en ville au fil des générations. Les Rongefrey ont tout de suite prêté allégeance à la maison Carlevane afin de pouvoir satisfaire leur soif de complot et de pouvoir.  \n\nLes revenues de la seigneurerie viennent des criminels marins, des pirates, des contrebandiers et des marchands que viennent pour commercer. La possibilité de payer la taxe du « rat » rend les échanges entre contrebandiers et marchands beaucoup plus faciles. De plus, les seigneurs du royaume du Sud souhaitant se procurer poisons ou informations viennent en visite « diplomatique » à Noirterrier.\n\n**Brumeport sous l’empire :**\n\nAprès la conquête des royaumes du Sud par l’empire, ces derniers étaient pressés de convertir la population de Brumeport à leur religion. C’est dans ce but qu’ils ont envoyé une équipe composée d’un prêtre et de quelques paladins dans la ville brumeuse. Ces derniers ont commencé à condamner les agissements de la famille Rongefrey. Oronte n’ayant pas l’empire dans le cœur (surtout depuis qu’il est interdit de naviguer et de piller des navires), prit la chose avec philosophie. Les spadassins ont éliminé les paladins et le prêtre fut crucifié sur la proue d’un bateau en direction de Crawen afin d’envoyer un message à l’empereur. Oronte fut ensuite convoqué à Montségur où il fut arrêté par les soldats du duc et brûlé sur un bucher sur ordre impérial.\n\nEnsuite tous les prêtres envoyés à Brumeport tombent « mystérieusement » malades et meurent. C’est pour cela que l’empire finira par y envoyer les paladins et prêtres malhonnêtes et au centre de scandales mais ayant trop d’influence pour être éliminé ou écarté.\n\nL’avis des Rongefrey sur l’empire est très mitigé. Certains y voient des opportunités et d’autres pensent que ce sont des empêcheurs de tourner en rond. Mais une chose est sûre. Aucun membre de la famille n’énonce clairement sa position sur la question",
+      "description": "**Brumeport** : La ville Brumeuse du Sud\n\nBrumeport est une ville enclavée entre une chaîne de montagne et l’océan. Cette situation géographique a développé un climat particulier, la ville est toujours enveloppée dans une brume plus ou moins épaisse et n’est accessible que par la mer. Cela a permis de garder la ville secrète pendant de nombreuses années. Elle était au début un repaire de pirates et de contrebandiers en tout genre. Au fil des décennies, la vie était plutôt belle et agitée (malgré quelques incivilités), certains marchands véreux l’appelaient « la petite Trekerith ».  Néanmoins, un jour, les rats ont infesté la ville. Les rumeurs parlaient d’un homme qui était capable de leur parler et de les commander. Très vite, il parvint à prendre le contrôle de la ville et à en devenir le premier seigneur, Archibald de Rongefrey « le Seigneur des rats ».\n\nDepuis, la ville est gouvernée par la maison Rongefrey. Les seigneurs de Brumeport ont toujours gouverné la ville par la terreur. Les gardes de la ville se contentent de battre les malandrins qui ne paient pas la taxe du « rat » (taxe qui autorise à enfreindre la loi du royaume mais pas celle du seigneur). Mais la véritable force qui fait la loi est l’ensemble des spadassins au service des Rongefrey. Quand ils patrouillaient en ville, tous savient qu’ils nétaient pas à l’abris, sauf le tavernier. Tant que les spadassins pouvaient festoyer librement et gratuitement, il pouvait jouir d’une immunité diplomatique.\n\nLa ville est constamment baignée dans la brume et le silence, les volets et portes sont fermées et seuls les rires des spadassins et les travailleurs du port peuvent-être entendus. En plus de la maltraitance subie, l’air humide mêlée à la chaleur du sud rend l’air peu respirable et fait renoncer aux habitants toute activité extérieure. L’entrée de la ville est décorée de quelques pendus qui pensaient être plus malins que les seigneurs du Brumeport. Elle est aussi surplombée par « Noirterrier », le château des Rongefrey. \n\nNoirterrier est un château en pierre sombres. L’intérieur est mal entretenu et mal éclairé. Les visiteurs doivent souvent se munir de torche afin de voir où ils vont. Le parquet grinçant et les brèches dans les murs qui laissent siffler le vent dans le château couvrent les murmures des comploteurs et glacent le sang de ceux qui n’ont pas le cœur aux intrigues.\nLes seigneurs et les membres de la famille sortent rarement du château. A part certains bâtards servant en tant que capitaine spadassin ont pu être aperçu régulièrement en ville au fil des générations. Les Rongefrey ont tout de suite prêté allégeance à la maison Carlevane afin de pouvoir satisfaire leur soif de complot et de pouvoir.  \n\nLes revenues de la seigneurerie viennent des criminels marins, des pirates, des contrebandiers et des marchands que viennent pour commercer. La possibilité de payer la taxe du « rat » rend les échanges entre contrebandiers et marchands beaucoup plus faciles. De plus, les seigneurs du royaume du Sud souhaitant se procurer poisons ou informations viennent en visite « diplomatique » à Noirterrier.\n\n**Brumeport sous l’empire :**\n\nAprès la conquête des royaumes du Sud par l’empire, ces derniers étaient pressés de convertir la population de Brumeport à leur religion. C’est dans ce but qu’ils ont envoyé une équipe composée d’un prêtre et de quelques paladins dans la ville brumeuse. Ces derniers ont commencé à condamner les agissements de la famille Rongefrey. Oronte n’ayant pas l’empire dans le cœur (surtout depuis qu’il est interdit de naviguer et de piller des navires), prit la chose avec philosophie. Les spadassins ont éliminé les paladins et le prêtre fut crucifié sur la proue d’un bateau en direction de [[Crawen]] afin d’envoyer un message à l’empereur. Oronte fut ensuite convoqué à [[Montségur]] où il fut arrêté par les soldats du duc et brûlé sur un bucher sur ordre impérial.\n\nEnsuite tous les prêtres envoyés à Brumeport tombent « mystérieusement » malades et meurent. C’est pour cela que l’empire finira par y envoyer les paladins et prêtres malhonnêtes et au centre de scandales mais ayant trop d’influence pour être éliminé ou écarté.\n\nL’avis des Rongefrey sur l’empire est très mitigé. Certains y voient des opportunités et d’autres pensent que ce sont des empêcheurs de tourner en rond. Mais une chose est sûre. Aucun membre de la famille n’énonce clairement sa position sur la question",
       "images": [
         "assets/images/in-a-fantasy-world-a-poor-port-city-surrounded-by-mountains-and-bathed-in-fog-we-can-see-the-silho.jpg"
       ],
@@ -381,6 +381,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -411,6 +412,7 @@
         "Thorin, ayant survécu au massacre, porte en lui la mémoire de ses frères et sœurs d'armes. Sa mission est non seulement de venger la chute de Caevorum mais aussi de préserver les connaissances et les traditions des sorceleurs. Il cherche à transmettre cet héritage aux générations futures, espérant un jour voir renaître l'ordre des sorceleurs."
       ],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -430,6 +432,7 @@
       "instances": [
         "La guilde des artisans"
       ],
+      "nobleFamilies": [],
       "pnjs": [
         {
           "name": "Ulrich von Stahl",
@@ -459,6 +462,7 @@
       "instances": [
         "La guilde des aventuriers"
       ],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -476,6 +480,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -485,7 +490,7 @@
       "type": "Castle Ruin",
       "x": 7832,
       "y": 3007,
-      "description": "Centre impériale de rééducation de la jeunesse C.I.R.J en ruin",
+      "description": "Centre impériale de rééducation de la jeunesse C.I.R.J en ruine",
       "images": [],
       "videos": [],
       "audio": "assets/audio/divinum_lumen.mp3",
@@ -493,8 +498,12 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
-      "tags": [],
+      "tags": [
+        "Cirj",
+        "ruine"
+      ],
       "questEvents": []
     },
     {
@@ -510,6 +519,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -527,6 +537,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -546,6 +557,7 @@
       "instances": [
         "Ordre des Marcheurs d’Ombres"
       ],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -563,6 +575,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -584,9 +597,11 @@
       "instances": [
         "La guilde des marchands"
       ],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [
-        "Port"
+        "Port",
+        "Quete"
       ],
       "questEvents": []
     },
@@ -605,6 +620,7 @@
       "instances": [
         "La confrérie des voleurs"
       ],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -619,12 +635,11 @@
       "videos": [],
       "audio": "assets/audio/imossa_ambiance.mp3",
       "history": [
-        "Cette ville était la jumelle de Valerius Primus, rivalisant de grandeur et d’architecture. Sa population a toujours témoigné d’une culture différente et d'une identité très forte."
+        "Cette ville était la jumelle de [[Valerius Primus]], rivalisant de grandeur et d’architecture. Sa population a toujours témoigné d’une culture différente et d'une identité très forte."
       ],
       "quests": [
         "Tuer l'Hôte démoniaque",
-        "Purifier et libérer Imossa",
-        "[LIVE] QST-IMOSSA-01 - Purification en cours - active - 1/3 - La garde d'Imossa poursuit la liberation. - @ Imossa"
+        "Purifier et libérer Imossa"
       ],
       "lore": [
         "Imossa était une cité-état unique en son genre, située sur une île au cœur du continent de Vruliwen. Isolée par sa géographie insulaire, elle a prospéré pendant des siècles en cultivant un modèle politique et économique différent de celui des autres royaumes, faisant d’elle l'une des cités les plus avancées et influentes.",
@@ -633,6 +648,7 @@
       "instances": [
         "La Garde"
       ],
+      "nobleFamilies": [],
       "pnjs": [
         {
           "name": "Aden Khenan",
@@ -642,7 +658,8 @@
       ],
       "tags": [
         "forteresse",
-        "quete"
+        "quete",
+        "ruine"
       ],
       "questEvents": []
     },
@@ -659,8 +676,11 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
-      "tags": [],
+      "tags": [
+        "Cirj"
+      ],
       "questEvents": []
     },
     {
@@ -676,6 +696,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -693,6 +714,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -710,6 +732,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -729,8 +752,12 @@
         "Les Mines de Mandrake, dirigées par Gaël Rouget. Ces mines, censées être une source de richesse pour l'Empire de Vruliwen, sont en réalité des lieux de souffrance et de mort. Les ouvriers y sont traités comme des esclaves, forcés de travailler dans des conditions inhumaines. Des créatures monstrueuses, errent dans les tunnels, causant des accidents mortels."
       ],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
-      "tags": [],
+      "tags": [
+        "Mine",
+        "Quete"
+      ],
       "questEvents": []
     },
     {
@@ -746,6 +773,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -763,6 +791,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -780,6 +809,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -789,7 +819,7 @@
       "type": "Large City Stone Wall + Towers",
       "x": 7363,
       "y": 3607,
-      "description": "# **__Nikaïus__**\n\nAu continent de l'empereur se dressait la noble cité de Nikaïus, joyau scintillant du continent de Vruliwen. Enserrée dans une étreinte d'eau et de pierre, Nikaïus était une ville portuaire d'une splendeur inégalée, ses quais grouillant de navires aux voiles bariolées venant des quatre coins de Vruliwen et au-delà.\n\nNichée entre les collines ondulantes et les flots tumultueux de la mer d'Ivoire, Nikaïus prospérait grâce à ses marchés débordants de trésors exotiques, de soieries chatoyantes et d'épices odorantes. Les habitants, fiers et courageux, vivaient dans une harmonie précaire, protégés par les remparts imposants de la ville et les vigiles attentifs de la garde impériale.\n\nL'an 33 de l'ère du Second Âge fut marqué par des événements qui allaient ébranler les fondations mêmes de cette cité prospère. En ce fatidique printemps, les vents de la mer d'Ivoire charriaient des murmures d'une menace grandissante, un murmure qui devint bientôt un rugissement lorsqu'une flotte de drakkars, sinistres silhouettes taillées pour la guerre, surgit à l'horizon. Les bannières noires des Vikings, ornées de runes effrayantes, claquaient au vent, annonçant leur intention destructrice.\n\nLes premiers assauts frappèrent Nikaïus comme la fureur des éléments déchaînés. Les défenseurs de la ville, sous le commandement du vaillant général Lucius Varros, résistèrent avec une détermination farouche, se battant dans les ruelles pavées et sur les remparts crénelés. Les Vikings, menés par le redoutable Jarl Skorvald, déferlaient en vagues incessantes, leurs haches et épées étincelant d'un éclat sinistre sous le soleil de mai.\n\nDurant plusieurs semaines, Nikaïus fut le théâtre d'un conflit acharné. Chaque quartier de la ville devint un champ de bataille, les habitants se joignant aux soldats pour défendre leurs foyers. Les cris de guerre se mêlaient aux prières des prêtres suppliant les dieux pour un répit.\n\nMais au-delà des collines, l'Empereur Comosicus Thiri, depuis son trône d'ivoire à Valerius Primus, avait déjà dépêché son armée impériales et ces ordres sacrés. Le tambourinement des sabots et le scintillement des armures annonçaient l'arrivée de la cavalerie lourde de l'Empire. Sous la bannière de l'Aigle d'Or, l'armée impériales pénétrèrent dans Nikaïus comme un torrent impétueux, renversant les assiégeants avec une force irrésistible.\n\nLa bataille finale, connue sous le nom de la Bataille des Trois Jours, vit les forces impériales repousser les Vikings jusqu'aux quais. Là, sur les rivages où la mer et le sang se mêlaient, Jarl Skorvald trouva sa fin, encerclé et abattu par les meilleurs soldats de l'Empire. Les drakkars, privés de leurs capitaines, furent incendiés, leurs carcasses de bois flottant comme de sombres reliques des jours de combat.\n\nAu crépuscule du dernier jour, alors que le silence retombait enfin sur la ville meurtrie, Comosicus Thiri lui-même fit son entrée dans Nikaïus, son regard grave parcourant les vestiges de la bataille. Il déclara alors que la ville serait reconstruite, plus grande et plus forte qu'auparavant, en l'honneur des héros tombés et de la résilience de son peuple.\n\nAinsi s'acheva l'épreuve de Nikaïus, mais son histoire, forgée dans le feu et le sang, devint une légende, chantée par les bardes à travers tout Vruliwen. Les pierres de la cité, gravées de runes et de souvenirs, continuèrent à résonner des échos de cette glorieuse victoire, une victoire qui affermit pour toujours le destin de la ville sous la bienveillance de l'Empire.",
+      "description": "# **__Nikaïus__**\n\nAu continent de l'empereur se dressait la noble cité de Nikaïus, joyau scintillant du continent de Vruliwen. Enserrée dans une étreinte d'eau et de pierre, Nikaïus était une ville portuaire d'une splendeur inégalée, ses quais grouillant de navires aux voiles bariolées venant des quatre coins de Vruliwen et au-delà.\n\nNichée entre les collines ondulantes et les flots tumultueux de [[la mer d'Ivoire|La Mer d'Ivoire]], Nikaïus prospérait grâce à ses marchés débordants de trésors exotiques, de soieries chatoyantes et d'épices odorantes. Les habitants, fiers et courageux, vivaient dans une harmonie précaire, protégés par les remparts imposants de la ville et les vigiles attentifs de la garde impériale.\n\nL'an 33 de l'ère du Second Âge fut marqué par des événements qui allaient ébranler les fondations mêmes de cette cité prospère. En ce fatidique printemps, les vents de [[la mer d'Ivoire|La Mer d'Ivoire]] charriaient des murmures d'une menace grandissante, un murmure qui devint bientôt un rugissement lorsqu'une flotte de drakkars, sinistres silhouettes taillées pour la guerre, surgit à l'horizon. Les bannières noires des Vikings, ornées de runes effrayantes, claquaient au vent, annonçant leur intention destructrice.\n\nLes premiers assauts frappèrent Nikaïus comme la fureur des éléments déchaînés. Les défenseurs de la ville, sous le commandement du vaillant général Lucius Varros, résistèrent avec une détermination farouche, se battant dans les ruelles pavées et sur les remparts crénelés. Les Vikings, menés par le redoutable Jarl Skorvald, déferlaient en vagues incessantes, leurs haches et épées étincelant d'un éclat sinistre sous le soleil de mai.\n\nDurant plusieurs semaines, Nikaïus fut le théâtre d'un conflit acharné. Chaque quartier de la ville devint un champ de bataille, les habitants se joignant aux soldats pour défendre leurs foyers. Les cris de guerre se mêlaient aux prières des prêtres suppliant les dieux pour un répit.\n\nMais au-delà des collines, l'Empereur Comosicus Thiri, depuis son trône d'ivoire à [[Valerius Primus]], avait déjà dépêché son armée impériales et ces ordres sacrés. Le tambourinement des sabots et le scintillement des armures annonçaient l'arrivée de la cavalerie lourde de l'Empire. Sous la bannière de l'Aigle d'Or, l'armée impériales pénétrèrent dans Nikaïus comme un torrent impétueux, renversant les assiégeants avec une force irrésistible.\n\nLa bataille finale, connue sous le nom de la Bataille des Trois Jours, vit les forces impériales repousser les Vikings jusqu'aux quais. Là, sur les rivages où la mer et le sang se mêlaient, Jarl Skorvald trouva sa fin, encerclé et abattu par les meilleurs soldats de l'Empire. Les drakkars, privés de leurs capitaines, furent incendiés, leurs carcasses de bois flottant comme de sombres reliques des jours de combat.\n\nAu crépuscule du dernier jour, alors que le silence retombait enfin sur la ville meurtrie, Comosicus Thiri lui-même fit son entrée dans Nikaïus, son regard grave parcourant les vestiges de la bataille. Il déclara alors que la ville serait reconstruite, plus grande et plus forte qu'auparavant, en l'honneur des héros tombés et de la résilience de son peuple.\n\nAinsi s'acheva l'épreuve de Nikaïus, mais son histoire, forgée dans le feu et le sang, devint une légende, chantée par les bardes à travers tout Vruliwen. Les pierres de la cité, gravées de runes et de souvenirs, continuèrent à résonner des échos de cette glorieuse victoire, une victoire qui affermit pour toujours le destin de la ville sous la bienveillance de l'Empire.",
       "images": [],
       "videos": [
         {
@@ -810,6 +840,7 @@
       "instances": [
         "La guilde des mercenaires"
       ],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [
         "Port",
@@ -830,6 +861,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -849,6 +881,7 @@
       "instances": [
         "La guilde des bardes"
       ],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -866,6 +899,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -883,6 +917,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -900,6 +935,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -917,6 +953,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -938,8 +975,11 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
-      "tags": [],
+      "tags": [
+        "CIRJ"
+      ],
       "questEvents": []
     },
     {
@@ -961,6 +1001,7 @@
         "La guilde des protecteurs",
         "L'Eglise de la Lumière"
       ],
+      "nobleFamilies": [],
       "pnjs": [
         {
           "name": "Comosicus Thiri",
@@ -986,11 +1027,12 @@
       "history": [],
       "quests": [],
       "lore": [
-        "# **Vardanys, le Reflux d’Imossa**\n\nVardanys fut la première cité à accueillir les réfugiés d’Imossa après la Chute.\nDe ce fait, elle devint rapidement un refuge pour les anciens citoyens de la cité perdue, une “petite Imossa” où l’on parlait encore avec fierté le dialecte imossien et où la mémoire des Primarques était entretenue comme un culte.\n\nAu fil des décennies, la ville devint le principal bastion continental de la Garde d’Imossa, un lieu de recrutement, de mémoire et d’entraînement.\nMais depuis la guerre contre Dipovia, la situation s’est tendue :\n\n- L’Empire exige que la Garde se joigne à la Croisade.\n\n- La Garde refuse de se battre sous la bannière de l’Église, qu’elle considère responsable de la Chute d’Imossa.\n\n- Les tensions entre les officiers impériaux et les Primarques s’enveniment.\n\n- Les habitants de Vardanys, descendants d’Imossa, se sentent trahis par le trône.\n\n> Aujourd’hui, Vardanys est une ville au bord de l’insurrection. Ses quais bruissent de murmures, les drapeaux impériaux sont souillés d’eau de mer, et les cloches du port résonnent comme un glas."
+        "# **Vardanys, le Reflux d’[[Imossa]]**\n\nVardanys fut la première cité à accueillir les réfugiés d’[[Imossa]] après la Chute.\nDe ce fait, elle devint rapidement un refuge pour les anciens citoyens de la cité perdue, une “petite [[Imossa]]” où l’on parlait encore avec fierté le dialecte imossien et où la mémoire des Primarques était entretenue comme un culte.\n\nAu fil des décennies, la ville devint le principal bastion continental de la Garde d’[[Imossa]], un lieu de recrutement, de mémoire et d’entraînement.\nMais depuis la guerre contre Dipovia, la situation s’est tendue :\n\n- L’Empire exige que la Garde se joigne à la Croisade.\n\n- La Garde refuse de se battre sous la bannière de l’Église, qu’elle considère responsable de la Chute d’[[Imossa]].\n\n- Les tensions entre les officiers impériaux et les Primarques s’enveniment.\n\n- Les habitants de Vardanys, descendants d’[[Imossa]], se sentent trahis par le trône.\n\n> Aujourd’hui, Vardanys est une ville au bord de l’insurrection. Ses quais bruissent de murmures, les drapeaux impériaux sont souillés d’eau de mer, et les cloches du port résonnent comme un glas."
       ],
       "instances": [
         "La Garde"
       ],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -1010,6 +1052,7 @@
       "instances": [
         "La guilde des collectionneurs"
       ],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -1018,7 +1061,7 @@
   "Zemantis": [
     {
       "name": "Camp O.E",
-      "type": "default",
+      "type": "Castle",
       "x": 1977,
       "y": 1453,
       "description": "",
@@ -1029,6 +1072,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -1046,6 +1090,7 @@
       "quests": [],
       "lore": [],
       "instances": [],
+      "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
       "questEvents": []

@@ -5,7 +5,57 @@
     "discordId": "1172705521317449809",
     "username": "Danny",
     "role": "admin",
-    "apiTokens": []
+    "apiTokens": [],
+    "avatar": "https://cdn.discordapp.com/avatars/1172705521317449809/128046ca64cc0ca2529912c88dd18a49.png?size=128",
+    "lastLoginAt": "2026-03-20T01:22:47.809Z",
+    "lastSeenAt": "2026-03-20T01:22:47.809Z",
+    "availability": {
+      "timezone": "Europe/Warsaw",
+      "slots": [
+        [
+          false,
+          false,
+          true,
+          true
+        ],
+        [
+          false,
+          false,
+          true,
+          true
+        ],
+        [
+          false,
+          false,
+          true,
+          true
+        ],
+        [
+          false,
+          false,
+          true,
+          true
+        ],
+        [
+          false,
+          false,
+          true,
+          true
+        ],
+        [
+          false,
+          true,
+          true,
+          true
+        ],
+        [
+          false,
+          true,
+          true,
+          true
+        ]
+      ]
+    }
   },
   {
     "id": "discord:449219148636225547",
