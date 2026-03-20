@@ -162,8 +162,10 @@
 
 ### P5 — Frise chronologique
 - [ ] Frise chronologique complète (axe horizontal gauche -> droite, année, titre, texte, médias, liens vers la carte)
+- [x] Etat actuel : MVP technique livré (page dédiée, admin, médias, filtres, liens carte <-> frise, tests UI).
+- [ ] Suite prioritaire : cadrage produit V2, enrichissement éditorial des événements, regroupements par époque et polish visuel premium.
 - [x] Recommandation produit : page dédiée `/timeline` d'abord, intégration légère dans la carte ensuite.
-- [ ] P5.1 - Cadrage fonctionnel de la frise : périmètre MVP, UX desktop/mobile, besoins de personnalisation, règles de tri et de regroupement par époque.
+- [ ] P5.1 - Cadrage produit V2 de la frise : règles de tri définitives, regroupement par époque, densité de contenu, direction visuelle finale, besoins de personnalisation avancés.
 - [x] P5.2 - Modèle de données chronologie : `id`, `annee`, `titre`, `resume`, `texte`, `periode`, `tags`, `image`, `lieux lies`, `ordre`, `visible`.
 - [x] P5.3 - Source de données / persistance : fichier JSON ou API admin dédiée pour CRUD, ordre manuel, publication/masquage.
 - [x] P5.4 - Page dédiée chronologie : route `/timeline`, header cohérent avec l'accueil et la carte, CTA retour accueil/carte.
@@ -187,7 +189,7 @@
 - [ ] Polish UI
 - [ ] Fiabiliser le compteur Discord automatique de l’accueil (invite/widget/API) avec fallback propre.
 - [ ] Automatiser les patch notes de l’accueil depuis GitHub ou l’historique git de production.
-- [ ] Créer un panneau admin accessible depuis la page d'acceuil pour gérer la page d'acceuil et dédiée le panneau admin de la carte aux éléments de la carte, de sorte a avoir deux gestion séparer plus propre et ordonées plutôt que de tout faire depuis la carte.
+- [ ] Créer deux panneau admin, un accessible depuis la page d'acceuil pour gérer la page d'acceuil, u nsecond depuis la page chronologie pour gérer la frise et dédiée le panneau admin de la carte aux éléments de la carte, de sorte a avoir trois gestion séparer plus propre et ordonées plutôt que de tout faire depuis le panneau admin de la carte.
 
 
 

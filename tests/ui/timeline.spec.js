@@ -1,66 +1,121 @@
 const { test, expect } = require('@playwright/test');
 
+const normalizeText = value => String(value || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .trim();
+
+const buildSearchHaystack = entry => [
+  entry?.yearLabel,
+  entry?.title,
+  entry?.summary,
+  entry?.content,
+  entry?.period,
+  ...(Array.isArray(entry?.tags) ? entry.tags : []),
+  ...(Array.isArray(entry?.locationNames) ? entry.locationNames : [])
+].map(normalizeText).join(' ');
+
+const loadTimelineEntries = async page => {
+  const response = await page.request.get('/api/timeline');
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const entries = Array.isArray(payload?.timeline?.entries) ? payload.timeline.entries : [];
+  expect(entries.length).toBeGreaterThan(0);
+  return entries;
+};
+
 test.describe('Chronologie - UI', () => {
   test('la frise charge des evenements et affiche un detail actif', async ({ page }) => {
+    const entries = await loadTimelineEntries(page);
+
     await page.goto('/timeline/');
     await page.waitForLoadState('domcontentloaded');
 
     const cards = page.locator('.timeline-card');
-    await expect(cards).toHaveCount(6);
-    await expect(page.locator('.timeline-card-media')).toHaveCount(3);
-    await expect(page.locator('#timeline-detail-title')).toHaveText(/.+/);
-    await expect(page.locator('.timeline-detail-media img')).toBeVisible();
+    await expect(cards).toHaveCount(entries.length);
+    await expect(page.locator('.timeline-card-media')).toHaveCount(entries.filter(entry => entry.imageUrl).length);
+    await expect(page.locator('#timeline-detail-title')).toHaveText(entries[0].title);
+    if (entries[0].imageUrl) {
+      await expect(page.locator('.timeline-detail-media img')).toBeVisible();
+    }
     await expect(page.locator('#timeline-status')).toContainText('evenements affiches');
   });
 
   test('les filtres periode, tag et recherche reduisent la frise', async ({ page }) => {
+    const entries = await loadTimelineEntries(page);
+    const periods = Array.from(new Set(entries.map(entry => entry.period).filter(Boolean)));
+    const tags = Array.from(new Set(entries.flatMap(entry => Array.isArray(entry.tags) ? entry.tags : []).filter(Boolean)));
+    const period = periods[0];
+    const periodCount = entries.filter(entry => entry.period === period).length;
+    const tag = tags[0] || '';
+    const tagCount = tag ? entries.filter(entry => Array.isArray(entry.tags) && entry.tags.includes(tag)).length : 0;
+    const searchQuery = (entries.find(entry => Array.isArray(entry.locationNames) && entry.locationNames.length)?.locationNames?.[0])
+      || entries[0].title;
+    const searchMatches = entries.filter(entry => buildSearchHaystack(entry).includes(normalizeText(searchQuery)));
+
     await page.goto('/timeline/');
     await page.waitForLoadState('domcontentloaded');
-    await expect(page.locator('.timeline-card')).toHaveCount(6);
+    await expect(page.locator('.timeline-card')).toHaveCount(entries.length);
 
-    await page.locator('#timeline-period-filter').selectOption({ label: 'Fractures' });
-    await expect(page.locator('.timeline-card')).toHaveCount(1);
-    await expect(page.locator('#timeline-detail-title')).toHaveText(/Nikaius/i);
+    await page.locator('#timeline-period-filter').selectOption({ label: period });
+    await expect(page.locator('.timeline-card')).toHaveCount(periodCount);
+    await expect(page.locator('#timeline-detail-title')).toHaveText(entries.find(entry => entry.period === period).title);
 
     await page.locator('#timeline-reset-filters').click();
-    await expect(page.locator('.timeline-card')).toHaveCount(6);
+    await expect(page.locator('.timeline-card')).toHaveCount(entries.length);
 
-    await page.locator('#timeline-tag-filter').selectOption({ label: 'Commerce' });
-    await expect(page.locator('.timeline-card')).toHaveCount(2);
+    if (tag) {
+      await page.locator('#timeline-tag-filter').selectOption({ label: tag });
+      await expect(page.locator('.timeline-card')).toHaveCount(tagCount);
+      await page.locator('#timeline-reset-filters').click();
+    }
 
-    await page.locator('#timeline-search').fill('sanctuarium');
+    await page.locator('#timeline-search').fill('__aucun_evenement_ne_devrait_matcher__');
     await expect(page.locator('.timeline-card')).toHaveCount(0);
     await expect(page.locator('#timeline-status')).toContainText('Aucun evenement');
 
     await page.locator('#timeline-reset-filters').click();
-    await page.locator('#timeline-search').fill('nikaius');
-    await expect(page.locator('.timeline-card')).toHaveCount(1);
-    await expect(page.locator('#timeline-detail-title')).toHaveText(/Nikaius/i);
+    await page.locator('#timeline-search').fill(searchQuery);
+    await expect(page.locator('.timeline-card')).toHaveCount(searchMatches.length);
+    await expect(page.locator('#timeline-detail-title')).toHaveText(searchMatches[0].title);
   });
 
   test('les liens profonds depuis la carte prefiltrent la chronologie', async ({ page }) => {
-    await page.goto('/timeline/?event=lisboa-rises&location=Lisboa');
+    const entries = await loadTimelineEntries(page);
+    const linkedEntry = entries.find(entry => Array.isArray(entry.locationNames) && entry.locationNames.length);
+
+    test.skip(!linkedEntry, 'Aucun evenement lie a un lieu dans la chronologie.');
+
+    const locationName = linkedEntry.locationNames[0];
+    const matchingEntries = entries.filter(entry => buildSearchHaystack(entry).includes(normalizeText(locationName)));
+
+    await page.goto(`/timeline/?event=${encodeURIComponent(linkedEntry.id)}&location=${encodeURIComponent(locationName)}`);
     await page.waitForLoadState('domcontentloaded');
 
-    await expect(page.locator('#timeline-search')).toHaveValue('Lisboa');
-    await expect(page.locator('.timeline-card')).toHaveCount(1);
-    await expect(page.locator('#timeline-detail-title')).toHaveText(/Lisboa devient une plaque tournante/i);
+    await expect(page.locator('#timeline-search')).toHaveValue(locationName);
+    await expect(page.locator('.timeline-card')).toHaveCount(matchingEntries.length);
+    await expect(page.locator('#timeline-detail-title')).toHaveText(linkedEntry.title);
   });
 
   test('la frise est navigable au clavier', async ({ page }) => {
+    const entries = await loadTimelineEntries(page);
+    const nextEntry = entries[Math.min(1, entries.length - 1)];
+    const lastEntry = entries[entries.length - 1];
+
     await page.goto('/timeline/');
     await page.waitForLoadState('domcontentloaded');
 
     const firstCard = page.locator('.timeline-card').first();
     await firstCard.focus();
     await page.keyboard.press('ArrowRight');
-    await expect(page.locator('#timeline-detail-title')).toHaveText(/Aguilar verrouille la frontiere/i);
+    await expect(page.locator('#timeline-detail-title')).toHaveText(nextEntry.title);
 
     await page.keyboard.press('End');
-    await expect(page.locator('#timeline-detail-title')).toHaveText(/Sanctuarium et Vardanys imposent un nouvel equilibre/i);
+    await expect(page.locator('#timeline-detail-title')).toHaveText(lastEntry.title);
 
     await page.keyboard.press('Home');
-    await expect(page.locator('#timeline-detail-title')).toHaveText(/Lisboa devient une plaque tournante/i);
+    await expect(page.locator('#timeline-detail-title')).toHaveText(entries[0].title);
   });
 });
 
@@ -68,14 +123,17 @@ test.describe('Chronologie - mobile', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test('la page reste exploitable sur mobile', async ({ page }) => {
+    const entries = await loadTimelineEntries(page);
+    const targetIndex = Math.min(2, entries.length - 1);
+
     await page.goto('/timeline/');
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('.timeline-filters')).toBeVisible();
-    await expect(page.locator('.timeline-card')).toHaveCount(6);
+    await expect(page.locator('.timeline-card')).toHaveCount(entries.length);
 
-    await page.locator('.timeline-card').nth(2).click();
-    await expect(page.locator('#timeline-detail-title')).toHaveText(/Brumeport ouvre une nouvelle route/i);
+    await page.locator('.timeline-card').nth(targetIndex).click();
+    await expect(page.locator('#timeline-detail-title')).toHaveText(entries[targetIndex].title);
     await expect(page.locator('.timeline-detail-actions .timeline-link-button')).toHaveCount(2);
     await expect(page.locator('#timeline-map-link')).toBeVisible();
   });
