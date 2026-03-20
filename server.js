@@ -50,6 +50,7 @@ const SESSION_STORE_FILE = path.join(AUDIT_DIR, 'sessions.json');
 const USERS_FILE = path.join(ASSETS_PATH, 'users.json');
 const GROUPS_FILE = path.join(ASSETS_PATH, 'groups.json');
 const ANNOTATIONS_FILE = path.join(ASSETS_PATH, 'annotations.json');
+const TIMELINE_FILE = path.join(ASSETS_PATH, 'timeline.json');
 const SITE_CONFIG_FILE = path.join(ASSETS_PATH, 'site-config.json');
 const REMOTE_SYNC_URL = (process.env.REMOTE_SYNC_URL || '').trim();
 const REMOTE_SYNC_TOKEN = (process.env.REMOTE_SYNC_TOKEN || '').trim();
@@ -122,6 +123,11 @@ const DEFAULT_SITE_CONFIG = {
       summary: "Nouvelle page d'accueil avant la carte avec session, communaute, flux live, lieux mis en avant et patch notes."
     }
   ]
+};
+const DEFAULT_TIMELINE = {
+  title: "Chronologie d'Hesta",
+  subtitle: "Une lecture lineaire des bascules politiques, spirituelles et militaires qui structurent les campagnes.",
+  entries: []
 };
 
 const MIME_TYPES = {
@@ -236,6 +242,8 @@ const writeJsonFile = async (targetPath, data) => {
 
 const readAnnotationsFile = async () => readJsonFile(ANNOTATIONS_FILE, []);
 const writeAnnotationsFile = async annotations => writeJsonFile(ANNOTATIONS_FILE, annotations);
+const readTimelineFile = async () => sanitizeTimelineConfig(await readJsonFile(TIMELINE_FILE, DEFAULT_TIMELINE));
+const writeTimelineFile = async timeline => writeJsonFile(TIMELINE_FILE, sanitizeTimelineConfig(timeline));
 
 let searchFiltersModulePromise = null;
 const loadSearchFiltersModule = () => {
@@ -793,6 +801,65 @@ const sanitizeSiteConfigChangelogEntry = value => {
     date: date || '',
     title: title || 'Mise a jour',
     summary: summary || ''
+  };
+};
+
+const sanitizeTimelineText = (value, maxLength = 1200) => sanitizeSiteConfigText(value, maxLength);
+const sanitizeTimelineColor = value => {
+  const normalized = normalizeString(value);
+  if (!normalized) {
+    return '#7dd3fc';
+  }
+  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(normalized) ? normalized : '#7dd3fc';
+};
+const sanitizeTimelineId = value => {
+  const normalized = normalizeString(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return normalized.slice(0, 80);
+};
+const sanitizeTimelineList = (list, maxItems = 8, itemMaxLength = 60) => (
+  Array.isArray(list)
+    ? list.map(entry => sanitizeTimelineText(entry, itemMaxLength)).filter(Boolean).slice(0, maxItems)
+    : []
+);
+const sanitizeTimelineEntry = (value, index = 0) => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const yearValue = Number(value.year);
+  const year = Number.isFinite(yearValue) ? Math.round(yearValue) : index;
+  const title = sanitizeTimelineText(value.title, 140);
+  const summary = sanitizeTimelineText(value.summary, 280);
+  const content = sanitizeTimelineText(value.content, 2400);
+  const period = sanitizeTimelineText(value.period, 80);
+  const id = sanitizeTimelineId(value.id) || sanitizeTimelineId(`${year}-${title || `event-${index + 1}`}`) || `timeline-${index + 1}`;
+  return {
+    id,
+    year,
+    yearLabel: sanitizeTimelineText(value.yearLabel, 40) || String(year),
+    title: title || `Evenement ${index + 1}`,
+    summary: summary || content || '',
+    content: content || summary || '',
+    period: period || 'Periode inconnue',
+    tags: sanitizeTimelineList(value.tags, 10, 40),
+    locationNames: sanitizeTimelineList(value.locationNames, 10, 80),
+    imageUrl: sanitizeSiteConfigUrl(value.imageUrl, { allowRelative: true }),
+    accentColor: sanitizeTimelineColor(value.accentColor),
+    visible: value.visible !== false
+  };
+};
+const sanitizeTimelineConfig = value => {
+  const source = value && typeof value === 'object' ? value : {};
+  const entries = Array.isArray(source.entries)
+    ? source.entries.map((entry, index) => sanitizeTimelineEntry(entry, index)).filter(Boolean).slice(0, 120)
+    : [];
+  return {
+    title: sanitizeTimelineText(source.title, 120) || DEFAULT_TIMELINE.title,
+    subtitle: sanitizeTimelineText(source.subtitle, 320) || DEFAULT_TIMELINE.subtitle,
+    entries
   };
 };
 
@@ -2020,6 +2087,8 @@ const context = {
   collectBody,
   readAnnotationsFile,
   writeAnnotationsFile,
+  readTimelineFile,
+  writeTimelineFile,
   authRequired,
   discordOauth: {
     enabled: DISCORD_OAUTH_ENABLED,

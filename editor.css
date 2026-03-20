@@ -463,6 +463,154 @@ body[data-theme="light"] .auth-panel .auth-status {
     color: #fca5a5;
 }
 
+.admin-timeline-grid {
+    align-items: start;
+}
+
+.admin-timeline-fieldset {
+    min-height: 100%;
+}
+
+.admin-timeline-toolbar {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.admin-timeline-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.admin-timeline-count,
+.admin-timeline-empty {
+    font-size: 12px;
+    color: #cbd5e1;
+    opacity: 0.82;
+}
+
+.admin-timeline-list {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-timeline-card {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    display: grid;
+    gap: 10px;
+}
+
+.admin-timeline-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.admin-timeline-card-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-timeline-card-title strong {
+    font-size: 14px;
+}
+
+.admin-timeline-card-title span {
+    font-size: 12px;
+    color: #cbd5e1;
+    opacity: 0.78;
+}
+
+.admin-timeline-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.admin-timeline-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+}
+
+.admin-timeline-card-grid label,
+.admin-timeline-card-block label {
+    display: grid;
+    gap: 6px;
+    font-size: 12px;
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+.admin-timeline-card-grid input,
+.admin-timeline-card-grid textarea,
+.admin-timeline-card-grid select,
+.admin-timeline-card-block input,
+.admin-timeline-card-block textarea {
+    width: 100%;
+    min-width: 0;
+    border-radius: 10px;
+    border: 1px solid rgba(96, 165, 250, 0.28);
+    background: rgba(15, 23, 42, 0.68);
+    color: #f8fafc;
+    padding: 10px 12px;
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.admin-timeline-card-block {
+    display: grid;
+    gap: 10px;
+}
+
+.admin-timeline-card textarea {
+    resize: vertical;
+    min-height: 86px;
+}
+
+.admin-timeline-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #f8fafc;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.admin-timeline-toggle input {
+    width: 16px;
+    height: 16px;
+}
+
+body[data-theme="light"] .admin-timeline-card {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+body[data-theme="light"] .admin-timeline-card-grid label,
+body[data-theme="light"] .admin-timeline-card-block label,
+body[data-theme="light"] .admin-timeline-card-title span,
+body[data-theme="light"] .admin-timeline-count,
+body[data-theme="light"] .admin-timeline-empty {
+    color: #475569;
+}
+
+body[data-theme="light"] .admin-timeline-card-grid input,
+body[data-theme="light"] .admin-timeline-card-grid textarea,
+body[data-theme="light"] .admin-timeline-card-grid select,
+body[data-theme="light"] .admin-timeline-card-block input,
+body[data-theme="light"] .admin-timeline-card-block textarea {
+    background: #ffffff;
+    color: #0f172a;
+}
+
 body[data-theme="light"] .admin-dialog {
     background: #eef2ff;
     color: #0f172a;

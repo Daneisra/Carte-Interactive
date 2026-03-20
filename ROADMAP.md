@@ -151,7 +151,6 @@
 - [x] Fix la suppression des annotations
 - [x] Sur la carte ajouter un bouton pour revenir a l'acceuil
 - [x] Possibilité de fermer/réduire le panneaux "Flux temps réel"
-- [ ] Intégration et personalisation d'une frise chronologique complète
 - [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schémas, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
@@ -161,7 +160,28 @@
 - [ ] Narateur audio
 - [ ] Polish UI
 
-### P5 — Hygiène & dette
+### P5 — Frise chronologique
+- [ ] Frise chronologique complète (axe horizontal gauche -> droite, année, titre, texte, médias, liens vers la carte)
+- [x] Recommandation produit : page dédiée `/timeline` d'abord, intégration légère dans la carte ensuite.
+- [ ] P5.1 - Cadrage fonctionnel de la frise : périmètre MVP, UX desktop/mobile, besoins de personnalisation, règles de tri et de regroupement par époque.
+- [x] P5.2 - Modèle de données chronologie : `id`, `annee`, `titre`, `resume`, `texte`, `periode`, `tags`, `image`, `lieux lies`, `ordre`, `visible`.
+- [x] P5.3 - Source de données / persistance : fichier JSON ou API admin dédiée pour CRUD, ordre manuel, publication/masquage.
+- [x] P5.4 - Page dédiée chronologie : route `/timeline`, header cohérent avec l'accueil et la carte, CTA retour accueil/carte.
+- [x] P5.5 - UI frise horizontale MVP : navigation gauche -> droite, cartes événement, scroll/drag horizontal, état vide, responsive propre.
+- [x] P5.6 - Détail événement : année, titre, texte long, image optionnelle, tags, lieux liés, CTA "Voir sur la carte".
+- [x] P5.7 - Admin chronologie : créer / éditer / supprimer / réordonner les événements, gérer visibilité, aperçu rapide.
+- [x] P5.8 - Lien frise -> carte : ouvrir la carte sur un lieu ou groupe de lieux liés depuis un événement.
+- [x] P5.9 - Lien carte -> frise : depuis un lieu, afficher plus tard les événements historiques liés dans un panneau ou une section dédiée.
+- [x] P5.10 - Filtres chronologie : époque, région, faction, type d'événement, recherche texte.
+- [ ] P5.11 - QA chronologie : accessibilité clavier, performances, mobile/tablette, validation des contenus et tests navigateur ciblés.
+
+### Note produit - Frise chronologique
+- [x] Option A - Page dédiée : meilleure lisibilité, plus de place pour une vraie frise horizontale, plus simple à rendre premium et responsive.
+- [ ] Option B - Intégration directe sur la carte : plus immersive, mais risque de surcharge UI avec sidebar, mini profil, admin et flux live.
+- [x] Décision recommandée : construire la version complète sur page dédiée, puis ajouter un point d'entrée compact sur la carte.
+- [x] MVP recommandé : année + titre + texte + image optionnelle + lieux liés + bouton "Voir sur la carte".
+
+### P6 — Hygiène & dette
 - [ ] Modularisation fine de `UiController` et nettoyage des artefacts legacy.
 - [ ] Harmonisation encodages (UTF-8) & lint assets. :contentReference[oaicite:7]{index=7}
 - [ ] Polish UI

@@ -60,4 +60,20 @@ test.describe('Carte Interactive - UI', () => {
     await expect(galleryVideos).not.toHaveCount(0);
     await expect(galleryVideos.first().locator('.gallery-video-title')).toHaveText(/.+/);
   });
+
+  test('un lieu affiche les evenements lies dans la chronologie', async ({ page }) => {
+    await waitForAppReady(page);
+
+    await page.getByPlaceholder(/Rechercher un lieu/i).fill('Lisboa');
+    const targetLocation = page.locator('.location').filter({ hasText: /lisboa/i }).first();
+    await expect(targetLocation).toBeVisible();
+    await targetLocation.click();
+
+    const timelineSection = page.locator('#timeline-section');
+    await expect(timelineSection).toBeVisible();
+    await expect(timelineSection).toContainText(/Chronologie liee/i);
+    await expect(timelineSection.locator('.timeline-link-card')).toHaveCount(1);
+    await expect(timelineSection.locator('.timeline-link-title')).toHaveText(/Lisboa devient une plaque tournante/i);
+    await expect(timelineSection.locator('.timeline-link-button')).toHaveAttribute('href', /\/timeline\/\?event=lisboa-rises/);
+  });
 });

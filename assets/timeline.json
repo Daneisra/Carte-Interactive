@@ -1,0 +1,81 @@
+{
+  "title": "Chronologie d'Hesta",
+  "subtitle": "Une lecture lineaire des bascules politiques, spirituelles et militaires qui structurent les campagnes.",
+  "entries": [
+    {
+      "id": "lisboa-rises",
+      "year": 118,
+      "yearLabel": "An 118",
+      "title": "Lisboa devient une plaque tournante",
+      "summary": "Les routes maritimes se stabilisent et Lisboa s'impose comme noeud commercial majeur.",
+      "content": "L'essor des convois reguliers transforme Lisboa en port de reference. Les marchands, emissaires et intermediaires y concentrent contrats, cargaisons et renseignements, ce qui en fait l'un des premiers pivots logistiques du monde connu.",
+      "period": "Premiers royaumes",
+      "tags": ["Commerce", "Ports", "Routes"],
+      "locationNames": ["Lisboa"],
+      "imageUrl": "/assets/images/magda_grace.jpg",
+      "accentColor": "#5ea4ff"
+    },
+    {
+      "id": "aguilar-fortifies-frontier",
+      "year": 184,
+      "yearLabel": "An 184",
+      "title": "Aguilar verrouille la frontiere",
+      "summary": "Les defenses d'Aguilar sont renforcees pour contenir les pressions sur les marches interieurs.",
+      "content": "Face aux incursions repetees et aux tensions sur les axes terrestres, Aguilar devient un verrou tactique. Son role depasse vite la defense locale : la ville sert de point de coordination, de ravitaillement et de repli pour plusieurs campagnes.",
+      "period": "Consolidation",
+      "tags": ["Militaire", "Frontiere", "Defense"],
+      "locationNames": ["Aguilar"],
+      "accentColor": "#7dd3fc"
+    },
+    {
+      "id": "brumeport-opens-sea-lane",
+      "year": 247,
+      "yearLabel": "An 247",
+      "title": "Brumeport ouvre une nouvelle route",
+      "summary": "Une voie maritime plus sure permet de reconnecter des regions longtemps fragilisees.",
+      "content": "L'ouverture d'un passage plus fiable autour de Brumeport relance les echanges et l'exploration. Les equipages qui y transitent rapportent cartes, recits et opportunites, accelerant l'interdependance entre zones cotieres et terres interieures.",
+      "period": "Expansion",
+      "tags": ["Exploration", "Navigation", "Commerce"],
+      "locationNames": ["Brumeport"],
+      "imageUrl": "/assets/images/Caevorum.png",
+      "accentColor": "#67e8f9"
+    },
+    {
+      "id": "montsegur-becomes-symbol",
+      "year": 312,
+      "yearLabel": "An 312",
+      "title": "Montsegur devient un symbole",
+      "summary": "La place forte gagne une aura politique et spirituelle bien au-dela de son territoire immediat.",
+      "content": "Au fil des conflits et des serments qui y sont pretes, Montsegur cesse d'etre seulement une position defensive. Le lieu devient un symbole de legitimite, de resistance et de memoire pour plusieurs factions rivales.",
+      "period": "Age des serments",
+      "tags": ["Pouvoir", "Memoire", "Citadelle"],
+      "locationNames": ["Montségur", "Monts Brumeux"],
+      "accentColor": "#fbbf24"
+    },
+    {
+      "id": "nikaius-schism",
+      "year": 361,
+      "yearLabel": "An 361",
+      "title": "Le schisme de Nikaius",
+      "summary": "Les elites de Nikaius se divisent, provoquant une recomposition durable des alliances.",
+      "content": "Le schisme de Nikaius fracture les chaines de commandement, les relais religieux et les dependances economiques. Ce point de rupture marque l'entree dans une periode plus instable, ou les loyautes deviennent negociables et souvent temporaires.",
+      "period": "Fractures",
+      "tags": ["Politique", "Crise", "Alliances"],
+      "locationNames": ["Nikaïus"],
+      "accentColor": "#c084fc"
+    },
+    {
+      "id": "sanctuarium-vardanys-balance",
+      "year": 427,
+      "yearLabel": "An 427",
+      "title": "Sanctuarium et Vardanys imposent un nouvel equilibre",
+      "summary": "Deux centres d'influence redessinent les rapports de force entre pouvoir, culte et strategie.",
+      "content": "L'affirmation conjointe de Sanctuarium et Vardanys stabilise certains axes tout en durcissant les oppositions ideologiques. Cette phase ouvre le cadre contemporain des campagnes : un monde plus structure, mais plus sensible aux ruptures locales.",
+      "period": "Equilibre instable",
+      "tags": ["Factions", "Influence", "Strategie"],
+      "locationNames": ["Sanctuarium", "Vardanys", "Nocturna"],
+      "imageUrl": "/assets/images/Sanctus_Imperator_1.jpeg",
+      "accentColor": "#34d399"
+    }
+  ]
+}

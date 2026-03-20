@@ -381,6 +381,7 @@
                 <div id="quests-section" class="extra-section" data-section="quests"></div>
                 <div id="pnjs-section" class="extra-section" data-section="pnj"></div>
                 <div id="lore-section" class="extra-section" data-section="lore"></div>
+                <div id="timeline-section" class="extra-section" data-section="timeline"></div>
                 <div id="instances-section" class="extra-section" data-section="instances"></div>
                 <div id="noble-families-section" class="extra-section" data-section="noble-families"></div>
 
@@ -775,6 +776,39 @@
                         </fieldset>
                     </div>
                     <p id="admin-home-status" class="admin-home-status" role="status" aria-live="polite" hidden></p>
+                </section>
+
+                <section class="admin-section" id="admin-section-timeline-config">
+                    <div class="admin-section-heading">
+                        <h3>Chronologie</h3>
+                        <div class="admin-section-heading-actions">
+                            <button id="admin-timeline-reload" class="tertiary-button" type="button">Recharger</button>
+                            <button id="admin-timeline-save" class="secondary-button" type="button">Enregistrer la chronologie</button>
+                        </div>
+                    </div>
+                    <p class="admin-home-hint">Page /timeline, detail des evenements, ordre d'affichage et visibilite publique.</p>
+                    <ul id="admin-timeline-errors" class="profile-inline-errors" hidden></ul>
+                    <div class="admin-home-grid admin-timeline-grid">
+                        <fieldset class="admin-home-fieldset">
+                            <legend>Meta</legend>
+                            <label for="admin-timeline-title">Titre</label>
+                            <input id="admin-timeline-title" type="text" autocomplete="off" />
+                            <label for="admin-timeline-subtitle">Sous-titre</label>
+                            <textarea id="admin-timeline-subtitle" rows="4"></textarea>
+                            <div class="admin-timeline-toolbar">
+                                <button id="admin-timeline-add-entry" class="secondary-button" type="button">Ajouter un evenement</button>
+                            </div>
+                        </fieldset>
+                        <div class="admin-home-fieldset admin-timeline-fieldset">
+                            <div class="admin-timeline-list-header">
+                                <strong>Evenements</strong>
+                                <span id="admin-timeline-count" class="admin-timeline-count">0 entree</span>
+                            </div>
+                            <div id="admin-timeline-list" class="admin-timeline-list"></div>
+                            <p id="admin-timeline-empty" class="admin-timeline-empty">Aucun evenement configure.</p>
+                        </div>
+                    </div>
+                    <p id="admin-timeline-status" class="admin-home-status" role="status" aria-live="polite" hidden></p>
                 </section>
 
                 <section class="admin-section" id="admin-section-availability">

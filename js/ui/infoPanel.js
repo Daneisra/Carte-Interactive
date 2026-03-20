@@ -13,6 +13,7 @@ export class InfoPanel {
         questsSection,
         pnjsSection,
         loreSection,
+        timelineSection,
         instancesSection,
         nobleFamiliesSection,
         audioManager,
@@ -30,6 +31,7 @@ export class InfoPanel {
         this.questsSection = questsSection;
         this.pnjsSection = pnjsSection;
         this.loreSection = loreSection;
+        this.timelineSection = timelineSection;
         this.instancesSection = instancesSection;
         this.nobleFamiliesSection = nobleFamiliesSection;
         this.audioManager = audioManager;
@@ -46,6 +48,9 @@ export class InfoPanel {
             ready: false
         };
         this.boundLightboxKeyHandler = null;
+        this.timelineEntries = null;
+        this.timelineRequest = null;
+        this.activeLocationName = '';
     }
 
     initialize({ onClose }) {
@@ -96,6 +101,7 @@ export class InfoPanel {
             return;
         }
         const location = entry.location;
+        this.activeLocationName = location.name || '';
 
         if (this.titleElement) {
             this.titleElement.textContent = location.name;
@@ -109,6 +115,7 @@ export class InfoPanel {
         this.renderSection(this.historySection, location.history, 'info.history');
         this.renderSection(this.questsSection, location.quests, 'info.quests');
         this.renderSection(this.loreSection, location.lore, 'info.lore');
+        this.renderTimelineSection(location);
         this.renderSection(this.instancesSection, location.instances, 'info.instances', 'Instances');
         this.renderSection(this.nobleFamiliesSection, location.nobleFamilies, 'info.nobleFamilies', 'Familles nobles');
         this.renderPnjsSection(location.pnjs);
@@ -124,6 +131,132 @@ export class InfoPanel {
             this.sidebar.classList.add('open');
             document.body.classList.add('info-sidebar-open');
         }
+    }
+
+    normalizeTimelineText(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+    }
+
+    async loadTimelineEntries() {
+        if (Array.isArray(this.timelineEntries)) {
+            return this.timelineEntries;
+        }
+        if (!this.timelineRequest) {
+            this.timelineRequest = fetch('/api/timeline', { cache: 'no-store' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(payload => {
+                    const source = payload?.timeline && typeof payload.timeline === 'object'
+                        ? payload.timeline
+                        : payload;
+                    this.timelineEntries = Array.isArray(source?.entries) ? source.entries : [];
+                    return this.timelineEntries;
+                })
+                .catch(error => {
+                    this.timelineEntries = [];
+                    throw error;
+                })
+                .finally(() => {
+                    this.timelineRequest = null;
+                });
+        }
+        return this.timelineRequest;
+    }
+
+    renderTimelineSection(location) {
+        if (!this.timelineSection) {
+            return;
+        }
+
+        clearElement(this.timelineSection);
+        this.timelineSection.hidden = false;
+        this.timelineSection.classList.add('extra-section');
+        this.timelineSection.dataset.section = 'timeline';
+
+        const title = createElement('h4', { text: 'Chronologie liee' });
+        const status = createElement('p', {
+            className: 'timeline-link-empty',
+            text: 'Recherche des evenements lies...'
+        });
+
+        this.timelineSection.append(title, status);
+
+        const locationName = location?.name || '';
+        const expectedKey = this.normalizeTimelineText(locationName);
+
+        this.loadTimelineEntries()
+            .then(entries => {
+                if (this.activeLocationName !== locationName) {
+                    return;
+                }
+
+                const matches = (Array.isArray(entries) ? entries : [])
+                    .filter(entry => {
+                        const locationNames = Array.isArray(entry?.locationNames) ? entry.locationNames : [];
+                        return locationNames.some(name => this.normalizeTimelineText(name) === expectedKey);
+                    })
+                    .sort((left, right) => Number(left?.year || 0) - Number(right?.year || 0));
+
+                clearElement(this.timelineSection);
+                this.timelineSection.appendChild(title);
+
+                if (!matches.length) {
+                    this.timelineSection.appendChild(createElement('p', {
+                        className: 'timeline-link-empty',
+                        text: 'Aucun evenement relie a ce lieu pour le moment.'
+                    }));
+                    return;
+                }
+
+                const list = createElement('div', { className: 'timeline-link-list' });
+                matches.forEach(eventEntry => {
+                    const item = createElement('article', { className: 'timeline-link-card' });
+                    item.appendChild(createElement('span', {
+                        className: 'timeline-link-year',
+                        text: eventEntry.yearLabel || String(eventEntry.year || '--')
+                    }));
+                    item.appendChild(createElement('strong', {
+                        className: 'timeline-link-title',
+                        text: eventEntry.title || 'Evenement'
+                    }));
+                    if (eventEntry.summary) {
+                        item.appendChild(createElement('p', {
+                            className: 'timeline-link-summary',
+                            text: eventEntry.summary
+                        }));
+                    }
+                    item.appendChild(createElement('a', {
+                        className: 'timeline-link-button',
+                        text: 'Voir dans la chronologie',
+                        attributes: {
+                            href: `/timeline/?event=${encodeURIComponent(eventEntry.id || '')}&location=${encodeURIComponent(locationName)}`
+                        }
+                    }));
+                    list.appendChild(item);
+                });
+
+                this.timelineSection.appendChild(list);
+            })
+            .catch(error => {
+                console.error('[timeline] unable to load linked events', error);
+                if (this.activeLocationName !== locationName) {
+                    return;
+                }
+                clearElement(this.timelineSection);
+                this.timelineSection.appendChild(title);
+                this.timelineSection.appendChild(createElement('p', {
+                    className: 'timeline-link-empty',
+                    text: 'Impossible de charger la chronologie liee pour le moment.'
+                }));
+            });
     }
 
     renderGallery(location) {

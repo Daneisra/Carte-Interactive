@@ -3769,6 +3769,73 @@ body[data-theme="light"] #events-filter option {
     content: '[L]';
 }
 
+.extra-section[data-section="timeline"] h4::before {
+    content: '[T]';
+}
+
+.timeline-link-list {
+    display: grid;
+    gap: 10px;
+}
+
+.timeline-link-card {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(30, 41, 59, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.timeline-link-year {
+    display: inline-flex;
+    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(96, 165, 250, 0.14);
+    color: #bfdbfe;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.timeline-link-title {
+    font-size: 15px;
+    color: #f8fafc;
+}
+
+.timeline-link-summary,
+.timeline-link-empty {
+    margin: 0;
+    color: rgba(226, 232, 240, 0.82);
+    line-height: 1.5;
+}
+
+.timeline-link-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(96, 165, 250, 0.28);
+    background: rgba(96, 165, 250, 0.12);
+    color: #e2e8f0;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+}
+
+.timeline-link-button:hover,
+.timeline-link-button:focus-visible {
+    background: rgba(96, 165, 250, 0.2);
+    border-color: rgba(125, 211, 252, 0.4);
+    transform: translateY(-1px);
+}
+
 #info-content {
     max-height: 60vh; /* ?? Limite la hauteur pour �viter qu�il d�borde */
     overflow-y: auto; /* ?? Ajoute un d�filement vertical */
@@ -4373,6 +4440,31 @@ body[data-theme="light"] .audio-fallback:hover {
 body[data-theme="light"] .extra-section h4 {
     color: #1f2933;
     border-bottom-color: rgba(47, 74, 117, 0.2);
+}
+
+body[data-theme="light"] .timeline-link-card {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(148, 163, 184, 0.32);
+}
+
+body[data-theme="light"] .timeline-link-year {
+    background: rgba(59, 130, 246, 0.12);
+    color: #1d4ed8;
+}
+
+body[data-theme="light"] .timeline-link-title {
+    color: #1f2933;
+}
+
+body[data-theme="light"] .timeline-link-summary,
+body[data-theme="light"] .timeline-link-empty {
+    color: #52607a;
+}
+
+body[data-theme="light"] .timeline-link-button {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.22);
+    color: #1e3a8a;
 }
 
 body[data-theme="light"] #history-container {

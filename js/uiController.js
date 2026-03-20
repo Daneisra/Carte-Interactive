@@ -364,6 +364,16 @@ export class UiController {
             homeCreditsUrl: document.getElementById('admin-home-credits-url'),
             homeFooterNote: document.getElementById('admin-home-footer-note'),
             homeChangelog: document.getElementById('admin-home-changelog'),
+            timelineReloadButton: document.getElementById('admin-timeline-reload'),
+            timelineSaveButton: document.getElementById('admin-timeline-save'),
+            timelineErrors: document.getElementById('admin-timeline-errors'),
+            timelineStatus: document.getElementById('admin-timeline-status'),
+            timelineTitle: document.getElementById('admin-timeline-title'),
+            timelineSubtitle: document.getElementById('admin-timeline-subtitle'),
+            timelineAddEntryButton: document.getElementById('admin-timeline-add-entry'),
+            timelineList: document.getElementById('admin-timeline-list'),
+            timelineCount: document.getElementById('admin-timeline-count'),
+            timelineEmpty: document.getElementById('admin-timeline-empty'),
             availabilityHint: document.getElementById('admin-availability-hint'),
             availabilityGrid: document.getElementById('admin-availability-grid'),
             availabilityEmpty: document.getElementById('admin-availability-empty'),
@@ -452,6 +462,10 @@ export class UiController {
         this.adminSiteConfigDirty = false;
         this.adminSiteConfigPending = false;
         this.adminSiteConfigErrors = [];
+        this.adminTimeline = null;
+        this.adminTimelineDirty = false;
+        this.adminTimelinePending = false;
+        this.adminTimelineErrors = [];
         this.mapClickUnsubscribe = null;
         this.tooltipMeta = new WeakMap();
         this.visibleTooltips = new Set();
@@ -513,6 +527,7 @@ export class UiController {
             questsSection: qs('#quests-section'),
             pnjsSection: qs('#pnjs-section'),
             loreSection: qs('#lore-section'),
+            timelineSection: qs('#timeline-section'),
             instancesSection: qs('#instances-section'),
             nobleFamiliesSection: qs('#noble-families-section'),
             audioManager: this.audioManager,
@@ -3857,6 +3872,7 @@ export class UiController {
         this.syncAdminValidationWarnings();
         this.syncAdminTelemetry();
         this.fetchAdminSiteConfig();
+        this.fetchAdminTimeline();
         this.fetchAdminAvailability();
         this.startAdminMetrics();
         this.closeCharacterOverlay();
@@ -3913,6 +3929,18 @@ export class UiController {
             this.adminDom.homeSaveButton.addEventListener('click', () => this.saveAdminSiteConfig());
             this.adminDom.homeSaveButton.dataset.bound = 'true';
         }
+        if (this.adminDom.timelineReloadButton && !this.adminDom.timelineReloadButton.dataset.bound) {
+            this.adminDom.timelineReloadButton.addEventListener('click', () => this.fetchAdminTimeline());
+            this.adminDom.timelineReloadButton.dataset.bound = 'true';
+        }
+        if (this.adminDom.timelineSaveButton && !this.adminDom.timelineSaveButton.dataset.bound) {
+            this.adminDom.timelineSaveButton.addEventListener('click', () => this.saveAdminTimeline());
+            this.adminDom.timelineSaveButton.dataset.bound = 'true';
+        }
+        if (this.adminDom.timelineAddEntryButton && !this.adminDom.timelineAddEntryButton.dataset.bound) {
+            this.adminDom.timelineAddEntryButton.addEventListener('click', () => this.addAdminTimelineEntry());
+            this.adminDom.timelineAddEntryButton.dataset.bound = 'true';
+        }
         [
             this.adminDom.homeKicker,
             this.adminDom.homeTitle,
@@ -3950,10 +3978,23 @@ export class UiController {
                 element.dataset.bound = 'true';
             }
         });
+        [
+            this.adminDom.timelineTitle,
+            this.adminDom.timelineSubtitle
+        ].forEach(element => {
+            if (element && !element.dataset.bound) {
+                element.addEventListener('input', () => this.markAdminTimelineDirty());
+                element.dataset.bound = 'true';
+            }
+        });
         if (!this.adminSiteConfig) {
             this.setAdminHomeStatus("Chargement de la configuration de l'accueil...");
         }
+        if (!this.adminTimeline) {
+            this.setAdminTimelineStatus('Chargement de la chronologie...');
+        }
         this.syncAdminHomeEditor();
+        this.syncAdminTimelineEditor();
     }
 
     syncAdminStatus() {
@@ -4663,6 +4704,510 @@ export class UiController {
         } finally {
             this.adminSiteConfigPending = false;
             this.syncAdminHomeEditor();
+        }
+    }
+
+    normalizeAdminTimeline(config = {}) {
+        const source = config && typeof config === 'object' ? config : {};
+        const entries = Array.isArray(source.entries)
+            ? source.entries.map((entry, index) => this.normalizeAdminTimelineEntry(entry, index)).filter(Boolean)
+            : [];
+        return {
+            title: sanitizeString(source.title || "Chronologie d'Hesta"),
+            subtitle: sanitizeString(source.subtitle || "Une lecture lineaire des bascules politiques, spirituelles et militaires qui structurent les campagnes."),
+            entries
+        };
+    }
+
+    normalizeAdminTimelineEntry(entry = {}, index = 0) {
+        const normalizedYear = Number(entry?.year);
+        const year = Number.isFinite(normalizedYear) ? Math.round(normalizedYear) : index;
+        const title = sanitizeString(entry?.title || '');
+        return {
+            id: sanitizeString(entry?.id || `${year}-${title || `event-${index + 1}`}`)
+                .toLowerCase()
+                .replace(/[^a-z0-9_-]+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-+|-+$/g, '') || `timeline-${index + 1}`,
+            year,
+            yearLabel: sanitizeString(entry?.yearLabel || String(year)),
+            title: title || `Evenement ${index + 1}`,
+            summary: sanitizeString(entry?.summary || ''),
+            content: sanitizeString(entry?.content || ''),
+            period: sanitizeString(entry?.period || 'Periode inconnue'),
+            tags: Array.isArray(entry?.tags) ? entry.tags.map(tag => sanitizeString(tag)).filter(Boolean) : [],
+            locationNames: Array.isArray(entry?.locationNames) ? entry.locationNames.map(name => sanitizeString(name)).filter(Boolean) : [],
+            imageUrl: sanitizeString(entry?.imageUrl || ''),
+            accentColor: /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(sanitizeString(entry?.accentColor || '')) ? sanitizeString(entry.accentColor) : '#7dd3fc',
+            visible: entry?.visible !== false
+        };
+    }
+
+    createAdminTimelineEntry(index = 0) {
+        return this.normalizeAdminTimelineEntry({
+            id: `timeline-${Date.now()}-${index + 1}`,
+            year: new Date().getFullYear(),
+            yearLabel: `An ${new Date().getFullYear()}`,
+            title: 'Nouvel evenement',
+            summary: '',
+            content: '',
+            period: 'Periode inconnue',
+            tags: [],
+            locationNames: [],
+            imageUrl: '',
+            accentColor: '#7dd3fc',
+            visible: true
+        }, index);
+    }
+
+    parseAdminTokenList(value = '') {
+        return String(value || '')
+            .split(/[\n,]/)
+            .map(entry => sanitizeString(entry))
+            .filter(Boolean);
+    }
+
+    setAdminTimelineStatus(message, isError = false) {
+        if (!this.adminDom.timelineStatus) {
+            return;
+        }
+        if (!message) {
+            this.adminDom.timelineStatus.hidden = true;
+            this.adminDom.timelineStatus.textContent = '';
+            this.adminDom.timelineStatus.classList.remove('is-error');
+            return;
+        }
+        this.adminDom.timelineStatus.hidden = false;
+        this.adminDom.timelineStatus.textContent = message;
+        this.adminDom.timelineStatus.classList.toggle('is-error', Boolean(isError));
+    }
+
+    renderAdminTimelineErrors(errors = []) {
+        if (!this.adminDom.timelineErrors) {
+            return;
+        }
+        const list = Array.isArray(errors) ? errors.filter(Boolean) : [];
+        this.adminDom.timelineErrors.innerHTML = '';
+        if (!list.length) {
+            this.adminDom.timelineErrors.hidden = true;
+            return;
+        }
+        list.forEach(message => {
+            this.adminDom.timelineErrors.appendChild(createElement('li', { text: message }));
+        });
+        this.adminDom.timelineErrors.hidden = false;
+    }
+
+    syncAdminTimelineEditor() {
+        const isAdmin = this.isAdmin();
+        const hasTimeline = !!this.adminTimeline;
+        const disabled = !isAdmin || this.adminTimelinePending || !hasTimeline;
+        [
+            this.adminDom.timelineTitle,
+            this.adminDom.timelineSubtitle,
+            this.adminDom.timelineAddEntryButton
+        ].forEach(element => {
+            if (element) {
+                element.disabled = disabled;
+            }
+        });
+        if (this.adminDom.timelineReloadButton) {
+            this.adminDom.timelineReloadButton.disabled = !isAdmin || this.adminTimelinePending;
+        }
+        if (this.adminDom.timelineSaveButton) {
+            this.adminDom.timelineSaveButton.disabled = !isAdmin || this.adminTimelinePending || !hasTimeline;
+            this.adminDom.timelineSaveButton.textContent = this.adminTimelinePending
+                ? 'Enregistrement...'
+                : (this.adminTimelineDirty ? 'Enregistrer la chronologie *' : 'Enregistrer la chronologie');
+        }
+        if (this.adminDom.timelineList) {
+            this.adminDom.timelineList.querySelectorAll('input, textarea, select, button').forEach(element => {
+                if (element.id === 'admin-timeline-save' || element.id === 'admin-timeline-reload' || element.id === 'admin-timeline-add-entry') {
+                    return;
+                }
+                element.disabled = disabled;
+            });
+        }
+    }
+
+    renderAdminTimelineConfig() {
+        const config = this.normalizeAdminTimeline(this.adminTimeline || {});
+        this.adminTimeline = config;
+        if (this.adminDom.timelineTitle) {
+            this.adminDom.timelineTitle.value = config.title || '';
+        }
+        if (this.adminDom.timelineSubtitle) {
+            this.adminDom.timelineSubtitle.value = config.subtitle || '';
+        }
+        this.renderAdminTimelineList();
+        this.renderAdminTimelineErrors([]);
+        this.syncAdminTimelineEditor();
+    }
+
+    renderAdminTimelineList() {
+        const container = this.adminDom.timelineList;
+        const countNode = this.adminDom.timelineCount;
+        const emptyNode = this.adminDom.timelineEmpty;
+        if (!container || !countNode || !emptyNode) {
+            return;
+        }
+        clearElement(container);
+        const entries = Array.isArray(this.adminTimeline?.entries) ? this.adminTimeline.entries : [];
+        countNode.textContent = `${entries.length} ${entries.length > 1 ? 'entrees' : 'entree'}`;
+        emptyNode.hidden = entries.length > 0;
+        entries.forEach((entry, index) => {
+            container.appendChild(this.createAdminTimelineEntryCard(entry, index));
+        });
+        this.syncAdminTimelineEditor();
+    }
+
+    createAdminTimelineEntryCard(entry, index) {
+        const card = document.createElement('article');
+        card.className = 'admin-timeline-card';
+
+        const header = document.createElement('div');
+        header.className = 'admin-timeline-card-header';
+
+        const title = document.createElement('div');
+        title.className = 'admin-timeline-card-title';
+        title.appendChild(createElement('strong', { text: entry.title || `Evenement ${index + 1}` }));
+        title.appendChild(createElement('span', { text: `${entry.yearLabel || entry.year || '--'} • ${entry.period || 'Periode inconnue'}` }));
+
+        const actions = document.createElement('div');
+        actions.className = 'admin-timeline-card-actions';
+        const moveUp = createElement('button', { className: 'tertiary-button', text: 'Monter' });
+        moveUp.type = 'button';
+        moveUp.addEventListener('click', () => this.moveAdminTimelineEntry(index, -1));
+        const moveDown = createElement('button', { className: 'tertiary-button', text: 'Descendre' });
+        moveDown.type = 'button';
+        moveDown.addEventListener('click', () => this.moveAdminTimelineEntry(index, 1));
+        const remove = createElement('button', { className: 'tertiary-button', text: 'Supprimer' });
+        remove.type = 'button';
+        remove.addEventListener('click', () => this.removeAdminTimelineEntry(index));
+        actions.append(moveUp, moveDown, remove);
+
+        header.append(title, actions);
+        card.appendChild(header);
+
+        const grid = document.createElement('div');
+        grid.className = 'admin-timeline-card-grid';
+        const block = document.createElement('div');
+        block.className = 'admin-timeline-card-block';
+
+        const buildField = ({ label, value, type = 'text', rows = 0, checked = false, onInput, placeholder = '' }) => {
+            const wrapper = document.createElement('label');
+            wrapper.appendChild(createElement('span', { text: label }));
+            let input;
+            if (type === 'textarea') {
+                input = document.createElement('textarea');
+                input.rows = rows || 4;
+            } else if (type === 'checkbox') {
+                wrapper.className = 'admin-timeline-toggle';
+                input = document.createElement('input');
+                input.type = 'checkbox';
+                input.checked = checked;
+                wrapper.innerHTML = '';
+                wrapper.appendChild(input);
+                wrapper.appendChild(document.createTextNode(label));
+            } else {
+                input = document.createElement('input');
+                input.type = type;
+            }
+            if (type !== 'checkbox') {
+                input.value = value || '';
+                input.placeholder = placeholder;
+            }
+            input.addEventListener(type === 'checkbox' ? 'change' : 'input', onInput);
+            wrapper.appendChild(input);
+            return wrapper;
+        };
+
+        grid.append(
+            buildField({
+                label: 'ID',
+                value: entry.id,
+                onInput: event => {
+                    this.adminTimeline.entries[index].id = sanitizeString(event.target.value)
+                        .toLowerCase()
+                        .replace(/[^a-z0-9_-]+/g, '-')
+                        .replace(/-+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    this.markAdminTimelineDirty();
+                }
+            }),
+            buildField({
+                label: 'Annee',
+                type: 'number',
+                value: String(entry.year ?? ''),
+                onInput: event => {
+                    this.adminTimeline.entries[index].year = Number(event.target.value) || 0;
+                    this.markAdminTimelineDirty();
+                }
+            }),
+            buildField({
+                label: 'Libelle annee',
+                value: entry.yearLabel,
+                onInput: event => {
+                    this.adminTimeline.entries[index].yearLabel = event.target.value || '';
+                    this.markAdminTimelineDirty();
+                }
+            }),
+            buildField({
+                label: 'Periode',
+                value: entry.period,
+                onInput: event => {
+                    this.adminTimeline.entries[index].period = event.target.value || '';
+                    this.markAdminTimelineDirty();
+                }
+            }),
+            buildField({
+                label: 'Titre',
+                value: entry.title,
+                onInput: event => {
+                    this.adminTimeline.entries[index].title = event.target.value || '';
+                    this.renderAdminTimelineList();
+                    this.markAdminTimelineDirty();
+                }
+            }),
+            buildField({
+                label: 'Couleur accent',
+                type: 'text',
+                value: entry.accentColor,
+                placeholder: '#7dd3fc',
+                onInput: event => {
+                    this.adminTimeline.entries[index].accentColor = event.target.value || '';
+                    this.markAdminTimelineDirty();
+                }
+            }),
+            buildField({
+                label: 'Image (URL)',
+                value: entry.imageUrl,
+                placeholder: '/assets/images/...',
+                onInput: event => {
+                    this.adminTimeline.entries[index].imageUrl = event.target.value || '';
+                    this.markAdminTimelineDirty();
+                }
+            }),
+            buildField({
+                label: 'Visible publiquement',
+                type: 'checkbox',
+                checked: entry.visible !== false,
+                onInput: event => {
+                    this.adminTimeline.entries[index].visible = Boolean(event.target.checked);
+                    this.markAdminTimelineDirty();
+                }
+            })
+        );
+
+        block.append(
+            buildField({
+                label: 'Resume',
+                type: 'textarea',
+                rows: 3,
+                value: entry.summary,
+                onInput: event => {
+                    this.adminTimeline.entries[index].summary = event.target.value || '';
+                    this.markAdminTimelineDirty();
+                }
+            }),
+            buildField({
+                label: 'Contenu detaille',
+                type: 'textarea',
+                rows: 5,
+                value: entry.content,
+                onInput: event => {
+                    this.adminTimeline.entries[index].content = event.target.value || '';
+                    this.markAdminTimelineDirty();
+                }
+            }),
+            buildField({
+                label: 'Tags (virgules ou retours ligne)',
+                type: 'textarea',
+                rows: 2,
+                value: Array.isArray(entry.tags) ? entry.tags.join(', ') : '',
+                onInput: event => {
+                    this.adminTimeline.entries[index].tags = this.parseAdminTokenList(event.target.value || '');
+                    this.markAdminTimelineDirty();
+                }
+            }),
+            buildField({
+                label: 'Lieux lies (virgules ou retours ligne)',
+                type: 'textarea',
+                rows: 2,
+                value: Array.isArray(entry.locationNames) ? entry.locationNames.join(', ') : '',
+                onInput: event => {
+                    this.adminTimeline.entries[index].locationNames = this.parseAdminTokenList(event.target.value || '');
+                    this.markAdminTimelineDirty();
+                }
+            })
+        );
+
+        card.append(grid, block);
+        return card;
+    }
+
+    addAdminTimelineEntry() {
+        if (!this.adminTimeline) {
+            this.adminTimeline = this.normalizeAdminTimeline({});
+        }
+        this.adminTimeline.entries.push(this.createAdminTimelineEntry(this.adminTimeline.entries.length));
+        this.renderAdminTimelineList();
+        this.markAdminTimelineDirty();
+    }
+
+    moveAdminTimelineEntry(index, direction) {
+        if (!Array.isArray(this.adminTimeline?.entries)) {
+            return;
+        }
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= this.adminTimeline.entries.length) {
+            return;
+        }
+        const [entry] = this.adminTimeline.entries.splice(index, 1);
+        this.adminTimeline.entries.splice(targetIndex, 0, entry);
+        this.renderAdminTimelineList();
+        this.markAdminTimelineDirty();
+    }
+
+    removeAdminTimelineEntry(index) {
+        if (!Array.isArray(this.adminTimeline?.entries)) {
+            return;
+        }
+        this.adminTimeline.entries.splice(index, 1);
+        this.renderAdminTimelineList();
+        this.markAdminTimelineDirty();
+    }
+
+    collectAdminTimelineDraft() {
+        return this.normalizeAdminTimeline({
+            title: this.adminDom.timelineTitle?.value || '',
+            subtitle: this.adminDom.timelineSubtitle?.value || '',
+            entries: Array.isArray(this.adminTimeline?.entries) ? this.adminTimeline.entries : []
+        });
+    }
+
+    validateAdminTimelineDraft(timeline) {
+        const errors = [];
+        if (!sanitizeString(timeline?.title)) {
+            errors.push('Le titre de la chronologie est requis.');
+        }
+        if (!Array.isArray(timeline?.entries) || !timeline.entries.length) {
+            errors.push('Ajoutez au moins un evenement.');
+        }
+        const seenIds = new Set();
+        (timeline?.entries || []).forEach((entry, index) => {
+            if (!sanitizeString(entry?.title)) {
+                errors.push(`Evenement ${index + 1}: titre requis.`);
+            }
+            if (!Number.isFinite(Number(entry?.year))) {
+                errors.push(`Evenement ${index + 1}: annee invalide.`);
+            }
+            const id = sanitizeString(entry?.id);
+            if (!id) {
+                errors.push(`Evenement ${index + 1}: identifiant requis.`);
+            } else if (seenIds.has(id)) {
+                errors.push(`Identifiant duplique: ${id}.`);
+            } else {
+                seenIds.add(id);
+            }
+        });
+        return errors;
+    }
+
+    markAdminTimelineDirty() {
+        if (!this.isAdmin()) {
+            return;
+        }
+        this.adminTimelineDirty = true;
+        this.setAdminTimelineStatus('');
+        this.renderAdminTimelineErrors([]);
+        this.syncAdminTimelineEditor();
+    }
+
+    async fetchAdminTimeline() {
+        if (!this.adminDom.timelineSaveButton) {
+            return;
+        }
+        if (!this.isAdmin()) {
+            this.adminTimeline = null;
+            this.adminTimelineDirty = false;
+            this.syncAdminTimelineEditor();
+            return;
+        }
+        this.setAdminTimelineStatus('Chargement de la chronologie...');
+        try {
+            const response = await fetch('/api/admin/timeline', {
+                credentials: 'include',
+                cache: 'no-store'
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            this.adminTimeline = this.normalizeAdminTimeline(payload?.timeline || {});
+            this.adminTimelineDirty = false;
+            this.renderAdminTimelineConfig();
+            this.setAdminTimelineStatus('Chronologie chargee depuis l\'API admin.');
+        } catch (error) {
+            console.error('[admin] timeline fetch failed', error);
+            try {
+                const fallbackResponse = await fetch('/assets/timeline.json', { cache: 'no-store' });
+                if (!fallbackResponse.ok) {
+                    throw new Error(`HTTP ${fallbackResponse.status}`);
+                }
+                const fallbackPayload = await fallbackResponse.json();
+                this.adminTimeline = this.normalizeAdminTimeline(fallbackPayload || {});
+                this.adminTimelineDirty = false;
+                this.renderAdminTimelineConfig();
+                this.setAdminTimelineStatus('API admin indisponible. Chronologie chargee depuis assets/timeline.json en lecture seule.', true);
+            } catch (fallbackError) {
+                console.error('[admin] timeline fallback failed', fallbackError);
+                this.adminTimeline = null;
+                this.setAdminTimelineStatus('Impossible de charger la chronologie.', true);
+            }
+        } finally {
+            this.syncAdminTimelineEditor();
+        }
+    }
+
+    async saveAdminTimeline() {
+        if (!this.isAdmin()) {
+            this.announcer?.assertive?.('Connexion administrateur requise.');
+            return;
+        }
+        const draft = this.collectAdminTimelineDraft();
+        const errors = this.validateAdminTimelineDraft(draft);
+        this.adminTimelineErrors = errors;
+        this.renderAdminTimelineErrors(errors);
+        if (errors.length) {
+            this.setAdminTimelineStatus('Corrigez les erreurs avant enregistrement.', true);
+            return;
+        }
+        this.adminTimelinePending = true;
+        this.syncAdminTimelineEditor();
+        this.setAdminTimelineStatus('Enregistrement de la chronologie...');
+        try {
+            const response = await fetch('/api/admin/timeline', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ timeline: draft })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            this.adminTimeline = this.normalizeAdminTimeline(payload?.timeline || draft);
+            this.adminTimelineDirty = false;
+            this.renderAdminTimelineConfig();
+            this.setAdminTimelineStatus('Chronologie mise a jour. Rechargez /timeline pour verifier le rendu.');
+            this.announcer?.polite?.('Chronologie enregistree.');
+        } catch (error) {
+            console.error('[admin] timeline save failed', error);
+            this.setAdminTimelineStatus('Impossible d\'enregistrer la chronologie.', true);
+        } finally {
+            this.adminTimelinePending = false;
+            this.syncAdminTimelineEditor();
         }
     }
 
