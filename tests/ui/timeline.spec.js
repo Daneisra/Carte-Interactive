@@ -46,4 +46,37 @@ test.describe('Chronologie - UI', () => {
     await expect(page.locator('.timeline-card')).toHaveCount(1);
     await expect(page.locator('#timeline-detail-title')).toHaveText(/Lisboa devient une plaque tournante/i);
   });
+
+  test('la frise est navigable au clavier', async ({ page }) => {
+    await page.goto('/timeline/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const firstCard = page.locator('.timeline-card').first();
+    await firstCard.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('#timeline-detail-title')).toHaveText(/Aguilar verrouille la frontiere/i);
+
+    await page.keyboard.press('End');
+    await expect(page.locator('#timeline-detail-title')).toHaveText(/Sanctuarium et Vardanys imposent un nouvel equilibre/i);
+
+    await page.keyboard.press('Home');
+    await expect(page.locator('#timeline-detail-title')).toHaveText(/Lisboa devient une plaque tournante/i);
+  });
+});
+
+test.describe('Chronologie - mobile', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('la page reste exploitable sur mobile', async ({ page }) => {
+    await page.goto('/timeline/');
+    await page.waitForLoadState('domcontentloaded');
+
+    await expect(page.locator('.timeline-filters')).toBeVisible();
+    await expect(page.locator('.timeline-card')).toHaveCount(6);
+
+    await page.locator('.timeline-card').nth(2).click();
+    await expect(page.locator('#timeline-detail-title')).toHaveText(/Brumeport ouvre une nouvelle route/i);
+    await expect(page.locator('.timeline-detail-actions .timeline-link-button')).toHaveCount(2);
+    await expect(page.locator('#timeline-map-link')).toBeVisible();
+  });
 });

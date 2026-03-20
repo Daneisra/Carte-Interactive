@@ -144,6 +144,18 @@ const updateHero = timeline => {
     dom.range.textContent = first === last ? first : `${first} -> ${last}`;
 };
 
+const updateTrackNavigationState = () => {
+    if (!dom.track || !dom.scrollPrev || !dom.scrollNext) {
+        return;
+    }
+    const maxScrollLeft = Math.max(0, dom.track.scrollWidth - dom.track.clientWidth);
+    const current = dom.track.scrollLeft;
+    const atStart = current <= 4;
+    const atEnd = current >= (maxScrollLeft - 4);
+    dom.scrollPrev.disabled = atStart;
+    dom.scrollNext.disabled = atEnd || maxScrollLeft <= 0;
+};
+
 const ensureFilterDom = () => {
     if (!dom.stage || document.getElementById('timeline-search')) {
         return;
@@ -272,6 +284,14 @@ const renderDetail = entry => {
     renderLocations(entry);
 };
 
+const focusTimelineCard = entryId => {
+    dom.track.querySelectorAll('.timeline-card').forEach(card => {
+        if (card.dataset.timelineId === entryId) {
+            card.focus();
+        }
+    });
+};
+
 const setActiveEntry = entryId => {
     const source = Array.isArray(state.filteredEntries) && state.filteredEntries.length ? state.filteredEntries : state.entries;
     const nextEntry = source.find(entry => entry.id === entryId) || source[0] || null;
@@ -292,6 +312,52 @@ const setActiveEntry = entryId => {
             card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
     });
+    window.requestAnimationFrame(updateTrackNavigationState);
+};
+
+const moveActiveEntry = direction => {
+    const source = Array.isArray(state.filteredEntries) && state.filteredEntries.length ? state.filteredEntries : state.entries;
+    if (!source.length) {
+        return;
+    }
+    const currentIndex = Math.max(0, source.findIndex(entry => entry.id === state.activeId));
+    const nextIndex = Math.min(source.length - 1, Math.max(0, currentIndex + direction));
+    const nextEntry = source[nextIndex];
+    if (!nextEntry) {
+        return;
+    }
+    setActiveEntry(nextEntry.id);
+    window.requestAnimationFrame(() => focusTimelineCard(nextEntry.id));
+};
+
+const handleCardKeydown = event => {
+    switch (event.key) {
+        case 'ArrowRight':
+            event.preventDefault();
+            moveActiveEntry(1);
+            break;
+        case 'ArrowLeft':
+            event.preventDefault();
+            moveActiveEntry(-1);
+            break;
+        case 'Home':
+            event.preventDefault();
+            if (state.filteredEntries.length) {
+                setActiveEntry(state.filteredEntries[0].id);
+                window.requestAnimationFrame(() => focusTimelineCard(state.filteredEntries[0].id));
+            }
+            break;
+        case 'End':
+            event.preventDefault();
+            if (state.filteredEntries.length) {
+                const lastEntry = state.filteredEntries[state.filteredEntries.length - 1];
+                setActiveEntry(lastEntry.id);
+                window.requestAnimationFrame(() => focusTimelineCard(lastEntry.id));
+            }
+            break;
+        default:
+            break;
+    }
 };
 
 const renderTrack = entries => {
@@ -311,6 +377,8 @@ const renderTrack = entries => {
         button.style.setProperty('--timeline-card-accent', entry.accentColor);
         button.setAttribute('role', 'listitem');
         button.setAttribute('aria-pressed', 'false');
+        button.setAttribute('aria-controls', 'timeline-detail');
+        button.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight Home End');
 
         const year = document.createElement('span');
         year.className = 'timeline-card-year';
@@ -358,8 +426,10 @@ const renderTrack = entries => {
 
         button.append(year, period, title, summary, meta);
         button.addEventListener('click', () => setActiveEntry(entry.id));
+        button.addEventListener('keydown', handleCardKeydown);
         dom.track.appendChild(button);
     });
+    window.requestAnimationFrame(updateTrackNavigationState);
 };
 
 const bindTrackNavigation = () => {
@@ -369,6 +439,8 @@ const bindTrackNavigation = () => {
 
     dom.scrollPrev?.addEventListener('click', () => scrollByAmount(-1));
     dom.scrollNext?.addEventListener('click', () => scrollByAmount(1));
+    dom.track?.addEventListener('scroll', updateTrackNavigationState, { passive: true });
+    window.addEventListener('resize', updateTrackNavigationState, { passive: true });
 };
 
 const applyFilters = () => {

@@ -173,7 +173,7 @@
 - [x] P5.8 - Lien frise -> carte : ouvrir la carte sur un lieu ou groupe de lieux liés depuis un événement.
 - [x] P5.9 - Lien carte -> frise : depuis un lieu, afficher plus tard les événements historiques liés dans un panneau ou une section dédiée.
 - [x] P5.10 - Filtres chronologie : époque, région, faction, type d'événement, recherche texte.
-- [ ] P5.11 - QA chronologie : accessibilité clavier, performances, mobile/tablette, validation des contenus et tests navigateur ciblés.
+- [x] P5.11 - QA chronologie : accessibilité clavier, performances, mobile/tablette, validation des contenus et tests navigateur ciblés.
 
 ### Note produit - Frise chronologique
 - [x] Option A - Page dédiée : meilleure lisibilité, plus de place pour une vraie frise horizontale, plus simple à rendre premium et responsive.

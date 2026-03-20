@@ -353,6 +353,12 @@ a {
     border-color: rgba(125, 211, 252, 0.28);
 }
 
+.timeline-scroll-button:disabled {
+    opacity: 0.45;
+    cursor: default;
+    transform: none;
+}
+
 .timeline-status {
     margin: 16px 0 0;
     color: var(--timeline-text-muted);
@@ -430,6 +436,11 @@ a {
 .timeline-card:focus-visible {
     transform: translateY(-4px);
     border-color: rgba(125, 211, 252, 0.34);
+}
+
+.timeline-card:focus-visible {
+    outline: 2px solid rgba(125, 211, 252, 0.7);
+    outline-offset: 2px;
 }
 
 .timeline-card.is-active {
@@ -660,6 +671,14 @@ a {
 
     .timeline-filters {
         grid-template-columns: 1fr;
+    }
+
+    .timeline-detail-actions {
+        flex-direction: column;
+    }
+
+    .timeline-detail-actions .timeline-link-button {
+        width: 100%;
     }
 
     .timeline-track {

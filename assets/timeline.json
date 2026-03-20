@@ -3,79 +3,154 @@
   "subtitle": "Une lecture lineaire des bascules politiques, spirituelles et militaires qui structurent les campagnes.",
   "entries": [
     {
-      "id": "lisboa-rises",
-      "year": 118,
-      "yearLabel": "An 118",
-      "title": "Lisboa devient une plaque tournante",
-      "summary": "Les routes maritimes se stabilisent et Lisboa s'impose comme noeud commercial majeur.",
-      "content": "L'essor des convois reguliers transforme Lisboa en port de reference. Les marchands, emissaires et intermediaires y concentrent contrats, cargaisons et renseignements, ce qui en fait l'un des premiers pivots logistiques du monde connu.",
-      "period": "Premiers royaumes",
-      "tags": ["Commerce", "Ports", "Routes"],
-      "locationNames": ["Lisboa"],
-      "imageUrl": "/assets/images/magda_grace.jpg",
-      "accentColor": "#5ea4ff"
+      "id": "commencement",
+      "year": -3000,
+      "yearLabel": "-3000 av. CC",
+      "title": "Ancien monde",
+      "summary": "Une seule Terre, un unique océan, un jour et une nuit. Les peuples surgirent successivement dans ce monde, certains vivant le jour, d'autres la nuit.",
+      "content": "Une seule Terre, un unique océan, un jour et une nuit. Les peuples surgirent successivement dans ce monde, certains vivant le jour, d'autres la nuit.",
+      "period": "Commencement",
+      "tags": [],
+      "locationNames": [],
+      "imageUrl": "",
+      "accentColor": "#5ea4ff",
+      "visible": true
     },
     {
-      "id": "aguilar-fortifies-frontier",
-      "year": 184,
-      "yearLabel": "An 184",
-      "title": "Aguilar verrouille la frontiere",
-      "summary": "Les defenses d'Aguilar sont renforcees pour contenir les pressions sur les marches interieurs.",
-      "content": "Face aux incursions repetees et aux tensions sur les axes terrestres, Aguilar devient un verrou tactique. Son role depasse vite la defense locale : la ville sert de point de coordination, de ravitaillement et de repli pour plusieurs campagnes.",
-      "period": "Consolidation",
-      "tags": ["Militaire", "Frontiere", "Defense"],
-      "locationNames": ["Aguilar"],
-      "accentColor": "#7dd3fc"
+      "id": "dechirement",
+      "year": -1000,
+      "yearLabel": "-1000 AV. CC",
+      "title": "Déchirement",
+      "summary": "Hesta, comme si c'était une personne sembla prendre la décision de briser la seule et unique terre de ce monde en la répartissant en plusieurs continents.",
+      "content": "Hesta, comme si c'était une personne sembla prendre la décision de briser la seule et unique terre de ce monde en la répartissant en plusieurs continents.",
+      "period": "Déchirement",
+      "tags": [],
+      "locationNames": [],
+      "imageUrl": "",
+      "accentColor": "#7dd3fc",
+      "visible": true
     },
     {
-      "id": "brumeport-opens-sea-lane",
-      "year": 247,
-      "yearLabel": "An 247",
-      "title": "Brumeport ouvre une nouvelle route",
-      "summary": "Une voie maritime plus sure permet de reconnecter des regions longtemps fragilisees.",
-      "content": "L'ouverture d'un passage plus fiable autour de Brumeport relance les echanges et l'exploration. Les equipages qui y transitent rapportent cartes, recits et opportunites, accelerant l'interdependance entre zones cotieres et terres interieures.",
-      "period": "Expansion",
-      "tags": ["Exploration", "Navigation", "Commerce"],
-      "locationNames": ["Brumeport"],
-      "imageUrl": "/assets/images/Caevorum.png",
-      "accentColor": "#67e8f9"
+      "id": "sainte-unification",
+      "year": -7,
+      "yearLabel": "-7 AV. CC",
+      "title": "La Sainte Unification",
+      "summary": "Comosicus unifia rapidement Valerius Primus sous sa bannière, menant ses armées contre les autres villes du continent.",
+      "content": "Comosicus unifia rapidement Valerius Primus sous sa bannière, menant ses armées contre les autres villes du continent.",
+      "period": "La Sainte Unification",
+      "tags": [],
+      "locationNames": [],
+      "imageUrl": "",
+      "accentColor": "#67e8f9",
+      "visible": true
     },
     {
-      "id": "montsegur-becomes-symbol",
-      "year": 312,
-      "yearLabel": "An 312",
-      "title": "Montsegur devient un symbole",
-      "summary": "La place forte gagne une aura politique et spirituelle bien au-dela de son territoire immediat.",
-      "content": "Au fil des conflits et des serments qui y sont pretes, Montsegur cesse d'etre seulement une position defensive. Le lieu devient un symbole de legitimite, de resistance et de memoire pour plusieurs factions rivales.",
-      "period": "Age des serments",
-      "tags": ["Pouvoir", "Memoire", "Citadelle"],
-      "locationNames": ["Montségur", "Monts Brumeux"],
-      "accentColor": "#fbbf24"
+      "id": "couronnement-comosicus",
+      "year": 0,
+      "yearLabel": "0 CC",
+      "title": "Couronnement Comosicus Thiri",
+      "summary": "En seulement 7 ans, il accomplit l'impossible en unifiant Vruliwen, marquant l'histoire avec des batailles sanglantes mais victorieuses.",
+      "content": "En seulement 7 ans, il accomplit l'impossible en unifiant Vruliwen, marquant l'histoire avec des batailles sanglantes mais victorieuses.",
+      "period": "Couronnement Comosicus Thiri",
+      "tags": [
+        "Couronnement"
+      ],
+      "locationNames": [
+        "Vruliwen",
+        "Valerius Primus"
+      ],
+      "imageUrl": "",
+      "accentColor": "#fbbf24",
+      "visible": true
     },
     {
-      "id": "nikaius-schism",
-      "year": 361,
-      "yearLabel": "An 361",
-      "title": "Le schisme de Nikaius",
-      "summary": "Les elites de Nikaius se divisent, provoquant une recomposition durable des alliances.",
-      "content": "Le schisme de Nikaius fracture les chaines de commandement, les relais religieux et les dependances economiques. Ce point de rupture marque l'entree dans une periode plus instable, ou les loyautes deviennent negociables et souvent temporaires.",
-      "period": "Fractures",
-      "tags": ["Politique", "Crise", "Alliances"],
-      "locationNames": ["Nikaïus"],
-      "accentColor": "#c084fc"
+      "id": "crise-imossa",
+      "year": 25,
+      "yearLabel": "25 AP. CC",
+      "title": "Crise d’Imossa",
+      "summary": "La légendaire Imossa,  Conquise par Comosicus Thiri, prospéra sous la Pax Maxima. Cependant, un cataclysme frappa et l'intervention de l'Église de la Lumière tourna mal, transformant un warlock en Hôte Démoniaque. La cité sombra dans la folie, avec des actes atroces. Comosicus Th",
+      "content": "La légendaire Imossa,  Conquise par Comosicus Thiri, prospéra sous la Pax Maxima. Cependant, un cataclysme frappa et l'intervention de l'Église de la Lumière tourna mal, transformant un warlock en Hôte Démoniaque. La cité sombra dans la folie, avec des actes atroces. Comosicus Th",
+      "period": "Crise d’Imossa",
+      "tags": [],
+      "locationNames": [
+        "Imossa"
+      ],
+      "imageUrl": "",
+      "accentColor": "#c084fc",
+      "visible": true
     },
     {
-      "id": "sanctuarium-vardanys-balance",
-      "year": 427,
-      "yearLabel": "An 427",
-      "title": "Sanctuarium et Vardanys imposent un nouvel equilibre",
-      "summary": "Deux centres d'influence redessinent les rapports de force entre pouvoir, culte et strategie.",
-      "content": "L'affirmation conjointe de Sanctuarium et Vardanys stabilise certains axes tout en durcissant les oppositions ideologiques. Cette phase ouvre le cadre contemporain des campagnes : un monde plus structure, mais plus sensible aux ruptures locales.",
-      "period": "Equilibre instable",
-      "tags": ["Factions", "Influence", "Strategie"],
-      "locationNames": ["Sanctuarium", "Vardanys", "Nocturna"],
-      "imageUrl": "/assets/images/Sanctus_Imperator_1.jpeg",
-      "accentColor": "#34d399"
+      "id": "croisade-imossa",
+      "year": 28,
+      "yearLabel": "28 AP. CC",
+      "title": "Croisade d’imossa",
+      "summary": "L'Église, jouissant d'une pleine indépendance, lança l'expédition, recrutant une immense armée composée de membres de l'Église et de conscrits du peuple. \nÉpuisée, l'Église mit fin à la croisade désastreuse en abandonnant l'armée corrompue à l'Hôte Démoniaque et retourna sur le c",
+      "content": "L'Église, jouissant d'une pleine indépendance, lança l'expédition, recrutant une immense armée composée de membres de l'Église et de conscrits du peuple. \nÉpuisée, l'Église mit fin à la croisade désastreuse en abandonnant l'armée corrompue à l'Hôte Démoniaque et retourna sur le c",
+      "period": "Crise d’Imossa",
+      "tags": [],
+      "locationNames": [
+        "Imossa"
+      ],
+      "imageUrl": "",
+      "accentColor": "#34d399",
+      "visible": true
+    },
+    {
+      "id": "pas-zemantis",
+      "year": 40,
+      "yearLabel": "40 AP. CC",
+      "title": "1er Pas en Zemantis",
+      "summary": "L’Ordre Exterminatus est envoyer en Zemantis pour  établir les fondations d’une croisade future.",
+      "content": "L’Ordre Exterminatus est envoyer en Zemantis pour  établir les fondations d’une croisade future.",
+      "period": "1er Pas en Zemantis",
+      "tags": [
+        "Ordre Exterminatus"
+      ],
+      "locationNames": [
+        "Zemantis",
+        "OE"
+      ],
+      "imageUrl": "",
+      "accentColor": "#7dd3fc",
+      "visible": true
+    },
+    {
+      "id": "guerre-vrulio-dipovienne",
+      "year": 43,
+      "yearLabel": "43 AP. CC",
+      "title": "La Première Guerre Vrulio-Dipovienne",
+      "summary": "La guerre est déclarée entre l'empire de Vruliwen et les vikings de Dipovia.",
+      "content": "La guerre est déclarée entre l'empire de Vruliwen et les vikings de Dipovia.",
+      "period": "Guerre Vrulio-Dipovienne",
+      "tags": [
+        "Guerre"
+      ],
+      "locationNames": [
+        "Vruliwen",
+        "Dipovia"
+      ],
+      "imageUrl": "",
+      "accentColor": "#7dd3fc",
+      "visible": true
+    },
+    {
+      "id": "insurrection-vardanys",
+      "year": 47,
+      "yearLabel": "47 AP. CC",
+      "title": "Insurrection de Vardanys",
+      "summary": "Mouvement séditieux au sein de la Garde d’Imossa, début de l'insurrection de Vardanys.",
+      "content": "Mouvement séditieux au sein de la Garde d’Imossa, début de l'insurrection de Vardanys.",
+      "period": "Guerre Vrulio-Dipovienne",
+      "tags": [
+        "Garde d’Imossa",
+        "Insurrection"
+      ],
+      "locationNames": [
+        "Vardanys"
+      ],
+      "imageUrl": "",
+      "accentColor": "#7dd3fc",
+      "visible": true
     }
   ]
 }
