@@ -9,6 +9,44 @@ import { UserAdminPanel } from './ui/userAdminPanel.js';
 import { AriaAnnouncer } from './ui/ariaAnnouncer.js';
 import { renderMarkdown } from './ui/markdown.mjs';
 import { qs, createElement, clearElement } from './ui/dom.js';
+import {
+    normalizeAdminSiteConfig as normalizeAdminSiteConfigModel,
+    formatAdminSiteConfigTags as formatAdminSiteConfigTagsValue,
+    formatAdminSiteConfigMetrics as formatAdminSiteConfigMetricsValue,
+    formatAdminSiteConfigChangelog as formatAdminSiteConfigChangelogValue,
+    parseAdminDelimitedLines as parseAdminDelimitedLinesValue,
+    parseAdminMetrics as parseAdminMetricsValue,
+    parseAdminChangelog as parseAdminChangelogValue,
+    setAdminHomeStatus as setAdminHomeStatusPanel,
+    renderAdminHomeErrors as renderAdminHomeErrorsPanel,
+    syncAdminHomeEditor as syncAdminHomeEditorPanel,
+    renderAdminSiteConfig as renderAdminSiteConfigPanel,
+    collectAdminSiteConfigDraft as collectAdminSiteConfigDraftPanel,
+    validateAdminSiteConfigDraft as validateAdminSiteConfigDraftModel,
+    markAdminSiteConfigDirty as markAdminSiteConfigDirtyPanel,
+    fetchAdminSiteConfig as fetchAdminSiteConfigPanel,
+    saveAdminSiteConfig as saveAdminSiteConfigPanel
+} from './ui/adminHome.js';
+import {
+    normalizeAdminTimeline as normalizeAdminTimelineModel,
+    normalizeAdminTimelineEntry as normalizeAdminTimelineEntryModel,
+    createAdminTimelineEntry as createAdminTimelineEntryModel,
+    parseAdminTokenList as parseAdminTokenListValue,
+    setAdminTimelineStatus as setAdminTimelineStatusPanel,
+    renderAdminTimelineErrors as renderAdminTimelineErrorsPanel,
+    syncAdminTimelineEditor as syncAdminTimelineEditorPanel,
+    renderAdminTimelineConfig as renderAdminTimelineConfigPanel,
+    renderAdminTimelineList as renderAdminTimelineListPanel,
+    createAdminTimelineEntryCard as createAdminTimelineEntryCardPanel,
+    addAdminTimelineEntry as addAdminTimelineEntryPanel,
+    moveAdminTimelineEntry as moveAdminTimelineEntryPanel,
+    removeAdminTimelineEntry as removeAdminTimelineEntryPanel,
+    collectAdminTimelineDraft as collectAdminTimelineDraftPanel,
+    validateAdminTimelineDraft as validateAdminTimelineDraftModel,
+    markAdminTimelineDirty as markAdminTimelineDirtyPanel,
+    fetchAdminTimeline as fetchAdminTimelinePanel,
+    saveAdminTimeline as saveAdminTimelinePanel
+} from './ui/adminTimeline.js';
 import { LocationEditor } from './ui/locationEditor.js';
 import { EventsFeed } from './ui/eventsFeed.js';
 import { getString } from './i18n.js';
@@ -4149,443 +4187,55 @@ export class UiController {
     }
 
     normalizeAdminSiteConfig(config = {}) {
-        const home = config?.home && typeof config.home === 'object' ? config.home : {};
-        const community = config?.community && typeof config.community === 'object' ? config.community : {};
-        const support = config?.support && typeof config.support === 'object' ? config.support : {};
-        const legal = config?.legal && typeof config.legal === 'object' ? config.legal : {};
-        const changelog = Array.isArray(config?.changelog) ? config.changelog : [];
-        const normalizeCard = (card, fallback) => ({
-            badge: sanitizeString(card?.badge || fallback.badge),
-            title: sanitizeString(card?.title || fallback.title),
-            copy: sanitizeString(card?.copy || fallback.copy)
-        });
-        const normalizeMetrics = Array.isArray(home.metrics) && home.metrics.length
-            ? home.metrics
-                .map(metric => ({
-                    label: sanitizeString(metric?.label),
-                    value: sanitizeString(metric?.value)
-                }))
-                .filter(metric => metric.label && metric.value)
-            : [
-                { label: 'Hub', value: 'Carte + Communaute' },
-                { label: 'Acces', value: 'Lecture / Discord / Admin' },
-                { label: 'Etat', value: 'Pre-P3 en production' }
-            ];
-        const normalizeTags = Array.isArray(home.tags) && home.tags.length
-            ? home.tags.map(tag => sanitizeString(tag)).filter(Boolean)
-            : ['Carte narrative', 'Quetes live', 'Groupes JDR', 'Profils & personnages'];
-        return {
-            home: {
-                kicker: sanitizeString(home.kicker || 'P3.1 - Accueil pre-carte'),
-                title: sanitizeString(home.title || "Entrez dans l'univers avant d'ouvrir la carte"),
-                lead: sanitizeString(home.lead || "Explorez les lieux, suivez les quetes en direct, retrouvez votre groupe JDR et centralisez vos personnages. Cette page sert de point d'entree rapide pour la carte et la communaute."),
-                atmosphere: sanitizeString(home.atmosphere || "Hub pre-carte - entree rapide vers l'univers, la carte et la communaute."),
-                tags: normalizeTags,
-                metrics: normalizeMetrics,
-                visuals: {
-                    backgroundImage: sanitizeString(home?.visuals?.backgroundImage || '/assets/home/backgrounds/hero-main.png'),
-                    mapPreviewImage: sanitizeString(home?.visuals?.mapPreviewImage || '/assets/home/mockups/map-preview-main.png'),
-                    characterImage: sanitizeString(home?.visuals?.characterImage || '/assets/home/characters/Chevalier.png'),
-                    floatingTitle: sanitizeString(home?.visuals?.floatingTitle || "Les terres d'Hesta"),
-                    floatingCopy: sanitizeString(home?.visuals?.floatingCopy || "Un apercu clair du monde, des routes, des villes et des quetes qui structurent vos campagnes.")
-                }
-            },
-            community: {
-                discordUrl: sanitizeString(community.discordUrl || 'https://discord.com/'),
-                youtubeUrl: sanitizeString(community.youtubeUrl || 'https://www.youtube.com/'),
-                redditUrl: sanitizeString(community.redditUrl || 'https://www.reddit.com/'),
-                discord: normalizeCard(community.discord, {
-                    badge: 'Discord',
-                    title: 'Serveur principal',
-                    copy: 'Organisation des sessions, annonces JDR et coordination des groupes.'
-                }),
-                proof: {
-                    mode: sanitizeString(community?.proof?.mode) === 'discord' ? 'discord' : 'manual',
-                    guildId: sanitizeString(community?.proof?.guildId || ''),
-                    manualCount: Math.max(0, Number(community?.proof?.manualCount) || 0),
-                    label: sanitizeString(community?.proof?.label || 'membres sur Discord'),
-                    note: sanitizeString(community?.proof?.note || 'Sessions, annonces et coordination des groupes JDR.')
-                },
-                youtube: normalizeCard(community.youtube, {
-                    badge: 'YouTube',
-                    title: 'Lore & recaps',
-                    copy: "Recaps, videos d univers et ambiances pour prolonger les campagnes."
-                }),
-                reddit: normalizeCard(community.reddit, {
-                    badge: 'Reddit',
-                    title: 'Discussions',
-                    copy: "Partage d idees, feedback et archives communautaires."
-                })
-            },
-            support: {
-                issuesUrl: sanitizeString(support.issuesUrl || 'https://github.com/Daneisra/Carte-Interactive/issues'),
-                contactEmail: sanitizeString(support.contactEmail || 'contact@cartehesta.local')
-            },
-            legal: {
-                creditsUrl: sanitizeString(legal.creditsUrl || '/docs/credits-assets.md'),
-                footerNote: sanitizeString(legal.footerNote || "Projet narratif / JDR - fan project / page d'accueil pre-carte (P3.1 MVP).")
-            },
-            changelog: changelog
-                .map(entry => ({
-                    date: sanitizeString(entry?.date),
-                    title: sanitizeString(entry?.title),
-                    summary: sanitizeString(entry?.summary)
-                }))
-                .filter(entry => entry.date || entry.title || entry.summary)
-        };
+        return normalizeAdminSiteConfigModel(config);
     }
 
     formatAdminSiteConfigTags(tags = []) {
-        return Array.isArray(tags) ? tags.filter(Boolean).join('\n') : '';
+        return formatAdminSiteConfigTagsValue(tags);
     }
 
     formatAdminSiteConfigMetrics(metrics = []) {
-        return Array.isArray(metrics)
-            ? metrics
-                .filter(metric => metric?.label && metric?.value)
-                .map(metric => `${metric.label} | ${metric.value}`)
-                .join('\n')
-            : '';
+        return formatAdminSiteConfigMetricsValue(metrics);
     }
 
     formatAdminSiteConfigChangelog(entries = []) {
-        return Array.isArray(entries)
-            ? entries
-                .filter(entry => entry?.date || entry?.title || entry?.summary)
-                .map(entry => `${entry.date || ''} | ${entry.title || ''} | ${entry.summary || ''}`.trim())
-                .join('\n')
-            : '';
+        return formatAdminSiteConfigChangelogValue(entries);
     }
 
     parseAdminDelimitedLines(value = '') {
-        return String(value || '')
-            .split(/\r?\n/)
-            .map(line => line.trim())
-            .filter(Boolean);
+        return parseAdminDelimitedLinesValue(value);
     }
 
     parseAdminMetrics(value = '') {
-        return this.parseAdminDelimitedLines(value)
-            .map(line => {
-                const [label, ...rest] = line.split('|');
-                const metricLabel = sanitizeString(label);
-                const metricValue = sanitizeString(rest.join('|'));
-                if (!metricLabel || !metricValue) {
-                    return null;
-                }
-                return { label: metricLabel, value: metricValue };
-            })
-            .filter(Boolean);
+        return parseAdminMetricsValue(value);
     }
 
     parseAdminChangelog(value = '') {
-        return this.parseAdminDelimitedLines(value)
-            .map(line => {
-                const [date, title, ...summaryParts] = line.split('|');
-                const parsed = {
-                    date: sanitizeString(date),
-                    title: sanitizeString(title),
-                    summary: sanitizeString(summaryParts.join('|'))
-                };
-                if (!parsed.date && !parsed.title && !parsed.summary) {
-                    return null;
-                }
-                return parsed;
-            })
-            .filter(Boolean);
+        return parseAdminChangelogValue(value);
     }
 
     setAdminHomeStatus(message, isError = false) {
-        if (!this.adminDom.homeStatus) {
-            return;
-        }
-        if (!message) {
-            this.adminDom.homeStatus.hidden = true;
-            this.adminDom.homeStatus.textContent = '';
-            this.adminDom.homeStatus.classList.remove('is-error');
-            return;
-        }
-        this.adminDom.homeStatus.hidden = false;
-        this.adminDom.homeStatus.textContent = message;
-        this.adminDom.homeStatus.classList.toggle('is-error', Boolean(isError));
+        return setAdminHomeStatusPanel(this, message, isError);
     }
 
     renderAdminHomeErrors(errors = []) {
-        if (!this.adminDom.homeErrors) {
-            return;
-        }
-        const list = Array.isArray(errors) ? errors.filter(Boolean) : [];
-        this.adminDom.homeErrors.innerHTML = '';
-        if (!list.length) {
-            this.adminDom.homeErrors.hidden = true;
-            return;
-        }
-        list.forEach(message => {
-            this.adminDom.homeErrors.appendChild(createElement('li', { text: message }));
-        });
-        this.adminDom.homeErrors.hidden = false;
+        return renderAdminHomeErrorsPanel(this, errors);
     }
 
     syncAdminHomeEditor() {
-        const isAdmin = this.isAdmin();
-        const hasConfig = !!this.adminSiteConfig;
-        const readOnlyFallback = this.adminSiteConfigSource === 'fallback';
-        const disabled = !isAdmin || this.adminSiteConfigPending || !hasConfig;
-        [
-            this.adminDom.homeKicker,
-            this.adminDom.homeTitle,
-            this.adminDom.homeLead,
-            this.adminDom.homeAtmosphere,
-            this.adminDom.homeTags,
-            this.adminDom.homeMetrics,
-            this.adminDom.homeBackgroundImage,
-            this.adminDom.homeMapImage,
-            this.adminDom.homeCharacterImage,
-            this.adminDom.homeFloatingTitle,
-            this.adminDom.homeFloatingCopy,
-            this.adminDom.homeDiscordUrl,
-            this.adminDom.homeDiscordTitle,
-            this.adminDom.homeDiscordCopy,
-            this.adminDom.homeDiscordProofMode,
-            this.adminDom.homeDiscordGuildId,
-            this.adminDom.homeDiscordManualCount,
-            this.adminDom.homeDiscordProofLabel,
-            this.adminDom.homeDiscordProofNote,
-            this.adminDom.homeYoutubeUrl,
-            this.adminDom.homeYoutubeTitle,
-            this.adminDom.homeYoutubeCopy,
-            this.adminDom.homeRedditUrl,
-            this.adminDom.homeRedditTitle,
-            this.adminDom.homeRedditCopy,
-            this.adminDom.homeSupportUrl,
-            this.adminDom.homeContactEmail,
-            this.adminDom.homeCreditsUrl,
-            this.adminDom.homeFooterNote,
-            this.adminDom.homeChangelog
-        ].forEach(element => {
-            if (element) {
-                element.disabled = disabled;
-            }
-        });
-        if (this.adminDom.homeReloadButton) {
-            this.adminDom.homeReloadButton.disabled = !isAdmin || this.adminSiteConfigPending;
-        }
-        if (this.adminDom.homeSaveButton) {
-            this.adminDom.homeSaveButton.disabled = !isAdmin || this.adminSiteConfigPending || !hasConfig || readOnlyFallback;
-        }
-        if (this.adminDom.homeSaveButton) {
-            this.adminDom.homeSaveButton.textContent = this.adminSiteConfigPending
-                ? "Enregistrement..."
-                : (readOnlyFallback
-                    ? "API admin indisponible"
-                    : (this.adminSiteConfigDirty ? "Enregistrer l'accueil *" : "Enregistrer l'accueil"));
-        }
+        return syncAdminHomeEditorPanel(this);
     }
 
     renderAdminSiteConfig() {
-        const config = this.normalizeAdminSiteConfig(this.adminSiteConfig || {});
-        if (this.adminDom.homeKicker) {
-            this.adminDom.homeKicker.value = config.home.kicker || '';
-        }
-        if (this.adminDom.homeTitle) {
-            this.adminDom.homeTitle.value = config.home.title || '';
-        }
-        if (this.adminDom.homeLead) {
-            this.adminDom.homeLead.value = config.home.lead || '';
-        }
-        if (this.adminDom.homeAtmosphere) {
-            this.adminDom.homeAtmosphere.value = config.home.atmosphere || '';
-        }
-        if (this.adminDom.homeTags) {
-            this.adminDom.homeTags.value = this.formatAdminSiteConfigTags(config.home.tags);
-        }
-        if (this.adminDom.homeMetrics) {
-            this.adminDom.homeMetrics.value = this.formatAdminSiteConfigMetrics(config.home.metrics);
-        }
-        if (this.adminDom.homeBackgroundImage) {
-            this.adminDom.homeBackgroundImage.value = config.home.visuals?.backgroundImage || '';
-        }
-        if (this.adminDom.homeMapImage) {
-            this.adminDom.homeMapImage.value = config.home.visuals?.mapPreviewImage || '';
-        }
-        if (this.adminDom.homeCharacterImage) {
-            this.adminDom.homeCharacterImage.value = config.home.visuals?.characterImage || '';
-        }
-        if (this.adminDom.homeFloatingTitle) {
-            this.adminDom.homeFloatingTitle.value = config.home.visuals?.floatingTitle || '';
-        }
-        if (this.adminDom.homeFloatingCopy) {
-            this.adminDom.homeFloatingCopy.value = config.home.visuals?.floatingCopy || '';
-        }
-        if (this.adminDom.homeDiscordUrl) {
-            this.adminDom.homeDiscordUrl.value = config.community.discordUrl || '';
-        }
-        if (this.adminDom.homeDiscordTitle) {
-            this.adminDom.homeDiscordTitle.value = config.community.discord?.title || '';
-        }
-        if (this.adminDom.homeDiscordCopy) {
-            this.adminDom.homeDiscordCopy.value = config.community.discord?.copy || '';
-        }
-        if (this.adminDom.homeDiscordProofMode) {
-            this.adminDom.homeDiscordProofMode.value = config.community.proof?.mode || 'manual';
-        }
-        if (this.adminDom.homeDiscordGuildId) {
-            this.adminDom.homeDiscordGuildId.value = config.community.proof?.guildId || '';
-        }
-        if (this.adminDom.homeDiscordManualCount) {
-            this.adminDom.homeDiscordManualCount.value = String(config.community.proof?.manualCount ?? 0);
-        }
-        if (this.adminDom.homeDiscordProofLabel) {
-            this.adminDom.homeDiscordProofLabel.value = config.community.proof?.label || '';
-        }
-        if (this.adminDom.homeDiscordProofNote) {
-            this.adminDom.homeDiscordProofNote.value = config.community.proof?.note || '';
-        }
-        if (this.adminDom.homeYoutubeUrl) {
-            this.adminDom.homeYoutubeUrl.value = config.community.youtubeUrl || '';
-        }
-        if (this.adminDom.homeYoutubeTitle) {
-            this.adminDom.homeYoutubeTitle.value = config.community.youtube?.title || '';
-        }
-        if (this.adminDom.homeYoutubeCopy) {
-            this.adminDom.homeYoutubeCopy.value = config.community.youtube?.copy || '';
-        }
-        if (this.adminDom.homeRedditUrl) {
-            this.adminDom.homeRedditUrl.value = config.community.redditUrl || '';
-        }
-        if (this.adminDom.homeRedditTitle) {
-            this.adminDom.homeRedditTitle.value = config.community.reddit?.title || '';
-        }
-        if (this.adminDom.homeRedditCopy) {
-            this.adminDom.homeRedditCopy.value = config.community.reddit?.copy || '';
-        }
-        if (this.adminDom.homeSupportUrl) {
-            this.adminDom.homeSupportUrl.value = config.support.issuesUrl || '';
-        }
-        if (this.adminDom.homeContactEmail) {
-            this.adminDom.homeContactEmail.value = config.support.contactEmail || '';
-        }
-        if (this.adminDom.homeCreditsUrl) {
-            this.adminDom.homeCreditsUrl.value = config.legal.creditsUrl || '';
-        }
-        if (this.adminDom.homeFooterNote) {
-            this.adminDom.homeFooterNote.value = config.legal.footerNote || '';
-        }
-        if (this.adminDom.homeChangelog) {
-            this.adminDom.homeChangelog.value = this.formatAdminSiteConfigChangelog(config.changelog);
-        }
-        this.renderAdminHomeErrors([]);
-        this.syncAdminHomeEditor();
+        return renderAdminSiteConfigPanel(this);
     }
 
     collectAdminSiteConfigDraft() {
-        return this.normalizeAdminSiteConfig({
-            home: {
-                kicker: this.adminDom.homeKicker?.value || '',
-                title: this.adminDom.homeTitle?.value || '',
-                lead: this.adminDom.homeLead?.value || '',
-                atmosphere: this.adminDom.homeAtmosphere?.value || '',
-                tags: this.parseAdminDelimitedLines(this.adminDom.homeTags?.value || ''),
-                metrics: this.parseAdminMetrics(this.adminDom.homeMetrics?.value || ''),
-                visuals: {
-                    backgroundImage: this.adminDom.homeBackgroundImage?.value || '',
-                    mapPreviewImage: this.adminDom.homeMapImage?.value || '',
-                    characterImage: this.adminDom.homeCharacterImage?.value || '',
-                    floatingTitle: this.adminDom.homeFloatingTitle?.value || '',
-                    floatingCopy: this.adminDom.homeFloatingCopy?.value || ''
-                }
-            },
-            community: {
-                discordUrl: this.adminDom.homeDiscordUrl?.value || '',
-                youtubeUrl: this.adminDom.homeYoutubeUrl?.value || '',
-                redditUrl: this.adminDom.homeRedditUrl?.value || '',
-                discord: {
-                    badge: 'Discord',
-                    title: this.adminDom.homeDiscordTitle?.value || '',
-                    copy: this.adminDom.homeDiscordCopy?.value || ''
-                },
-                proof: {
-                    mode: this.adminDom.homeDiscordProofMode?.value || 'manual',
-                    guildId: this.adminDom.homeDiscordGuildId?.value || '',
-                    manualCount: this.adminDom.homeDiscordManualCount?.value || 0,
-                    label: this.adminDom.homeDiscordProofLabel?.value || '',
-                    note: this.adminDom.homeDiscordProofNote?.value || ''
-                },
-                youtube: {
-                    badge: 'YouTube',
-                    title: this.adminDom.homeYoutubeTitle?.value || '',
-                    copy: this.adminDom.homeYoutubeCopy?.value || ''
-                },
-                reddit: {
-                    badge: 'Reddit',
-                    title: this.adminDom.homeRedditTitle?.value || '',
-                    copy: this.adminDom.homeRedditCopy?.value || ''
-                }
-            },
-            support: {
-                issuesUrl: this.adminDom.homeSupportUrl?.value || '',
-                contactEmail: this.adminDom.homeContactEmail?.value || ''
-            },
-            legal: {
-                creditsUrl: this.adminDom.homeCreditsUrl?.value || '',
-                footerNote: this.adminDom.homeFooterNote?.value || ''
-            },
-            changelog: this.parseAdminChangelog(this.adminDom.homeChangelog?.value || '')
-        });
+        return collectAdminSiteConfigDraftPanel(this);
     }
 
     validateAdminSiteConfigDraft(config) {
-        const errors = [];
-        const isHttp = value => /^https?:\/\//i.test((value || '').trim());
-        const isRelative = value => (value || '').trim().startsWith('/');
-        const isMail = value => /^(mailto:)?[^@\s]+@[^@\s]+\.[^@\s]+$/i.test((value || '').trim());
-        if (!sanitizeString(config?.home?.title)) {
-            errors.push("Le titre de l'accueil est requis.");
-        }
-        if (!sanitizeString(config?.home?.lead)) {
-            errors.push("Le texte d'introduction de l'accueil est requis.");
-        }
-        if (!Array.isArray(config?.home?.metrics) || !config.home.metrics.length) {
-            errors.push('Ajoutez au moins une metrique hero (Label | Valeur).');
-        }
-        [
-            ['Fond hero', config?.home?.visuals?.backgroundImage],
-            ['Mockup carte', config?.home?.visuals?.mapPreviewImage],
-            ['Render personnage', config?.home?.visuals?.characterImage]
-        ].forEach(([label, value]) => {
-            const raw = sanitizeString(value);
-            if (raw && !(isHttp(raw) || isRelative(raw))) {
-                errors.push(`${label} invalide (http(s) ou chemin relatif attendu).`);
-            }
-        });
-        if (config?.community?.discordUrl && !isHttp(config.community.discordUrl)) {
-            errors.push('URL Discord invalide.');
-        }
-        if (config?.community?.proof?.mode === 'discord' && !sanitizeString(config?.community?.proof?.guildId) && !sanitizeString(config?.community?.discordUrl)) {
-            errors.push('Renseignez une URL Discord ou un Guild ID pour le compteur auto.');
-        }
-        if (Number(config?.community?.proof?.manualCount) < 0) {
-            errors.push('Le compteur manuel Discord doit etre positif.');
-        }
-        if (config?.community?.youtubeUrl && !isHttp(config.community.youtubeUrl)) {
-            errors.push('URL YouTube invalide.');
-        }
-        if (config?.community?.redditUrl && !isHttp(config.community.redditUrl)) {
-            errors.push('URL Reddit invalide.');
-        }
-        if (config?.support?.issuesUrl && !isHttp(config.support.issuesUrl)) {
-            errors.push('URL support / bugs invalide.');
-        }
-        if (config?.support?.contactEmail && !isMail(config.support.contactEmail)) {
-            errors.push('Contact invalide (email ou mailto: attendu).');
-        }
-        if (config?.legal?.creditsUrl && !(isHttp(config.legal.creditsUrl) || isRelative(config.legal.creditsUrl))) {
-            errors.push('URL credits invalide (http(s) ou chemin relatif attendu).');
-        }
-        if (!Array.isArray(config?.changelog) || !config.changelog.length) {
-            errors.push('Ajoutez au moins une patch note.');
-        }
-        return errors;
+        return validateAdminSiteConfigDraftModel(config);
     }
 
     syncAdminAvailability() {
@@ -4687,627 +4337,87 @@ export class UiController {
     }
 
     markAdminSiteConfigDirty() {
-        if (!this.isAdmin()) {
-            return;
-        }
-        this.adminSiteConfigDirty = true;
-        this.setAdminHomeStatus('');
-        this.renderAdminHomeErrors([]);
-        this.syncAdminHomeEditor();
+        return markAdminSiteConfigDirtyPanel(this);
     }
 
     async fetchAdminSiteConfig() {
-        if (!this.adminDom.homeSaveButton) {
-            return;
-        }
-        if (!this.isAdmin()) {
-            this.adminSiteConfig = null;
-            this.adminSiteConfigSource = 'unloaded';
-            this.adminSiteConfigDirty = false;
-            this.syncAdminHomeEditor();
-            return;
-        }
-        this.setAdminHomeStatus("Chargement de la configuration de l'accueil...");
-        try {
-            const response = await fetch('/api/admin/site-config', {
-                credentials: 'include',
-                cache: 'no-store'
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            const payload = await response.json();
-            this.adminSiteConfig = this.normalizeAdminSiteConfig(payload?.config || {});
-            this.adminSiteConfigSource = 'api';
-            this.adminSiteConfigDirty = false;
-            this.renderAdminSiteConfig();
-            this.setAdminHomeStatus("Configuration de l'accueil chargee depuis l'API admin.");
-        } catch (error) {
-            console.error('[admin] site config fetch failed', error);
-            this.logTelemetryEvent({
-                title: 'Admin accueil - chargement',
-                description: error?.message || "Echec chargement configuration d'accueil",
-                route: '/api/admin/site-config',
-                method: 'GET',
-                status: error?.status || null
-            });
-            try {
-                const fallbackResponse = await fetch('/assets/site-config.json', {
-                    cache: 'no-store'
-                });
-                if (!fallbackResponse.ok) {
-                    throw new Error(`HTTP ${fallbackResponse.status}`);
-                }
-                const fallbackPayload = await fallbackResponse.json();
-                this.adminSiteConfig = this.normalizeAdminSiteConfig(fallbackPayload || {});
-                this.adminSiteConfigSource = 'fallback';
-                this.adminSiteConfigDirty = false;
-                this.renderAdminSiteConfig();
-                this.setAdminHomeStatus("API admin indisponible. Formulaire charge depuis assets/site-config.json en lecture seule.", true);
-            } catch (fallbackError) {
-                console.error('[admin] site config fallback fetch failed', fallbackError);
-                this.adminSiteConfig = null;
-                this.adminSiteConfigSource = 'unloaded';
-                this.setAdminHomeStatus("Impossible de charger la configuration de l'accueil depuis l'API admin ou assets/site-config.json.", true);
-            }
-        } finally {
-            this.syncAdminHomeEditor();
-        }
+        return fetchAdminSiteConfigPanel(this);
     }
 
     async saveAdminSiteConfig() {
-        if (!this.isAdmin()) {
-            this.announcer?.assertive?.('Connexion administrateur requise.');
-            return;
-        }
-        const draft = this.collectAdminSiteConfigDraft();
-        const errors = this.validateAdminSiteConfigDraft(draft);
-        this.adminSiteConfigErrors = errors;
-        this.renderAdminHomeErrors(errors);
-        if (errors.length) {
-            this.setAdminHomeStatus('Corrigez les erreurs avant enregistrement.', true);
-            return;
-        }
-        this.adminSiteConfigPending = true;
-        this.syncAdminHomeEditor();
-        this.setAdminHomeStatus("Enregistrement de l'accueil...");
-        try {
-            const response = await fetch('/api/admin/site-config', {
-                method: 'PATCH',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ config: draft })
-            });
-            if (!response.ok) {
-                const error = new Error(`HTTP ${response.status}`);
-                error.status = response.status;
-                throw error;
-            }
-            const payload = await response.json();
-            this.adminSiteConfig = this.normalizeAdminSiteConfig(payload?.config || draft);
-            this.adminSiteConfigSource = 'api';
-            this.adminSiteConfigDirty = false;
-            this.renderAdminSiteConfig();
-            this.setAdminHomeStatus("Accueil mis a jour. Rechargez '/' pour verifier le rendu.");
-            this.announcer?.polite?.("Configuration de l'accueil enregistree.");
-        } catch (error) {
-            console.error('[admin] site config save failed', error);
-            this.setAdminHomeStatus("Impossible d'enregistrer l'accueil.", true);
-            this.logTelemetryEvent({
-                title: 'Admin accueil - sauvegarde',
-                description: error?.message || "Echec sauvegarde configuration d'accueil",
-                route: '/api/admin/site-config',
-                method: 'PATCH',
-                status: error?.status || null
-            });
-        } finally {
-            this.adminSiteConfigPending = false;
-            this.syncAdminHomeEditor();
-        }
+        return saveAdminSiteConfigPanel(this);
     }
 
     normalizeAdminTimeline(config = {}) {
-        const source = config && typeof config === 'object' ? config : {};
-        const entries = Array.isArray(source.entries)
-            ? source.entries.map((entry, index) => this.normalizeAdminTimelineEntry(entry, index)).filter(Boolean)
-            : [];
-        return {
-            title: sanitizeString(source.title || "Chronologie d'Hesta"),
-            subtitle: sanitizeString(source.subtitle || "Une lecture lineaire des bascules politiques, spirituelles et militaires qui structurent les campagnes."),
-            entries
-        };
+        return normalizeAdminTimelineModel(this.normalizeAdminTimelineEntry.bind(this), config);
     }
 
     normalizeAdminTimelineEntry(entry = {}, index = 0) {
-        const normalizedYear = Number(entry?.year);
-        const year = Number.isFinite(normalizedYear) ? Math.round(normalizedYear) : index;
-        const title = sanitizeString(entry?.title || '');
-        return {
-            id: sanitizeString(entry?.id || `${year}-${title || `event-${index + 1}`}`)
-                .toLowerCase()
-                .replace(/[^a-z0-9_-]+/g, '-')
-                .replace(/-+/g, '-')
-                .replace(/^-+|-+$/g, '') || `timeline-${index + 1}`,
-            year,
-            yearLabel: sanitizeString(entry?.yearLabel || String(year)),
-            title: title || `Evenement ${index + 1}`,
-            summary: sanitizeString(entry?.summary || ''),
-            content: sanitizeString(entry?.content || ''),
-            period: sanitizeString(entry?.period || 'Periode inconnue'),
-            tags: Array.isArray(entry?.tags) ? entry.tags.map(tag => sanitizeString(tag)).filter(Boolean) : [],
-            locationNames: Array.isArray(entry?.locationNames) ? entry.locationNames.map(name => sanitizeString(name)).filter(Boolean) : [],
-            imageUrl: sanitizeString(entry?.imageUrl || ''),
-            accentColor: /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(sanitizeString(entry?.accentColor || '')) ? sanitizeString(entry.accentColor) : '#7dd3fc',
-            visible: entry?.visible !== false
-        };
+        return normalizeAdminTimelineEntryModel(entry, index);
     }
 
     createAdminTimelineEntry(index = 0) {
-        return this.normalizeAdminTimelineEntry({
-            id: `timeline-${Date.now()}-${index + 1}`,
-            year: new Date().getFullYear(),
-            yearLabel: `An ${new Date().getFullYear()}`,
-            title: 'Nouvel evenement',
-            summary: '',
-            content: '',
-            period: 'Periode inconnue',
-            tags: [],
-            locationNames: [],
-            imageUrl: '',
-            accentColor: '#7dd3fc',
-            visible: true
-        }, index);
+        return createAdminTimelineEntryModel(this.normalizeAdminTimelineEntry.bind(this), index);
     }
 
     parseAdminTokenList(value = '') {
-        return String(value || '')
-            .split(/[\n,]/)
-            .map(entry => sanitizeString(entry))
-            .filter(Boolean);
+        return parseAdminTokenListValue(value);
     }
 
     setAdminTimelineStatus(message, isError = false) {
-        if (!this.adminDom.timelineStatus) {
-            return;
-        }
-        if (!message) {
-            this.adminDom.timelineStatus.hidden = true;
-            this.adminDom.timelineStatus.textContent = '';
-            this.adminDom.timelineStatus.classList.remove('is-error');
-            return;
-        }
-        this.adminDom.timelineStatus.hidden = false;
-        this.adminDom.timelineStatus.textContent = message;
-        this.adminDom.timelineStatus.classList.toggle('is-error', Boolean(isError));
+        return setAdminTimelineStatusPanel(this, message, isError);
     }
 
     renderAdminTimelineErrors(errors = []) {
-        if (!this.adminDom.timelineErrors) {
-            return;
-        }
-        const list = Array.isArray(errors) ? errors.filter(Boolean) : [];
-        this.adminDom.timelineErrors.innerHTML = '';
-        if (!list.length) {
-            this.adminDom.timelineErrors.hidden = true;
-            return;
-        }
-        list.forEach(message => {
-            this.adminDom.timelineErrors.appendChild(createElement('li', { text: message }));
-        });
-        this.adminDom.timelineErrors.hidden = false;
+        return renderAdminTimelineErrorsPanel(this, errors);
     }
 
     syncAdminTimelineEditor() {
-        const isAdmin = this.isAdmin();
-        const hasTimeline = !!this.adminTimeline;
-        const disabled = !isAdmin || this.adminTimelinePending || !hasTimeline;
-        [
-            this.adminDom.timelineTitle,
-            this.adminDom.timelineSubtitle,
-            this.adminDom.timelineAddEntryButton
-        ].forEach(element => {
-            if (element) {
-                element.disabled = disabled;
-            }
-        });
-        if (this.adminDom.timelineReloadButton) {
-            this.adminDom.timelineReloadButton.disabled = !isAdmin || this.adminTimelinePending;
-        }
-        if (this.adminDom.timelineSaveButton) {
-            this.adminDom.timelineSaveButton.disabled = !isAdmin || this.adminTimelinePending || !hasTimeline;
-            this.adminDom.timelineSaveButton.textContent = this.adminTimelinePending
-                ? 'Enregistrement...'
-                : (this.adminTimelineDirty ? 'Enregistrer la chronologie *' : 'Enregistrer la chronologie');
-        }
-        if (this.adminDom.timelineList) {
-            this.adminDom.timelineList.querySelectorAll('input, textarea, select, button').forEach(element => {
-                if (element.id === 'admin-timeline-save' || element.id === 'admin-timeline-reload' || element.id === 'admin-timeline-add-entry') {
-                    return;
-                }
-                element.disabled = disabled;
-            });
-        }
+        return syncAdminTimelineEditorPanel(this);
     }
 
     renderAdminTimelineConfig() {
-        const config = this.normalizeAdminTimeline(this.adminTimeline || {});
-        this.adminTimeline = config;
-        if (this.adminDom.timelineTitle) {
-            this.adminDom.timelineTitle.value = config.title || '';
-        }
-        if (this.adminDom.timelineSubtitle) {
-            this.adminDom.timelineSubtitle.value = config.subtitle || '';
-        }
-        this.renderAdminTimelineList();
-        this.renderAdminTimelineErrors([]);
-        this.syncAdminTimelineEditor();
+        return renderAdminTimelineConfigPanel(this);
     }
 
     renderAdminTimelineList() {
-        const container = this.adminDom.timelineList;
-        const countNode = this.adminDom.timelineCount;
-        const emptyNode = this.adminDom.timelineEmpty;
-        if (!container || !countNode || !emptyNode) {
-            return;
-        }
-        clearElement(container);
-        const entries = Array.isArray(this.adminTimeline?.entries) ? this.adminTimeline.entries : [];
-        countNode.textContent = `${entries.length} ${entries.length > 1 ? 'entrees' : 'entree'}`;
-        emptyNode.hidden = entries.length > 0;
-        entries.forEach((entry, index) => {
-            container.appendChild(this.createAdminTimelineEntryCard(entry, index));
-        });
-        this.syncAdminTimelineEditor();
+        return renderAdminTimelineListPanel(this);
     }
 
     createAdminTimelineEntryCard(entry, index) {
-        const card = document.createElement('article');
-        card.className = 'admin-timeline-card';
-
-        const header = document.createElement('div');
-        header.className = 'admin-timeline-card-header';
-
-        const title = document.createElement('div');
-        title.className = 'admin-timeline-card-title';
-        title.appendChild(createElement('strong', { text: entry.title || `Evenement ${index + 1}` }));
-        title.appendChild(createElement('span', { text: `${entry.yearLabel || entry.year || '--'} • ${entry.period || 'Periode inconnue'}` }));
-
-        const actions = document.createElement('div');
-        actions.className = 'admin-timeline-card-actions';
-        const moveUp = createElement('button', { className: 'tertiary-button', text: 'Monter' });
-        moveUp.type = 'button';
-        moveUp.addEventListener('click', () => this.moveAdminTimelineEntry(index, -1));
-        const moveDown = createElement('button', { className: 'tertiary-button', text: 'Descendre' });
-        moveDown.type = 'button';
-        moveDown.addEventListener('click', () => this.moveAdminTimelineEntry(index, 1));
-        const remove = createElement('button', { className: 'tertiary-button', text: 'Supprimer' });
-        remove.type = 'button';
-        remove.addEventListener('click', () => this.removeAdminTimelineEntry(index));
-        actions.append(moveUp, moveDown, remove);
-
-        header.append(title, actions);
-        card.appendChild(header);
-
-        const grid = document.createElement('div');
-        grid.className = 'admin-timeline-card-grid';
-        const block = document.createElement('div');
-        block.className = 'admin-timeline-card-block';
-
-        const buildField = ({ label, value, type = 'text', rows = 0, checked = false, onInput, placeholder = '' }) => {
-            const wrapper = document.createElement('label');
-            wrapper.appendChild(createElement('span', { text: label }));
-            let input;
-            if (type === 'textarea') {
-                input = document.createElement('textarea');
-                input.rows = rows || 4;
-            } else if (type === 'checkbox') {
-                wrapper.className = 'admin-timeline-toggle';
-                input = document.createElement('input');
-                input.type = 'checkbox';
-                input.checked = checked;
-                wrapper.innerHTML = '';
-                wrapper.appendChild(input);
-                wrapper.appendChild(document.createTextNode(label));
-            } else {
-                input = document.createElement('input');
-                input.type = type;
-            }
-            if (type !== 'checkbox') {
-                input.value = value || '';
-                input.placeholder = placeholder;
-            }
-            input.addEventListener(type === 'checkbox' ? 'change' : 'input', onInput);
-            wrapper.appendChild(input);
-            return wrapper;
-        };
-
-        grid.append(
-            buildField({
-                label: 'ID',
-                value: entry.id,
-                onInput: event => {
-                    this.adminTimeline.entries[index].id = sanitizeString(event.target.value)
-                        .toLowerCase()
-                        .replace(/[^a-z0-9_-]+/g, '-')
-                        .replace(/-+/g, '-')
-                        .replace(/^-+|-+$/g, '');
-                    this.markAdminTimelineDirty();
-                }
-            }),
-            buildField({
-                label: 'Annee',
-                type: 'number',
-                value: String(entry.year ?? ''),
-                onInput: event => {
-                    this.adminTimeline.entries[index].year = Number(event.target.value) || 0;
-                    this.markAdminTimelineDirty();
-                }
-            }),
-            buildField({
-                label: 'Libelle annee',
-                value: entry.yearLabel,
-                onInput: event => {
-                    this.adminTimeline.entries[index].yearLabel = event.target.value || '';
-                    this.markAdminTimelineDirty();
-                }
-            }),
-            buildField({
-                label: 'Periode',
-                value: entry.period,
-                onInput: event => {
-                    this.adminTimeline.entries[index].period = event.target.value || '';
-                    this.markAdminTimelineDirty();
-                }
-            }),
-            buildField({
-                label: 'Titre',
-                value: entry.title,
-                onInput: event => {
-                    this.adminTimeline.entries[index].title = event.target.value || '';
-                    this.renderAdminTimelineList();
-                    this.markAdminTimelineDirty();
-                }
-            }),
-            buildField({
-                label: 'Couleur accent',
-                type: 'text',
-                value: entry.accentColor,
-                placeholder: '#7dd3fc',
-                onInput: event => {
-                    this.adminTimeline.entries[index].accentColor = event.target.value || '';
-                    this.markAdminTimelineDirty();
-                }
-            }),
-            buildField({
-                label: 'Image (URL)',
-                value: entry.imageUrl,
-                placeholder: '/assets/images/...',
-                onInput: event => {
-                    this.adminTimeline.entries[index].imageUrl = event.target.value || '';
-                    this.markAdminTimelineDirty();
-                }
-            }),
-            buildField({
-                label: 'Visible publiquement',
-                type: 'checkbox',
-                checked: entry.visible !== false,
-                onInput: event => {
-                    this.adminTimeline.entries[index].visible = Boolean(event.target.checked);
-                    this.markAdminTimelineDirty();
-                }
-            })
-        );
-
-        block.append(
-            buildField({
-                label: 'Resume',
-                type: 'textarea',
-                rows: 3,
-                value: entry.summary,
-                onInput: event => {
-                    this.adminTimeline.entries[index].summary = event.target.value || '';
-                    this.markAdminTimelineDirty();
-                }
-            }),
-            buildField({
-                label: 'Contenu detaille',
-                type: 'textarea',
-                rows: 5,
-                value: entry.content,
-                onInput: event => {
-                    this.adminTimeline.entries[index].content = event.target.value || '';
-                    this.markAdminTimelineDirty();
-                }
-            }),
-            buildField({
-                label: 'Tags (virgules ou retours ligne)',
-                type: 'textarea',
-                rows: 2,
-                value: Array.isArray(entry.tags) ? entry.tags.join(', ') : '',
-                onInput: event => {
-                    this.adminTimeline.entries[index].tags = this.parseAdminTokenList(event.target.value || '');
-                    this.markAdminTimelineDirty();
-                }
-            }),
-            buildField({
-                label: 'Lieux lies (virgules ou retours ligne)',
-                type: 'textarea',
-                rows: 2,
-                value: Array.isArray(entry.locationNames) ? entry.locationNames.join(', ') : '',
-                onInput: event => {
-                    this.adminTimeline.entries[index].locationNames = this.parseAdminTokenList(event.target.value || '');
-                    this.markAdminTimelineDirty();
-                }
-            })
-        );
-
-        card.append(grid, block);
-        return card;
+        return createAdminTimelineEntryCardPanel(this, entry, index);
     }
 
     addAdminTimelineEntry() {
-        if (!this.adminTimeline) {
-            this.adminTimeline = this.normalizeAdminTimeline({});
-        }
-        this.adminTimeline.entries.push(this.createAdminTimelineEntry(this.adminTimeline.entries.length));
-        this.renderAdminTimelineList();
-        this.markAdminTimelineDirty();
+        return addAdminTimelineEntryPanel(this);
     }
 
     moveAdminTimelineEntry(index, direction) {
-        if (!Array.isArray(this.adminTimeline?.entries)) {
-            return;
-        }
-        const targetIndex = index + direction;
-        if (targetIndex < 0 || targetIndex >= this.adminTimeline.entries.length) {
-            return;
-        }
-        const [entry] = this.adminTimeline.entries.splice(index, 1);
-        this.adminTimeline.entries.splice(targetIndex, 0, entry);
-        this.renderAdminTimelineList();
-        this.markAdminTimelineDirty();
+        return moveAdminTimelineEntryPanel(this, index, direction);
     }
 
     removeAdminTimelineEntry(index) {
-        if (!Array.isArray(this.adminTimeline?.entries)) {
-            return;
-        }
-        this.adminTimeline.entries.splice(index, 1);
-        this.renderAdminTimelineList();
-        this.markAdminTimelineDirty();
+        return removeAdminTimelineEntryPanel(this, index);
     }
 
     collectAdminTimelineDraft() {
-        return this.normalizeAdminTimeline({
-            title: this.adminDom.timelineTitle?.value || '',
-            subtitle: this.adminDom.timelineSubtitle?.value || '',
-            entries: Array.isArray(this.adminTimeline?.entries) ? this.adminTimeline.entries : []
-        });
+        return collectAdminTimelineDraftPanel(this);
     }
 
     validateAdminTimelineDraft(timeline) {
-        const errors = [];
-        if (!sanitizeString(timeline?.title)) {
-            errors.push('Le titre de la chronologie est requis.');
-        }
-        if (!Array.isArray(timeline?.entries) || !timeline.entries.length) {
-            errors.push('Ajoutez au moins un evenement.');
-        }
-        const seenIds = new Set();
-        (timeline?.entries || []).forEach((entry, index) => {
-            if (!sanitizeString(entry?.title)) {
-                errors.push(`Evenement ${index + 1}: titre requis.`);
-            }
-            if (!Number.isFinite(Number(entry?.year))) {
-                errors.push(`Evenement ${index + 1}: annee invalide.`);
-            }
-            const id = sanitizeString(entry?.id);
-            if (!id) {
-                errors.push(`Evenement ${index + 1}: identifiant requis.`);
-            } else if (seenIds.has(id)) {
-                errors.push(`Identifiant duplique: ${id}.`);
-            } else {
-                seenIds.add(id);
-            }
-        });
-        return errors;
+        return validateAdminTimelineDraftModel(timeline);
     }
 
     markAdminTimelineDirty() {
-        if (!this.isAdmin()) {
-            return;
-        }
-        this.adminTimelineDirty = true;
-        this.setAdminTimelineStatus('');
-        this.renderAdminTimelineErrors([]);
-        this.syncAdminTimelineEditor();
+        return markAdminTimelineDirtyPanel(this);
     }
 
     async fetchAdminTimeline() {
-        if (!this.adminDom.timelineSaveButton) {
-            return;
-        }
-        if (!this.isAdmin()) {
-            this.adminTimeline = null;
-            this.adminTimelineDirty = false;
-            this.syncAdminTimelineEditor();
-            return;
-        }
-        this.setAdminTimelineStatus('Chargement de la chronologie...');
-        try {
-            const response = await fetch('/api/admin/timeline', {
-                credentials: 'include',
-                cache: 'no-store'
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            const payload = await response.json();
-            this.adminTimeline = this.normalizeAdminTimeline(payload?.timeline || {});
-            this.adminTimelineDirty = false;
-            this.renderAdminTimelineConfig();
-            this.setAdminTimelineStatus('Chronologie chargee depuis l\'API admin.');
-        } catch (error) {
-            console.error('[admin] timeline fetch failed', error);
-            try {
-                const fallbackResponse = await fetch('/assets/timeline.json', { cache: 'no-store' });
-                if (!fallbackResponse.ok) {
-                    throw new Error(`HTTP ${fallbackResponse.status}`);
-                }
-                const fallbackPayload = await fallbackResponse.json();
-                this.adminTimeline = this.normalizeAdminTimeline(fallbackPayload || {});
-                this.adminTimelineDirty = false;
-                this.renderAdminTimelineConfig();
-                this.setAdminTimelineStatus('API admin indisponible. Chronologie chargee depuis assets/timeline.json en lecture seule.', true);
-            } catch (fallbackError) {
-                console.error('[admin] timeline fallback failed', fallbackError);
-                this.adminTimeline = null;
-                this.setAdminTimelineStatus('Impossible de charger la chronologie.', true);
-            }
-        } finally {
-            this.syncAdminTimelineEditor();
-        }
+        return fetchAdminTimelinePanel(this);
     }
 
     async saveAdminTimeline() {
-        if (!this.isAdmin()) {
-            this.announcer?.assertive?.('Connexion administrateur requise.');
-            return;
-        }
-        const draft = this.collectAdminTimelineDraft();
-        const errors = this.validateAdminTimelineDraft(draft);
-        this.adminTimelineErrors = errors;
-        this.renderAdminTimelineErrors(errors);
-        if (errors.length) {
-            this.setAdminTimelineStatus('Corrigez les erreurs avant enregistrement.', true);
-            return;
-        }
-        this.adminTimelinePending = true;
-        this.syncAdminTimelineEditor();
-        this.setAdminTimelineStatus('Enregistrement de la chronologie...');
-        try {
-            const response = await fetch('/api/admin/timeline', {
-                method: 'PATCH',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ timeline: draft })
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            const payload = await response.json();
-            this.adminTimeline = this.normalizeAdminTimeline(payload?.timeline || draft);
-            this.adminTimelineDirty = false;
-            this.renderAdminTimelineConfig();
-            this.setAdminTimelineStatus('Chronologie mise a jour. Rechargez /timeline pour verifier le rendu.');
-            this.announcer?.polite?.('Chronologie enregistree.');
-        } catch (error) {
-            console.error('[admin] timeline save failed', error);
-            this.setAdminTimelineStatus('Impossible d\'enregistrer la chronologie.', true);
-        } finally {
-            this.adminTimelinePending = false;
-            this.syncAdminTimelineEditor();
-        }
+        return saveAdminTimelinePanel(this);
     }
 
     renderAdminMetrics() {

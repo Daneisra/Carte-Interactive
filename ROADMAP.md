@@ -199,7 +199,7 @@
 - [x] Règle P5.1 - Auth, permissions, feedback de sauvegarde, conventions visuelles et composants de formulaire peuvent rester mutualisés entre les trois panneaux.
 - [x] P5.2 - Points d'entrée UI : accès admin dédié sur l'accueil et sur la page chronologie, avec deep link vers la bonne section du panneau admin carte en attendant la séparation complète.
 - [x] P5.3 - Isolation des états front : la carte ouvre désormais le panneau admin avec un scope explicite (`map`, `home`, `timeline`) et ne précharge plus l'état accueil/chronologie hors du contexte demandé.
-- [ ] P5.4 - Isolation des handlers front : extraire ou regrouper la logique JS par domaine pour que chaque panneau ne manipule que ses propres données.
+- [x] P5.4 - Isolation des handlers front : la logique admin `accueil` et `chronologie` est maintenant regroupée dans des modules dédiés, `uiController` gardant seulement l'orchestration du panneau et des wrappers de transition.
 - [ ] P5.5 - Base UI mutualisée : identifier ce qui reste partagé entre les trois panneaux (auth, toasts, validations, upload, feedback, boutons de sauvegarde, conventions visuelles).
 - [ ] P5.6 - API / persistance accueil : verrouiller les endpoints et la persistance de la configuration d'accueil autour du futur panneau admin accueil.
 - [ ] P5.7 - API / persistance chronologie : verrouiller les endpoints et la persistance de la frise autour du futur panneau admin chronologie.

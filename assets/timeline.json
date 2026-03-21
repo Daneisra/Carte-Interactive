@@ -12,7 +12,7 @@
       "period": "Commencement",
       "tags": [],
       "locationNames": [],
-      "imageUrl": "assets/images/frise/Ancien monde.png",
+      "imageUrl": "assets/images/Frise/Ancien monde.png",
       "accentColor": "#5ea4ff",
       "visible": true
     },
@@ -26,7 +26,7 @@
       "period": "Déchirement",
       "tags": [],
       "locationNames": [],
-      "imageUrl": "assets/images/frise/Déchirement.png",
+      "imageUrl": "assets/images/Frise/Déchirement.png",
       "accentColor": "#7dd3fc",
       "visible": true
     },
@@ -40,7 +40,7 @@
       "period": "La Sainte Unification",
       "tags": [],
       "locationNames": [],
-      "imageUrl": "assets/images/frise/Sainte Unification.png",
+      "imageUrl": "assets/images/Frise/Sainte Unification.png",
       "accentColor": "#67e8f9",
       "visible": true
     },
@@ -59,7 +59,7 @@
         "Vruliwen",
         "Valerius Primus"
       ],
-      "imageUrl": "assets/images/frise/Couronnement Comosicus Thiri.png",
+      "imageUrl": "assets/images/Frise/Couronnement Comosicus Thiri.png",
       "accentColor": "#fbbf24",
       "visible": true
     },
@@ -75,7 +75,7 @@
       "locationNames": [
         "Imossa"
       ],
-      "imageUrl": "assets/images/frise/Crise d’Imossa.png",
+      "imageUrl": "assets/images/Frise/Crise d’Imossa.png",
       "accentColor": "#c084fc",
       "visible": true
     },
@@ -91,7 +91,7 @@
       "locationNames": [
         "Imossa"
       ],
-      "imageUrl": "assets/images/frise/Croisade d’imossa.png",
+      "imageUrl": "assets/images/Frise/Croisade d’imossa.png",
       "accentColor": "#34d399",
       "visible": true
     },
@@ -110,7 +110,7 @@
         "Zemantis",
         "Camp O.E"
       ],
-      "imageUrl": "assets/images/frise/1er Pas en Zemantis.png",
+      "imageUrl": "assets/images/Frise/1er Pas en Zemantis.png",
       "accentColor": "#7dd3fc",
       "visible": true
     },
@@ -129,7 +129,7 @@
         "Vruliwen",
         "Dipovia"
       ],
-      "imageUrl": "assets/images/frise/Guerre Vrulio-Dipovienne.png",
+      "imageUrl": "assets/images/Frise/Guerre Vrulio-Dipovienne.png",
       "accentColor": "#7dd3fc",
       "visible": true
     },
@@ -148,7 +148,7 @@
       "locationNames": [
         "Vardanys"
       ],
-      "imageUrl": "assets/images/frise/Insurrection de Vardanys.png",
+      "imageUrl": "assets/images/Frise/Insurrection de Vardanys.png",
       "accentColor": "#7dd3fc",
       "visible": true
     }
