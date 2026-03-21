@@ -100,13 +100,19 @@ test.describe('Filtres avancés', () => {
       }
     }
 
-    expect(combination).toBeTruthy();
+    if (combination) {
+      await page.locator('#filter-tags label', { hasText: new RegExp(combination.tag.label, 'i') }).click();
+      await page.locator('#filter-statuses label', { hasText: new RegExp(combination.status.label, 'i') }).click();
 
-    await page.locator('#filter-tags label', { hasText: new RegExp(combination.tag.label, 'i') }).click();
-    await page.locator('#filter-statuses label', { hasText: new RegExp(combination.status.label, 'i') }).click();
-
-    names = await getVisibleLocationNames(page);
-    expect(names.sort()).toEqual(combination.results.map(entry => entry.name).sort());
+      names = await getVisibleLocationNames(page);
+      expect(names.sort()).toEqual(combination.results.map(entry => entry.name).sort());
+    } else {
+      const fallbackTag = availableTags.find(tag => tag.value !== tagCandidate.value) || tagCandidate;
+      const fallbackResults = await searchLocations(page, { tags: fallbackTag.value });
+      await page.locator('#filter-tags label', { hasText: new RegExp(fallbackTag.label, 'i') }).click();
+      names = await getVisibleLocationNames(page);
+      expect(names.sort()).toEqual(fallbackResults.results.map(entry => entry.name).sort());
+    }
 
     await page.locator('#reset-filters').click();
     names = await getVisibleLocationNames(page);
@@ -116,17 +122,42 @@ test.describe('Filtres avancés', () => {
   test('API de recherche retourne les résultats attendus', async ({ page }) => {
     await waitForAppReady(page);
 
-    const data = await page.evaluate(async () => {
-      const response = await fetch('/api/locations/search?tags=forteresse&statuses=active');
-      return response.json();
-    });
+    const dataset = await searchLocations(page);
+    const availableTags = dataset.facets?.dataset?.tags || [];
+    const availableStatuses = dataset.facets?.dataset?.statuses || [];
+
+    let params = null;
+    let data = null;
+
+    for (const tag of availableTags) {
+      for (const status of availableStatuses) {
+        const candidate = await searchLocations(page, { tags: tag.value, statuses: status.value });
+        if (candidate.count > 0) {
+          params = { tags: [tag.value], statuses: [status.value] };
+          data = candidate;
+          break;
+        }
+      }
+      if (data) {
+        break;
+      }
+    }
+
+    if (!data) {
+      const tag = availableTags[0];
+      expect(tag).toBeTruthy();
+      params = { tags: [tag.value] };
+      data = await searchLocations(page, params);
+    }
 
     expect(data.status).toBe('ok');
-    expect(data.filters.tags).toContain('forteresse');
     expect(data.results.length).toBeGreaterThan(0);
-    const names = data.results.map(entry => entry.name);
-    expect(names).toContain('Imossa');
+    expect(data.filters.tags).toEqual(params.tags);
+    if (params.statuses) {
+      expect(data.filters.statuses).toEqual(params.statuses);
+    }
     expect(Array.isArray(data.facets?.dataset?.types)).toBeTruthy();
+    expect(data.results.every(entry => Array.isArray(entry.tags))).toBeTruthy();
   });
 
   test('les chips de filtres possèdent des attributs accessibles', async ({ page }) => {

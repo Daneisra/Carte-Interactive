@@ -364,6 +364,35 @@ a {
     color: var(--timeline-text-muted);
 }
 
+.timeline-period-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.timeline-period-nav-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid rgba(125, 211, 252, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--timeline-text);
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: transform 0.12s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.timeline-period-nav-chip:hover,
+.timeline-period-nav-chip:focus-visible {
+    background: rgba(79, 140, 255, 0.18);
+    border-color: rgba(125, 211, 252, 0.34);
+}
+
 .timeline-track-shell {
     position: relative;
     margin-top: 20px;
@@ -386,14 +415,52 @@ a {
 }
 
 .timeline-track {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(280px, 340px);
+    display: flex;
+    align-items: stretch;
     gap: 22px;
     overflow-x: auto;
     padding: 28px 22px;
     scrollbar-width: thin;
     scroll-snap-type: x proximity;
+}
+
+.timeline-period-group {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 14px;
+    min-width: max-content;
+    scroll-snap-align: start;
+}
+
+.timeline-period-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(16, 27, 49, 0.92), rgba(10, 18, 34, 0.96));
+}
+
+.timeline-period-group-title {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.timeline-period-group-meta {
+    color: var(--timeline-text-muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.timeline-period-group-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(280px, 340px);
+    gap: 22px;
 }
 
 .timeline-card {
@@ -682,8 +749,16 @@ a {
     }
 
     .timeline-track {
-        grid-auto-columns: minmax(246px, 82vw);
         gap: 16px;
         padding: 24px 16px 28px;
+    }
+
+    .timeline-period-group {
+        min-width: min(100%, 100vw - 60px);
+    }
+
+    .timeline-period-group-track {
+        grid-auto-columns: minmax(246px, 82vw);
+        gap: 16px;
     }
 }

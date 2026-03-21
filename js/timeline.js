@@ -9,6 +9,7 @@ const dom = {
     stage: document.querySelector('.timeline-stage'),
     stageHeader: document.querySelector('.timeline-stage-header'),
     track: document.getElementById('timeline-track'),
+    periodNav: document.getElementById('timeline-period-nav'),
     detail: document.getElementById('timeline-detail'),
     detailYear: document.getElementById('timeline-detail-year'),
     detailPeriod: document.getElementById('timeline-detail-period'),
@@ -34,23 +35,54 @@ const state = {
     activeId: ''
 };
 
-const readQueryState = () => {
-    try {
-        const params = new URLSearchParams(window.location.search);
-        return {
-            eventId: normalizeText(params.get('event')),
-            location: normalizeText(params.get('location'))
-        };
-    } catch (error) {
-        return { eventId: '', location: '' };
-    }
-};
-
 const normalizeText = value => (typeof value === 'string' ? value.trim() : '');
 const normalizeForSearch = value => normalizeText(value)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+
+const readQueryState = () => {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const search = normalizeText(params.get('search')) || normalizeText(params.get('location'));
+        return {
+            eventId: normalizeText(params.get('event')),
+            search,
+            period: normalizeText(params.get('period')),
+            tag: normalizeText(params.get('tag'))
+        };
+    } catch (error) {
+        return { eventId: '', search: '', period: '', tag: '' };
+    }
+};
+
+const syncQueryState = () => {
+    if (!window.history?.replaceState) {
+        return;
+    }
+    const params = new URLSearchParams();
+    const search = normalizeText(state.filters.search);
+    const period = normalizeText(state.filters.period);
+    const tag = normalizeText(state.filters.tag);
+    const eventId = normalizeText(state.activeId);
+
+    if (eventId) {
+        params.set('event', eventId);
+    }
+    if (search) {
+        params.set('search', search);
+    }
+    if (period) {
+        params.set('period', period);
+    }
+    if (tag) {
+        params.set('tag', tag);
+    }
+
+    const query = params.toString();
+    const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+    window.history.replaceState({}, '', nextUrl);
+};
 
 const normalizeEntry = (entry, index) => {
     const title = normalizeText(entry?.title) || `Evenement ${index + 1}`;
@@ -156,6 +188,21 @@ const updateTrackNavigationState = () => {
     dom.scrollNext.disabled = atEnd || maxScrollLeft <= 0;
 };
 
+const ensurePeriodNavDom = () => {
+    if (!dom.stage || !dom.status) {
+        return;
+    }
+    if (!dom.periodNav) {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'timeline-period-nav';
+        wrapper.className = 'timeline-period-nav';
+        wrapper.setAttribute('aria-label', 'Navigation rapide par periode');
+        wrapper.hidden = true;
+        dom.status.insertAdjacentElement('afterend', wrapper);
+        dom.periodNav = wrapper;
+    }
+};
+
 const ensureFilterDom = () => {
     if (!dom.stage || document.getElementById('timeline-search')) {
         return;
@@ -189,6 +236,40 @@ const ensureFilterDom = () => {
     dom.periodFilter = wrapper.querySelector('#timeline-period-filter');
     dom.tagFilter = wrapper.querySelector('#timeline-tag-filter');
     dom.resetFilters = wrapper.querySelector('#timeline-reset-filters');
+};
+
+const renderPeriodNav = entries => {
+    ensurePeriodNavDom();
+    if (!dom.periodNav) {
+        return;
+    }
+    const groups = groupEntriesByPeriod(entries);
+    dom.periodNav.innerHTML = '';
+    dom.periodNav.hidden = groups.length <= 1;
+    if (groups.length <= 1) {
+        return;
+    }
+
+    groups.forEach(group => {
+        const firstEntry = group.entries[0];
+        if (!firstEntry) {
+            return;
+        }
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'timeline-period-nav-chip';
+        button.dataset.periodGroupId = firstEntry.id;
+        button.textContent = group.period;
+        button.setAttribute('aria-label', `Aller a la periode ${group.period}`);
+        button.addEventListener('click', () => {
+            const targetGroup = dom.track.querySelector(`[data-period-group-id="${firstEntry.id}"]`);
+            if (targetGroup) {
+                targetGroup.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+            }
+            setActiveEntry(firstEntry.id);
+        });
+        dom.periodNav.appendChild(button);
+    });
 };
 
 const populateFilterOptions = entries => {
@@ -298,6 +379,7 @@ const setActiveEntry = entryId => {
     if (!nextEntry) {
         state.activeId = '';
         dom.detail.hidden = true;
+        syncQueryState();
         return;
     }
 
@@ -313,6 +395,7 @@ const setActiveEntry = entryId => {
         }
     });
     window.requestAnimationFrame(updateTrackNavigationState);
+    syncQueryState();
 };
 
 const moveActiveEntry = direction => {
@@ -360,8 +443,26 @@ const handleCardKeydown = event => {
     }
 };
 
+const groupEntriesByPeriod = entries => {
+    const groups = [];
+    entries.forEach(entry => {
+        const period = entry.period || 'Periode inconnue';
+        const lastGroup = groups[groups.length - 1];
+        if (lastGroup && lastGroup.period === period) {
+            lastGroup.entries.push(entry);
+            return;
+        }
+        groups.push({
+            period,
+            entries: [entry]
+        });
+    });
+    return groups;
+};
+
 const renderTrack = entries => {
     dom.track.innerHTML = '';
+    renderPeriodNav(entries);
     if (!entries.length) {
         const empty = document.createElement('div');
         empty.className = 'timeline-empty';
@@ -369,65 +470,91 @@ const renderTrack = entries => {
         dom.track.appendChild(empty);
         return;
     }
-    entries.forEach(entry => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'timeline-card';
-        button.dataset.timelineId = entry.id;
-        button.style.setProperty('--timeline-card-accent', entry.accentColor);
-        button.setAttribute('role', 'listitem');
-        button.setAttribute('aria-pressed', 'false');
-        button.setAttribute('aria-controls', 'timeline-detail');
-        button.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight Home End');
+    groupEntriesByPeriod(entries).forEach(group => {
+        const section = document.createElement('section');
+        section.className = 'timeline-period-group';
+        section.setAttribute('aria-label', group.period);
+        section.dataset.periodGroupId = group.entries[0]?.id || group.period;
 
-        const year = document.createElement('span');
-        year.className = 'timeline-card-year';
-        year.textContent = entry.yearLabel;
-
-        const period = document.createElement('span');
-        period.className = 'timeline-card-period';
-        period.textContent = entry.period;
+        const header = document.createElement('div');
+        header.className = 'timeline-period-group-header';
 
         const title = document.createElement('h3');
-        title.className = 'timeline-card-title';
-        title.textContent = entry.title;
+        title.className = 'timeline-period-group-title';
+        title.textContent = group.period;
 
-        const summary = document.createElement('p');
-        summary.className = 'timeline-card-summary';
-        summary.textContent = entry.summary;
+        const meta = document.createElement('span');
+        meta.className = 'timeline-period-group-meta';
+        meta.textContent = `${group.entries.length} evenement${group.entries.length > 1 ? 's' : ''}`;
 
-        const meta = document.createElement('div');
-        meta.className = 'timeline-card-meta';
-        if (entry.tags.length) {
-            entry.tags.slice(0, 2).forEach(tag => {
+        header.append(title, meta);
+
+        const cards = document.createElement('div');
+        cards.className = 'timeline-period-group-track';
+
+        group.entries.forEach(entry => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'timeline-card';
+            button.dataset.timelineId = entry.id;
+            button.style.setProperty('--timeline-card-accent', entry.accentColor);
+            button.setAttribute('role', 'listitem');
+            button.setAttribute('aria-pressed', 'false');
+            button.setAttribute('aria-controls', 'timeline-detail');
+            button.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight Home End');
+
+            const year = document.createElement('span');
+            year.className = 'timeline-card-year';
+            year.textContent = entry.yearLabel;
+
+            const period = document.createElement('span');
+            period.className = 'timeline-card-period';
+            period.textContent = entry.period;
+
+            const entryTitle = document.createElement('h3');
+            entryTitle.className = 'timeline-card-title';
+            entryTitle.textContent = entry.title;
+
+            const summary = document.createElement('p');
+            summary.className = 'timeline-card-summary';
+            summary.textContent = entry.summary;
+
+            const cardMeta = document.createElement('div');
+            cardMeta.className = 'timeline-card-meta';
+            if (entry.tags.length) {
+                entry.tags.slice(0, 2).forEach(tag => {
+                    const chip = document.createElement('span');
+                    chip.className = 'timeline-chip';
+                    chip.textContent = tag;
+                    cardMeta.appendChild(chip);
+                });
+            }
+            if (entry.locationNames.length) {
                 const chip = document.createElement('span');
                 chip.className = 'timeline-chip';
-                chip.textContent = tag;
-                meta.appendChild(chip);
-            });
-        }
-        if (entry.locationNames.length) {
-            const chip = document.createElement('span');
-            chip.className = 'timeline-chip';
-            chip.textContent = entry.locationNames[0];
-            meta.appendChild(chip);
-        }
+                chip.textContent = entry.locationNames[0];
+                cardMeta.appendChild(chip);
+            }
 
-        if (entry.imageUrl) {
-            const media = document.createElement('div');
-            media.className = 'timeline-card-media';
-            const image = document.createElement('img');
-            image.src = entry.imageUrl;
-            image.alt = '';
-            image.loading = 'lazy';
-            media.appendChild(image);
-            button.appendChild(media);
-        }
+            if (entry.imageUrl) {
+                const media = document.createElement('div');
+                media.className = 'timeline-card-media';
+                const image = document.createElement('img');
+                image.src = entry.imageUrl;
+                image.alt = '';
+                image.loading = 'lazy';
+                media.appendChild(image);
+                button.appendChild(media);
+            }
 
-        button.append(year, period, title, summary, meta);
-        button.addEventListener('click', () => setActiveEntry(entry.id));
-        button.addEventListener('keydown', handleCardKeydown);
-        dom.track.appendChild(button);
+            button.append(year, period, entryTitle, summary, cardMeta);
+            button.addEventListener('click', () => setActiveEntry(entry.id));
+            button.addEventListener('keydown', handleCardKeydown);
+            cards.appendChild(button);
+        });
+
+        section.append(header, cards);
+        dom.track.appendChild(section);
     });
     window.requestAnimationFrame(updateTrackNavigationState);
 };
@@ -437,6 +564,12 @@ const bindTrackNavigation = () => {
         dom.track.scrollBy({ left: direction * 360, behavior: 'smooth' });
     };
 
+    if (dom.scrollPrev) {
+        dom.scrollPrev.textContent = '←';
+    }
+    if (dom.scrollNext) {
+        dom.scrollNext.textContent = '→';
+    }
     dom.scrollPrev?.addEventListener('click', () => scrollByAmount(-1));
     dom.scrollNext?.addEventListener('click', () => scrollByAmount(1));
     dom.track?.addEventListener('scroll', updateTrackNavigationState, { passive: true });
@@ -476,6 +609,7 @@ const applyFilters = () => {
         state.activeId = '';
         dom.detail.hidden = true;
         dom.status.textContent = 'Aucun evenement ne correspond aux filtres en cours.';
+        syncQueryState();
         return;
     }
 
@@ -518,13 +652,25 @@ const bindFilters = () => {
 
 const applyInitialQueryState = () => {
     const query = readQueryState();
-    if (!query.eventId && !query.location) {
+    if (!query.eventId && !query.search && !query.period && !query.tag) {
         return;
     }
-    if (query.location) {
-        state.filters.search = query.location;
+    if (query.search) {
+        state.filters.search = query.search;
         if (dom.searchInput) {
-            dom.searchInput.value = query.location;
+            dom.searchInput.value = query.search;
+        }
+    }
+    if (query.period) {
+        state.filters.period = query.period;
+        if (dom.periodFilter) {
+            dom.periodFilter.value = query.period;
+        }
+    }
+    if (query.tag) {
+        state.filters.tag = query.tag;
+        if (dom.tagFilter) {
+            dom.tagFilter.value = query.tag;
         }
     }
     if (query.eventId) {

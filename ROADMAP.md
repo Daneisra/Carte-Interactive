@@ -163,6 +163,9 @@
 ### P5 — Frise chronologique
 - [ ] Frise chronologique complète (axe horizontal gauche -> droite, année, titre, texte, médias, liens vers la carte)
 - [x] Etat actuel : MVP technique livré (page dédiée, admin, médias, filtres, liens carte <-> frise, tests UI).
+- [x] Avancement récent : regroupement visuel par période ajouté dans la frise horizontale.
+- [x] Avancement récent : état de la frise partageable par URL (événement actif + filtres synchronisés).
+- [x] Avancement récent : navigation rapide par période ajoutée dans la page chronologie.
 - [ ] Suite prioritaire : cadrage produit V2, enrichissement éditorial des événements, regroupements par époque et polish visuel premium.
 - [x] Recommandation produit : page dédiée `/timeline` d'abord, intégration légère dans la carte ensuite.
 - [ ] P5.1 - Cadrage produit V2 de la frise : règles de tri définitives, regroupement par époque, densité de contenu, direction visuelle finale, besoins de personnalisation avancés.
@@ -189,7 +192,7 @@
 - [ ] Polish UI
 - [ ] Fiabiliser le compteur Discord automatique de l’accueil (invite/widget/API) avec fallback propre.
 - [ ] Automatiser les patch notes de l’accueil depuis GitHub ou l’historique git de production.
-- [ ] Créer deux panneau admin, un accessible depuis la page d'acceuil pour gérer la page d'acceuil, u nsecond depuis la page chronologie pour gérer la frise et dédiée le panneau admin de la carte aux éléments de la carte, de sorte a avoir trois gestion séparer plus propre et ordonées plutôt que de tout faire depuis le panneau admin de la carte.
+- [ ] Créer deux panneau admin supplémentaire, un accessible depuis la page d'acceuil pour gérer la page d'acceuil, un second depuis la page chronologie pour gérer la frise et dédiée le panneau admin de la carte aux éléments de la carte, de sorte a avoir trois gestion séparer plus propre et ordonées plutôt que de tout faire depuis le panneau admin de la carte.
 
 
 

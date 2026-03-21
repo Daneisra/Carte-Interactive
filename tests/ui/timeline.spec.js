@@ -25,6 +25,38 @@ const loadTimelineEntries = async page => {
   return entries;
 };
 
+const countContiguousPeriods = entries => {
+  let count = 0;
+  let lastPeriod = null;
+  entries.forEach(entry => {
+    const nextPeriod = entry?.period || '';
+    if (nextPeriod !== lastPeriod) {
+      count += 1;
+      lastPeriod = nextPeriod;
+    }
+  });
+  return count;
+};
+
+const buildContiguousPeriods = entries => {
+  const groups = [];
+  entries.forEach(entry => {
+    const period = entry?.period || '';
+    const lastGroup = groups[groups.length - 1];
+    if (lastGroup && lastGroup.period === period) {
+      lastGroup.entries.push(entry);
+      return;
+    }
+    groups.push({
+      period,
+      entries: [entry]
+    });
+  });
+  return groups;
+};
+
+const readQueryParam = (page, key) => new URL(page.url()).searchParams.get(key);
+
 test.describe('Chronologie - UI', () => {
   test('la frise charge des evenements et affiche un detail actif', async ({ page }) => {
     const entries = await loadTimelineEntries(page);
@@ -34,6 +66,7 @@ test.describe('Chronologie - UI', () => {
 
     const cards = page.locator('.timeline-card');
     await expect(cards).toHaveCount(entries.length);
+    await expect(page.locator('.timeline-period-group')).toHaveCount(countContiguousPeriods(entries));
     await expect(page.locator('.timeline-card-media')).toHaveCount(entries.filter(entry => entry.imageUrl).length);
     await expect(page.locator('#timeline-detail-title')).toHaveText(entries[0].title);
     if (entries[0].imageUrl) {
@@ -83,18 +116,27 @@ test.describe('Chronologie - UI', () => {
 
   test('les liens profonds depuis la carte prefiltrent la chronologie', async ({ page }) => {
     const entries = await loadTimelineEntries(page);
-    const linkedEntry = entries.find(entry => Array.isArray(entry.locationNames) && entry.locationNames.length);
+    const linkedEntry = entries.find(entry => (
+      Array.isArray(entry.locationNames)
+      && entry.locationNames.length
+      && entry.period
+      && Array.isArray(entry.tags)
+      && entry.tags.length
+    ));
 
     test.skip(!linkedEntry, 'Aucun evenement lie a un lieu dans la chronologie.');
 
     const locationName = linkedEntry.locationNames[0];
+    const tag = linkedEntry.tags[0];
     const matchingEntries = entries.filter(entry => buildSearchHaystack(entry).includes(normalizeText(locationName)));
 
-    await page.goto(`/timeline/?event=${encodeURIComponent(linkedEntry.id)}&location=${encodeURIComponent(locationName)}`);
+    await page.goto(`/timeline/?event=${encodeURIComponent(linkedEntry.id)}&location=${encodeURIComponent(locationName)}&period=${encodeURIComponent(linkedEntry.period)}&tag=${encodeURIComponent(tag)}`);
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('#timeline-search')).toHaveValue(locationName);
-    await expect(page.locator('.timeline-card')).toHaveCount(matchingEntries.length);
+    await expect(page.locator('#timeline-period-filter')).toHaveValue(linkedEntry.period);
+    await expect(page.locator('#timeline-tag-filter')).toHaveValue(tag);
+    await expect(page.locator('.timeline-card')).toHaveCount(matchingEntries.filter(entry => entry.period === linkedEntry.period && Array.isArray(entry.tags) && entry.tags.includes(tag)).length);
     await expect(page.locator('#timeline-detail-title')).toHaveText(linkedEntry.title);
   });
 
@@ -116,6 +158,57 @@ test.describe('Chronologie - UI', () => {
 
     await page.keyboard.press('Home');
     await expect(page.locator('#timeline-detail-title')).toHaveText(entries[0].title);
+  });
+
+  test("l'URL reflète l'etat actif et les filtres", async ({ page }) => {
+    const entries = await loadTimelineEntries(page);
+    const periods = Array.from(new Set(entries.map(entry => entry.period).filter(Boolean)));
+    const tags = Array.from(new Set(entries.flatMap(entry => Array.isArray(entry.tags) ? entry.tags : []).filter(Boolean)));
+    const period = periods[0];
+    const searchQuery = (entries.find(entry => Array.isArray(entry.locationNames) && entry.locationNames.length)?.locationNames?.[0])
+      || entries[0].title;
+    const targetIndex = Math.min(1, entries.length - 1);
+
+    await page.goto('/timeline/');
+    await page.waitForLoadState('domcontentloaded');
+
+    await page.locator('.timeline-card').nth(targetIndex).click();
+    await expect.poll(() => readQueryParam(page, 'event')).toBe(entries[targetIndex].id);
+
+    await page.locator('#timeline-period-filter').selectOption({ label: period });
+    await expect.poll(() => readQueryParam(page, 'period')).toBe(period);
+
+    if (tags.length) {
+      const tag = tags[0];
+      await page.locator('#timeline-tag-filter').selectOption({ label: tag });
+      await expect.poll(() => readQueryParam(page, 'tag')).toBe(tag);
+    }
+
+    await page.locator('#timeline-reset-filters').click();
+    await page.locator('#timeline-search').fill(searchQuery);
+    await expect.poll(() => readQueryParam(page, 'search')).toBe(searchQuery);
+
+    await page.locator('#timeline-reset-filters').click();
+    await expect.poll(() => readQueryParam(page, 'search')).toBeNull();
+    await expect.poll(() => readQueryParam(page, 'period')).toBeNull();
+    await expect.poll(() => readQueryParam(page, 'tag')).toBeNull();
+    await expect.poll(() => readQueryParam(page, 'event')).not.toBeNull();
+  });
+
+  test('la navigation rapide par periode active le bon groupe', async ({ page }) => {
+    const entries = await loadTimelineEntries(page);
+    const groups = buildContiguousPeriods(entries);
+
+    test.skip(groups.length < 2, 'Une seule periode visible dans la chronologie courante.');
+
+    const targetGroup = groups[1];
+
+    await page.goto('/timeline/');
+    await page.waitForLoadState('domcontentloaded');
+
+    await expect(page.locator('.timeline-period-nav-chip')).toHaveCount(groups.length);
+    await page.locator('.timeline-period-nav-chip').nth(1).click();
+    await expect(page.locator('#timeline-detail-title')).toHaveText(targetGroup.entries[0].title);
   });
 });
 
