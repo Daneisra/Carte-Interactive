@@ -6,12 +6,14 @@ const dom = {
     periods: document.getElementById('timeline-periods'),
     range: document.getElementById('timeline-range'),
     status: document.getElementById('timeline-status'),
+    headerActions: document.querySelector('.timeline-header-actions'),
     hero: document.querySelector('.timeline-hero'),
     stage: document.querySelector('.timeline-stage'),
     stageHeader: document.querySelector('.timeline-stage-header'),
     track: document.getElementById('timeline-track'),
     periodNav: document.getElementById('timeline-period-nav'),
     stageOverview: document.getElementById('timeline-stage-overview'),
+    adminEntry: document.getElementById('timeline-admin-entry'),
     detail: document.getElementById('timeline-detail'),
     detailYear: document.getElementById('timeline-detail-year'),
     detailPeriod: document.getElementById('timeline-detail-period'),
@@ -24,6 +26,8 @@ const dom = {
     scrollPrev: document.getElementById('timeline-scroll-prev'),
     scrollNext: document.getElementById('timeline-scroll-next')
 };
+
+const TIMELINE_ADMIN_ENTRY_URL = '/map/?adminSection=timeline';
 
 const state = {
     timeline: null,
@@ -55,6 +59,47 @@ const readQueryState = () => {
         };
     } catch (error) {
         return { eventId: '', search: '', period: '', tag: '' };
+    }
+};
+
+const ensureTimelineAdminEntry = () => {
+    if (!dom.headerActions) {
+        return null;
+    }
+    if (!dom.adminEntry) {
+        const entry = document.createElement('a');
+        entry.id = 'timeline-admin-entry';
+        entry.className = 'timeline-link-button timeline-link-button-admin';
+        entry.href = TIMELINE_ADMIN_ENTRY_URL;
+        entry.textContent = 'Admin chronologie';
+        entry.hidden = true;
+        dom.headerActions.appendChild(entry);
+        dom.adminEntry = entry;
+    }
+    return dom.adminEntry;
+};
+
+const updateTimelineAdminEntry = payload => {
+    const entry = ensureTimelineAdminEntry();
+    if (!entry) {
+        return;
+    }
+    const isAdmin = Boolean(payload?.authenticated) && normalizeText(payload?.role).toLowerCase() === 'admin';
+    entry.hidden = !isAdmin;
+    entry.href = TIMELINE_ADMIN_ENTRY_URL;
+};
+
+const fetchSession = async () => {
+    try {
+        const response = await fetch('/auth/session', { credentials: 'include' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        updateTimelineAdminEntry(payload);
+    } catch (error) {
+        console.error('[timeline] session fetch failed', error);
+        updateTimelineAdminEntry({ authenticated: false, role: 'guest' });
     }
 };
 
@@ -792,8 +837,10 @@ const loadTimeline = async () => {
 };
 
 const initialize = async () => {
+    ensureTimelineAdminEntry();
     bindTrackNavigation();
     bindFilters();
+    fetchSession();
     try {
         const payload = await loadTimeline();
         state.timeline = normalizeTimeline(payload);

@@ -927,6 +927,7 @@ const sanitizeSiteConfig = value => {
     ? homeSource.metrics.map(sanitizeSiteConfigMetric).filter(Boolean).slice(0, 6)
     : defaults.home.metrics;
   const visualsSource = homeSource.visuals && typeof homeSource.visuals === 'object' ? homeSource.visuals : {};
+  const proofSource = communitySource.proof && typeof communitySource.proof === 'object' ? communitySource.proof : {};
 
   const sanitizeCommunityCard = (key, fallback) => {
     const cardSource = communitySource[key] && typeof communitySource[key] === 'object' ? communitySource[key] : {};
@@ -935,6 +936,14 @@ const sanitizeSiteConfig = value => {
       title: sanitizeSiteConfigText(cardSource.title, 80) || fallback.title,
       copy: sanitizeSiteConfigText(cardSource.copy, 240) || fallback.copy
     };
+  };
+
+  const proof = {
+    mode: normalizeString(proofSource.mode) === 'discord' ? 'discord' : 'manual',
+    guildId: normalizeString(proofSource.guildId || ''),
+    manualCount: Math.max(0, Number(proofSource.manualCount) || 0),
+    label: sanitizeSiteConfigText(proofSource.label, 60) || defaults.community.proof.label,
+    note: sanitizeSiteConfigText(proofSource.note, 200) || defaults.community.proof.note
   };
 
   const changelog = Array.isArray(source.changelog)

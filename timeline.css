@@ -173,6 +173,11 @@ a {
     border-color: rgba(147, 197, 253, 0.44);
 }
 
+.timeline-link-button-admin {
+    border-color: rgba(134, 239, 172, 0.34);
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.42), rgba(8, 145, 178, 0.24));
+}
+
 .timeline-link-button-secondary {
     background: rgba(255, 255, 255, 0.05);
 }

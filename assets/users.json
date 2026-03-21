@@ -3,12 +3,12 @@
     "id": "discord:1172705521317449809",
     "provider": "discord",
     "discordId": "1172705521317449809",
-    "username": "Danny",
+    "username": "Test User",
     "role": "admin",
     "apiTokens": [],
-    "avatar": "https://cdn.discordapp.com/avatars/1172705521317449809/128046ca64cc0ca2529912c88dd18a49.png?size=128",
-    "lastLoginAt": "2026-03-20T01:22:47.809Z",
-    "lastSeenAt": "2026-03-20T01:22:47.809Z",
+    "avatar": "https://cdn.discordapp.com/embed/avatars/0.png",
+    "lastLoginAt": "2026-03-21T18:23:40.325Z",
+    "lastSeenAt": "2026-03-21T18:23:40.325Z",
     "availability": {
       "timezone": "Europe/Warsaw",
       "slots": [

@@ -339,6 +339,11 @@ button:focus-visible {
     box-shadow: 0 14px 30px rgba(46, 82, 255, 0.18);
 }
 
+.home-link-button-admin {
+    border-color: rgba(134, 239, 172, 0.35);
+    background: linear-gradient(135deg, rgba(22, 101, 52, 0.4), rgba(8, 145, 178, 0.24));
+}
+
 .home-main {
     display: grid;
     gap: 22px;

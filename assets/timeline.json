@@ -12,7 +12,7 @@
       "period": "Commencement",
       "tags": [],
       "locationNames": [],
-      "imageUrl": "",
+      "imageUrl": "assets/images/frise/Ancien monde.png",
       "accentColor": "#5ea4ff",
       "visible": true
     },
@@ -26,7 +26,7 @@
       "period": "Déchirement",
       "tags": [],
       "locationNames": [],
-      "imageUrl": "",
+      "imageUrl": "assets/images/frise/Déchirement.png",
       "accentColor": "#7dd3fc",
       "visible": true
     },
@@ -40,7 +40,7 @@
       "period": "La Sainte Unification",
       "tags": [],
       "locationNames": [],
-      "imageUrl": "",
+      "imageUrl": "assets/images/frise/Sainte Unification.png",
       "accentColor": "#67e8f9",
       "visible": true
     },
@@ -51,7 +51,7 @@
       "title": "Couronnement Comosicus Thiri",
       "summary": "En seulement 7 ans, il accomplit l'impossible en unifiant Vruliwen, marquant l'histoire avec des batailles sanglantes mais victorieuses.",
       "content": "En seulement 7 ans, il accomplit l'impossible en unifiant Vruliwen, marquant l'histoire avec des batailles sanglantes mais victorieuses.",
-      "period": "Couronnement Comosicus Thiri",
+      "period": "Pax Maxima",
       "tags": [
         "Couronnement"
       ],
@@ -59,7 +59,7 @@
         "Vruliwen",
         "Valerius Primus"
       ],
-      "imageUrl": "",
+      "imageUrl": "assets/images/frise/Couronnement Comosicus Thiri.png",
       "accentColor": "#fbbf24",
       "visible": true
     },
@@ -68,14 +68,14 @@
       "year": 25,
       "yearLabel": "25 AP. CC",
       "title": "Crise d’Imossa",
-      "summary": "La légendaire Imossa,  Conquise par Comosicus Thiri, prospéra sous la Pax Maxima. Cependant, un cataclysme frappa et l'intervention de l'Église de la Lumière tourna mal, transformant un warlock en Hôte Démoniaque. La cité sombra dans la folie, avec des actes atroces. Comosicus Th",
-      "content": "La légendaire Imossa,  Conquise par Comosicus Thiri, prospéra sous la Pax Maxima. Cependant, un cataclysme frappa et l'intervention de l'Église de la Lumière tourna mal, transformant un warlock en Hôte Démoniaque. La cité sombra dans la folie, avec des actes atroces. Comosicus Th",
+      "summary": "La légendaire Imossa,  Conquise par Comosicus Thiri, prospéra sous la Pax Maxima. Cependant, un cataclysme frappa et l'intervention de l'Église de la Lumière tourna mal, transformant un warlock en Hôte Démoniaque.",
+      "content": "La légendaire Imossa,  Conquise par Comosicus Thiri, prospéra sous la Pax Maxima. Cependant, un cataclysme frappa et l'intervention de l'Église de la Lumière tourna mal, transformant un warlock en Hôte Démoniaque. La cité sombra dans la folie, avec des actes atroces. Comosicus Thiri tenta de sauver la ville, mais il était trop tard. Après avoir évacué les civils sains d'esprit, il se retira, laissant derrière lui un désastre insondable.",
       "period": "Crise d’Imossa",
       "tags": [],
       "locationNames": [
         "Imossa"
       ],
-      "imageUrl": "",
+      "imageUrl": "assets/images/frise/Crise d’Imossa.png",
       "accentColor": "#c084fc",
       "visible": true
     },
@@ -84,14 +84,14 @@
       "year": 28,
       "yearLabel": "28 AP. CC",
       "title": "Croisade d’imossa",
-      "summary": "L'Église, jouissant d'une pleine indépendance, lança l'expédition, recrutant une immense armée composée de membres de l'Église et de conscrits du peuple. \nÉpuisée, l'Église mit fin à la croisade désastreuse en abandonnant l'armée corrompue à l'Hôte Démoniaque et retourna sur le c",
-      "content": "L'Église, jouissant d'une pleine indépendance, lança l'expédition, recrutant une immense armée composée de membres de l'Église et de conscrits du peuple. \nÉpuisée, l'Église mit fin à la croisade désastreuse en abandonnant l'armée corrompue à l'Hôte Démoniaque et retourna sur le c",
+      "summary": "L'Église, jouissant d'une pleine indépendance, lança l'expédition, recrutant une immense armée composée de membres de l'Église et de conscrits du peuple.",
+      "content": "L'Église, jouissant d'une pleine indépendance, lança l'expédition, recrutant une immense armée composée de membres de l'Église et de conscrits du peuple. Épuisée, l'Église mit fin à la croisade désastreuse en abandonnant l'armée corrompue à l'Hôte Démoniaque et retourna sur le continent avec les membres rescapés et des informations cruciales.",
       "period": "Crise d’Imossa",
       "tags": [],
       "locationNames": [
         "Imossa"
       ],
-      "imageUrl": "",
+      "imageUrl": "assets/images/frise/Croisade d’imossa.png",
       "accentColor": "#34d399",
       "visible": true
     },
@@ -110,7 +110,7 @@
         "Zemantis",
         "Camp O.E"
       ],
-      "imageUrl": "",
+      "imageUrl": "assets/images/frise/1er Pas en Zemantis.png",
       "accentColor": "#7dd3fc",
       "visible": true
     },
@@ -129,7 +129,7 @@
         "Vruliwen",
         "Dipovia"
       ],
-      "imageUrl": "",
+      "imageUrl": "assets/images/frise/Guerre Vrulio-Dipovienne.png",
       "accentColor": "#7dd3fc",
       "visible": true
     },
@@ -148,7 +148,7 @@
       "locationNames": [
         "Vardanys"
       ],
-      "imageUrl": "",
+      "imageUrl": "assets/images/frise/Insurrection de Vardanys.png",
       "accentColor": "#7dd3fc",
       "visible": true
     }

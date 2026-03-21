@@ -1,5 +1,6 @@
 ﻿const dom = {
     year: document.getElementById('home-year'),
+    headerActions: document.querySelector('.home-header-actions'),
     login: document.getElementById('home-login'),
     profileToggle: document.getElementById('home-profile-toggle'),
     profileToggleAvatar: document.getElementById('home-profile-toggle-avatar'),
@@ -16,6 +17,7 @@
     lastLogin: document.getElementById('home-last-login'),
     sessionMap: document.getElementById('home-session-map'),
     adminLink: document.getElementById('home-admin-link'),
+    adminEntry: document.getElementById('home-admin-entry'),
     heroKicker: document.getElementById('home-kicker'),
     heroTitle: document.getElementById('home-hero-title'),
     heroLead: document.getElementById('home-hero-lead'),
@@ -75,6 +77,7 @@ const SITE_CONFIG_URL = '/assets/site-config.json';
 const LOCATIONS_DATA_URL = '/assets/locations.json';
 const LIVE_ITEMS_LIMIT = 5;
 const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr_FR';
+const HOME_ADMIN_ENTRY_URL = '/map/?adminSection=home';
 
 const DEFAULT_SITE_CONFIG = {
     home: {
@@ -167,6 +170,27 @@ const formatLastLogin = value => {
 };
 
 const getLoginRedirect = () => '/auth/discord/login?redirect=%2Fmap%2F';
+
+const ensureAdminEntryButton = () => {
+    if (!dom.headerActions) {
+        return null;
+    }
+    if (!dom.adminEntry) {
+        const entry = document.createElement('a');
+        entry.id = 'home-admin-entry';
+        entry.className = 'home-link-button home-link-button-admin';
+        entry.textContent = 'Admin accueil';
+        entry.href = HOME_ADMIN_ENTRY_URL;
+        entry.hidden = true;
+        if (dom.login) {
+            dom.headerActions.insertBefore(entry, dom.login);
+        } else {
+            dom.headerActions.appendChild(entry);
+        }
+        dom.adminEntry = entry;
+    }
+    return dom.adminEntry;
+};
 
 const escapeHtml = value => String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -892,6 +916,10 @@ const setGuestState = (options = {}) => {
     if (dom.profileToggle) {
         dom.profileToggle.hidden = true;
     }
+    const adminEntry = ensureAdminEntryButton();
+    if (adminEntry) {
+        adminEntry.hidden = true;
+    }
     setProfilePopoverOpen(false);
     dom.adminLink.hidden = true;
     updateResumeCard({ authenticated: false });
@@ -922,10 +950,15 @@ const setAuthenticatedState = payload => {
     if (dom.profileToggle) {
         dom.profileToggle.hidden = false;
     }
+    const adminEntry = ensureAdminEntryButton();
+    if (adminEntry) {
+        adminEntry.hidden = !isAdmin;
+        adminEntry.href = HOME_ADMIN_ENTRY_URL;
+    }
     dom.adminLink.hidden = !isAdmin;
     if (!dom.adminLink.hidden) {
-        dom.adminLink.textContent = 'Acces admin rapide (carte)';
-        dom.adminLink.href = '/map/';
+        dom.adminLink.textContent = 'Admin accueil';
+        dom.adminLink.href = HOME_ADMIN_ENTRY_URL;
     }
     updateResumeCard({ authenticated: true });
 };
@@ -1010,6 +1043,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dom.sessionMap) {
         dom.sessionMap.setAttribute('href', '/map/');
     }
+    ensureAdminEntryButton();
     applySiteConfig(DEFAULT_SITE_CONFIG);
     bindActions();
     loadSiteConfig();

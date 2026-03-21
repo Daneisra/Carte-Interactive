@@ -147,20 +147,12 @@
 - [x] Un render personnage detoure propre (PNG/WebP).
 - [x] Un screenshot tres propre de la carte pour le mockup.
 
-### P4 — Différenciants
+### Fix Pré P3
 - [x] Fix la suppression des annotations
 - [x] Sur la carte ajouter un bouton pour revenir a l'acceuil
 - [x] Possibilité de fermer/réduire le panneaux "Flux temps réel"
-- [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schémas, créer des routes, instruction etc
-- [ ] Carte chronologique (replay des lieux/événements).
-- [ ] Partage/Export (JSON + capture visuelle).
-- [ ] Marqueurs évolutifs (temps/événements).
-- [ ] Markers thématiques/stylés par type + légende.
-- [ ] Quêtes interactives avec états visuels et transitions.
-- [ ] Narateur audio
-- [ ] Polish UI
 
-### P5 — Frise chronologique
+### P4 — Frise chronologique
 - [ ] Frise chronologique complète (axe horizontal gauche -> droite, année, titre, texte, médias, liens vers la carte)
 - [x] Etat actuel : MVP technique livré (page dédiée, admin, médias, filtres, liens carte <-> frise, tests UI).
 - [x] Avancement récent : regroupement visuel par période ajouté dans la frise horizontale.
@@ -170,19 +162,19 @@
 - [x] Avancement récent : bandeau de lecture active ajouté dans la frise pour ancrer le contexte courant.
 - [ ] Suite prioritaire : enrichissement éditorial des événements, regroupements par époque avancés et derniers raffinements visuels.
 - [x] Recommandation produit : page dédiée `/timeline` d'abord, intégration légère dans la carte ensuite.
-- [x] P5.1 - Cadrage produit V2 de la frise : tri chronologique ascendant, regroupement visuel par périodes contiguës, densité moyenne (carte résumée + détail riche), page dédiée comme point d'entrée principal, état partageable par URL, personnalisation éditoriale avancée limitée à l'accent, l'image, les tags, les lieux liés et la visibilité.
-- [x] Décision P5.1 - La carte reste un point d'entrée secondaire vers la frise, sans intégrer la timeline complète dans l'interface principale de navigation.
-- [x] Décision P5.1 - Les évolutions V2 hors périmètre immédiat sont : replay cartographique, exports, calendriers complexes, embranchements narratifs et filtres ultra spécialisés.
-- [x] P5.2 - Modèle de données chronologie : `id`, `annee`, `titre`, `resume`, `texte`, `periode`, `tags`, `image`, `lieux lies`, `ordre`, `visible`.
-- [x] P5.3 - Source de données / persistance : fichier JSON ou API admin dédiée pour CRUD, ordre manuel, publication/masquage.
-- [x] P5.4 - Page dédiée chronologie : route `/timeline`, header cohérent avec l'accueil et la carte, CTA retour accueil/carte.
-- [x] P5.5 - UI frise horizontale MVP : navigation gauche -> droite, cartes événement, scroll/drag horizontal, état vide, responsive propre.
-- [x] P5.6 - Détail événement : année, titre, texte long, image optionnelle, tags, lieux liés, CTA "Voir sur la carte".
-- [x] P5.7 - Admin chronologie : créer / éditer / supprimer / réordonner les événements, gérer visibilité, aperçu rapide.
-- [x] P5.8 - Lien frise -> carte : ouvrir la carte sur un lieu ou groupe de lieux liés depuis un événement.
-- [x] P5.9 - Lien carte -> frise : depuis un lieu, afficher plus tard les événements historiques liés dans un panneau ou une section dédiée.
-- [x] P5.10 - Filtres chronologie : époque, région, faction, type d'événement, recherche texte.
-- [x] P5.11 - QA chronologie : accessibilité clavier, performances, mobile/tablette, validation des contenus et tests navigateur ciblés.
+- [x] P4.1 - Cadrage produit V2 de la frise : tri chronologique ascendant, regroupement visuel par périodes contiguës, densité moyenne (carte résumée + détail riche), page dédiée comme point d'entrée principal, état partageable par URL, personnalisation éditoriale avancée limitée à l'accent, l'image, les tags, les lieux liés et la visibilité.
+- [x] Décision P4.1 - La carte reste un point d'entrée secondaire vers la frise, sans intégrer la timeline complète dans l'interface principale de navigation.
+- [x] Décision P4.1 - Les évolutions V2 hors périmètre immédiat sont : replay cartographique, exports, calendriers complexes, embranchements narratifs et filtres ultra spécialisés.
+- [x] P4.2 - Modèle de données chronologie : `id`, `annee`, `titre`, `resume`, `texte`, `periode`, `tags`, `image`, `lieux lies`, `ordre`, `visible`.
+- [x] P4.3 - Source de données / persistance : fichier JSON ou API admin dédiée pour CRUD, ordre manuel, publication/masquage.
+- [x] P4.4 - Page dédiée chronologie : route `/timeline`, header cohérent avec l'accueil et la carte, CTA retour accueil/carte.
+- [x] P4.5 - UI frise horizontale MVP : navigation gauche -> droite, cartes événement, scroll/drag horizontal, état vide, responsive propre.
+- [x] P4.6 - Détail événement : année, titre, texte long, image optionnelle, tags, lieux liés, CTA "Voir sur la carte".
+- [x] P4.7 - Admin chronologie : créer / éditer / supprimer / réordonner les événements, gérer visibilité, aperçu rapide.
+- [x] P4.8 - Lien frise -> carte : ouvrir la carte sur un lieu ou groupe de lieux liés depuis un événement.
+- [x] P4.9 - Lien carte -> frise : depuis un lieu, afficher plus tard les événements historiques liés dans un panneau ou une section dédiée.
+- [x] P4.10 - Filtres chronologie : époque, région, faction, type d'événement, recherche texte.
+- [x] P4.11 - QA chronologie : accessibilité clavier, performances, mobile/tablette, validation des contenus et tests navigateur ciblés.
 
 ### Note produit - Frise chronologique
 - [x] Option A - Page dédiée : meilleure lisibilité, plus de place pour une vraie frise horizontale, plus simple à rendre premium et responsive.
@@ -190,13 +182,55 @@
 - [x] Décision recommandée : construire la version complète sur page dédiée, puis ajouter un point d'entrée compact sur la carte.
 - [x] MVP recommandé : année + titre + texte + image optionnelle + lieux liés + bouton "Voir sur la carte".
 
-### P6 — Hygiène & dette
+### P5 — Séparation des panneaux admin
+- [ ] Séparer l'administration en trois panneaux dédiés : accueil, chronologie et carte, pour éviter de tout piloter depuis le panneau admin de la carte.
+- [x] Constat actuel : l'admin carte concentre encore trop de responsabilités transverses (carte, accueil, frise), ce qui nuit à la lisibilité et à la maintenabilité.
+- [x] Cible produit : un panneau admin par surface fonctionnelle, accessible depuis la page concernée, avec auth/rôles mutualisés mais périmètres clairement séparés.
+- [x] Décision d'architecture : conserver une base UI/admin mutualisée quand c'est pertinent, mais découper les entrées, états et handlers par domaine (`home`, `timeline`, `map`).
+- [x] P5.1 - Cadrage fonctionnel : périmètres définis pour éviter tout recouvrement flou entre accueil, chronologie et carte.
+- [x] Inventaire actuel : le panneau admin de `/map` contient aujourd'hui `Statut`, `Actions`, `Accueil`, `Chronologie`, `Disponibilites joueurs`, `Live`, `Alertes de validation` et `Télémétrie / erreurs`.
+- [x] P5.1.a - Admin accueil : hero, CTA, liens sociaux, blocs communauté, textes, visuels, mises en avant, support/dons, footer, patch notes et configuration éditoriale de `/`.
+- [x] Décision P5.1.a - Le futur panneau admin accueil reprend l'actuelle section `Accueil` du panneau carte, sans logique lieux/carte/temps réel.
+- [x] P5.1.b - Admin chronologie : méta de `/timeline`, événements, périodes, médias, tags, lieux liés, ordre, visibilité et aperçu rapide de la frise.
+- [x] Décision P5.1.b - Le futur panneau admin chronologie reprend l'actuelle section `Chronologie` du panneau carte, sans outils runtime de la carte.
+- [x] P5.1.c - Admin carte : lieux, annotations, quêtes, groupes JDR, couches, assets, disponibilités, live metrics, validation et télémétrie, c'est-à-dire tout ce qui reste opérationnellement lié à l'expérience carte ou au pilotage en jeu.
+- [x] Décision P5.1.c - En l'absence d'un 4e panneau "ops", `Gestion utilisateurs`, `Gestion groupes`, `Disponibilites`, `Live`, `Alertes` et `Télémétrie` restent rattachés à l'admin carte pour cette phase.
+- [x] Règle P5.1 - Aucun écran admin ne doit éditer des données dont il n'est pas propriétaire : pas d'édition accueil depuis `/map`, pas d'édition frise depuis `/map`, pas d'édition lieux depuis `/` ou `/timeline`.
+- [x] Règle P5.1 - Auth, permissions, feedback de sauvegarde, conventions visuelles et composants de formulaire peuvent rester mutualisés entre les trois panneaux.
+- [x] P5.2 - Points d'entrée UI : accès admin dédié sur l'accueil et sur la page chronologie, avec deep link vers la bonne section du panneau admin carte en attendant la séparation complète.
+- [x] P5.3 - Isolation des états front : la carte ouvre désormais le panneau admin avec un scope explicite (`map`, `home`, `timeline`) et ne précharge plus l'état accueil/chronologie hors du contexte demandé.
+- [ ] P5.4 - Isolation des handlers front : extraire ou regrouper la logique JS par domaine pour que chaque panneau ne manipule que ses propres données.
+- [ ] P5.5 - Base UI mutualisée : identifier ce qui reste partagé entre les trois panneaux (auth, toasts, validations, upload, feedback, boutons de sauvegarde, conventions visuelles).
+- [ ] P5.6 - API / persistance accueil : verrouiller les endpoints et la persistance de la configuration d'accueil autour du futur panneau admin accueil.
+- [ ] P5.7 - API / persistance chronologie : verrouiller les endpoints et la persistance de la frise autour du futur panneau admin chronologie.
+- [ ] P5.8 - Recentrage admin carte : retirer du panneau carte les sections accueil/chronologie devenues hors périmètre, sans régression sur l'édition des lieux et outils temps réel.
+- [ ] P5.9 - Navigation admin cohérente : harmoniser les CTA/admin shortcuts entre `/`, `/timeline` et `/map`, avec état connecté/admin lisible et retours cohérents.
+- [ ] P5.10 - QA et non-régression : tester l'ouverture/fermeture, les sauvegardes, les permissions et les parcours admin sur les trois surfaces.
+- [ ] Ordre recommandé :
+- [ ] Phase 1 : cadrage des périmètres + inventaire des sections admin existantes.
+- [ ] Phase 2 : créer les points d'entrée accueil/chronologie et la base UI mutualisée.
+- [ ] Phase 3 : brancher le panneau admin accueil.
+- [ ] Phase 4 : brancher le panneau admin chronologie.
+- [ ] Phase 5 : nettoyer et recentrer le panneau admin carte.
+- [ ] Phase 6 : QA complète et polish.
+
+### P6 — Différenciants
+- [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schémas, créer des routes, instruction etc
+- [ ] Carte chronologique (replay des lieux/événements).
+- [ ] Partage/Export (JSON + capture visuelle).
+- [ ] Marqueurs évolutifs (temps/événements).
+- [ ] Markers thématiques/stylés par type + légende.
+- [ ] Quêtes interactives avec états visuels et transitions.
+- [ ] Narateur audio
+- [ ] Polish UI
+
+### P7 — Hygiène & dette
 - [ ] Modularisation fine de `UiController` et nettoyage des artefacts legacy.
 - [ ] Harmonisation encodages (UTF-8) & lint assets. :contentReference[oaicite:7]{index=7}
-- [ ] Polish UI
 - [ ] Fiabiliser le compteur Discord automatique de l’accueil (invite/widget/API) avec fallback propre.
 - [ ] Automatiser les patch notes de l’accueil depuis GitHub ou l’historique git de production.
-- [ ] Créer deux panneau admin supplémentaire, un accessible depuis la page d'acceuil pour gérer la page d'acceuil, un second depuis la page chronologie pour gérer la frise et dédiée le panneau admin de la carte aux éléments de la carte, de sorte a avoir trois gestion séparer plus propre et ordonées plutôt que de tout faire depuis le panneau admin de la carte.
+- [ ] Polish UI
+
 
 
 

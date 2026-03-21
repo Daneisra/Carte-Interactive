@@ -76,6 +76,27 @@ const PROFILE_SOCIAL_LABELS = {
     youtube: 'YouTube',
     x: 'X/Twitter'
 };
+const ADMIN_ENTRY_SECTION_IDS = {
+    home: 'admin-section-home-config',
+    timeline: 'admin-section-timeline-config'
+};
+const ADMIN_PANEL_SCOPES = new Set(['map', 'home', 'timeline']);
+const normalizeAdminPanelScope = value => {
+    const scope = sanitizeString(value).toLowerCase();
+    return ADMIN_PANEL_SCOPES.has(scope) ? scope : 'map';
+};
+const resolveRequestedAdminSection = () => {
+    if (typeof window === 'undefined' || !window.location?.search) {
+        return '';
+    }
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const section = sanitizeString(params.get('adminSection')).toLowerCase();
+        return Object.prototype.hasOwnProperty.call(ADMIN_ENTRY_SECTION_IDS, section) ? section : '';
+    } catch (_error) {
+        return '';
+    }
+};
 const normalizeAnnotationId = annotationId => {
     if (annotationId === null || annotationId === undefined) {
         return '';
@@ -466,6 +487,9 @@ export class UiController {
         this.adminTimelineDirty = false;
         this.adminTimelinePending = false;
         this.adminTimelineErrors = [];
+        this.adminPanelScope = 'map';
+        this.requestedAdminSection = resolveRequestedAdminSection();
+        this.hasHandledRequestedAdminSection = false;
         this.mapClickUnsubscribe = null;
         this.tooltipMeta = new WeakMap();
         this.visibleTooltips = new Set();
@@ -2016,7 +2040,7 @@ export class UiController {
         if (this.adminDom.downloadAssetsButton) {
             this.adminDom.downloadAssetsButton.hidden = !isAdmin;
         }
-        this.syncAdminHomeEditor();
+        this.syncScopedAdminEditors();
         if (!isAdmin) {
             this.closeUserAdminPanel(true);
             this.closeAdminPanel(true);
@@ -3489,6 +3513,7 @@ export class UiController {
         if (typeof fetch !== 'function') {
             this.authRequired = false;
             this.setAuthState({ authenticated: true, role: 'admin', username: '', avatar: null });
+            this.maybeOpenAdminSectionFromQuery();
             return;
         }
         try {
@@ -3511,6 +3536,7 @@ export class UiController {
             const profile = payload?.profile ?? null;
             const account = (payload?.account && typeof payload.account === 'object') ? payload.account : null;
             this.setAuthState({ authenticated, role, username, avatar, provider, discordId, groups, groupDetails, characters, availability, profile, account });
+            this.maybeOpenAdminSectionFromQuery();
         } catch (error) {
             console.error('[auth] session fetch failed', error);
             this.authRequired = true;
@@ -3860,7 +3886,35 @@ export class UiController {
         this.closeUserAdminPanel(true);
     }
 
-    openAdminPanel() {
+    setAdminPanelScope(scope = 'map') {
+        this.adminPanelScope = normalizeAdminPanelScope(scope);
+        if (this.adminDom.overlay) {
+            this.adminDom.overlay.dataset.adminScope = this.adminPanelScope;
+        }
+        if (this.adminDom.dialog) {
+            this.adminDom.dialog.dataset.adminScope = this.adminPanelScope;
+        }
+    }
+
+    shouldLoadHomeAdminState(scope = this.adminPanelScope) {
+        return normalizeAdminPanelScope(scope) === 'home';
+    }
+
+    shouldLoadTimelineAdminState(scope = this.adminPanelScope) {
+        return normalizeAdminPanelScope(scope) === 'timeline';
+    }
+
+    syncScopedAdminEditors(scope = this.adminPanelScope) {
+        const normalizedScope = normalizeAdminPanelScope(scope);
+        if (normalizedScope === 'home') {
+            this.syncAdminHomeEditor();
+        }
+        if (normalizedScope === 'timeline') {
+            this.syncAdminTimelineEditor();
+        }
+    }
+
+    openAdminPanel(scope = 'map') {
         if (!this.isAdmin()) {
             this.announcer?.assertive?.('Connexion administrateur requise.');
             return;
@@ -3868,11 +3922,23 @@ export class UiController {
         if (!this.adminDom.overlay) {
             return;
         }
+        const normalizedScope = normalizeAdminPanelScope(scope);
+        this.setAdminPanelScope(normalizedScope);
         this.syncAdminStatus();
         this.syncAdminValidationWarnings();
         this.syncAdminTelemetry();
-        this.fetchAdminSiteConfig();
-        this.fetchAdminTimeline();
+        if (this.shouldLoadHomeAdminState(normalizedScope)) {
+            if (!this.adminSiteConfig) {
+                this.setAdminHomeStatus("Chargement de la configuration de l'accueil...");
+            }
+            this.fetchAdminSiteConfig();
+        }
+        if (this.shouldLoadTimelineAdminState(normalizedScope)) {
+            if (!this.adminTimeline) {
+                this.setAdminTimelineStatus('Chargement de la chronologie...');
+            }
+            this.fetchAdminTimeline();
+        }
         this.fetchAdminAvailability();
         this.startAdminMetrics();
         this.closeCharacterOverlay();
@@ -3880,11 +3946,50 @@ export class UiController {
         this.adminDom.overlay.classList.add('open');
     }
 
+    focusAdminSection(sectionKey = '') {
+        const sectionId = ADMIN_ENTRY_SECTION_IDS[sectionKey] || '';
+        if (!sectionId) {
+            return;
+        }
+        const section = document.getElementById(sectionId);
+        if (!section) {
+            return;
+        }
+        this.adminDom.overlay?.scrollTo?.({ top: 0, behavior: 'auto' });
+        this.adminDom.dialog?.querySelectorAll('.admin-section.is-targeted').forEach(node => {
+            node.classList.remove('is-targeted');
+        });
+        section.classList.add('is-targeted');
+        section.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        const focusTarget = section.querySelector('button, input, textarea, select');
+        focusTarget?.focus({ preventScroll: true });
+    }
+
+    maybeOpenAdminSectionFromQuery() {
+        if (this.hasHandledRequestedAdminSection || !this.requestedAdminSection || !this.isAdmin()) {
+            return;
+        }
+        this.hasHandledRequestedAdminSection = true;
+        this.openAdminPanel(this.requestedAdminSection);
+        window.requestAnimationFrame(() => this.focusAdminSection(this.requestedAdminSection));
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('adminSection');
+            window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+        } catch (_error) {
+            // ignore URL cleanup failures
+        }
+    }
+
     closeAdminPanel(force = false) {
         if (!this.adminDom.overlay) {
             return;
         }
         this.stopAdminMetrics();
+        this.setAdminPanelScope('map');
+        this.adminDom.dialog?.querySelectorAll('.admin-section.is-targeted').forEach(node => {
+            node.classList.remove('is-targeted');
+        });
         this.adminDom.overlay.classList.remove('open');
         this.adminDom.overlay.hidden = true;
         if (force && this.adminDom.overlay) {
@@ -3897,6 +4002,7 @@ export class UiController {
             return;
         }
         this.adminDom.overlay.hidden = true;
+        this.setAdminPanelScope('map');
         if (this.adminDom.close && !this.adminDom.close.dataset.bound) {
             this.adminDom.close.addEventListener('click', () => this.closeAdminPanel(true));
             this.adminDom.close.dataset.bound = 'true';
@@ -3987,14 +4093,7 @@ export class UiController {
                 element.dataset.bound = 'true';
             }
         });
-        if (!this.adminSiteConfig) {
-            this.setAdminHomeStatus("Chargement de la configuration de l'accueil...");
-        }
-        if (!this.adminTimeline) {
-            this.setAdminTimelineStatus('Chargement de la chronologie...');
-        }
-        this.syncAdminHomeEditor();
-        this.syncAdminTimelineEditor();
+        this.syncScopedAdminEditors();
     }
 
     syncAdminStatus() {
