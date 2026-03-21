@@ -6,10 +6,12 @@ const dom = {
     periods: document.getElementById('timeline-periods'),
     range: document.getElementById('timeline-range'),
     status: document.getElementById('timeline-status'),
+    hero: document.querySelector('.timeline-hero'),
     stage: document.querySelector('.timeline-stage'),
     stageHeader: document.querySelector('.timeline-stage-header'),
     track: document.getElementById('timeline-track'),
     periodNav: document.getElementById('timeline-period-nav'),
+    stageOverview: document.getElementById('timeline-stage-overview'),
     detail: document.getElementById('timeline-detail'),
     detailYear: document.getElementById('timeline-detail-year'),
     detailPeriod: document.getElementById('timeline-detail-period'),
@@ -188,6 +190,63 @@ const updateTrackNavigationState = () => {
     dom.scrollNext.disabled = atEnd || maxScrollLeft <= 0;
 };
 
+const setActiveAccent = accentColor => {
+    const nextAccent = normalizeText(accentColor) || 'var(--timeline-accent)';
+    dom.hero?.style.setProperty('--timeline-active-accent', nextAccent);
+    dom.stage?.style.setProperty('--timeline-active-accent', nextAccent);
+    dom.detail?.style.setProperty('--timeline-detail-accent', nextAccent);
+};
+
+const updatePeriodNavState = () => {
+    if (!dom.periodNav) {
+        return;
+    }
+    const activeCard = dom.track?.querySelector(`.timeline-card[data-timeline-id="${state.activeId}"]`);
+    const activeGroup = activeCard?.closest('.timeline-period-group');
+    const activeGroupId = activeGroup?.dataset.periodGroupId || '';
+    dom.periodNav.querySelectorAll('.timeline-period-nav-chip').forEach(button => {
+        const isActive = button.dataset.periodGroupId === activeGroupId;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+    });
+};
+
+const ensureStageOverviewDom = () => {
+    if (!dom.stage || !dom.status) {
+        return;
+    }
+    if (!dom.stageOverview) {
+        const panel = document.createElement('section');
+        panel.id = 'timeline-stage-overview';
+        panel.className = 'timeline-stage-overview';
+        panel.hidden = true;
+        panel.setAttribute('aria-label', 'Contexte actif');
+        panel.innerHTML = `
+            <div class="timeline-stage-overview-copy">
+                <p id="timeline-stage-overview-kicker" class="timeline-stage-overview-kicker">Lecture active</p>
+                <h3 id="timeline-stage-overview-title" class="timeline-stage-overview-title">Selectionnez un evenement</h3>
+                <p id="timeline-stage-overview-summary" class="timeline-stage-overview-summary"></p>
+            </div>
+            <dl class="timeline-stage-overview-meta">
+                <div class="timeline-stage-overview-stat">
+                    <dt>Annee</dt>
+                    <dd id="timeline-stage-overview-year">--</dd>
+                </div>
+                <div class="timeline-stage-overview-stat">
+                    <dt>Periode</dt>
+                    <dd id="timeline-stage-overview-period">--</dd>
+                </div>
+                <div class="timeline-stage-overview-stat">
+                    <dt>Lieux lies</dt>
+                    <dd id="timeline-stage-overview-locations">0</dd>
+                </div>
+            </dl>
+        `;
+        dom.status.insertAdjacentElement('afterend', panel);
+        dom.stageOverview = panel;
+    }
+};
+
 const ensurePeriodNavDom = () => {
     if (!dom.stage || !dom.status) {
         return;
@@ -238,6 +297,42 @@ const ensureFilterDom = () => {
     dom.resetFilters = wrapper.querySelector('#timeline-reset-filters');
 };
 
+const renderStageOverview = entry => {
+    ensureStageOverviewDom();
+    if (!dom.stageOverview) {
+        return;
+    }
+    if (!entry) {
+        dom.stageOverview.hidden = true;
+        return;
+    }
+
+    dom.stageOverview.hidden = false;
+    dom.stageOverview.style.setProperty('--timeline-stage-accent', entry.accentColor);
+
+    const title = dom.stageOverview.querySelector('#timeline-stage-overview-title');
+    const summary = dom.stageOverview.querySelector('#timeline-stage-overview-summary');
+    const year = dom.stageOverview.querySelector('#timeline-stage-overview-year');
+    const period = dom.stageOverview.querySelector('#timeline-stage-overview-period');
+    const locations = dom.stageOverview.querySelector('#timeline-stage-overview-locations');
+
+    if (title) {
+        title.textContent = entry.title;
+    }
+    if (summary) {
+        summary.textContent = entry.summary;
+    }
+    if (year) {
+        year.textContent = entry.yearLabel;
+    }
+    if (period) {
+        period.textContent = entry.period;
+    }
+    if (locations) {
+        locations.textContent = String(entry.locationNames.length);
+    }
+};
+
 const renderPeriodNav = entries => {
     ensurePeriodNavDom();
     if (!dom.periodNav) {
@@ -261,6 +356,7 @@ const renderPeriodNav = entries => {
         button.dataset.periodGroupId = firstEntry.id;
         button.textContent = group.period;
         button.setAttribute('aria-label', `Aller a la periode ${group.period}`);
+        button.setAttribute('aria-pressed', 'false');
         button.addEventListener('click', () => {
             const targetGroup = dom.track.querySelector(`[data-period-group-id="${firstEntry.id}"]`);
             if (targetGroup) {
@@ -270,6 +366,7 @@ const renderPeriodNav = entries => {
         });
         dom.periodNav.appendChild(button);
     });
+    updatePeriodNavState();
 };
 
 const populateFilterOptions = entries => {
@@ -341,6 +438,8 @@ const renderTags = entry => {
 
 const renderDetail = entry => {
     dom.detail.hidden = false;
+    setActiveAccent(entry.accentColor);
+    renderStageOverview(entry);
     dom.detailYear.textContent = entry.yearLabel;
     dom.detailPeriod.textContent = entry.period;
     dom.detailTitle.textContent = entry.title;
@@ -379,6 +478,11 @@ const setActiveEntry = entryId => {
     if (!nextEntry) {
         state.activeId = '';
         dom.detail.hidden = true;
+        dom.detail.style.removeProperty('--timeline-detail-accent');
+        dom.hero?.style.removeProperty('--timeline-active-accent');
+        dom.stage?.style.removeProperty('--timeline-active-accent');
+        renderStageOverview(null);
+        updatePeriodNavState();
         syncQueryState();
         return;
     }
@@ -394,6 +498,7 @@ const setActiveEntry = entryId => {
             card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
     });
+    updatePeriodNavState();
     window.requestAnimationFrame(updateTrackNavigationState);
     syncQueryState();
 };

@@ -166,9 +166,13 @@
 - [x] Avancement récent : regroupement visuel par période ajouté dans la frise horizontale.
 - [x] Avancement récent : état de la frise partageable par URL (événement actif + filtres synchronisés).
 - [x] Avancement récent : navigation rapide par période ajoutée dans la page chronologie.
-- [ ] Suite prioritaire : cadrage produit V2, enrichissement éditorial des événements, regroupements par époque et polish visuel premium.
+- [x] Avancement récent : période active et accent du panneau détail synchronisés pour une lecture plus premium.
+- [x] Avancement récent : bandeau de lecture active ajouté dans la frise pour ancrer le contexte courant.
+- [ ] Suite prioritaire : enrichissement éditorial des événements, regroupements par époque avancés et derniers raffinements visuels.
 - [x] Recommandation produit : page dédiée `/timeline` d'abord, intégration légère dans la carte ensuite.
-- [ ] P5.1 - Cadrage produit V2 de la frise : règles de tri définitives, regroupement par époque, densité de contenu, direction visuelle finale, besoins de personnalisation avancés.
+- [x] P5.1 - Cadrage produit V2 de la frise : tri chronologique ascendant, regroupement visuel par périodes contiguës, densité moyenne (carte résumée + détail riche), page dédiée comme point d'entrée principal, état partageable par URL, personnalisation éditoriale avancée limitée à l'accent, l'image, les tags, les lieux liés et la visibilité.
+- [x] Décision P5.1 - La carte reste un point d'entrée secondaire vers la frise, sans intégrer la timeline complète dans l'interface principale de navigation.
+- [x] Décision P5.1 - Les évolutions V2 hors périmètre immédiat sont : replay cartographique, exports, calendriers complexes, embranchements narratifs et filtres ultra spécialisés.
 - [x] P5.2 - Modèle de données chronologie : `id`, `annee`, `titre`, `resume`, `texte`, `periode`, `tags`, `image`, `lieux lies`, `ordre`, `visible`.
 - [x] P5.3 - Source de données / persistance : fichier JSON ou API admin dédiée pour CRUD, ordre manuel, publication/masquage.
 - [x] P5.4 - Page dédiée chronologie : route `/timeline`, header cohérent avec l'accueil et la carte, CTA retour accueil/carte.

@@ -69,6 +69,7 @@ test.describe('Chronologie - UI', () => {
     await expect(page.locator('.timeline-period-group')).toHaveCount(countContiguousPeriods(entries));
     await expect(page.locator('.timeline-card-media')).toHaveCount(entries.filter(entry => entry.imageUrl).length);
     await expect(page.locator('#timeline-detail-title')).toHaveText(entries[0].title);
+    await expect(page.locator('#timeline-stage-overview-title')).toHaveText(entries[0].title);
     if (entries[0].imageUrl) {
       await expect(page.locator('.timeline-detail-media img')).toBeVisible();
     }
@@ -206,8 +207,11 @@ test.describe('Chronologie - UI', () => {
     await page.goto('/timeline/');
     await page.waitForLoadState('domcontentloaded');
 
-    await expect(page.locator('.timeline-period-nav-chip')).toHaveCount(groups.length);
-    await page.locator('.timeline-period-nav-chip').nth(1).click();
+    const periodChips = page.locator('.timeline-period-nav-chip');
+    await expect(periodChips).toHaveCount(groups.length);
+    await periodChips.nth(1).click();
+    await expect(periodChips.nth(1)).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#timeline-stage-overview-title')).toHaveText(targetGroup.entries[0].title);
     await expect(page.locator('#timeline-detail-title')).toHaveText(targetGroup.entries[0].title);
   });
 });
