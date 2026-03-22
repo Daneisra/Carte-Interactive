@@ -22,7 +22,7 @@ test.describe('Points d\'entree admin', () => {
     const requests = [];
     page.on('request', request => {
       const url = request.url();
-      if (url.includes('/api/admin/home-config') || url.includes('/api/admin/timeline')) {
+      if (url.includes('/api/admin/home-config') || url.includes('/api/admin/timeline-config')) {
         requests.push(url);
       }
     });
@@ -41,7 +41,7 @@ test.describe('Points d\'entree admin', () => {
     await expect(page.locator('#admin-section-home-config')).toHaveClass(/is-targeted/);
     await page.waitForTimeout(300);
     expect(requests.some(url => url.includes('/api/admin/home-config'))).toBeTruthy();
-    expect(requests.some(url => url.includes('/api/admin/timeline'))).toBeFalsy();
+    expect(requests.some(url => url.includes('/api/admin/timeline-config'))).toBeFalsy();
   });
 
   test('la chronologie expose un acces admin dedie vers la section chronologie', async ({ page }) => {
@@ -49,7 +49,7 @@ test.describe('Points d\'entree admin', () => {
     const requests = [];
     page.on('request', request => {
       const url = request.url();
-      if (url.includes('/api/admin/home-config') || url.includes('/api/admin/timeline')) {
+      if (url.includes('/api/admin/home-config') || url.includes('/api/admin/timeline-config')) {
         requests.push(url);
       }
     });
@@ -67,8 +67,19 @@ test.describe('Points d\'entree admin', () => {
     await expect(page.locator('#admin-overlay')).toBeVisible();
     await expect(page.locator('#admin-section-timeline-config')).toHaveClass(/is-targeted/);
     await page.waitForTimeout(300);
-    expect(requests.some(url => url.includes('/api/admin/timeline'))).toBeTruthy();
+    expect(requests.some(url => url.includes('/api/admin/timeline-config'))).toBeTruthy();
     expect(requests.some(url => url.includes('/api/admin/home-config'))).toBeFalsy();
+  });
+
+  test('l alias admin timeline legacy reste compatible pendant la transition', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    const response = await page.request.get('/api/admin/timeline');
+    expect(response.ok()).toBeTruthy();
+
+    const payload = await response.json();
+    expect(payload?.status).toBe('ok');
+    expect(Array.isArray(payload?.timeline?.entries)).toBeTruthy();
   });
 
   test('le panneau admin carte n ouvre pas les chargements accueil et chronologie par defaut', async ({ page }) => {
@@ -84,7 +95,7 @@ test.describe('Points d\'entree admin', () => {
     const requests = [];
     page.on('request', request => {
       const url = request.url();
-      if (url.includes('/api/admin/home-config') || url.includes('/api/admin/timeline')) {
+      if (url.includes('/api/admin/home-config') || url.includes('/api/admin/timeline-config')) {
         requests.push(url);
       }
     });

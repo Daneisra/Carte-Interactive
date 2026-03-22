@@ -8,6 +8,8 @@ import {
     syncSaveButton
 } from './adminShared.js';
 
+const TIMELINE_ADMIN_API_ROUTE = '/api/admin/timeline-config';
+
 export const normalizeAdminTimeline = (entriesNormalizer, config = {}) => {
     const source = config && typeof config === 'object' ? config : {};
     const entries = Array.isArray(source.entries)
@@ -413,7 +415,7 @@ export const fetchAdminTimeline = async ctx => {
     }
     setAdminTimelineStatus(ctx, 'Chargement de la chronologie...');
     try {
-        const response = await fetch('/api/admin/timeline', {
+        const response = await fetch(TIMELINE_ADMIN_API_ROUTE, {
             credentials: 'include',
             cache: 'no-store'
         });
@@ -464,7 +466,7 @@ export const saveAdminTimeline = async ctx => {
     syncAdminTimelineEditor(ctx);
     setAdminTimelineStatus(ctx, 'Enregistrement de la chronologie...');
     try {
-        const response = await fetch('/api/admin/timeline', {
+        const response = await fetch(TIMELINE_ADMIN_API_ROUTE, {
             method: 'PATCH',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },

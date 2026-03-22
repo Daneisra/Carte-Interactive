@@ -202,7 +202,7 @@
 - [x] P5.4 - Isolation des handlers front : la logique admin `accueil` et `chronologie` est maintenant regroupée dans des modules dédiés, `uiController` gardant seulement l'orchestration du panneau et des wrappers de transition.
 - [x] P5.5 - Base UI mutualisée : un socle partagé gère maintenant les patterns UI communs des admins (`status`, erreurs inline, disable des champs, boutons reload/save), prêt à être réutilisé par les trois panneaux.
 - [x] P5.6 - API / persistance accueil : l'admin accueil pointe maintenant vers un endpoint dédié `/api/admin/home-config`, adossé à la même persistance `assets/site-config.json`, avec compatibilité transitoire conservée sur l'ancien endpoint générique.
-- [ ] P5.7 - API / persistance chronologie : verrouiller les endpoints et la persistance de la frise autour du futur panneau admin chronologie.
+- [x] P5.7 - API / persistance chronologie : l'admin chronologie pointe maintenant vers un endpoint dédié `/api/admin/timeline-config`, adossé à la même persistance `assets/timeline.json`, avec alias legacy `/api/admin/timeline` conservé pendant la transition.
 - [ ] P5.8 - Recentrage admin carte : retirer du panneau carte les sections accueil/chronologie devenues hors périmètre, sans régression sur l'édition des lieux et outils temps réel.
 - [ ] P5.9 - Navigation admin cohérente : harmoniser les CTA/admin shortcuts entre `/`, `/timeline` et `/map`, avec état connecté/admin lisible et retours cohérents.
 - [ ] P5.10 - QA et non-régression : tester l'ouverture/fermeture, les sauvegardes, les permissions et les parcours admin sur les trois surfaces.
