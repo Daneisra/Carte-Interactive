@@ -39,6 +39,7 @@ const HOME_ADMIN_FIELDS = [
     'homeFooterNote',
     'homeChangelog'
 ];
+const HOME_ADMIN_API_ROUTE = '/api/admin/home-config';
 
 export const normalizeAdminSiteConfig = (config = {}) => {
     const home = config?.home && typeof config.home === 'object' ? config.home : {};
@@ -447,7 +448,7 @@ export const fetchAdminSiteConfig = async ctx => {
     }
     setAdminHomeStatus(ctx, "Chargement de la configuration de l'accueil...");
     try {
-        const response = await fetch('/api/admin/site-config', {
+        const response = await fetch(HOME_ADMIN_API_ROUTE, {
             credentials: 'include',
             cache: 'no-store'
         });
@@ -465,7 +466,7 @@ export const fetchAdminSiteConfig = async ctx => {
         ctx.logTelemetryEvent({
             title: 'Admin accueil - chargement',
             description: error?.message || "Echec chargement configuration d'accueil",
-            route: '/api/admin/site-config',
+            route: HOME_ADMIN_API_ROUTE,
             method: 'GET',
             status: error?.status || null
         });
@@ -510,7 +511,7 @@ export const saveAdminSiteConfig = async ctx => {
     syncAdminHomeEditor(ctx);
     setAdminHomeStatus(ctx, "Enregistrement de l'accueil...");
     try {
-        const response = await fetch('/api/admin/site-config', {
+        const response = await fetch(HOME_ADMIN_API_ROUTE, {
             method: 'PATCH',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -534,7 +535,7 @@ export const saveAdminSiteConfig = async ctx => {
         ctx.logTelemetryEvent({
             title: 'Admin accueil - sauvegarde',
             description: error?.message || "Echec sauvegarde configuration d'accueil",
-            route: '/api/admin/site-config',
+            route: HOME_ADMIN_API_ROUTE,
             method: 'PATCH',
             status: error?.status || null
         });

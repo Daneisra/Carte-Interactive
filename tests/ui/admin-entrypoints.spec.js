@@ -22,7 +22,7 @@ test.describe('Points d\'entree admin', () => {
     const requests = [];
     page.on('request', request => {
       const url = request.url();
-      if (url.includes('/api/admin/site-config') || url.includes('/api/admin/timeline')) {
+      if (url.includes('/api/admin/home-config') || url.includes('/api/admin/timeline')) {
         requests.push(url);
       }
     });
@@ -40,7 +40,7 @@ test.describe('Points d\'entree admin', () => {
     await expect(page.locator('#admin-overlay')).toBeVisible();
     await expect(page.locator('#admin-section-home-config')).toHaveClass(/is-targeted/);
     await page.waitForTimeout(300);
-    expect(requests.some(url => url.includes('/api/admin/site-config'))).toBeTruthy();
+    expect(requests.some(url => url.includes('/api/admin/home-config'))).toBeTruthy();
     expect(requests.some(url => url.includes('/api/admin/timeline'))).toBeFalsy();
   });
 
@@ -49,7 +49,7 @@ test.describe('Points d\'entree admin', () => {
     const requests = [];
     page.on('request', request => {
       const url = request.url();
-      if (url.includes('/api/admin/site-config') || url.includes('/api/admin/timeline')) {
+      if (url.includes('/api/admin/home-config') || url.includes('/api/admin/timeline')) {
         requests.push(url);
       }
     });
@@ -68,7 +68,7 @@ test.describe('Points d\'entree admin', () => {
     await expect(page.locator('#admin-section-timeline-config')).toHaveClass(/is-targeted/);
     await page.waitForTimeout(300);
     expect(requests.some(url => url.includes('/api/admin/timeline'))).toBeTruthy();
-    expect(requests.some(url => url.includes('/api/admin/site-config'))).toBeFalsy();
+    expect(requests.some(url => url.includes('/api/admin/home-config'))).toBeFalsy();
   });
 
   test('le panneau admin carte n ouvre pas les chargements accueil et chronologie par defaut', async ({ page }) => {
@@ -84,7 +84,7 @@ test.describe('Points d\'entree admin', () => {
     const requests = [];
     page.on('request', request => {
       const url = request.url();
-      if (url.includes('/api/admin/site-config') || url.includes('/api/admin/timeline')) {
+      if (url.includes('/api/admin/home-config') || url.includes('/api/admin/timeline')) {
         requests.push(url);
       }
     });

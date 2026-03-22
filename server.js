@@ -2620,7 +2620,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (urlObj.pathname === '/api/admin/site-config') {
+    if (urlObj.pathname === '/api/admin/home-config' || urlObj.pathname === '/api/admin/site-config') {
       if (!(await ensureAuthorized(req, res, 'admin'))) {
         return;
       }
