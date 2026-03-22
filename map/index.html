@@ -143,7 +143,7 @@
                 <p id="profile-revoke-status" class="profile-character-status" role="status" aria-live="polite" hidden></p>
             </div>
             <div class="profile-actions">
-                <button id="quick-admin-panel" class="secondary-button admin-locked" type="button" hidden>Panneau admin</button>
+                <button id="quick-admin-panel" class="secondary-button admin-locked" type="button" hidden>Admin carte</button>
                 <button id="login-button" class="secondary-button" type="button">Connexion Discord</button>
                 <button id="logout-button" class="secondary-button" type="button" hidden>Se deconnecter</button>
             </div>
@@ -673,7 +673,7 @@
     <div id="admin-overlay" class="admin-overlay" role="presentation" hidden>
         <div class="admin-dialog" id="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-title">
             <header class="admin-header">
-                <h2 id="admin-title">Administration</h2>
+                <h2 id="admin-title">Administration carte</h2>
                 <button id="admin-close" class="admin-close" type="button" aria-label="Fermer le panneau admin">×</button>
             </header>
             <div class="admin-content">
@@ -687,128 +687,10 @@
                     <div class="admin-actions">
                         <button id="admin-user-button" class="secondary-button" type="button">Gestion utilisateurs</button>
                         <button id="admin-group-button" class="secondary-button" type="button">Gestion groupes JDR</button>
+                        <a class="secondary-button" href="/?admin=home">Admin accueil</a>
+                        <a class="secondary-button" href="/timeline/?admin=timeline">Admin chronologie</a>
                         <button id="download-assets-button" class="secondary-button" type="button">Télécharger assets</button>
                     </div>
-                </section>
-
-                <section class="admin-section" id="admin-section-home-config">
-                    <div class="admin-section-heading">
-                        <h3>Accueil</h3>
-                        <div class="admin-section-heading-actions">
-                            <button id="admin-home-reload" class="tertiary-button" type="button">Recharger</button>
-                            <button id="admin-home-save" class="secondary-button" type="button">Enregistrer l'accueil</button>
-                        </div>
-                    </div>
-                    <p class="admin-home-hint">Textes, hero, liens communautaires et patch notes de la page d'accueil.</p>
-                    <ul id="admin-home-errors" class="profile-inline-errors" hidden></ul>
-                    <div class="admin-home-grid">
-                        <fieldset class="admin-home-fieldset">
-                            <legend>Hero</legend>
-                            <label for="admin-home-kicker">Kicker</label>
-                            <input id="admin-home-kicker" type="text" autocomplete="off" />
-                            <label for="admin-home-title">Titre</label>
-                            <input id="admin-home-title" type="text" autocomplete="off" />
-                            <label for="admin-home-lead">Intro</label>
-                            <textarea id="admin-home-lead" rows="4"></textarea>
-                            <label for="admin-home-atmosphere">Bloc ambiance</label>
-                            <input id="admin-home-atmosphere" type="text" autocomplete="off" />
-                            <label for="admin-home-tags">Tags hero (une ligne = un tag)</label>
-                            <textarea id="admin-home-tags" rows="5" placeholder="Carte narrative&#10;Quetes live"></textarea>
-                            <label for="admin-home-metrics">Metriques hero (Label | Valeur)</label>
-                            <textarea id="admin-home-metrics" rows="5" placeholder="Hub | Carte + Communaute&#10;Acces | Lecture / Discord / Admin"></textarea>
-                            <label for="admin-home-background-image">Fond hero</label>
-                            <input id="admin-home-background-image" type="text" placeholder="/assets/home/backgrounds/hero-main.png" autocomplete="off" />
-                            <label for="admin-home-map-image">Mockup carte</label>
-                            <input id="admin-home-map-image" type="text" placeholder="/assets/home/mockups/map-preview-main.png" autocomplete="off" />
-                            <label for="admin-home-character-image">Render personnage</label>
-                            <input id="admin-home-character-image" type="text" placeholder="/assets/home/characters/character.png" autocomplete="off" />
-                            <label for="admin-home-floating-title">Carte flottante - titre</label>
-                            <input id="admin-home-floating-title" type="text" autocomplete="off" />
-                            <label for="admin-home-floating-copy">Carte flottante - texte</label>
-                            <textarea id="admin-home-floating-copy" rows="4"></textarea>
-                        </fieldset>
-                        <fieldset class="admin-home-fieldset">
-                            <legend>Communaute & liens</legend>
-                            <label for="admin-home-discord-url">URL Discord</label>
-                            <input id="admin-home-discord-url" type="url" placeholder="https://discord.gg/..." autocomplete="off" />
-                            <label for="admin-home-discord-title">Bloc Discord</label>
-                            <input id="admin-home-discord-title" type="text" autocomplete="off" />
-                            <label for="admin-home-discord-copy">Texte Discord</label>
-                            <textarea id="admin-home-discord-copy" rows="3"></textarea>
-                            <label for="admin-home-discord-proof-mode">Compteur Discord</label>
-                            <select id="admin-home-discord-proof-mode">
-                                <option value="discord">Auto (widget Discord)</option>
-                                <option value="manual">Manuel</option>
-                            </select>
-                            <label for="admin-home-discord-guild-id">Guild ID / Widget</label>
-                            <input id="admin-home-discord-guild-id" type="text" placeholder="123456789012345678" autocomplete="off" />
-                            <label for="admin-home-discord-manual-count">Compteur manuel</label>
-                            <input id="admin-home-discord-manual-count" type="number" min="0" step="1" placeholder="0" autocomplete="off" />
-                            <label for="admin-home-discord-proof-label">Libelle compteur</label>
-                            <input id="admin-home-discord-proof-label" type="text" placeholder="membres sur Discord" autocomplete="off" />
-                            <label for="admin-home-discord-proof-note">Sous-texte compteur</label>
-                            <input id="admin-home-discord-proof-note" type="text" placeholder="Sessions, annonces et coordination." autocomplete="off" />
-                            <label for="admin-home-youtube-url">URL YouTube</label>
-                            <input id="admin-home-youtube-url" type="url" placeholder="https://youtube.com/..." autocomplete="off" />
-                            <label for="admin-home-youtube-title">Bloc YouTube</label>
-                            <input id="admin-home-youtube-title" type="text" autocomplete="off" />
-                            <label for="admin-home-youtube-copy">Texte YouTube</label>
-                            <textarea id="admin-home-youtube-copy" rows="3"></textarea>
-                            <label for="admin-home-reddit-url">URL Reddit</label>
-                            <input id="admin-home-reddit-url" type="url" placeholder="https://reddit.com/..." autocomplete="off" />
-                            <label for="admin-home-reddit-title">Bloc Reddit</label>
-                            <input id="admin-home-reddit-title" type="text" autocomplete="off" />
-                            <label for="admin-home-reddit-copy">Texte Reddit</label>
-                            <textarea id="admin-home-reddit-copy" rows="3"></textarea>
-                        </fieldset>
-                        <fieldset class="admin-home-fieldset">
-                            <legend>Footer & support</legend>
-                            <label for="admin-home-support-url">URL support / bugs</label>
-                            <input id="admin-home-support-url" type="url" placeholder="https://..." autocomplete="off" />
-                            <label for="admin-home-contact-email">Contact</label>
-                            <input id="admin-home-contact-email" type="text" placeholder="contact@..." autocomplete="off" />
-                            <label for="admin-home-credits-url">URL credits</label>
-                            <input id="admin-home-credits-url" type="text" placeholder="/docs/credits-assets.md" autocomplete="off" />
-                            <label for="admin-home-footer-note">Note footer</label>
-                            <textarea id="admin-home-footer-note" rows="4"></textarea>
-                            <label for="admin-home-changelog">Patch notes (Date | Titre | Resume)</label>
-                            <textarea id="admin-home-changelog" rows="8" placeholder="2026-02-28 | Accueil pre-carte en ligne | Nouvelle page d'accueil..."></textarea>
-                        </fieldset>
-                    </div>
-                    <p id="admin-home-status" class="admin-home-status" role="status" aria-live="polite" hidden></p>
-                </section>
-
-                <section class="admin-section" id="admin-section-timeline-config">
-                    <div class="admin-section-heading">
-                        <h3>Chronologie</h3>
-                        <div class="admin-section-heading-actions">
-                            <button id="admin-timeline-reload" class="tertiary-button" type="button">Recharger</button>
-                            <button id="admin-timeline-save" class="secondary-button" type="button">Enregistrer la chronologie</button>
-                        </div>
-                    </div>
-                    <p class="admin-home-hint">Page /timeline, detail des evenements, ordre d'affichage et visibilite publique.</p>
-                    <ul id="admin-timeline-errors" class="profile-inline-errors" hidden></ul>
-                    <div class="admin-home-grid admin-timeline-grid">
-                        <fieldset class="admin-home-fieldset">
-                            <legend>Meta</legend>
-                            <label for="admin-timeline-title">Titre</label>
-                            <input id="admin-timeline-title" type="text" autocomplete="off" />
-                            <label for="admin-timeline-subtitle">Sous-titre</label>
-                            <textarea id="admin-timeline-subtitle" rows="4"></textarea>
-                            <div class="admin-timeline-toolbar">
-                                <button id="admin-timeline-add-entry" class="secondary-button" type="button">Ajouter un evenement</button>
-                            </div>
-                        </fieldset>
-                        <div class="admin-home-fieldset admin-timeline-fieldset">
-                            <div class="admin-timeline-list-header">
-                                <strong>Evenements</strong>
-                                <span id="admin-timeline-count" class="admin-timeline-count">0 entree</span>
-                            </div>
-                            <div id="admin-timeline-list" class="admin-timeline-list"></div>
-                            <p id="admin-timeline-empty" class="admin-timeline-empty">Aucun evenement configure.</p>
-                        </div>
-                    </div>
-                    <p id="admin-timeline-status" class="admin-home-status" role="status" aria-live="polite" hidden></p>
                 </section>
 
                 <section class="admin-section" id="admin-section-availability">

@@ -4008,6 +4008,11 @@ export class UiController {
             return;
         }
         this.hasHandledRequestedAdminSection = true;
+        if (this.requestedAdminSection === 'home' || this.requestedAdminSection === 'timeline') {
+            const targetPath = this.requestedAdminSection === 'home' ? '/?admin=home' : '/timeline/?admin=timeline';
+            window.location.assign(targetPath);
+            return;
+        }
         this.openAdminPanel(this.requestedAdminSection);
         window.requestAnimationFrame(() => this.focusAdminSection(this.requestedAdminSection));
         try {

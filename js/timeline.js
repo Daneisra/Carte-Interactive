@@ -1,3 +1,5 @@
+import { TimelineAdminPanel } from './ui/timelineAdminPanel.js';
+
 const PREFERENCES_KEY = 'interactive-map-preferences';
 
 const dom = {
@@ -27,7 +29,9 @@ const dom = {
     scrollNext: document.getElementById('timeline-scroll-next')
 };
 
-const TIMELINE_ADMIN_ENTRY_URL = '/map/?adminSection=timeline';
+const TIMELINE_ADMIN_ENTRY_URL = '/timeline/?admin=timeline';
+
+let timelineAdminPanel = null;
 
 const state = {
     timeline: null,
@@ -87,6 +91,7 @@ const updateTimelineAdminEntry = payload => {
     const isAdmin = Boolean(payload?.authenticated) && normalizeText(payload?.role).toLowerCase() === 'admin';
     entry.hidden = !isAdmin;
     entry.href = TIMELINE_ADMIN_ENTRY_URL;
+    timelineAdminPanel?.setSession(payload);
 };
 
 const fetchSession = async () => {
@@ -837,7 +842,11 @@ const loadTimeline = async () => {
 };
 
 const initialize = async () => {
-    ensureTimelineAdminEntry();
+    const adminEntry = ensureTimelineAdminEntry();
+    timelineAdminPanel = new TimelineAdminPanel({
+        onSave: () => window.location.reload()
+    });
+    timelineAdminPanel.bindTriggers([adminEntry]);
     bindTrackNavigation();
     bindFilters();
     fetchSession();

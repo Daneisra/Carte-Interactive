@@ -77,7 +77,7 @@ const SITE_CONFIG_URL = '/assets/site-config.json';
 const LOCATIONS_DATA_URL = '/assets/locations.json';
 const LIVE_ITEMS_LIMIT = 5;
 const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr_FR';
-const HOME_ADMIN_ENTRY_URL = '/map/?adminSection=home';
+const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
     home: {

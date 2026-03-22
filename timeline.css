@@ -168,6 +168,10 @@ a {
     transform: scale(0.98);
 }
 
+.timeline-link-button[hidden] {
+    display: none !important;
+}
+
 .timeline-link-button-primary {
     background: linear-gradient(135deg, rgba(79, 140, 255, 0.9), rgba(111, 66, 193, 0.88));
     border-color: rgba(147, 197, 253, 0.44);

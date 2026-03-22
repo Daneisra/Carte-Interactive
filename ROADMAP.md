@@ -183,7 +183,7 @@
 - [x] MVP recommandé : année + titre + texte + image optionnelle + lieux liés + bouton "Voir sur la carte".
 
 ### P5 — Séparation des panneaux admin
-- [ ] Séparer l'administration en trois panneaux dédiés : accueil, chronologie et carte, pour éviter de tout piloter depuis le panneau admin de la carte.
+- [x] Séparer l'administration en trois panneaux dédiés : accueil, chronologie et carte, pour éviter de tout piloter depuis le panneau admin de la carte.
 - [x] Constat actuel : l'admin carte concentre encore trop de responsabilités transverses (carte, accueil, frise), ce qui nuit à la lisibilité et à la maintenabilité.
 - [x] Cible produit : un panneau admin par surface fonctionnelle, accessible depuis la page concernée, avec auth/rôles mutualisés mais périmètres clairement séparés.
 - [x] Décision d'architecture : conserver une base UI/admin mutualisée quand c'est pertinent, mais découper les entrées, états et handlers par domaine (`home`, `timeline`, `map`).
@@ -203,15 +203,16 @@
 - [x] P5.5 - Base UI mutualisée : un socle partagé gère maintenant les patterns UI communs des admins (`status`, erreurs inline, disable des champs, boutons reload/save), prêt à être réutilisé par les trois panneaux.
 - [x] P5.6 - API / persistance accueil : l'admin accueil pointe maintenant vers un endpoint dédié `/api/admin/home-config`, adossé à la même persistance `assets/site-config.json`, avec compatibilité transitoire conservée sur l'ancien endpoint générique.
 - [x] P5.7 - API / persistance chronologie : l'admin chronologie pointe maintenant vers un endpoint dédié `/api/admin/timeline-config`, adossé à la même persistance `assets/timeline.json`, avec alias legacy `/api/admin/timeline` conservé pendant la transition.
-- [ ] P5.8 - Recentrage admin carte : retirer du panneau carte les sections accueil/chronologie devenues hors périmètre, sans régression sur l'édition des lieux et outils temps réel.
-- [ ] P5.9 - Navigation admin cohérente : harmoniser les CTA/admin shortcuts entre `/`, `/timeline` et `/map`, avec état connecté/admin lisible et retours cohérents.
-- [ ] P5.10 - QA et non-régression : tester l'ouverture/fermeture, les sauvegardes, les permissions et les parcours admin sur les trois surfaces.
-- [ ] Ordre recommandé :
-- [ ] Phase 1 : cadrage des périmètres + inventaire des sections admin existantes.
-- [ ] Phase 2 : créer les points d'entrée accueil/chronologie et la base UI mutualisée.
-- [ ] Phase 3 : brancher le panneau admin accueil.
-- [ ] Phase 4 : brancher le panneau admin chronologie.
-- [ ] Phase 5 : nettoyer et recentrer le panneau admin carte.
+- [x] P5.8 - Recentrage admin carte : l'accueil et la chronologie ont maintenant leurs panneaux admin dédiés sur `/` et `/timeline`, les anciens deep links sont redirigés vers ces panneaux, et les sections `Accueil` / `Chronologie` ont été retirées du panneau admin carte.
+- [x] P5.9 - Navigation admin cohérente : intitulés harmonisés (`Admin accueil`, `Admin chronologie`, `Admin carte`), raccourcis croisés ajoutés dans les trois surfaces, et compatibilité conservée pour les anciens liens vers `/map/?adminSection=...`.
+- [x] P5.10 - QA et non-régression : tester l'ouverture/fermeture, les sauvegardes, les permissions et les parcours admin sur les trois surfaces.
+  - Couverture Playwright etendue sur les parcours admin/invite, les redirections legacy, les raccourcis croises et les sauvegardes home/timeline mockees.
+- [x] Ordre recommandé :
+- [x] Phase 1 : cadrage des périmètres + inventaire des sections admin existantes.
+- [x] Phase 2 : créer les points d'entrée accueil/chronologie et la base UI mutualisée.
+- [x] Phase 3 : brancher le panneau admin accueil.
+- [x] Phase 4 : brancher le panneau admin chronologie.
+- [x] Phase 5 : nettoyer et recentrer le panneau admin carte.
 - [ ] Phase 6 : QA complète et polish.
 
 ### P6 — Différenciants
