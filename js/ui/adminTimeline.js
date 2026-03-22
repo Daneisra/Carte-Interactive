@@ -1,5 +1,12 @@
 import { createElement, clearElement } from './dom.js';
 import { sanitizeString } from '../shared/locationSchema.mjs';
+import {
+    setPanelStatus,
+    renderPanelErrors,
+    setElementsDisabled,
+    syncReloadButton,
+    syncSaveButton
+} from './adminShared.js';
 
 export const normalizeAdminTimeline = (entriesNormalizer, config = {}) => {
     const source = config && typeof config === 'object' ? config : {};
@@ -60,58 +67,35 @@ export const parseAdminTokenList = (value = '') => (
 );
 
 export const setAdminTimelineStatus = (ctx, message, isError = false) => {
-    if (!ctx.adminDom.timelineStatus) {
-        return;
-    }
-    if (!message) {
-        ctx.adminDom.timelineStatus.hidden = true;
-        ctx.adminDom.timelineStatus.textContent = '';
-        ctx.adminDom.timelineStatus.classList.remove('is-error');
-        return;
-    }
-    ctx.adminDom.timelineStatus.hidden = false;
-    ctx.adminDom.timelineStatus.textContent = message;
-    ctx.adminDom.timelineStatus.classList.toggle('is-error', Boolean(isError));
+    setPanelStatus(ctx.adminDom.timelineStatus, message, isError);
 };
 
 export const renderAdminTimelineErrors = (ctx, errors = []) => {
-    if (!ctx.adminDom.timelineErrors) {
-        return;
-    }
-    const list = Array.isArray(errors) ? errors.filter(Boolean) : [];
-    ctx.adminDom.timelineErrors.innerHTML = '';
-    if (!list.length) {
-        ctx.adminDom.timelineErrors.hidden = true;
-        return;
-    }
-    list.forEach(message => {
-        ctx.adminDom.timelineErrors.appendChild(createElement('li', { text: message }));
-    });
-    ctx.adminDom.timelineErrors.hidden = false;
+    renderPanelErrors(ctx.adminDom.timelineErrors, errors);
 };
 
 export const syncAdminTimelineEditor = ctx => {
     const isAdmin = ctx.isAdmin();
     const hasTimeline = !!ctx.adminTimeline;
     const disabled = !isAdmin || ctx.adminTimelinePending || !hasTimeline;
-    [
+    setElementsDisabled([
         ctx.adminDom.timelineTitle,
         ctx.adminDom.timelineSubtitle,
         ctx.adminDom.timelineAddEntryButton
-    ].forEach(element => {
-        if (element) {
-            element.disabled = disabled;
-        }
+    ], disabled);
+    syncReloadButton(ctx.adminDom.timelineReloadButton, {
+        isAdmin,
+        pending: ctx.adminTimelinePending
     });
-    if (ctx.adminDom.timelineReloadButton) {
-        ctx.adminDom.timelineReloadButton.disabled = !isAdmin || ctx.adminTimelinePending;
-    }
-    if (ctx.adminDom.timelineSaveButton) {
-        ctx.adminDom.timelineSaveButton.disabled = !isAdmin || ctx.adminTimelinePending || !hasTimeline;
-        ctx.adminDom.timelineSaveButton.textContent = ctx.adminTimelinePending
-            ? 'Enregistrement...'
-            : (ctx.adminTimelineDirty ? 'Enregistrer la chronologie *' : 'Enregistrer la chronologie');
-    }
+    syncSaveButton(ctx.adminDom.timelineSaveButton, {
+        isAdmin,
+        pending: ctx.adminTimelinePending,
+        hasData: hasTimeline,
+        dirty: ctx.adminTimelineDirty,
+        idleLabel: 'Enregistrer la chronologie',
+        dirtyLabel: 'Enregistrer la chronologie *',
+        pendingLabel: 'Enregistrement...'
+    });
     if (ctx.adminDom.timelineList) {
         ctx.adminDom.timelineList.querySelectorAll('input, textarea, select, button').forEach(element => {
             if (element.id === 'admin-timeline-save' || element.id === 'admin-timeline-reload' || element.id === 'admin-timeline-add-entry') {

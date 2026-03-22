@@ -1,5 +1,11 @@
-import { createElement } from './dom.js';
 import { sanitizeString } from '../shared/locationSchema.mjs';
+import {
+    setPanelStatus,
+    renderPanelErrors,
+    setElementsDisabled,
+    syncReloadButton,
+    syncSaveButton
+} from './adminShared.js';
 
 const HOME_ADMIN_FIELDS = [
     'homeKicker',
@@ -182,34 +188,11 @@ export const parseAdminChangelog = value => (
 );
 
 export const setAdminHomeStatus = (ctx, message, isError = false) => {
-    if (!ctx.adminDom.homeStatus) {
-        return;
-    }
-    if (!message) {
-        ctx.adminDom.homeStatus.hidden = true;
-        ctx.adminDom.homeStatus.textContent = '';
-        ctx.adminDom.homeStatus.classList.remove('is-error');
-        return;
-    }
-    ctx.adminDom.homeStatus.hidden = false;
-    ctx.adminDom.homeStatus.textContent = message;
-    ctx.adminDom.homeStatus.classList.toggle('is-error', Boolean(isError));
+    setPanelStatus(ctx.adminDom.homeStatus, message, isError);
 };
 
 export const renderAdminHomeErrors = (ctx, errors = []) => {
-    if (!ctx.adminDom.homeErrors) {
-        return;
-    }
-    const list = Array.isArray(errors) ? errors.filter(Boolean) : [];
-    ctx.adminDom.homeErrors.innerHTML = '';
-    if (!list.length) {
-        ctx.adminDom.homeErrors.hidden = true;
-        return;
-    }
-    list.forEach(message => {
-        ctx.adminDom.homeErrors.appendChild(createElement('li', { text: message }));
-    });
-    ctx.adminDom.homeErrors.hidden = false;
+    renderPanelErrors(ctx.adminDom.homeErrors, errors);
 };
 
 export const syncAdminHomeEditor = ctx => {
@@ -217,23 +200,22 @@ export const syncAdminHomeEditor = ctx => {
     const hasConfig = !!ctx.adminSiteConfig;
     const readOnlyFallback = ctx.adminSiteConfigSource === 'fallback';
     const disabled = !isAdmin || ctx.adminSiteConfigPending || !hasConfig;
-    HOME_ADMIN_FIELDS.forEach(key => {
-        const element = ctx.adminDom[key];
-        if (element) {
-            element.disabled = disabled;
-        }
+    setElementsDisabled(HOME_ADMIN_FIELDS.map(key => ctx.adminDom[key]), disabled);
+    syncReloadButton(ctx.adminDom.homeReloadButton, {
+        isAdmin,
+        pending: ctx.adminSiteConfigPending
     });
-    if (ctx.adminDom.homeReloadButton) {
-        ctx.adminDom.homeReloadButton.disabled = !isAdmin || ctx.adminSiteConfigPending;
-    }
-    if (ctx.adminDom.homeSaveButton) {
-        ctx.adminDom.homeSaveButton.disabled = !isAdmin || ctx.adminSiteConfigPending || !hasConfig || readOnlyFallback;
-        ctx.adminDom.homeSaveButton.textContent = ctx.adminSiteConfigPending
-            ? 'Enregistrement...'
-            : (readOnlyFallback
-                ? 'API admin indisponible'
-                : (ctx.adminSiteConfigDirty ? "Enregistrer l'accueil *" : "Enregistrer l'accueil"));
-    }
+    syncSaveButton(ctx.adminDom.homeSaveButton, {
+        isAdmin,
+        pending: ctx.adminSiteConfigPending,
+        hasData: hasConfig,
+        dirty: ctx.adminSiteConfigDirty,
+        idleLabel: "Enregistrer l'accueil",
+        dirtyLabel: "Enregistrer l'accueil *",
+        pendingLabel: 'Enregistrement...',
+        readOnly: readOnlyFallback,
+        readOnlyLabel: 'API admin indisponible'
+    });
 };
 
 export const renderAdminSiteConfig = ctx => {
