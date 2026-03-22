@@ -158,10 +158,28 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
 
     const title = document.createElement('div');
     title.className = 'admin-timeline-card-title';
-    title.appendChild(createElement('strong', { text: entry.title || `Evenement ${index + 1}` }));
-    title.appendChild(createElement('span', { text: entry.eventKind === 'player' ? 'Evenement joueur' : 'Lore ecrit' }));
-    title.appendChild(createElement('span', { text: entry.era || entry.period || 'Periode inconnue' }));
+    const titlePrimary = createElement('strong', { text: entry.title || `Evenement ${index + 1}` });
+    const titleKind = createElement('span', { text: entry.eventKind === 'player' ? 'Evenement joueur' : 'Lore ecrit' });
+    const titleEra = createElement('span', { text: entry.era || entry.period || 'Periode inconnue' });
+    title.appendChild(titlePrimary);
+    title.appendChild(titleKind);
+    title.appendChild(titleEra);
+    let titleMeta = null;
+
+    const refreshHeaderPreview = () => {
+        const currentEntry = ctx.adminTimeline?.entries?.[index] || entry;
+        titlePrimary.textContent = currentEntry.title || `Evenement ${index + 1}`;
+        titleKind.textContent = currentEntry.eventKind === 'player' ? 'Evenement joueur' : 'Lore ecrit';
+        titleEra.textContent = currentEntry.era || currentEntry.period || 'Periode inconnue';
+        if (titleMeta) {
+            titleMeta.textContent = `${currentEntry.yearLabel || currentEntry.year || '--'} | ${currentEntry.period || 'Periode inconnue'}`;
+            titleMeta.textContent = `${currentEntry.yearLabel || currentEntry.year || '--'} â€¢ ${currentEntry.period || 'Periode inconnue'}`;
+            titleMeta.textContent = `${currentEntry.yearLabel || currentEntry.year || '--'} | ${currentEntry.period || 'Periode inconnue'}`;
+        }
+    };
     title.appendChild(createElement('span', { text: `${entry.yearLabel || entry.year || '--'} • ${entry.period || 'Periode inconnue'}` }));
+
+    titleMeta = title.lastElementChild;
 
     const actions = document.createElement('div');
     actions.className = 'admin-timeline-card-actions';
@@ -239,6 +257,7 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
             value: String(entry.year ?? ''),
             onInput: event => {
                 ctx.adminTimeline.entries[index].year = Number(event.target.value) || 0;
+                refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
         }),
@@ -247,6 +266,7 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
             value: entry.yearLabel,
             onInput: event => {
                 ctx.adminTimeline.entries[index].yearLabel = event.target.value || '';
+                refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
         }),
@@ -260,7 +280,7 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
             ],
             onInput: event => {
                 ctx.adminTimeline.entries[index].eventKind = event.target.value === 'player' ? 'player' : 'lore';
-                renderAdminTimelineList(ctx);
+                refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
         }),
@@ -269,6 +289,7 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
             value: entry.period,
             onInput: event => {
                 ctx.adminTimeline.entries[index].period = event.target.value || '';
+                refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
         }),
@@ -277,7 +298,7 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
             value: entry.era,
             onInput: event => {
                 ctx.adminTimeline.entries[index].era = event.target.value || '';
-                renderAdminTimelineList(ctx);
+                refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
         }),
@@ -295,7 +316,7 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
             value: entry.title,
             onInput: event => {
                 ctx.adminTimeline.entries[index].title = event.target.value || '';
-                renderAdminTimelineList(ctx);
+                refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
         }),

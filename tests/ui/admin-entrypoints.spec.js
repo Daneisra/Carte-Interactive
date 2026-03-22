@@ -193,6 +193,28 @@ test.describe('Points d\'entree admin', () => {
     await expect.poll(() => readCaptured()?.timeline?.entries?.[0]?.eventKind || null).toBe('player');
   });
 
+  test('la saisie dans un evenement de chronologie ne remonte pas le panneau en haut', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    await page.goto('/timeline/');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('#timeline-admin-entry').click();
+    await expect(page.locator('#timeline-admin-overlay')).toBeVisible();
+
+    const content = page.locator('#timeline-admin-dialog .admin-content');
+    const targetInput = page.locator('.admin-timeline-card').last().getByLabel('Titre');
+    await targetInput.scrollIntoViewIfNeeded();
+    await targetInput.click();
+
+    const scrollBefore = await content.evaluate(node => node.scrollTop);
+    await targetInput.fill('Titre sans saut de scroll');
+
+    const scrollAfter = await content.evaluate(node => node.scrollTop);
+    await expect(targetInput).toHaveValue('Titre sans saut de scroll');
+    expect(scrollAfter).toBeGreaterThan(0);
+    expect(Math.abs(scrollAfter - scrollBefore)).toBeLessThan(120);
+  });
+
   test('le panneau admin carte n ouvre pas les chargements accueil et chronologie par defaut', async ({ page }) => {
     await loginAsAdmin(page);
 
