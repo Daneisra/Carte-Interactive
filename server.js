@@ -834,6 +834,7 @@ const sanitizeTimelineEntry = (value, index = 0) => {
   const title = sanitizeTimelineText(value.title, 140);
   const summary = sanitizeTimelineText(value.summary, 280);
   const content = sanitizeTimelineText(value.content, 2400);
+  const era = sanitizeTimelineText(value.era, 80);
   const period = sanitizeTimelineText(value.period, 80);
   const id = sanitizeTimelineId(value.id) || sanitizeTimelineId(`${year}-${title || `event-${index + 1}`}`) || `timeline-${index + 1}`;
   return {
@@ -843,10 +844,14 @@ const sanitizeTimelineEntry = (value, index = 0) => {
     title: title || `Evenement ${index + 1}`,
     summary: summary || content || '',
     content: content || summary || '',
+    era: era || period || 'Periode inconnue',
+    eraSummary: sanitizeTimelineText(value.eraSummary, 240),
+    sceneLabel: sanitizeTimelineText(value.sceneLabel, 60),
     period: period || 'Periode inconnue',
     tags: sanitizeTimelineList(value.tags, 10, 40),
     locationNames: sanitizeTimelineList(value.locationNames, 10, 80),
     imageUrl: sanitizeSiteConfigUrl(value.imageUrl, { allowRelative: true }),
+    mediaAlt: sanitizeTimelineText(value.mediaAlt, 180),
     accentColor: sanitizeTimelineColor(value.accentColor),
     visible: value.visible !== false
   };

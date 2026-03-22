@@ -11,6 +11,9 @@ const buildSearchHaystack = entry => [
   entry?.title,
   entry?.summary,
   entry?.content,
+  entry?.era,
+  entry?.eraSummary,
+  entry?.sceneLabel,
   entry?.period,
   ...(Array.isArray(entry?.tags) ? entry.tags : []),
   ...(Array.isArray(entry?.locationNames) ? entry.locationNames : [])
@@ -55,6 +58,19 @@ const buildContiguousPeriods = entries => {
   return groups;
 };
 
+const countContiguousEras = entries => {
+  let count = 0;
+  let lastEra = null;
+  entries.forEach(entry => {
+    const nextEra = entry?.era || entry?.period || '';
+    if (nextEra !== lastEra) {
+      count += 1;
+      lastEra = nextEra;
+    }
+  });
+  return count;
+};
+
 const readQueryParam = (page, key) => new URL(page.url()).searchParams.get(key);
 
 test.describe('Chronologie - UI', () => {
@@ -66,12 +82,14 @@ test.describe('Chronologie - UI', () => {
 
     const cards = page.locator('.timeline-card');
     await expect(cards).toHaveCount(entries.length);
+    await expect(page.locator('.timeline-era-group')).toHaveCount(countContiguousEras(entries));
     await expect(page.locator('.timeline-period-group')).toHaveCount(countContiguousPeriods(entries));
     await expect(page.locator('.timeline-card-media')).toHaveCount(entries.filter(entry => entry.imageUrl).length);
     await expect(page.locator('#timeline-detail-title')).toHaveText(entries[0].title);
     await expect(page.locator('#timeline-stage-overview-title')).toHaveText(entries[0].title);
     if (entries[0].imageUrl) {
       await expect(page.locator('.timeline-detail-media img')).toBeVisible();
+      await expect(page.locator('.timeline-detail-media img')).toHaveAttribute('src', /\/assets\/images\/Frise\//);
     }
     await expect(page.locator('#timeline-status')).toContainText('evenements affiches');
   });
@@ -198,7 +216,19 @@ test.describe('Chronologie - UI', () => {
 
   test('la navigation rapide par periode active le bon groupe', async ({ page }) => {
     const entries = await loadTimelineEntries(page);
-    const groups = buildContiguousPeriods(entries);
+    const groups = [];
+    entries.forEach(entry => {
+      const era = entry?.era || entry?.period || '';
+      const lastGroup = groups[groups.length - 1];
+      if (lastGroup && lastGroup.era === era) {
+        lastGroup.entries.push(entry);
+        return;
+      }
+      groups.push({
+        era,
+        entries: [entry]
+      });
+    });
 
     test.skip(groups.length < 2, 'Une seule periode visible dans la chronologie courante.');
 

@@ -153,19 +153,20 @@
 - [x] Possibilité de fermer/réduire le panneaux "Flux temps réel"
 
 ### P4 — Frise chronologique
-- [ ] Frise chronologique complète (axe horizontal gauche -> droite, année, titre, texte, médias, liens vers la carte)
+- [x] Frise chronologique complète (axe horizontal gauche -> droite, année, titre, texte, médias, liens vers la carte)
 - [x] Etat actuel : MVP technique livré (page dédiée, admin, médias, filtres, liens carte <-> frise, tests UI).
 - [x] Avancement récent : regroupement visuel par période ajouté dans la frise horizontale.
 - [x] Avancement récent : état de la frise partageable par URL (événement actif + filtres synchronisés).
 - [x] Avancement récent : navigation rapide par période ajoutée dans la page chronologie.
 - [x] Avancement récent : période active et accent du panneau détail synchronisés pour une lecture plus premium.
 - [x] Avancement récent : bandeau de lecture active ajouté dans la frise pour ancrer le contexte courant.
-- [ ] Suite prioritaire : enrichissement éditorial des événements, regroupements par époque avancés et derniers raffinements visuels.
+- [x] Avancement récent : enrichissement éditorial des événements, regroupements avancés par époque et raffinement du détail de lecture.
+- [x] Avancement récent : affichage des images fiabilisé via chemins médias normalisés et noms de fichiers alignés avec les assets réels.
 - [x] Recommandation produit : page dédiée `/timeline` d'abord, intégration légère dans la carte ensuite.
 - [x] P4.1 - Cadrage produit V2 de la frise : tri chronologique ascendant, regroupement visuel par périodes contiguës, densité moyenne (carte résumée + détail riche), page dédiée comme point d'entrée principal, état partageable par URL, personnalisation éditoriale avancée limitée à l'accent, l'image, les tags, les lieux liés et la visibilité.
 - [x] Décision P4.1 - La carte reste un point d'entrée secondaire vers la frise, sans intégrer la timeline complète dans l'interface principale de navigation.
 - [x] Décision P4.1 - Les évolutions V2 hors périmètre immédiat sont : replay cartographique, exports, calendriers complexes, embranchements narratifs et filtres ultra spécialisés.
-- [x] P4.2 - Modèle de données chronologie : `id`, `annee`, `titre`, `resume`, `texte`, `periode`, `tags`, `image`, `lieux lies`, `ordre`, `visible`.
+- [x] P4.2 - Modèle de données chronologie : `id`, `annee`, `titre`, `resume`, `texte`, `epoque`, `periode`, `tags`, `image`, `mediaAlt`, `lieux lies`, `ordre`, `visible`.
 - [x] P4.3 - Source de données / persistance : fichier JSON ou API admin dédiée pour CRUD, ordre manuel, publication/masquage.
 - [x] P4.4 - Page dédiée chronologie : route `/timeline`, header cohérent avec l'accueil et la carte, CTA retour accueil/carte.
 - [x] P4.5 - UI frise horizontale MVP : navigation gauche -> droite, cartes événement, scroll/drag horizontal, état vide, responsive propre.

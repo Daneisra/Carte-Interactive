@@ -37,10 +37,14 @@ export const normalizeAdminTimelineEntry = (entry = {}, index = 0) => {
         title: title || `Evenement ${index + 1}`,
         summary: sanitizeString(entry?.summary || ''),
         content: sanitizeString(entry?.content || ''),
+        era: sanitizeString(entry?.era || entry?.period || 'Periode inconnue'),
+        eraSummary: sanitizeString(entry?.eraSummary || ''),
+        sceneLabel: sanitizeString(entry?.sceneLabel || ''),
         period: sanitizeString(entry?.period || 'Periode inconnue'),
         tags: Array.isArray(entry?.tags) ? entry.tags.map(tag => sanitizeString(tag)).filter(Boolean) : [],
         locationNames: Array.isArray(entry?.locationNames) ? entry.locationNames.map(name => sanitizeString(name)).filter(Boolean) : [],
         imageUrl: sanitizeString(entry?.imageUrl || ''),
+        mediaAlt: sanitizeString(entry?.mediaAlt || ''),
         accentColor: /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(sanitizeString(entry?.accentColor || '')) ? sanitizeString(entry.accentColor) : '#7dd3fc',
         visible: entry?.visible !== false
     };
@@ -53,10 +57,14 @@ export const createAdminTimelineEntry = (entryNormalizer, index = 0) => entryNor
     title: 'Nouvel evenement',
     summary: '',
     content: '',
+    era: 'Periode inconnue',
+    eraSummary: '',
+    sceneLabel: '',
     period: 'Periode inconnue',
     tags: [],
     locationNames: [],
     imageUrl: '',
+    mediaAlt: '',
     accentColor: '#7dd3fc',
     visible: true
 }, index);
@@ -149,6 +157,7 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
     const title = document.createElement('div');
     title.className = 'admin-timeline-card-title';
     title.appendChild(createElement('strong', { text: entry.title || `Evenement ${index + 1}` }));
+    title.appendChild(createElement('span', { text: entry.era || entry.period || 'Periode inconnue' }));
     title.appendChild(createElement('span', { text: `${entry.yearLabel || entry.year || '--'} • ${entry.period || 'Periode inconnue'}` }));
 
     const actions = document.createElement('div');
@@ -239,6 +248,24 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
             }
         }),
         buildField({
+            label: 'Epoque',
+            value: entry.era,
+            onInput: event => {
+                ctx.adminTimeline.entries[index].era = event.target.value || '';
+                renderAdminTimelineList(ctx);
+                ctx.markAdminTimelineDirty();
+            }
+        }),
+        buildField({
+            label: 'Label scene',
+            value: entry.sceneLabel,
+            placeholder: 'Fondation, rupture, conquete...',
+            onInput: event => {
+                ctx.adminTimeline.entries[index].sceneLabel = event.target.value || '';
+                ctx.markAdminTimelineDirty();
+            }
+        }),
+        buildField({
             label: 'Titre',
             value: entry.title,
             onInput: event => {
@@ -263,6 +290,15 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
             placeholder: '/assets/images/...',
             onInput: event => {
                 ctx.adminTimeline.entries[index].imageUrl = event.target.value || '';
+                ctx.markAdminTimelineDirty();
+            }
+        }),
+        buildField({
+            label: 'Alt image',
+            value: entry.mediaAlt,
+            placeholder: 'Description courte de l illustration',
+            onInput: event => {
+                ctx.adminTimeline.entries[index].mediaAlt = event.target.value || '';
                 ctx.markAdminTimelineDirty();
             }
         }),
@@ -295,6 +331,16 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
             value: entry.content,
             onInput: event => {
                 ctx.adminTimeline.entries[index].content = event.target.value || '';
+                ctx.markAdminTimelineDirty();
+            }
+        }),
+        buildField({
+            label: 'Resume epoque',
+            type: 'textarea',
+            rows: 3,
+            value: entry.eraSummary,
+            onInput: event => {
+                ctx.adminTimeline.entries[index].eraSummary = event.target.value || '';
                 ctx.markAdminTimelineDirty();
             }
         }),

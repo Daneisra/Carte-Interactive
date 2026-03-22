@@ -50,6 +50,16 @@ const normalizeForSearch = value => normalizeText(value)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+const normalizeMediaUrl = value => {
+    const normalized = normalizeText(value);
+    if (!normalized) {
+        return '';
+    }
+    if (/^(https?:)?\/\//i.test(normalized) || normalized.startsWith('/')) {
+        return normalized;
+    }
+    return `/${normalized.replace(/^\.?\//, '')}`;
+};
 
 const readQueryState = () => {
     try {
@@ -142,7 +152,9 @@ const normalizeEntry = (entry, index) => {
     const year = Number.isFinite(yearValue) ? yearValue : index;
     const summary = normalizeText(entry?.summary);
     const content = normalizeText(entry?.content) || summary;
-    const imageUrl = normalizeText(entry?.imageUrl);
+    const period = normalizeText(entry?.period) || 'Periode inconnue';
+    const era = normalizeText(entry?.era) || period;
+    const imageUrl = normalizeMediaUrl(entry?.imageUrl);
     const tags = Array.isArray(entry?.tags)
         ? entry.tags.map(normalizeText).filter(Boolean)
         : [];
@@ -157,10 +169,14 @@ const normalizeEntry = (entry, index) => {
         title,
         summary: summary || content || 'Aucun resume pour cet evenement.',
         content: content || 'Aucun contenu detaille pour cet evenement.',
-        period: normalizeText(entry?.period) || 'Periode inconnue',
+        era,
+        eraSummary: normalizeText(entry?.eraSummary),
+        sceneLabel: normalizeText(entry?.sceneLabel),
+        period,
         tags,
         locationNames,
         imageUrl,
+        mediaAlt: normalizeText(entry?.mediaAlt),
         accentColor: normalizeText(entry?.accentColor) || '#7dd3fc'
     };
 };
@@ -214,6 +230,28 @@ const openLocationOnMap = locationName => {
     window.location.href = '/map/';
 };
 
+const createTimelineImage = ({ src, alt = '', className = '', onError } = {}) => {
+    const normalizedSrc = normalizeMediaUrl(src);
+    if (!normalizedSrc) {
+        return null;
+    }
+    const image = document.createElement('img');
+    image.src = normalizedSrc;
+    image.alt = normalizeText(alt);
+    image.loading = 'lazy';
+    if (className) {
+        image.className = className;
+    }
+    image.addEventListener('error', () => {
+        if (typeof onError === 'function') {
+            onError(image);
+            return;
+        }
+        image.closest('.timeline-card-media, .timeline-detail-media')?.remove();
+    }, { once: true });
+    return image;
+};
+
 const updateHero = timeline => {
     dom.subtitle.textContent = timeline.subtitle;
     dom.count.textContent = String(timeline.entries.length);
@@ -252,10 +290,10 @@ const updatePeriodNavState = () => {
         return;
     }
     const activeCard = dom.track?.querySelector(`.timeline-card[data-timeline-id="${state.activeId}"]`);
-    const activeGroup = activeCard?.closest('.timeline-period-group');
-    const activeGroupId = activeGroup?.dataset.periodGroupId || '';
+    const activeGroup = activeCard?.closest('.timeline-era-group');
+    const activeGroupId = activeGroup?.dataset.eraGroupId || '';
     dom.periodNav.querySelectorAll('.timeline-period-nav-chip').forEach(button => {
-        const isActive = button.dataset.periodGroupId === activeGroupId;
+        const isActive = button.dataset.eraGroupId === activeGroupId;
         button.classList.toggle('is-active', isActive);
         button.setAttribute('aria-pressed', String(isActive));
     });
@@ -283,6 +321,10 @@ const ensureStageOverviewDom = () => {
                     <dd id="timeline-stage-overview-year">--</dd>
                 </div>
                 <div class="timeline-stage-overview-stat">
+                    <dt>Epoque</dt>
+                    <dd id="timeline-stage-overview-era">--</dd>
+                </div>
+                <div class="timeline-stage-overview-stat">
                     <dt>Periode</dt>
                     <dd id="timeline-stage-overview-period">--</dd>
                 </div>
@@ -305,7 +347,7 @@ const ensurePeriodNavDom = () => {
         const wrapper = document.createElement('div');
         wrapper.id = 'timeline-period-nav';
         wrapper.className = 'timeline-period-nav';
-        wrapper.setAttribute('aria-label', 'Navigation rapide par periode');
+        wrapper.setAttribute('aria-label', 'Navigation rapide par epoque');
         wrapper.hidden = true;
         dom.status.insertAdjacentElement('afterend', wrapper);
         dom.periodNav = wrapper;
@@ -362,18 +404,26 @@ const renderStageOverview = entry => {
 
     const title = dom.stageOverview.querySelector('#timeline-stage-overview-title');
     const summary = dom.stageOverview.querySelector('#timeline-stage-overview-summary');
+    const kicker = dom.stageOverview.querySelector('#timeline-stage-overview-kicker');
     const year = dom.stageOverview.querySelector('#timeline-stage-overview-year');
+    const era = dom.stageOverview.querySelector('#timeline-stage-overview-era');
     const period = dom.stageOverview.querySelector('#timeline-stage-overview-period');
     const locations = dom.stageOverview.querySelector('#timeline-stage-overview-locations');
 
+    if (kicker) {
+        kicker.textContent = entry.sceneLabel || 'Lecture active';
+    }
     if (title) {
         title.textContent = entry.title;
     }
     if (summary) {
-        summary.textContent = entry.summary;
+        summary.textContent = entry.eraSummary || entry.summary;
     }
     if (year) {
         year.textContent = entry.yearLabel;
+    }
+    if (era) {
+        era.textContent = entry.era;
     }
     if (period) {
         period.textContent = entry.period;
@@ -388,7 +438,7 @@ const renderPeriodNav = entries => {
     if (!dom.periodNav) {
         return;
     }
-    const groups = groupEntriesByPeriod(entries);
+    const groups = groupEntriesByEra(entries);
     dom.periodNav.innerHTML = '';
     dom.periodNav.hidden = groups.length <= 1;
     if (groups.length <= 1) {
@@ -403,12 +453,12 @@ const renderPeriodNav = entries => {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'timeline-period-nav-chip';
-        button.dataset.periodGroupId = firstEntry.id;
-        button.textContent = group.period;
-        button.setAttribute('aria-label', `Aller a la periode ${group.period}`);
+        button.dataset.eraGroupId = firstEntry.id;
+        button.textContent = group.era;
+        button.setAttribute('aria-label', `Aller a l epoque ${group.era}`);
         button.setAttribute('aria-pressed', 'false');
         button.addEventListener('click', () => {
-            const targetGroup = dom.track.querySelector(`[data-period-group-id="${firstEntry.id}"]`);
+            const targetGroup = dom.track.querySelector(`[data-era-group-id="${firstEntry.id}"]`);
             if (targetGroup) {
                 targetGroup.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
             }
@@ -491,22 +541,42 @@ const renderDetail = entry => {
     setActiveAccent(entry.accentColor);
     renderStageOverview(entry);
     dom.detailYear.textContent = entry.yearLabel;
-    dom.detailPeriod.textContent = entry.period;
+    dom.detailPeriod.textContent = `${entry.era} | ${entry.period}`;
     dom.detailTitle.textContent = entry.title;
     dom.detailSummary.textContent = entry.summary;
     dom.detailContent.innerHTML = '';
+
+    if (entry.sceneLabel || entry.eraSummary) {
+        const context = document.createElement('div');
+        context.className = 'timeline-detail-context';
+        if (entry.sceneLabel) {
+            const scene = document.createElement('span');
+            scene.className = 'timeline-detail-scene';
+            scene.textContent = entry.sceneLabel;
+            context.appendChild(scene);
+        }
+        if (entry.eraSummary) {
+            const eraSummary = document.createElement('p');
+            eraSummary.className = 'timeline-detail-era-summary';
+            eraSummary.textContent = entry.eraSummary;
+            context.appendChild(eraSummary);
+        }
+        dom.detailContent.appendChild(context);
+    }
 
     const paragraph = document.createElement('p');
     paragraph.textContent = entry.content;
     if (entry.imageUrl) {
         const media = document.createElement('div');
         media.className = 'timeline-detail-media';
-        const image = document.createElement('img');
-        image.src = entry.imageUrl;
-        image.alt = `Illustration pour ${entry.title}`;
-        image.loading = 'lazy';
-        media.appendChild(image);
-        dom.detailContent.appendChild(media);
+        const image = createTimelineImage({
+            src: entry.imageUrl,
+            alt: entry.mediaAlt || `Illustration pour ${entry.title}`
+        });
+        if (image) {
+            media.appendChild(image);
+            dom.detailContent.appendChild(media);
+        }
     }
     dom.detailContent.appendChild(paragraph);
 
@@ -598,7 +668,7 @@ const handleCardKeydown = event => {
     }
 };
 
-const groupEntriesByPeriod = entries => {
+const groupPeriodsWithinEra = entries => {
     const groups = [];
     entries.forEach(entry => {
         const period = entry.period || 'Periode inconnue';
@@ -615,6 +685,30 @@ const groupEntriesByPeriod = entries => {
     return groups;
 };
 
+const groupEntriesByEra = entries => {
+    const groups = [];
+    entries.forEach(entry => {
+        const era = entry.era || entry.period || 'Periode inconnue';
+        const lastGroup = groups[groups.length - 1];
+        if (lastGroup && lastGroup.era === era) {
+            lastGroup.entries.push(entry);
+            if (!lastGroup.eraSummary && entry.eraSummary) {
+                lastGroup.eraSummary = entry.eraSummary;
+            }
+            return;
+        }
+        groups.push({
+            era,
+            eraSummary: entry.eraSummary || '',
+            entries: [entry]
+        });
+    });
+    return groups.map(group => ({
+        ...group,
+        periods: groupPeriodsWithinEra(group.entries)
+    }));
+};
+
 const renderTrack = entries => {
     dom.track.innerHTML = '';
     renderPeriodNav(entries);
@@ -625,90 +719,139 @@ const renderTrack = entries => {
         dom.track.appendChild(empty);
         return;
     }
-    groupEntriesByPeriod(entries).forEach(group => {
+    groupEntriesByEra(entries).forEach(group => {
         const section = document.createElement('section');
-        section.className = 'timeline-period-group';
-        section.setAttribute('aria-label', group.period);
-        section.dataset.periodGroupId = group.entries[0]?.id || group.period;
+        section.className = 'timeline-era-group';
+        section.setAttribute('aria-label', group.era);
+        section.dataset.eraGroupId = group.entries[0]?.id || group.era;
 
-        const header = document.createElement('div');
-        header.className = 'timeline-period-group-header';
+        const eraHeader = document.createElement('div');
+        eraHeader.className = 'timeline-era-group-header';
 
-        const title = document.createElement('h3');
-        title.className = 'timeline-period-group-title';
-        title.textContent = group.period;
+        const eraCopy = document.createElement('div');
+        eraCopy.className = 'timeline-era-group-copy';
 
-        const meta = document.createElement('span');
-        meta.className = 'timeline-period-group-meta';
-        meta.textContent = `${group.entries.length} evenement${group.entries.length > 1 ? 's' : ''}`;
+        const eraEyebrow = document.createElement('span');
+        eraEyebrow.className = 'timeline-era-group-eyebrow';
+        eraEyebrow.textContent = 'Epoque';
 
-        header.append(title, meta);
+        const eraTitle = document.createElement('h3');
+        eraTitle.className = 'timeline-era-group-title';
+        eraTitle.textContent = group.era;
 
-        const cards = document.createElement('div');
-        cards.className = 'timeline-period-group-track';
+        const eraSummary = document.createElement('p');
+        eraSummary.className = 'timeline-era-group-summary';
+        eraSummary.textContent = group.eraSummary || `Traversez ${group.entries.length} evenement${group.entries.length > 1 ? 's' : ''} relies a cette epoque.`;
 
-        group.entries.forEach(entry => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'timeline-card';
-            button.dataset.timelineId = entry.id;
-            button.style.setProperty('--timeline-card-accent', entry.accentColor);
-            button.setAttribute('role', 'listitem');
-            button.setAttribute('aria-pressed', 'false');
-            button.setAttribute('aria-controls', 'timeline-detail');
-            button.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight Home End');
+        eraCopy.append(eraEyebrow, eraTitle, eraSummary);
 
-            const year = document.createElement('span');
-            year.className = 'timeline-card-year';
-            year.textContent = entry.yearLabel;
+        const eraMeta = document.createElement('div');
+        eraMeta.className = 'timeline-era-group-meta';
+        eraMeta.innerHTML = `
+            <span>${group.entries[0]?.yearLabel || '--'}</span>
+            <span>${group.entries[group.entries.length - 1]?.yearLabel || '--'}</span>
+            <span>${group.entries.length} evenement${group.entries.length > 1 ? 's' : ''}</span>
+        `;
 
-            const period = document.createElement('span');
-            period.className = 'timeline-card-period';
-            period.textContent = entry.period;
+        eraHeader.append(eraCopy, eraMeta);
 
-            const entryTitle = document.createElement('h3');
-            entryTitle.className = 'timeline-card-title';
-            entryTitle.textContent = entry.title;
+        const eraBody = document.createElement('div');
+        eraBody.className = 'timeline-era-group-body';
 
-            const summary = document.createElement('p');
-            summary.className = 'timeline-card-summary';
-            summary.textContent = entry.summary;
+        group.periods.forEach(periodGroup => {
+            const periodSection = document.createElement('section');
+            periodSection.className = 'timeline-period-group';
+            periodSection.setAttribute('aria-label', periodGroup.period);
+            periodSection.dataset.periodGroupId = periodGroup.entries[0]?.id || periodGroup.period;
 
-            const cardMeta = document.createElement('div');
-            cardMeta.className = 'timeline-card-meta';
-            if (entry.tags.length) {
-                entry.tags.slice(0, 2).forEach(tag => {
+            const header = document.createElement('div');
+            header.className = 'timeline-period-group-header';
+
+            const title = document.createElement('h4');
+            title.className = 'timeline-period-group-title';
+            title.textContent = periodGroup.period;
+
+            const meta = document.createElement('span');
+            meta.className = 'timeline-period-group-meta';
+            meta.textContent = `${periodGroup.entries.length} evenement${periodGroup.entries.length > 1 ? 's' : ''}`;
+
+            header.append(title, meta);
+
+            const cards = document.createElement('div');
+            cards.className = 'timeline-period-group-track';
+
+            periodGroup.entries.forEach(entry => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'timeline-card';
+                button.dataset.timelineId = entry.id;
+                button.style.setProperty('--timeline-card-accent', entry.accentColor);
+                button.setAttribute('role', 'listitem');
+                button.setAttribute('aria-pressed', 'false');
+                button.setAttribute('aria-controls', 'timeline-detail');
+                button.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight Home End');
+
+                const year = document.createElement('span');
+                year.className = 'timeline-card-year';
+                year.textContent = entry.yearLabel;
+
+                const sceneLabel = document.createElement('span');
+                sceneLabel.className = 'timeline-card-scene';
+                sceneLabel.textContent = entry.sceneLabel || entry.era;
+
+                const period = document.createElement('span');
+                period.className = 'timeline-card-period';
+                period.textContent = entry.period;
+
+                const entryTitle = document.createElement('h3');
+                entryTitle.className = 'timeline-card-title';
+                entryTitle.textContent = entry.title;
+
+                const summary = document.createElement('p');
+                summary.className = 'timeline-card-summary';
+                summary.textContent = entry.summary;
+
+                const cardMeta = document.createElement('div');
+                cardMeta.className = 'timeline-card-meta';
+                if (entry.tags.length) {
+                    entry.tags.slice(0, 2).forEach(tag => {
+                        const chip = document.createElement('span');
+                        chip.className = 'timeline-chip';
+                        chip.textContent = tag;
+                        cardMeta.appendChild(chip);
+                    });
+                }
+                if (entry.locationNames.length) {
                     const chip = document.createElement('span');
                     chip.className = 'timeline-chip';
-                    chip.textContent = tag;
+                    chip.textContent = entry.locationNames[0];
                     cardMeta.appendChild(chip);
-                });
-            }
-            if (entry.locationNames.length) {
-                const chip = document.createElement('span');
-                chip.className = 'timeline-chip';
-                chip.textContent = entry.locationNames[0];
-                cardMeta.appendChild(chip);
-            }
+                }
 
-            if (entry.imageUrl) {
-                const media = document.createElement('div');
-                media.className = 'timeline-card-media';
-                const image = document.createElement('img');
-                image.src = entry.imageUrl;
-                image.alt = '';
-                image.loading = 'lazy';
-                media.appendChild(image);
-                button.appendChild(media);
-            }
+                if (entry.imageUrl) {
+                    const media = document.createElement('div');
+                    media.className = 'timeline-card-media';
+                    const image = createTimelineImage({
+                        src: entry.imageUrl,
+                        alt: entry.mediaAlt || `Illustration pour ${entry.title}`
+                    });
+                    if (image) {
+                        media.appendChild(image);
+                        button.appendChild(media);
+                    }
+                }
 
-            button.append(year, period, entryTitle, summary, cardMeta);
-            button.addEventListener('click', () => setActiveEntry(entry.id));
-            button.addEventListener('keydown', handleCardKeydown);
-            cards.appendChild(button);
+                button.append(year, sceneLabel, period, entryTitle, summary, cardMeta);
+                button.addEventListener('click', () => setActiveEntry(entry.id));
+                button.addEventListener('keydown', handleCardKeydown);
+                cards.appendChild(button);
+            });
+
+            periodSection.append(header, cards);
+            eraBody.appendChild(periodSection);
         });
 
-        section.append(header, cards);
+        section.append(eraHeader, eraBody);
         dom.track.appendChild(section);
     });
     window.requestAnimationFrame(updateTrackNavigationState);
@@ -751,6 +894,9 @@ const applyFilters = () => {
             entry.title,
             entry.summary,
             entry.content,
+            entry.era,
+            entry.eraSummary,
+            entry.sceneLabel,
             entry.period,
             ...entry.tags,
             ...entry.locationNames
