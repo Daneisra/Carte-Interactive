@@ -18,7 +18,7 @@
         "Origines"
       ],
       "locationNames": [],
-      "imageUrl": "/assets/images/Frise/Ancien monde.png",
+      "imageUrl": "/assets/images/Frise/ancien-monde.png",
       "mediaAlt": "Carte peinte de l ancien monde uni avant la fracture des continents.",
       "accentColor": "#5ea4ff",
       "visible": true
@@ -39,7 +39,7 @@
         "Geographie"
       ],
       "locationNames": [],
-      "imageUrl": "/assets/images/Frise/Déchirement.png",
+      "imageUrl": "/assets/images/Frise/dechirement.png",
       "mediaAlt": "Illustration symbolique du monde qui se dechire et forme plusieurs continents.",
       "accentColor": "#7dd3fc",
       "visible": true
@@ -62,7 +62,7 @@
       "locationNames": [
         "Valerius Primus"
       ],
-      "imageUrl": "/assets/images/Frise/La Sainte Unification.png",
+      "imageUrl": "/assets/images/Frise/la-sainte-unification.png",
       "mediaAlt": "Comosicus rassemble les villes de Vruliwen sous une meme bannière sacrée.",
       "accentColor": "#67e8f9",
       "visible": true
@@ -86,7 +86,7 @@
         "Vruliwen",
         "Valerius Primus"
       ],
-      "imageUrl": "/assets/images/Frise/Couronnement Comosicus Thiri.png",
+      "imageUrl": "/assets/images/Frise/couronnement-comosicus-thiri.png",
       "mediaAlt": "Couronnement solennel de Comosicus Thiri au sommet de la Pax Maxima.",
       "accentColor": "#fbbf24",
       "visible": true
@@ -110,7 +110,7 @@
       "locationNames": [
         "Imossa"
       ],
-      "imageUrl": "/assets/images/Frise/Crise d’Imossa.png",
+      "imageUrl": "/assets/images/Frise/crise-imossa.png",
       "mediaAlt": "Vue d Imossa engloutie par la crise et la corruption demoniaque.",
       "accentColor": "#c084fc",
       "visible": true
@@ -134,7 +134,7 @@
       "locationNames": [
         "Imossa"
       ],
-      "imageUrl": "/assets/images/Frise/Croisade d’Imossa.png",
+      "imageUrl": "/assets/images/Frise/croisade-imossa.png",
       "mediaAlt": "Armee en croisade marchant vers Imossa sous des bannières religieuses.",
       "accentColor": "#34d399",
       "visible": true
@@ -158,7 +158,7 @@
         "Zemantis",
         "Camp O.E"
       ],
-      "imageUrl": "/assets/images/Frise/1er Pas en Zemantis.png",
+      "imageUrl": "/assets/images/Frise/premier-pas-zemantis.png",
       "mediaAlt": "Avant-poste de l Ordre Exterminatus pose sur les terres de Zemantis.",
       "accentColor": "#7dd3fc",
       "visible": true
@@ -183,7 +183,7 @@
         "Vruliwen",
         "Dipovia"
       ],
-      "imageUrl": "/assets/images/Frise/La Première Guerre Vrulio-Dipovienne.png",
+      "imageUrl": "/assets/images/Frise/premiere-guerre-vrulio-dipovienne.png",
       "mediaAlt": "Affrontement militaire entre l Empire de Vruliwen et les forces de Dipovia.",
       "accentColor": "#7dd3fc",
       "visible": true
@@ -207,7 +207,7 @@
       "locationNames": [
         "Vardanys"
       ],
-      "imageUrl": "/assets/images/Frise/Insurrection de Vardanys.png",
+      "imageUrl": "/assets/images/Frise/insurrection-vardanys.png",
       "mediaAlt": "Debut de l insurrection de Vardanys parmi les forces rattachees a Imossa.",
       "accentColor": "#93c5fd",
       "visible": true

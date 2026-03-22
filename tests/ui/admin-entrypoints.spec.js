@@ -186,9 +186,11 @@ test.describe('Points d\'entree admin', () => {
 
     const nextTitle = 'Chronologie admin test';
     await page.locator('#admin-timeline-title').fill(nextTitle);
+    await page.locator('.admin-timeline-card').first().locator('select').first().selectOption('player');
     await page.locator('#admin-timeline-save').click();
 
     await expect.poll(() => readCaptured()?.timeline?.title || null).toBe(nextTitle);
+    await expect.poll(() => readCaptured()?.timeline?.entries?.[0]?.eventKind || null).toBe('player');
   });
 
   test('le panneau admin carte n ouvre pas les chargements accueil et chronologie par defaut', async ({ page }) => {

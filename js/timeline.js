@@ -60,6 +60,8 @@ const normalizeMediaUrl = value => {
     }
     return `/${normalized.replace(/^\.?\//, '')}`;
 };
+const normalizeEventKind = value => normalizeText(value).toLowerCase() === 'player' ? 'player' : 'lore';
+const getEventKindLabel = value => normalizeEventKind(value) === 'player' ? 'Evenement joueur' : 'Lore ecrit';
 
 const readQueryState = () => {
     try {
@@ -169,6 +171,7 @@ const normalizeEntry = (entry, index) => {
         title,
         summary: summary || content || 'Aucun resume pour cet evenement.',
         content: content || 'Aucun contenu detaille pour cet evenement.',
+        eventKind: normalizeEventKind(entry?.eventKind),
         era,
         eraSummary: normalizeText(entry?.eraSummary),
         sceneLabel: normalizeText(entry?.sceneLabel),
@@ -540,6 +543,8 @@ const renderDetail = entry => {
     dom.detail.hidden = false;
     setActiveAccent(entry.accentColor);
     renderStageOverview(entry);
+    dom.detail.classList.toggle('is-player-event', entry.eventKind === 'player');
+    dom.detail.classList.toggle('is-lore-event', entry.eventKind !== 'player');
     dom.detailYear.textContent = entry.yearLabel;
     dom.detailPeriod.textContent = `${entry.era} | ${entry.period}`;
     dom.detailTitle.textContent = entry.title;
@@ -549,6 +554,10 @@ const renderDetail = entry => {
     if (entry.sceneLabel || entry.eraSummary) {
         const context = document.createElement('div');
         context.className = 'timeline-detail-context';
+        const kind = document.createElement('span');
+        kind.className = `timeline-detail-kind timeline-detail-kind-${entry.eventKind}`;
+        kind.textContent = getEventKindLabel(entry.eventKind);
+        context.appendChild(kind);
         if (entry.sceneLabel) {
             const scene = document.createElement('span');
             scene.className = 'timeline-detail-scene';
@@ -598,6 +607,7 @@ const setActiveEntry = entryId => {
     if (!nextEntry) {
         state.activeId = '';
         dom.detail.hidden = true;
+        dom.detail.classList.remove('is-player-event', 'is-lore-event');
         dom.detail.style.removeProperty('--timeline-detail-accent');
         dom.hero?.style.removeProperty('--timeline-active-accent');
         dom.stage?.style.removeProperty('--timeline-active-accent');
@@ -784,7 +794,9 @@ const renderTrack = entries => {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'timeline-card';
+                button.classList.add(entry.eventKind === 'player' ? 'is-player-event' : 'is-lore-event');
                 button.dataset.timelineId = entry.id;
+                button.dataset.timelineKind = entry.eventKind;
                 button.style.setProperty('--timeline-card-accent', entry.accentColor);
                 button.setAttribute('role', 'listitem');
                 button.setAttribute('aria-pressed', 'false');
@@ -802,6 +814,10 @@ const renderTrack = entries => {
                 const period = document.createElement('span');
                 period.className = 'timeline-card-period';
                 period.textContent = entry.period;
+
+                const kind = document.createElement('span');
+                kind.className = `timeline-card-kind timeline-card-kind-${entry.eventKind}`;
+                kind.textContent = getEventKindLabel(entry.eventKind);
 
                 const entryTitle = document.createElement('h3');
                 entryTitle.className = 'timeline-card-title';
@@ -841,7 +857,7 @@ const renderTrack = entries => {
                     }
                 }
 
-                button.append(year, sceneLabel, period, entryTitle, summary, cardMeta);
+                button.append(year, sceneLabel, period, kind, entryTitle, summary, cardMeta);
                 button.addEventListener('click', () => setActiveEntry(entry.id));
                 button.addEventListener('keydown', handleCardKeydown);
                 cards.appendChild(button);

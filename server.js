@@ -812,6 +812,10 @@ const sanitizeTimelineColor = value => {
   }
   return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(normalized) ? normalized : '#7dd3fc';
 };
+const sanitizeTimelineEventKind = value => {
+  const normalized = normalizeString(value).toLowerCase();
+  return normalized === 'player' ? 'player' : 'lore';
+};
 const sanitizeTimelineId = value => {
   const normalized = normalizeString(value)
     .toLowerCase()
@@ -844,6 +848,7 @@ const sanitizeTimelineEntry = (value, index = 0) => {
     title: title || `Evenement ${index + 1}`,
     summary: summary || content || '',
     content: content || summary || '',
+    eventKind: sanitizeTimelineEventKind(value.eventKind),
     era: era || period || 'Periode inconnue',
     eraSummary: sanitizeTimelineText(value.eraSummary, 240),
     sceneLabel: sanitizeTimelineText(value.sceneLabel, 60),

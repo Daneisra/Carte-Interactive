@@ -37,6 +37,7 @@ export const normalizeAdminTimelineEntry = (entry = {}, index = 0) => {
         title: title || `Evenement ${index + 1}`,
         summary: sanitizeString(entry?.summary || ''),
         content: sanitizeString(entry?.content || ''),
+        eventKind: sanitizeString(entry?.eventKind || '').toLowerCase() === 'player' ? 'player' : 'lore',
         era: sanitizeString(entry?.era || entry?.period || 'Periode inconnue'),
         eraSummary: sanitizeString(entry?.eraSummary || ''),
         sceneLabel: sanitizeString(entry?.sceneLabel || ''),
@@ -57,6 +58,7 @@ export const createAdminTimelineEntry = (entryNormalizer, index = 0) => entryNor
     title: 'Nouvel evenement',
     summary: '',
     content: '',
+    eventKind: 'lore',
     era: 'Periode inconnue',
     eraSummary: '',
     sceneLabel: '',
@@ -157,6 +159,7 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
     const title = document.createElement('div');
     title.className = 'admin-timeline-card-title';
     title.appendChild(createElement('strong', { text: entry.title || `Evenement ${index + 1}` }));
+    title.appendChild(createElement('span', { text: entry.eventKind === 'player' ? 'Evenement joueur' : 'Lore ecrit' }));
     title.appendChild(createElement('span', { text: entry.era || entry.period || 'Periode inconnue' }));
     title.appendChild(createElement('span', { text: `${entry.yearLabel || entry.year || '--'} • ${entry.period || 'Periode inconnue'}` }));
 
@@ -181,13 +184,21 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
     const block = document.createElement('div');
     block.className = 'admin-timeline-card-block';
 
-    const buildField = ({ label, value, type = 'text', rows = 0, checked = false, onInput, placeholder = '' }) => {
+    const buildField = ({ label, value, type = 'text', rows = 0, checked = false, onInput, placeholder = '', options = [] }) => {
         const wrapper = document.createElement('label');
         wrapper.appendChild(createElement('span', { text: label }));
         let input;
         if (type === 'textarea') {
             input = document.createElement('textarea');
             input.rows = rows || 4;
+        } else if (type === 'select') {
+            input = document.createElement('select');
+            options.forEach(optionConfig => {
+                const option = document.createElement('option');
+                option.value = optionConfig.value;
+                option.textContent = optionConfig.label;
+                input.appendChild(option);
+            });
         } else if (type === 'checkbox') {
             wrapper.className = 'admin-timeline-toggle';
             input = document.createElement('input');
@@ -236,6 +247,20 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
             value: entry.yearLabel,
             onInput: event => {
                 ctx.adminTimeline.entries[index].yearLabel = event.target.value || '';
+                ctx.markAdminTimelineDirty();
+            }
+        }),
+        buildField({
+            label: 'Type d evenement',
+            type: 'select',
+            value: entry.eventKind,
+            options: [
+                { value: 'lore', label: 'Lore ecrit' },
+                { value: 'player', label: 'Evenement joueur' }
+            ],
+            onInput: event => {
+                ctx.adminTimeline.entries[index].eventKind = event.target.value === 'player' ? 'player' : 'lore';
+                renderAdminTimelineList(ctx);
                 ctx.markAdminTimelineDirty();
             }
         }),
