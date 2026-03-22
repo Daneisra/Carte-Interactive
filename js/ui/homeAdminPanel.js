@@ -187,6 +187,8 @@ export class HomeAdminPanel {
         ensurePanelStylesheet();
         this.onSave = typeof onSave === 'function' ? onSave : null;
         this.session = { authenticated: false, role: 'guest' };
+        this.returnFocusElement = null;
+        this.lastActiveElement = null;
         this.adminSiteConfig = null;
         this.adminSiteConfigSource = 'unloaded';
         this.adminSiteConfigDirty = false;
@@ -211,6 +213,7 @@ export class HomeAdminPanel {
         return {
             overlay,
             dialog: document.getElementById('home-admin-dialog'),
+            content: document.querySelector('#home-admin-dialog .admin-content'),
             close: document.getElementById('home-admin-close'),
             authStatus: document.getElementById('home-admin-auth-status'),
             homeReloadButton: document.getElementById('admin-home-reload'),
@@ -283,6 +286,7 @@ export class HomeAdminPanel {
         }
         element.addEventListener('click', event => {
             event.preventDefault();
+            this.returnFocusElement = element;
             this.open();
         });
         element.dataset.adminHomeBound = 'true';
@@ -300,8 +304,15 @@ export class HomeAdminPanel {
             }
         });
         document.addEventListener('keydown', event => {
-            if (event.key === 'Escape' && this.isOpen()) {
+            if (!this.isOpen()) {
+                return;
+            }
+            if (event.key === 'Escape') {
                 this.close(true);
+                return;
+            }
+            if (event.key === 'Tab') {
+                this.handleFocusTrap(event);
             }
         });
         this.adminDom.homeReloadButton?.addEventListener('click', () => this.fetchAdminSiteConfig());
@@ -319,18 +330,67 @@ export class HomeAdminPanel {
         return Boolean(this.adminDom.overlay) && !this.adminDom.overlay.hidden;
     }
 
+    getFocusableElements() {
+        if (!this.adminDom.dialog) {
+            return [];
+        }
+        return Array.from(this.adminDom.dialog.querySelectorAll(
+            'button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(element => !element.hidden && !element.closest('[hidden]'));
+    }
+
+    focusFirstElement() {
+        const [target] = this.getFocusableElements();
+        target?.focus?.({ preventScroll: true });
+    }
+
+    handleFocusTrap(event) {
+        const focusable = this.getFocusableElements();
+        if (!focusable.length) {
+            event.preventDefault();
+            this.adminDom.dialog?.focus?.();
+            return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+        if (event.shiftKey && active === first) {
+            event.preventDefault();
+            last.focus();
+            return;
+        }
+        if (!event.shiftKey && active === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
+    restoreFocus() {
+        const target = this.returnFocusElement?.isConnected ? this.returnFocusElement : this.lastActiveElement;
+        if (target?.focus) {
+            window.requestAnimationFrame(() => target.focus({ preventScroll: true }));
+        }
+        this.lastActiveElement = null;
+    }
+
     open() {
         if (!this.isAdmin() || !this.adminDom.overlay) {
             return;
         }
         this.syncAuthStatus();
+        if (!this.returnFocusElement?.isConnected) {
+            this.returnFocusElement = document.getElementById('home-admin-entry');
+        }
+        this.lastActiveElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         this.adminDom.overlay.hidden = false;
         this.adminDom.overlay.classList.add('open');
+        document.body.classList.add('admin-surface-open');
         if (!this.adminSiteConfig && !this.adminSiteConfigPending) {
             this.fetchAdminSiteConfig();
         } else {
             syncAdminHomeEditor(this);
         }
+        window.requestAnimationFrame(() => this.focusFirstElement());
     }
 
     close(force = false) {
@@ -339,9 +399,14 @@ export class HomeAdminPanel {
         }
         this.adminDom.overlay.classList.remove('open');
         this.adminDom.overlay.hidden = true;
+        document.body.classList.remove('admin-surface-open');
         if (force && this.adminDom.overlay) {
             this.adminDom.overlay.scrollTop = 0;
+            if (this.adminDom.content) {
+                this.adminDom.content.scrollTop = 0;
+            }
         }
+        this.restoreFocus();
     }
 
     markAdminSiteConfigDirty() {

@@ -103,6 +103,8 @@ export class TimelineAdminPanel {
         ensurePanelStylesheet();
         this.onSave = typeof onSave === 'function' ? onSave : null;
         this.session = { authenticated: false, role: 'guest' };
+        this.returnFocusElement = null;
+        this.lastActiveElement = null;
         this.adminTimeline = null;
         this.adminTimelineDirty = false;
         this.adminTimelinePending = false;
@@ -124,6 +126,7 @@ export class TimelineAdminPanel {
         return {
             overlay,
             dialog: document.getElementById('timeline-admin-dialog'),
+            content: document.querySelector('#timeline-admin-dialog .admin-content'),
             close: document.getElementById('timeline-admin-close'),
             authStatus: document.getElementById('timeline-admin-auth-status'),
             timelineReloadButton: document.getElementById('admin-timeline-reload'),
@@ -172,6 +175,7 @@ export class TimelineAdminPanel {
         }
         element.addEventListener('click', event => {
             event.preventDefault();
+            this.returnFocusElement = element;
             this.open();
         });
         element.dataset.adminTimelineBound = 'true';
@@ -189,8 +193,15 @@ export class TimelineAdminPanel {
             }
         });
         document.addEventListener('keydown', event => {
-            if (event.key === 'Escape' && this.isOpen()) {
+            if (!this.isOpen()) {
+                return;
+            }
+            if (event.key === 'Escape') {
                 this.close(true);
+                return;
+            }
+            if (event.key === 'Tab') {
+                this.handleFocusTrap(event);
             }
         });
         this.adminDom.timelineReloadButton?.addEventListener('click', () => this.fetchAdminTimeline());
@@ -208,18 +219,67 @@ export class TimelineAdminPanel {
         return Boolean(this.adminDom.overlay) && !this.adminDom.overlay.hidden;
     }
 
+    getFocusableElements() {
+        if (!this.adminDom.dialog) {
+            return [];
+        }
+        return Array.from(this.adminDom.dialog.querySelectorAll(
+            'button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(element => !element.hidden && !element.closest('[hidden]'));
+    }
+
+    focusFirstElement() {
+        const [target] = this.getFocusableElements();
+        target?.focus?.({ preventScroll: true });
+    }
+
+    handleFocusTrap(event) {
+        const focusable = this.getFocusableElements();
+        if (!focusable.length) {
+            event.preventDefault();
+            this.adminDom.dialog?.focus?.();
+            return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+        if (event.shiftKey && active === first) {
+            event.preventDefault();
+            last.focus();
+            return;
+        }
+        if (!event.shiftKey && active === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
+    restoreFocus() {
+        const target = this.returnFocusElement?.isConnected ? this.returnFocusElement : this.lastActiveElement;
+        if (target?.focus) {
+            window.requestAnimationFrame(() => target.focus({ preventScroll: true }));
+        }
+        this.lastActiveElement = null;
+    }
+
     open() {
         if (!this.isAdmin() || !this.adminDom.overlay) {
             return;
         }
         this.syncAuthStatus();
+        if (!this.returnFocusElement?.isConnected) {
+            this.returnFocusElement = document.getElementById('timeline-admin-entry');
+        }
+        this.lastActiveElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         this.adminDom.overlay.hidden = false;
         this.adminDom.overlay.classList.add('open');
+        document.body.classList.add('admin-surface-open');
         if (!this.adminTimeline && !this.adminTimelinePending) {
             this.fetchAdminTimeline();
         } else {
             renderAdminTimelineConfig(this);
         }
+        window.requestAnimationFrame(() => this.focusFirstElement());
     }
 
     close(force = false) {
@@ -228,9 +288,14 @@ export class TimelineAdminPanel {
         }
         this.adminDom.overlay.classList.remove('open');
         this.adminDom.overlay.hidden = true;
+        document.body.classList.remove('admin-surface-open');
         if (force && this.adminDom.overlay) {
             this.adminDom.overlay.scrollTop = 0;
+            if (this.adminDom.content) {
+                this.adminDom.content.scrollTop = 0;
+            }
         }
+        this.restoreFocus();
     }
 
     normalizeAdminTimeline(config = {}) {

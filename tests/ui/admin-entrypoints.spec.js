@@ -74,6 +74,23 @@ test.describe('Points d\'entree admin', () => {
     expect(requests.some(url => url.includes('/api/admin/timeline-config'))).toBeFalsy();
   });
 
+  test('le panneau admin accueil se ferme avec Escape et rend le focus au declencheur', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    await page.goto('/?admin=home');
+    await page.waitForLoadState('domcontentloaded');
+
+    const adminEntry = page.locator('#home-admin-entry');
+    await expect(page.locator('#home-admin-overlay')).toBeVisible();
+    await expect(page).not.toHaveURL(/\?admin=home$/);
+    await expect(page.locator('body')).toHaveClass(/admin-surface-open/);
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#home-admin-overlay')).toBeHidden();
+    await expect(page.locator('body')).not.toHaveClass(/admin-surface-open/);
+    await expect(adminEntry).toBeFocused();
+  });
+
   test('la chronologie expose un acces admin dedie vers la section chronologie', async ({ page }) => {
     await loginAsAdmin(page);
     const requests = [];
@@ -98,6 +115,23 @@ test.describe('Points d\'entree admin', () => {
     await page.waitForTimeout(300);
     expect(requests.some(url => url.includes('/api/admin/timeline-config'))).toBeTruthy();
     expect(requests.some(url => url.includes('/api/admin/home-config'))).toBeFalsy();
+  });
+
+  test('le panneau admin chronologie se ferme avec le bouton close et rend le focus au declencheur', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    await page.goto('/timeline/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const adminEntry = page.locator('#timeline-admin-entry');
+    await adminEntry.click();
+    await expect(page.locator('#timeline-admin-overlay')).toBeVisible();
+    await expect(page.locator('body')).toHaveClass(/admin-surface-open/);
+
+    await page.locator('#timeline-admin-close').click();
+    await expect(page.locator('#timeline-admin-overlay')).toBeHidden();
+    await expect(page.locator('body')).not.toHaveClass(/admin-surface-open/);
+    await expect(adminEntry).toBeFocused();
   });
 
   test('les anciens deep links admin carte redirigent vers les panneaux dedies', async ({ page }) => {

@@ -214,7 +214,8 @@
 - [x] Phase 3 : brancher le panneau admin accueil.
 - [x] Phase 4 : brancher le panneau admin chronologie.
 - [x] Phase 5 : nettoyer et recentrer le panneau admin carte.
-- [ ] Phase 6 : QA complète et polish.
+- [x] Phase 6 : QA complète et polish.
+  - Couverture UI complete relancee sur Chromium et Firefox, avec verrouillage des fermetures clavier, du retour focus au declencheur, du scroll lock et du comportement fullscreen des panneaux admin dedies.
 
 ### P6 — Différenciants
 - [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schémas, créer des routes, instruction etc
