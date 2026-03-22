@@ -17,22 +17,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Checkout du repo + récupération des fichiers Git LFS (images/sons…)
-      - name: Checkout (with LFS)
+      # Checkout sans LFS.
+      # Les assets encore suivis en LFS (assets/map.png et assets/audio/)
+      # sont conserves sur le VPS et ne sont pas remplaces par ce workflow.
+      - name: Checkout (without LFS)
         uses: actions/checkout@v4
         with:
-          lfs: true
           fetch-depth: 0
 
-      # Ceinture et bretelles (si LFS est présent dans le repo)
-      - name: LFS pull
-        run: git lfs pull || true
-
-      # 2) Sync des fichiers vers le VPS (on exclut ce qui ne doit pas partir)
+      # Sync des fichiers vers le VPS en preservant les assets restes en LFS.
       - name: Sync files to VPS
         uses: burnett01/rsync-deployments@5.2
         with:
-          switches: -azvr --delete --exclude=".git/" --exclude=".github/" --exclude="node_modules/" --exclude=".env"
+          switches: -azvr --delete --exclude=".git/" --exclude=".github/" --exclude="node_modules/" --exclude=".env" --exclude="assets/audio/" --exclude="assets/map.png"
           path: ./
           remote_path: ${{ secrets.VPS_APP_DIR }}
           remote_host: ${{ secrets.VPS_HOST }}
@@ -40,7 +37,7 @@ jobs:
           remote_key: ${{ secrets.VPS_KEY }}
           remote_port: 22
 
-      # 3) Installation des deps et (re)lancement de l'API via pm2
+      # Installation des deps et (re)lancement de l'API via pm2
       - name: Install & reload API
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -59,10 +56,10 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
             nvm use --lts || nvm use 24
 
-            # Aller dans le dossier de l'app (le *** dans les logs est normal : secret masqué)
+            # Aller dans le dossier de l'app
             cd "${{ secrets.VPS_APP_DIR }}"
 
-            # Installer les dépendances (lockfile si présent, sinon install standard)
+            # Installer les dependances (lockfile si present, sinon install standard)
             npm ci --omit=dev || npm i --omit=dev
 
             # Installer pm2 si absent puis (re)charger le process
