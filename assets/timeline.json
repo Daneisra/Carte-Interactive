@@ -7,10 +7,10 @@
       "year": -3000,
       "yearLabel": "-3000 av. CC",
       "title": "Ancien monde",
-      "summary": "Avant les fractures, le monde ne forme qu'une seule terre cernee par un ocean unique, partagee entre peuples du jour et peuples de la nuit.",
-      "content": "Dans les recits les plus anciens, Hesta n'est encore qu'une masse continentale unique. Les premiers peuples y emergent selon des rythmes opposes, certains sous la lumiere continue, d'autres dans une obscurite presque sacrale. Cette unite originelle nourrit encore les mythes de reunion, les projets imperiaux et les propheties qui traversent les campagnes.",
+      "summary": "Avant le Déchirement, le monde ne forme qu'une seule terre cernée par un océan unique, partagée entre peuples du jour et peuples de la nuit.",
+      "content": "Dans les récits les plus anciens, Hesta n'est encore qu'une masse continentale unique. Les premiers peuples y émergent selon des rythmes opposés, certains sous la lumière continue, d'autres dans une obscurité presque sacrale.",
       "era": "Origines du monde",
-      "eraSummary": "Le temps des fondations mythiques, avant la dispersion des continents et des puissances humaines.",
+      "eraSummary": "Le temps des peuples oubliés, avant la dispersion des continents.",
       "sceneLabel": "Cosmogonie",
       "period": "Commencement",
       "tags": [
@@ -27,13 +27,13 @@
       "id": "dechirement",
       "year": -1000,
       "yearLabel": "-1000 av. CC",
-      "title": "Dechirement",
+      "title": "Déchirement",
       "summary": "Hesta se brise en plusieurs continents, redistribuant brutalement les routes, les foyers de peuplement et les horizons spirituels.",
-      "content": "Le Dechirement marque la fin du monde unique. La terre se fracture, les mers s'ouvrent, les frontieres naturelles remplacent les anciens axes de circulation et les civilisations sont contraintes de se redefinir. Cet evenement reste le point de reference de toutes les chronologies savantes, car il fonde a la fois l'isolement des puissances regionales et la nostalgie d'un ordre perdu.",
+      "content": "Le Déchirement marque la fin du monde unique, causé par les conflits autour des Artéfacts. La terre se fracture, les mers s'ouvrent, les frontières naturelles remplacent les anciens axes de circulation et les civilisations sont contraintes de se redéfinir. Cet évènement reste le point de référence de toutes les chronologies savantes, car il fonde a la fois l'isolement des puissances régionales et la nostalgie d'un ordre perdu.",
       "era": "Origines du monde",
-      "eraSummary": "L'equilibre primitif cede la place a un monde morcele, plus vaste, plus hostile et plus politique.",
+      "eraSummary": "L'équilibre primitif cède la place a un monde morcelé, plus vaste et plus hostile.",
       "sceneLabel": "Rupture",
-      "period": "Dechirement",
+      "period": "Déchirement",
       "tags": [
         "Cataclysme",
         "Geographie"
@@ -50,9 +50,9 @@
       "yearLabel": "-7 av. CC",
       "title": "La Sainte Unification",
       "summary": "Comosicus rallie Valerius Primus puis impose rapidement sa domination sur les villes majeures du continent.",
-      "content": "En quelques annees seulement, Comosicus transforme une domination locale en dynamique continentale. L'unification n'est pas seulement militaire : elle impose une lecture sacree du pouvoir, redessine les fidelites urbaines et pose les bases d'un ordre dont l'Empire de Vruliwen se reclame encore. Pour les campagnes, c'est l'instant ou l'histoire locale bascule vers une histoire imperiale.",
+      "content": "En quelques années seulement, Comosicus transforme une domination locale en dynamique continentale. L'unification n'est pas seulement militaire : elle impose une lecture sacrée du pouvoir, redessine les allégeances des cités et pose les bases d'un ordre dont l'Empire de Vruliwen se réclame encore.",
       "era": "Ascension imperiale",
-      "eraSummary": "Une epoque de conquetes rapides et de centralisation religieuse qui installe l'imaginaire imperial.",
+      "eraSummary": "Une époque de conquêtes rapides et de centralisation religieuse qui installe l'imaginaire impérial.",
       "sceneLabel": "Conquete",
       "period": "La Sainte Unification",
       "tags": [
@@ -73,9 +73,9 @@
       "yearLabel": "0 CC",
       "title": "Couronnement Comosicus Thiri",
       "summary": "Le couronnement entérine l'unification de Vruliwen et fixe le debut symbolique du calendrier commun.",
-      "content": "Le couronnement de Comosicus Thiri condense sept annees de campagnes victorieuses et inscrit durablement le pouvoir au centre du monde politique. L'evenement devient un point zero pour les archives, les chroniques et les institutions. Il marque aussi le passage d'une logique de guerre de fondation a une logique de gouvernement, avec toutes les tensions que cela suppose entre ordre, foi et administration.",
+      "content": "Le couronnement de Comosicus Thiri condense sept années de campagnes victorieuses et inscrit durablement le pouvoir au centre du monde politique. L'évènement devient un point zéro pour les archives, les chroniques et les institutions. Il marque aussi le passage d'une logique de guerre de fondation a une logique de gouvernement, avec toutes les tensions que cela suppose entre ordre, foi et administration.",
       "era": "Ascension imperiale",
-      "eraSummary": "L'Empire passe de la conquete a la legitimite, et impose sa propre mesure du temps.",
+      "eraSummary": "L'Empire passe de la conquête a la légitimité, et impose sa propre mesure du temps.",
       "sceneLabel": "Fondation",
       "period": "Pax Maxima",
       "tags": [
@@ -83,8 +83,8 @@
         "Empire"
       ],
       "locationNames": [
-        "Vruliwen",
-        "Valerius Primus"
+        "Valerius Primus",
+        "Vruliwen"
       ],
       "imageUrl": "/assets/images/Frise/couronnement-comosicus-thiri.png",
       "mediaAlt": "Couronnement solennel de Comosicus Thiri au sommet de la Pax Maxima.",
@@ -96,10 +96,10 @@
       "year": 25,
       "yearLabel": "25 ap. CC",
       "title": "Crise d'Imossa",
-      "summary": "Un cataclysme et une intervention religieuse mal conduite precipitent Imossa dans la folie et la corruption.",
-      "content": "Imossa, cite legendaire prospere sous la Pax Maxima, devient soudain le foyer d'un desastre impossible a contenir. L'intervention de l'Eglise de la Lumiere tourne au drame et laisse place a une contamination demonique qui corrompt la ville de l'interieur. Le retrait de Comosicus, apres evacuation des civils encore lucides, ouvre une faille durable dans la promesse imperiale de protection et transforme Imossa en blessure politique autant que spirituelle.",
+      "summary": "Un cataclysme et une intervention religieuse mal conduite précipitent Imossa dans la folie et la corruption.",
+      "content": "Imossa, cité légendaire prospère sous la Pax Maxima, devient soudainement le foyer d'un désastre impossible a contenir. L'intervention de l'Eglise de la Lumière tourne au drame et laisse place a une contamination démonique qui corrompt la ville de l'intérieur. Le retrait de Comosicus, après évacuation des civils encore lucides, ouvre une faille durable dans la promesse impériale de protection et transforme Imossa en blessure politique autant que spirituelle.",
       "era": "Chutes et croisades",
-      "eraSummary": "L'Empire cesse d'apparaitre invulnerable ; les crises spirituelles et militaires se transforment en guerres longues.",
+      "eraSummary": "L'Empire cesse d'apparaitre invulnérable ; les crises spirituelles et militaires se transforment en guerres longues.",
       "sceneLabel": "Catastrophe",
       "period": "Crise d'Imossa",
       "tags": [
@@ -120,10 +120,10 @@
       "year": 28,
       "yearLabel": "28 ap. CC",
       "title": "Croisade d'Imossa",
-      "summary": "L'Eglise lance une expedition massive pour reprendre Imossa, mais la campagne tourne au desastre et laisse un traumatisme durable.",
-      "content": "Pensée comme une demonstration de force et de foi, la croisade d'Imossa mobilise largement au-dela du clerge. La corruption du theatre d'operations, l'usure logistique et les erreurs de commandement transforment l'expedition en echec structurel. L'abandon final des forces les plus exposees marque les memoires et nourrit une crise de confiance profonde entre institutions religieuses, veterans et populations frontalières.",
+      "summary": "L'Eglise lance une expédition massive pour reprendre Imossa, mais la campagne tourne au désastre et laisse un traumatisme durable.",
+      "content": "Pensée comme une démonstration de force et de foi, la croisade d'Imossa mobilise largement au-delà du clergé. La corruption du théâtre d'opérations, l'usure logistique et les erreurs de commandement transforment l'expédition en échec. L'abandon final des forces les plus exposées marque les mémoires et nourrit une crise de confiance profonde entre institutions religieuses, vétérans et populations frontalières.",
       "era": "Chutes et croisades",
-      "eraSummary": "Les reponses militaires aux crises accelerent la fragmentation de l'autorite et de la confiance.",
+      "eraSummary": "Les réponses militaires aux crises accélèrent la fragmentation de l'autorité et de la confiance.",
       "sceneLabel": "Croisade",
       "period": "Crise d'Imossa",
       "tags": [
@@ -144,10 +144,10 @@
       "year": 40,
       "yearLabel": "40 ap. CC",
       "title": "1er Pas en Zemantis",
-      "summary": "L'Ordre Exterminatus est projete en Zemantis pour preparer une croisade future et ancrer un avant-poste durable.",
-      "content": "L'envoi de l'Ordre Exterminatus en Zemantis ne vise pas encore la conquete totale. Il s'agit d'une implantation, d'une prise de mesure du territoire, d'un test grandeur nature des capacites de projection imperiale vers des espaces moins connus. Ce premier pas structure des routes, des relais et des ambitions qui peseront longtemps sur l'equilibre du continent.",
+      "summary": "L'Ordre Exterminatus est projeté en Zemantis pour préparer une croisade future et ancrer un avant-poste durable.",
+      "content": "L'envoi de l'Ordre Exterminatus en Zemantis ne vise pas encore la conquête totale. Il s'agit d'une implantation, d'une prise de mesure du territoire, d'un test grandeur nature des capacités de projection impériale vers des espaces moins connus. Ce premier pas structure des routes, des relais et des ambitions qui pèseront longtemps sur l'équilibre du continent.",
       "era": "Frontieres nouvelles",
-      "eraSummary": "L'expansion ne se joue plus seulement au coeur de l'Empire, mais sur des marges appelees a devenir centrales.",
+      "eraSummary": "L'expansion ne se joue plus seulement au cœur de l'Empire, mais sur des marges appelées a devenir centrales.",
       "sceneLabel": "Projection",
       "period": "1er Pas en Zemantis",
       "tags": [
@@ -155,8 +155,8 @@
         "Zemantis"
       ],
       "locationNames": [
-        "Zemantis",
-        "Camp O.E"
+        "Camp O.E",
+        "Zemantis"
       ],
       "imageUrl": "/assets/images/Frise/premier-pas-zemantis.png",
       "mediaAlt": "Avant-poste de l Ordre Exterminatus pose sur les terres de Zemantis.",
@@ -168,10 +168,10 @@
       "year": 43,
       "yearLabel": "43 ap. CC",
       "title": "La Premiere Guerre Vrulio-Dipovienne",
-      "summary": "L'Empire de Vruliwen et les forces de Dipovia entrent dans une guerre ouverte qui reconfigure l'equilibre maritime et continental.",
-      "content": "La declaration de guerre entre Vruliwen et Dipovia ouvre une sequence de conflits plus mobiles, plus navals et plus fragmentes que les campagnes precedentes. Les enjeux ne concernent plus seulement la domination symbolique, mais les lignes de ravitaillement, les ports, les alliances opportunistes et l'usure des frontieres. Cette guerre annonce une Hesta plus multipolaire, ou la puissance ne suffit plus a garantir le controle.",
+      "summary": "L'Empire de Vruliwen et les forces de Dipovia entrent dans une guerre ouverte qui reconfigure l'équilibre maritime et continental.",
+      "content": "La déclaration de guerre entre Vruliwen et Dipovia ouvre une séquence de conflits plus mobiles, plus navals et plus fragmentés que les campagnes précédentes. Cette guerre annonce une Hesta plus multipolaire, ou la puissance ne suffit plus a garantir le contrôle.",
       "era": "Frontieres nouvelles",
-      "eraSummary": "Les marges deviennent theatres principaux, et les guerres d'expansion se muent en conflits de circulation et d'endurance.",
+      "eraSummary": "Les marges deviennent théâtres principaux, et les guerres d'expansion se muent en conflits d'influence.",
       "sceneLabel": "Guerre ouverte",
       "period": "Guerre Vrulio-Dipovienne",
       "tags": [
@@ -193,10 +193,10 @@
       "year": 47,
       "yearLabel": "47 ap. CC",
       "title": "Insurrection de Vardanys",
-      "summary": "Une sedition interne secoue la Garde d'Imossa et fait de Vardanys un nouveau foyer de destabilisation.",
-      "content": "L'insurrection de Vardanys montre que les fractures ne viennent plus seulement de l'exterieur ou des marges lointaines. Elles traversent maintenant les appareils armes eux-mêmes. Le mouvement seditionnaire au sein de la Garde d'Imossa brouille les loyautes, reouvre les peurs liees a la corruption et annonce une periode ou les crises locales peuvent embraser des ensembles politiques bien plus vastes.",
+      "summary": "Une sédition interne secoue la Garde d'Imossa et fait de Vardanys un nouveau foyer de déstabilisation.",
+      "content": "L'insurrection de Vardanys montre que les fractures ne viennent plus seulement de l'extérieur ou des marges lointaines. Le mouvement séditieux au sein de la Garde d'Imossa brouille les loyautés, réouvre les peurs liées a la corruption et annonce une période ou les crises locales peuvent embraser des ensembles politiques bien plus vastes.",
       "era": "Frontieres nouvelles",
-      "eraSummary": "A mesure que les fronts s'etendent, les lignes de fracture deviennent aussi internes et institutionnelles.",
+      "eraSummary": "A mesure que les fronts s'étendent, les lignes de fracture deviennent aussi internes et institutionnelles.",
       "sceneLabel": "Insurrection",
       "period": "Guerre Vrulio-Dipovienne",
       "tags": [
