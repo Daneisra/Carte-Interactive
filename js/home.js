@@ -81,15 +81,15 @@ const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
     home: {
-        kicker: 'P3.1 - Accueil pre-carte',
+        kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
         lead: "Explorez les lieux, suivez les quetes en direct, retrouvez votre groupe JDR et centralisez vos personnages. Cette page sert de point d'entree rapide pour la carte et la communaute.",
-        atmosphere: "Hub pre-carte - entree rapide vers l'univers, la carte et la communaute.",
+        atmosphere: "Accueil narratif - entree rapide vers l'univers, la carte et la communaute.",
         tags: ['Carte narrative', 'Quetes live', 'Groupes JDR', 'Profils & personnages'],
         metrics: [
             { label: 'Hub', value: 'Carte + Communaute' },
             { label: 'Acces', value: 'Lecture / Discord / Admin' },
-            { label: 'Etat', value: 'Pre-P3 en production' }
+            { label: 'Etat', value: 'Version actuelle en production' }
         ],
         visuals: {
             backgroundImage: '/assets/home/backgrounds/hero-main.png',
@@ -132,13 +132,13 @@ const DEFAULT_SITE_CONFIG = {
     },
     legal: {
         creditsUrl: '/docs/credits-assets.md',
-        footerNote: "Projet narratif / JDR - fan project / page d'accueil pre-carte (P3.1 MVP)."
+        footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
         {
             date: '2026-02-28',
-            title: 'Accueil pre-carte en ligne',
-            summary: 'Nouvelle page d accueil avant la carte avec session, communaute, flux live, lieux mis en avant et patch notes.'
+            title: 'Nouvel accueil en ligne',
+            summary: 'Nouvelle page d accueil avec session, communaute, flux live, lieux mis en avant et patch notes.'
         }
     ]
 };

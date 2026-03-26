@@ -178,8 +178,7 @@
 - [x] P4.11 - QA chronologie : accessibilité clavier, performances, mobile/tablette, validation des contenus et tests navigateur ciblés.
 
 ### Note produit - Frise chronologique
-- [x] Option A - Page dédiée : meilleure lisibilité, plus de place pour une vraie frise horizontale, plus simple à rendre premium et responsive.
-- [ ] Option B - Intégration directe sur la carte : plus immersive, mais risque de surcharge UI avec sidebar, mini profil, admin et flux live.
+- [x] Page dédiée : meilleure lisibilité, plus de place pour une vraie frise horizontale, plus simple à rendre premium et responsive.
 - [x] Décision recommandée : construire la version complète sur page dédiée, puis ajouter un point d'entrée compact sur la carte.
 - [x] MVP recommandé : année + titre + texte + image optionnelle + lieux liés + bouton "Voir sur la carte".
 
@@ -217,7 +216,21 @@
 - [x] Phase 6 : QA complète et polish.
   - Couverture UI complete relancee sur Chromium et Firefox, avec verrouillage des fermetures clavier, du retour focus au declencheur, du scroll lock et du comportement fullscreen des panneaux admin dedies.
 
-### P6 — Différenciants
+### P6 — Homogénéisation des descriptions de lieux (assistée par IA)
+- [ ] Recentrer les fiches lieux sur une structure claire : `description` courte, `lore` long, `histoire` longue.
+- [ ] Cesser d'utiliser `description`, `lore` et `histoire` comme zones interchangeables dans l'édition des lieux.
+- [ ] Définir `description` comme résumé court officiel affiché dans la carte et les aperçus.
+- [ ] Définir `lore` / `histoire` comme sources narratives principales pour générer ce résumé.
+- [ ] Ajouter dans l'admin lieu un bouton `Generer la description` depuis `lore` / `histoire`.
+- [ ] Utiliser une assistance IA pour proposer une description courte, homogène et non hallucinée.
+- [ ] Conserver une validation humaine systématique : la description générée reste éditable avant sauvegarde.
+- [ ] Empêcher l'écrasement silencieux d'une description existante sans confirmation explicite.
+- [ ] Définir un format cible pour la génération : 2 a 4 phrases, ton neutre, informatif, sans invention.
+- [ ] Clarifier l'UI admin avec aide contextuelle sur le rôle de chaque champ narratif.
+- [ ] Prévoir un mode `Regenerer` et un mode `Ameliorer la description existante`.
+- [ ] Tester la cohérence sur plusieurs lieux aux fiches hétérogènes avant généralisation.
+
+### P7 — Différenciants
 - [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schémas, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
@@ -227,7 +240,7 @@
 - [ ] Narateur audio
 - [ ] Polish UI
 
-### P7 — Hygiène & dette
+### P8 — Hygiène & dette
 - [ ] Modularisation fine de `UiController` et nettoyage des artefacts legacy.
 - [ ] Harmonisation encodages (UTF-8) & lint assets. :contentReference[oaicite:7]{index=7}
 - [ ] Fiabiliser le compteur Discord automatique de l’accueil (invite/widget/API) avec fallback propre.
