@@ -17,6 +17,31 @@ const createIssue = (level, code, message, context = {}) => ({
 
 const normalizeMediaValue = value => sanitizeString(value || '');
 
+const stripMarkdown = value => sanitizeString(value)
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '$1')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+    .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2')
+    .replace(/\[\[([^\]]+)\]\]/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*>\s?/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/[_*~]/g, '')
+    .replace(/\r/g, '\n')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const countSentences = value => {
+    const text = stripMarkdown(value);
+    if (!text) {
+        return 0;
+    }
+    const matches = text.match(/[.!?]+(?=\s|$)/g);
+    return matches ? matches.length : 1;
+};
+
 const collectStringIssues = (field, value, { label, issues, allowString = true }) => {
     if (value === null || value === undefined || value === '') {
         return;
@@ -124,10 +149,40 @@ export function validateLocationRecord(rawLocation, {
         }
     }
 
-    if (!sanitizeString(rawLocation?.description)) {
+    const descriptionRaw = sanitizeString(rawLocation?.description);
+    const descriptionText = stripMarkdown(descriptionRaw);
+    const historyCount = Array.isArray(normalized?.history) ? normalized.history.length : 0;
+    const loreCount = Array.isArray(normalized?.lore) ? normalized.lore.length : 0;
+    const hasNarrativeSources = historyCount > 0 || loreCount > 0;
+
+    if (!descriptionRaw) {
         pushWarning(
             'location.description.empty',
             `${label}: description absente ou vide.`
+        );
+    }
+    if (hasNarrativeSources && !descriptionRaw) {
+        pushWarning(
+            'location.description.summaryMissing',
+            `${label}: historique/lore renseignes sans resume court dans description.`
+        );
+    }
+    if (!hasNarrativeSources && descriptionText.length > 520) {
+        pushWarning(
+            'location.description.tooLong',
+            `${label}: description tres longue sans historique ni lore distincts.`
+        );
+    }
+    if (descriptionRaw && countSentences(descriptionRaw) > 4) {
+        pushWarning(
+            'location.description.dense',
+            `${label}: description dense (plus de 4 phrases) - preferer un resume court pour la carte.`
+        );
+    }
+    if (descriptionRaw && /(^|\n)\s*(#|[-*+]\s)/m.test(descriptionRaw)) {
+        pushWarning(
+            'location.description.structured',
+            `${label}: description structuree en titres ou listes - deplacer plutot ce detail dans historique ou lore.`
         );
     }
 

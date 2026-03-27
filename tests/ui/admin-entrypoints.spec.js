@@ -281,5 +281,29 @@ test.describe('Points d\'entree admin', () => {
     await expect.poll(() => captured?.action || null).toBe('generate');
     await expect(page.locator('#editor-description')).toHaveValue('Description generee de test.');
     await expect(page.locator('[data-role="description-assistant-note"]')).toContainText(/Relisez la description/i);
+    await expect(page.getByRole('button', { name: /Regenerer depuis lore \/ historique/i })).toBeVisible();
+  });
+
+  test('l editeur signale une description trop longue sans sources narratives distinctes', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    await page.goto('/map/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const addButton = page.locator('#add-location');
+    await expect(addButton).toBeVisible({ timeout: 10000 });
+    await addButton.click();
+
+    const description = page.locator('#editor-description');
+    await expect(description).toBeVisible();
+    await description.fill(
+      '# Titre long\n' +
+      'Une longue entree de description qui ressemble deja a un bloc de lore complet. '.repeat(12)
+    );
+
+    const warningsPanel = page.locator('#location-editor [data-role="validation-warnings"]');
+    await expect(warningsPanel).toBeVisible();
+    await expect(warningsPanel).toContainText(/Description tres longue sans Historique ni Lore/i);
+    await expect(warningsPanel).toContainText(/Description structuree en titres ou listes/i);
   });
 });

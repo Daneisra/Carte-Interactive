@@ -270,6 +270,15 @@ const extractYouTubeId = url => {
 
 const sanitizeText = value => (value ?? '').toString().trim();
 
+const countSentences = value => {
+    const text = sanitizeText(value);
+    if (!text) {
+        return 0;
+    }
+    const matches = text.match(/[.!?]+(?=\s|$)/g);
+    return matches ? matches.length : 1;
+};
+
 const formatQuestTimestamp = value => {
     if (!value) {
         return '';
@@ -461,6 +470,8 @@ export class LocationEditor {
         if (this.descriptionInput) {
             this.descriptionInput.addEventListener('input', () => {
                 this.updateDescriptionPreview();
+                this.updateNarrativeWarnings();
+                this.updateDescriptionAssistantActions();
                 this.scheduleDescriptionDraftSave();
                 this.scheduleLinkSuggestions();
             });
@@ -532,6 +543,12 @@ export class LocationEditor {
             if (target.dataset?.role === 'image-input') {
                 this.validateImages();
                 this.updateImagePreview();
+            }
+            if (target.dataset?.role === 'markdown-entry-input') {
+                const entryType = target.dataset?.entryType || '';
+                if (entryType === 'history' || entryType === 'lore') {
+                    this.updateNarrativeWarnings();
+                }
             }
             if (target.dataset?.role === 'video-url' || target.dataset?.role === 'video-title') {
                 this.validateVideos();
@@ -782,6 +799,8 @@ export class LocationEditor {
         this.resetErrors();
         this.setDescriptionAssistantNote('Utilisez Historique et Lore comme sources longues, puis generez ici un brouillon court a relire avant enregistrement.', 'info');
         this.setDescriptionAssistantBusy(false);
+        this.updateDescriptionAssistantActions();
+        this.updateNarrativeWarnings();
         this.renderWarnings();
         this.updateImagePreview();
         this.updateVideoPreview();
@@ -847,6 +866,8 @@ export class LocationEditor {
         }
         this.setDescriptionAssistantBusy(false);
         this.setDescriptionAssistantNote('Utilisez Historique et Lore comme sources longues, puis generez ici un brouillon court a relire avant enregistrement.', 'info');
+        this.latestWarnings = [];
+        this.renderWarnings();
         this.clearError('descriptionAssistant');
         this.setDescriptionDraftStatus(null);
         this.currentContext = null;
@@ -2278,6 +2299,8 @@ export class LocationEditor {
                 this.descriptionInput.value = generated;
             }
             this.updateDescriptionPreview();
+            this.updateDescriptionAssistantActions();
+            this.updateNarrativeWarnings();
             this.scheduleDescriptionDraftSave();
             this.refreshLinkSuggestions();
             this.clearError('description');
@@ -2312,13 +2335,16 @@ export class LocationEditor {
             this.descriptionGenerateButton.disabled = this.descriptionAssistantBusy;
             this.descriptionGenerateButton.textContent = this.descriptionAssistantBusy
                 ? 'Generation...'
-                : 'Generer depuis lore / historique';
+                : '';
         }
         if (this.descriptionImproveButton) {
             this.descriptionImproveButton.disabled = this.descriptionAssistantBusy;
             this.descriptionImproveButton.textContent = this.descriptionAssistantBusy
                 ? 'Patientez...'
-                : 'Ameliorer la description';
+                : '';
+        }
+        if (!this.descriptionAssistantBusy) {
+            this.updateDescriptionAssistantActions();
         }
     }
 
@@ -2328,6 +2354,44 @@ export class LocationEditor {
         }
         this.descriptionAssistantNote.textContent = sanitizeText(message);
         this.descriptionAssistantNote.dataset.state = state || 'info';
+    }
+
+    updateDescriptionAssistantActions() {
+        const hasDescription = Boolean(sanitizeText(this.descriptionInput?.value || ''));
+        if (this.descriptionGenerateButton && !this.descriptionAssistantBusy) {
+            this.descriptionGenerateButton.textContent = hasDescription
+                ? 'Regenerer depuis lore / historique'
+                : 'Generer depuis lore / historique';
+        }
+        if (this.descriptionImproveButton && !this.descriptionAssistantBusy) {
+            this.descriptionImproveButton.textContent = 'Ameliorer la description';
+            this.descriptionImproveButton.disabled = !hasDescription;
+        }
+    }
+
+    updateNarrativeWarnings() {
+        const warnings = [];
+        const description = sanitizeText(this.descriptionInput?.value || '');
+        const history = this.collectMarkdownEntries('history');
+        const lore = this.collectMarkdownEntries('lore');
+        const hasSources = history.length > 0 || lore.length > 0;
+        const sentenceCount = countSentences(description);
+        const looksStructured = /(^|\n)\s*(#|[-*+]\s)/m.test(description);
+
+        if (hasSources && !description) {
+            warnings.push('Historique ou Lore est renseigne sans resume court : generez une description pour la carte.');
+        }
+        if (description.length > 520 && !hasSources) {
+            warnings.push('Description tres longue sans Historique ni Lore : deplacez le detail narratif dans les champs sources.');
+        }
+        if (sentenceCount > 4) {
+            warnings.push('Description dense : gardez plutot un resume de 2 a 4 phrases pour la carte.');
+        }
+        if (looksStructured) {
+            warnings.push('Description structuree en titres ou listes : reservez plutot ce format a Historique ou Lore.');
+        }
+
+        this.showWarnings(warnings);
     }
 
     collectFormData() {

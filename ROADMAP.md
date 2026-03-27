@@ -227,7 +227,7 @@
 - [x] Empêcher l'écrasement silencieux d'une description existante sans confirmation explicite.
 - [x] Définir un format cible pour la génération : 2 a 4 phrases, ton neutre, informatif, sans invention.
 - [x] Clarifier l'UI admin avec aide contextuelle sur le rôle de chaque champ narratif.
-- [ ] Prévoir un mode `Regenerer` et un mode `Ameliorer la description existante`.
+- [x] Prévoir un mode `Regenerer` et un mode `Ameliorer la description existante`.
 - [ ] Tester la cohérence sur plusieurs lieux aux fiches hétérogènes avant généralisation.
 
 ### P7 — Différenciants
