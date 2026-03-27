@@ -4,6 +4,193 @@ const createErrorResponse = (status, message, extra = {}) => ({
     ...extra
 });
 
+const DESCRIPTION_SENTENCE_LIMIT = 4;
+const DESCRIPTION_CHAR_LIMIT = 460;
+
+const sanitizeDraftText = value => (value ?? '').toString().trim();
+
+const collectDraftTextArray = value => {
+    if (Array.isArray(value)) {
+        return value
+            .map(entry => sanitizeDraftText(entry))
+            .filter(Boolean);
+    }
+    const single = sanitizeDraftText(value);
+    return single ? [single] : [];
+};
+
+const stripMarkdown = input => sanitizeDraftText(input)
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '$1')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+    .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2')
+    .replace(/\[\[([^\]]+)\]\]/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*>\s?/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/[_*~]/g, '')
+    .replace(/\|/g, ' ')
+    .replace(/\r/g, '\n')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const normalizeSentenceKey = value => stripMarkdown(value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const ensureSentenceEnding = sentence => {
+    const trimmed = sanitizeDraftText(sentence);
+    if (!trimmed) {
+        return '';
+    }
+    return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+};
+
+const splitIntoSentences = text => {
+    const cleaned = stripMarkdown(text);
+    if (!cleaned) {
+        return [];
+    }
+    return cleaned
+        .split(/(?<=[.!?])\s+(?=[A-Z0-9À-ÿ])/u)
+        .flatMap(chunk => chunk.split(/\s*;\s*/))
+        .map(entry => sanitizeDraftText(entry))
+        .filter(entry => entry.length >= 35);
+};
+
+const buildFallbackDescription = (location, typeLabel) => {
+    const name = sanitizeDraftText(location?.name) || 'Ce lieu';
+    const continent = sanitizeDraftText(location?.continent);
+    const tags = collectDraftTextArray(location?.tags).slice(0, 3);
+    const genericType = typeLabel && typeLabel !== 'default'
+        ? `de type ${typeLabel}`
+        : 'notable';
+    const firstSentence = continent
+        ? `${name} est un lieu ${genericType} situe sur ${continent}`
+        : `${name} est un lieu ${genericType} de l'univers`;
+    const tagSentence = tags.length
+        ? `Il se distingue notamment par ${tags.join(', ')}`
+        : "Il merite encore une description editee plus detaillee";
+    return `${ensureSentenceEnding(firstSentence)} ${ensureSentenceEnding(tagSentence)}`.trim();
+};
+
+const buildDescriptionDraft = (payload, typeMap = {}) => {
+    const location = payload && typeof payload === 'object' ? payload : {};
+    const action = sanitizeDraftText(location?.action).toLowerCase() === 'improve' ? 'improve' : 'generate';
+    const name = sanitizeDraftText(location?.name);
+    const tags = collectDraftTextArray(location?.tags);
+    const typeKey = sanitizeDraftText(location?.type);
+    const typeEntry = typeMap && typeof typeMap === 'object' ? typeMap[typeKey] : null;
+    const typeLabel = sanitizeDraftText(
+        typeEntry && typeof typeEntry === 'object'
+            ? (typeEntry.label || typeEntry.name || typeKey)
+            : (typeEntry || typeKey)
+    ) || 'default';
+    const historyEntries = collectDraftTextArray(location?.history);
+    const loreEntries = collectDraftTextArray(location?.lore);
+    const descriptionEntries = action === 'improve'
+        ? collectDraftTextArray(location?.description)
+        : [];
+
+    const sourceEntries = [
+        ...descriptionEntries.map((text, index) => ({ text, source: 'description', index })),
+        ...historyEntries.map((text, index) => ({ text, source: 'history', index })),
+        ...loreEntries.map((text, index) => ({ text, source: 'lore', index }))
+    ];
+
+    const tagKeys = tags
+        .map(entry => normalizeSentenceKey(entry))
+        .filter(Boolean);
+
+    const candidates = [];
+    sourceEntries.forEach(entry => {
+        splitIntoSentences(entry.text).forEach((sentence, sentenceIndex) => {
+            const key = normalizeSentenceKey(sentence);
+            if (!key) {
+                return;
+            }
+            let score = 0;
+            if (entry.source === 'description') {
+                score += 80;
+            } else if (entry.source === 'history') {
+                score += 44;
+            } else {
+                score += 40;
+            }
+            if (entry.index === 0) {
+                score += 10;
+            }
+            if (sentenceIndex === 0) {
+                score += 6;
+            }
+            if (name && key.includes(normalizeSentenceKey(name))) {
+                score += 10;
+            }
+            if (tagKeys.some(tag => tag && key.includes(tag))) {
+                score += 6;
+            }
+            if (sentence.length >= 60 && sentence.length <= 180) {
+                score += 5;
+            } else if (sentence.length > 260) {
+                score -= 6;
+            }
+            candidates.push({
+                source: entry.source,
+                score,
+                text: ensureSentenceEnding(sentence),
+                key
+            });
+        });
+    });
+
+    const usedSources = [];
+    const seen = new Set();
+    const chosen = [];
+    let totalLength = 0;
+    candidates
+        .sort((left, right) => right.score - left.score)
+        .forEach(candidate => {
+            if (chosen.length >= DESCRIPTION_SENTENCE_LIMIT) {
+                return;
+            }
+            if (!candidate.text || seen.has(candidate.key)) {
+                return;
+            }
+            const nextLength = totalLength + candidate.text.length + (chosen.length ? 1 : 0);
+            if (nextLength > DESCRIPTION_CHAR_LIMIT) {
+                return;
+            }
+            seen.add(candidate.key);
+            chosen.push(candidate.text);
+            totalLength = nextLength;
+            if (!usedSources.includes(candidate.source)) {
+                usedSources.push(candidate.source);
+            }
+        });
+
+    const description = chosen.length
+        ? chosen.join(' ')
+        : buildFallbackDescription(location, typeLabel);
+
+    return {
+        description,
+        meta: {
+            action,
+            usedSources: chosen.length ? usedSources : ['fallback'],
+            sentenceCount: chosen.length || 2,
+            historyCount: historyEntries.length,
+            loreCount: loreEntries.length,
+            usedFallback: chosen.length === 0
+        }
+    };
+};
+
 module.exports = (register, context) => {
     const {
         logger,
@@ -179,6 +366,46 @@ module.exports = (register, context) => {
         }
         const dataset = await readLocationsFile();
         json(res, 200, { status: 'ok', locations: dataset });
+    });
+
+    register('POST', '/api/admin/locations/generate-description', async (req, res) => {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+            return;
+        }
+        let payload;
+        try {
+            payload = JSON.parse(await collectBody(req) || '{}');
+        } catch (error) {
+            json(res, 400, createErrorResponse('error', 'Invalid JSON'));
+            return;
+        }
+
+        const location = payload?.location;
+        const action = sanitizeDraftText(payload?.action).toLowerCase() === 'improve' ? 'improve' : 'generate';
+        if (!location || typeof location !== 'object') {
+            json(res, 400, createErrorResponse('error', 'location is required.'));
+            return;
+        }
+
+        const historyEntries = collectDraftTextArray(location?.history);
+        const loreEntries = collectDraftTextArray(location?.lore);
+        const description = sanitizeDraftText(location?.description);
+        if (!historyEntries.length && !loreEntries.length && !(action === 'improve' && description)) {
+            json(res, 400, createErrorResponse('error', 'Ajoutez du lore ou de l historique avant de generer une description.'));
+            return;
+        }
+
+        const typeMap = await loadTypeMap();
+        const draft = buildDescriptionDraft({
+            ...location,
+            action
+        }, typeMap || {});
+
+        json(res, 200, {
+            status: 'ok',
+            description: draft.description,
+            meta: draft.meta
+        });
     });
 
     register('POST', '/api/admin/locations', async (req, res) => {

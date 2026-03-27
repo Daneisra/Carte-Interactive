@@ -1047,6 +1047,7 @@ export class UiController {
             onCreate: payload => this.handleCreateLocation(payload),
             onUpdate: payload => this.handleUpdateLocation(payload),
             onDelete: payload => this.handleDeleteLocation(payload),
+            onGenerateDescription: payload => this.generateLocationDescription(payload),
             onCreateQuestEvent: payload => this.createQuestEvent(payload),
             onUpdateQuestEvent: payload => this.updateQuestEvent(payload),
             onDeleteQuestEvent: eventId => this.deleteQuestEvent(eventId)
@@ -1410,6 +1411,31 @@ export class UiController {
             const message = localized('aria.locationDeleted', `${removedName} supprime.`, { location: removedName });
             this.announcer.polite(message);
         }
+    }
+
+    async generateLocationDescription(payload) {
+        const response = await fetch('/api/admin/locations/generate-description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload || {})
+        });
+        let body = null;
+        try {
+            body = await response.json();
+        } catch (error) {
+            body = null;
+        }
+        if (!response.ok) {
+            const message = body?.message || `HTTP ${response.status}`;
+            const error = new Error(message);
+            error.status = response.status;
+            throw error;
+        }
+        return {
+            description: body?.description || '',
+            meta: body?.meta || {}
+        };
     }
 
     handleUpdateLocation({ continent, location, originalContinent, originalName }) {

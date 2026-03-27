@@ -817,6 +817,61 @@ body[data-theme="light"] .markdown-preview {
     display: none;
 }
 
+.form-note {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: rgba(226, 232, 240, 0.82);
+}
+
+.form-note[data-state="success"] {
+    color: #86efac;
+}
+
+.form-note[data-state="error"] {
+    color: #fca5a5;
+}
+
+body[data-theme="light"] .form-note {
+    color: rgba(30, 41, 59, 0.78);
+}
+
+body[data-theme="light"] .form-note[data-state="success"] {
+    color: #166534;
+}
+
+body[data-theme="light"] .form-note[data-state="error"] {
+    color: #b91c1c;
+}
+
+.form-assistant-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 0 4px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: rgba(15, 23, 42, 0.28);
+}
+
+body[data-theme="light"] .form-assistant-panel {
+    background: rgba(248, 250, 252, 0.85);
+    border-color: rgba(148, 163, 184, 0.32);
+}
+
+.form-assistant-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.form-assistant-actions .secondary-button[disabled],
+.form-assistant-actions .tertiary-button[disabled] {
+    cursor: wait;
+    opacity: 0.7;
+}
+
 .form-warning-panel {
     margin: 12px 0 20px;
     padding: 12px 14px;

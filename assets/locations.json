@@ -57,7 +57,9 @@
       "instances": [],
       "nobleFamilies": [],
       "pnjs": [],
-      "tags": [],
+      "tags": [
+        "mer"
+      ],
       "questEvents": []
     }
   ],
@@ -67,7 +69,7 @@
       "type": "Small City Stone Wall",
       "x": 6595,
       "y": 2328,
-      "description": "# **__Barolt__**\n\nBarolt est une le nom de la ville et de l'île, les deux tire leurs noms du dieux des Valtaran qui est Barolt le dieux de l'artisanat.\n\nToute l'île est entouré par une muraille fortifié afin de se protéger des attaque pirate.\n\nLa ville possède son propre port qui c'est très bien développé au fil des siècles.\n\nLes pirates y sont tolérés mais au moindre problème il sont soit chassé soit exécuté.\n\nLe port compte aussi un chantier naval.\n\nLe commerce en Barolt est très contrôlé, les marchands ne peuvent vendre leur marchandise qu'à un seule endroit qui est rigoureusement contrôlé.\n\nEt les certain marchand sont protégé par des gardes Valtaran afin que leur marchandise arrive à bon port.\n\nIl fait bon vivre dans Barolt et il n'y a quasiment pas de criminalité ou quartier malfamé.",
+      "description": "# **__Barolt__**\n\nBarolt est le nom de la ville et de l'île, les deux tire leurs noms du dieux des Valtaran qui est Barolt le dieux de l'artisanat.\n\nToute l'île est entouré par une muraille fortifié afin de se protéger des attaque pirate.\n\nLa ville possède son propre port qui c'est très bien développé au fil des siècles.\n\nLes pirates y sont tolérés mais au moindre problème il sont soit chassé soit exécuté.\n\nLe port compte aussi un chantier naval.\n\nLe commerce en Barolt est très contrôlé, les marchands ne peuvent vendre leur marchandise qu'à un seule endroit qui est rigoureusement contrôlé.\n\nEt les certain marchand sont protégé par des gardes Valtaran afin que leur marchandise arrive à bon port.\n\nIl fait bon vivre dans Barolt et il n'y a quasiment pas de criminalité ou quartier malfamé.",
       "images": [],
       "videos": [],
       "audio": null,

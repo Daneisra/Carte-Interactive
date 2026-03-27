@@ -242,4 +242,44 @@ test.describe('Points d\'entree admin', () => {
     await page.waitForTimeout(300);
     expect(requests).toHaveLength(0);
   });
+
+  test('l editeur de lieu peut generer une description depuis lore et historique', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    let captured = null;
+    await page.route('**/api/admin/locations/generate-description', async route => {
+      const request = route.request();
+      if (request.method() !== 'POST') {
+        await route.continue();
+        return;
+      }
+      captured = JSON.parse(request.postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          status: 'ok',
+          description: 'Description generee de test.',
+          meta: { usedSources: ['history', 'lore'] }
+        })
+      });
+    });
+
+    await page.goto('/map/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const addButton = page.locator('#add-location');
+    await expect(addButton).toBeVisible({ timeout: 10000 });
+    await addButton.click();
+
+    await expect(page.locator('#location-editor')).toBeVisible();
+    await page.locator('[data-role="history-list"] textarea').first().fill('La ville a ete fondee pour proteger le detroit.');
+    await page.locator('[data-role="lore-list"] textarea').first().fill('Elle reste connue pour ses marchands et sa brume epaisse.');
+
+    await page.getByRole('button', { name: /Generer depuis lore \/ historique/i }).click();
+
+    await expect.poll(() => captured?.action || null).toBe('generate');
+    await expect(page.locator('#editor-description')).toHaveValue('Description generee de test.');
+    await expect(page.locator('[data-role="description-assistant-note"]')).toContainText(/Relisez la description/i);
+  });
 });

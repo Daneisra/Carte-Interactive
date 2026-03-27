@@ -219,18 +219,19 @@
 ### P6 — Homogénéisation des descriptions de lieux (assistée par IA)
 - [ ] Recentrer les fiches lieux sur une structure claire : `description` courte, `lore` long, `histoire` longue.
 - [ ] Cesser d'utiliser `description`, `lore` et `histoire` comme zones interchangeables dans l'édition des lieux.
-- [ ] Définir `description` comme résumé court officiel affiché dans la carte et les aperçus.
-- [ ] Définir `lore` / `histoire` comme sources narratives principales pour générer ce résumé.
-- [ ] Ajouter dans l'admin lieu un bouton `Generer la description` depuis `lore` / `histoire`.
+- [x] Définir `description` comme résumé court officiel affiché dans la carte et les aperçus.
+- [x] Définir `lore` / `histoire` comme sources narratives principales pour générer ce résumé.
+- [x] Ajouter dans l'admin lieu un bouton `Generer la description` depuis `lore` / `histoire`.
 - [ ] Utiliser une assistance IA pour proposer une description courte, homogène et non hallucinée.
-- [ ] Conserver une validation humaine systématique : la description générée reste éditable avant sauvegarde.
-- [ ] Empêcher l'écrasement silencieux d'une description existante sans confirmation explicite.
-- [ ] Définir un format cible pour la génération : 2 a 4 phrases, ton neutre, informatif, sans invention.
-- [ ] Clarifier l'UI admin avec aide contextuelle sur le rôle de chaque champ narratif.
+- [x] Conserver une validation humaine systématique : la description générée reste éditable avant sauvegarde.
+- [x] Empêcher l'écrasement silencieux d'une description existante sans confirmation explicite.
+- [x] Définir un format cible pour la génération : 2 a 4 phrases, ton neutre, informatif, sans invention.
+- [x] Clarifier l'UI admin avec aide contextuelle sur le rôle de chaque champ narratif.
 - [ ] Prévoir un mode `Regenerer` et un mode `Ameliorer la description existante`.
 - [ ] Tester la cohérence sur plusieurs lieux aux fiches hétérogènes avant généralisation.
 
 ### P7 — Différenciants
+- [ ] Dans modifier un lieu et Creer un lieu, pour Type, ajouter l'aperçu de chaque icone
 - [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schémas, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).

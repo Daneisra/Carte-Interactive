@@ -497,7 +497,7 @@
                             </div>
                         </div>
                         <div class="form-row">
-                            <label for="editor-description">Description</label>
+                            <label for="editor-description">Description<br><span class="hint">Resume court affiche dans la carte et les apercus.</span></label>
                             <div class="markdown-toolbar" data-role="description-toolbar">
                                 <button type="button" class="toolbar-button" data-md="**|**" aria-label="Texte gras"><span>G</span></button>
                                 <button type="button" class="toolbar-button" data-md="*|*" aria-label="Texte italique"><span>I</span></button>
@@ -506,6 +506,13 @@
                                 <button type="button" class="toolbar-button" data-md="> |" aria-label="Citation"><span>&gt;</span></button>
                                 <button type="button" class="toolbar-button" data-md="[texte](url)" aria-label="Lien">🔗</button>
                                 <span class="toolbar-hint">Markdown</span>
+                            </div>
+                            <div class="form-assistant-panel">
+                                <p class="form-note" data-role="description-assistant-note">Utilisez Historique et Lore comme sources longues, puis generez ici un brouillon court a relire avant enregistrement.</p>
+                                <div class="form-assistant-actions">
+                                    <button type="button" class="secondary-button" data-action="generate-description">Generer depuis lore / historique</button>
+                                    <button type="button" class="tertiary-button" data-action="improve-description">Ameliorer la description</button>
+                                </div>
                             </div>
                             <div class="markdown-draft-status" data-role="description-draft-status" hidden>
                                 <span class="draft-pip" aria-hidden="true"></span>
@@ -521,6 +528,7 @@
                                 <div class="markdown-preview-body markdown-content" data-role="description-preview-body" hidden></div>
                             </div>
                             <p class="form-error" data-error-for="description"></p>
+                            <p class="form-error" data-error-for="descriptionAssistant" hidden></p>
                             <div class="form-suggestion-panel" data-role="link-suggestions">
                                 <div class="form-suggestion-header">
                                     <strong>Suggestions de liens</strong>
@@ -583,7 +591,7 @@
                     <fieldset class="editor-section">
                         <legend>Détails supplémentaires</legend>
                         <div class="form-row markdown-list-row">
-                            <label id="editor-history-label">Historique<br><span class="hint">(Markdown - un bloc par element)</span></label>
+                            <label id="editor-history-label">Historique<br><span class="hint">(Source longue - evenements passes, evolution et chronologie locale)</span></label>
                             <div class="markdown-list" data-role="history-list" role="group" aria-labelledby="editor-history-label"></div>
                             <button type="button" class="secondary-button markdown-list-add" data-action="add-history-entry">Ajouter un historique</button>
                         </div>
@@ -593,7 +601,7 @@
                             <button type="button" class="secondary-button markdown-list-add" data-action="add-quests-entry">Ajouter une quete</button>
                         </div>
                         <div class="form-row markdown-list-row">
-                            <label id="editor-lore-label">Lore<br><span class="hint">(Markdown - un bloc par element)</span></label>
+                            <label id="editor-lore-label">Lore<br><span class="hint">(Source longue - contexte, ambiance, culture, factions, details d'univers)</span></label>
                             <div class="markdown-list" data-role="lore-list" role="group" aria-labelledby="editor-lore-label"></div>
                             <button type="button" class="secondary-button markdown-list-add" data-action="add-lore-entry">Ajouter un element de lore</button>
                         </div>

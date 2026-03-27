@@ -310,6 +310,7 @@ export class LocationEditor {
         onCreate = null,
         onUpdate = null,
         onDelete = null,
+        onGenerateDescription = null,
         onCreateQuestEvent = null,
         onUpdateQuestEvent = null,
         onDeleteQuestEvent = null
@@ -351,6 +352,9 @@ export class LocationEditor {
         this.descriptionDraftMessage = this.form?.querySelector('[data-role="description-draft-message"]') || null;
         this.descriptionDraftTimestamp = this.form?.querySelector('[data-role="description-draft-timestamp"]') || null;
         this.descriptionDraftClearButton = this.form?.querySelector('[data-action="clear-description-draft"]') || null;
+        this.descriptionGenerateButton = this.form?.querySelector('[data-action="generate-description"]') || null;
+        this.descriptionImproveButton = this.form?.querySelector('[data-action="improve-description"]') || null;
+        this.descriptionAssistantNote = this.form?.querySelector('[data-role="description-assistant-note"]') || null;
         this.markdownLists = {
             history: this.form?.querySelector('[data-role="history-list"]') || null,
             quests: this.form?.querySelector('[data-role="quests-list"]') || null,
@@ -398,6 +402,7 @@ export class LocationEditor {
             onCreate,
             onUpdate,
             onDelete,
+            onGenerateDescription,
             onCreateQuestEvent,
             onUpdateQuestEvent,
             onDeleteQuestEvent
@@ -417,6 +422,7 @@ export class LocationEditor {
         this.descriptionDraftSkipOnce = false;
         this.draftSaveTimeout = null;
         this.draftStatusHideTimeout = null;
+        this.descriptionAssistantBusy = false;
         this.boundBeforeUnload = null;
         this.markdownSections = [...MARKDOWN_SECTION_TYPES];
         this.markdownSectionConfig = MARKDOWN_SECTION_CONFIG;
@@ -464,6 +470,18 @@ export class LocationEditor {
         if (this.descriptionDraftClearButton) {
             this.descriptionDraftClearButton.addEventListener('click', () => {
                 this.clearDescriptionDraft({ showMessage: true });
+            });
+        }
+        if (this.descriptionGenerateButton) {
+            this.descriptionGenerateButton.addEventListener('click', event => {
+                event.preventDefault();
+                this.handleDescriptionAssistant('generate');
+            });
+        }
+        if (this.descriptionImproveButton) {
+            this.descriptionImproveButton.addEventListener('click', event => {
+                event.preventDefault();
+                this.handleDescriptionAssistant('improve');
             });
         }
         if (this.descriptionToolbarButtons && this.descriptionToolbarButtons.length) {
@@ -762,6 +780,8 @@ export class LocationEditor {
 
         this.populateForm();
         this.resetErrors();
+        this.setDescriptionAssistantNote('Utilisez Historique et Lore comme sources longues, puis generez ici un brouillon court a relire avant enregistrement.', 'info');
+        this.setDescriptionAssistantBusy(false);
         this.renderWarnings();
         this.updateImagePreview();
         this.updateVideoPreview();
@@ -825,6 +845,9 @@ export class LocationEditor {
         if (this.linkSuggestionsPanel) {
             this.linkSuggestionsPanel.hidden = true;
         }
+        this.setDescriptionAssistantBusy(false);
+        this.setDescriptionAssistantNote('Utilisez Historique et Lore comme sources longues, puis generez ici un brouillon court a relire avant enregistrement.', 'info');
+        this.clearError('descriptionAssistant');
         this.setDescriptionDraftStatus(null);
         this.currentContext = null;
         this.disallowedNames.clear();
@@ -2201,6 +2224,110 @@ export class LocationEditor {
 
         this.clearDescriptionDraft();
         this.close();
+    }
+
+    buildDescriptionAssistantPayload() {
+        return {
+            name: sanitizeText(this.form?.elements?.name?.value || this.currentContext?.originalName || ''),
+            continent: sanitizeText(this.form?.elements?.continent?.value || this.currentContext?.continent || ''),
+            type: this.typeSelect?.value || 'default',
+            description: sanitizeText(this.descriptionInput?.value || ''),
+            tags: this.collectTags(),
+            history: this.collectMarkdownEntries('history'),
+            lore: this.collectMarkdownEntries('lore')
+        };
+    }
+
+    async handleDescriptionAssistant(mode = 'generate') {
+        if (this.descriptionAssistantBusy || typeof this.callbacks.onGenerateDescription !== 'function') {
+            return;
+        }
+        this.clearError('descriptionAssistant');
+        const payload = this.buildDescriptionAssistantPayload();
+        const hasNarrativeSources = payload.history.length > 0 || payload.lore.length > 0;
+        if (!hasNarrativeSources && !(mode === 'improve' && payload.description)) {
+            this.showError('descriptionAssistant', 'Ajoutez du lore ou de l historique avant de generer une description.');
+            return;
+        }
+        if (payload.description) {
+            const confirmMessage = mode === 'improve'
+                ? 'Remplacer la description actuelle par une version amelioree ?'
+                : 'Remplacer la description actuelle par un brouillon genere depuis lore / historique ?';
+            if (typeof window !== 'undefined' && typeof window.confirm === 'function' && !window.confirm(confirmMessage)) {
+                return;
+            }
+        }
+
+        try {
+            this.setDescriptionAssistantBusy(true);
+            this.setDescriptionAssistantNote(
+                mode === 'improve'
+                    ? 'Amelioration de la description en cours...'
+                    : 'Generation de la description en cours...',
+                'info'
+            );
+            const result = await this.callbacks.onGenerateDescription({
+                action: mode,
+                location: payload
+            });
+            const generated = sanitizeText(result?.description);
+            if (!generated) {
+                throw new Error('Aucune description generee.');
+            }
+            if (this.descriptionInput) {
+                this.descriptionInput.value = generated;
+            }
+            this.updateDescriptionPreview();
+            this.scheduleDescriptionDraftSave();
+            this.refreshLinkSuggestions();
+            this.clearError('description');
+            this.setDescriptionAssistantNote(
+                this.buildDescriptionAssistantSuccessMessage(result?.meta),
+                'success'
+            );
+            this.descriptionInput?.focus?.();
+            const length = this.descriptionInput?.value?.length || 0;
+            this.descriptionInput?.setSelectionRange?.(length, length);
+        } catch (error) {
+            this.showError('descriptionAssistant', error?.message || 'Generation de la description impossible.');
+            this.setDescriptionAssistantNote('La generation a echoue. Corrigez les sources ou reessayez.', 'error');
+        } finally {
+            this.setDescriptionAssistantBusy(false);
+        }
+    }
+
+    buildDescriptionAssistantSuccessMessage(meta = {}) {
+        const sources = Array.isArray(meta?.usedSources)
+            ? meta.usedSources.filter(source => source && source !== 'fallback')
+            : [];
+        const sourceLabel = sources.length
+            ? `Sources utilisees : ${sources.join(', ')}.`
+            : 'Generation basee sur un resume de secours.';
+        return `${sourceLabel} Relisez la description avant enregistrement.`;
+    }
+
+    setDescriptionAssistantBusy(isBusy) {
+        this.descriptionAssistantBusy = Boolean(isBusy);
+        if (this.descriptionGenerateButton) {
+            this.descriptionGenerateButton.disabled = this.descriptionAssistantBusy;
+            this.descriptionGenerateButton.textContent = this.descriptionAssistantBusy
+                ? 'Generation...'
+                : 'Generer depuis lore / historique';
+        }
+        if (this.descriptionImproveButton) {
+            this.descriptionImproveButton.disabled = this.descriptionAssistantBusy;
+            this.descriptionImproveButton.textContent = this.descriptionAssistantBusy
+                ? 'Patientez...'
+                : 'Ameliorer la description';
+        }
+    }
+
+    setDescriptionAssistantNote(message, state = 'info') {
+        if (!this.descriptionAssistantNote) {
+            return;
+        }
+        this.descriptionAssistantNote.textContent = sanitizeText(message);
+        this.descriptionAssistantNote.dataset.state = state || 'info';
     }
 
     collectFormData() {
