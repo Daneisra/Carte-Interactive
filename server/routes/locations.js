@@ -199,6 +199,7 @@ module.exports = (register, context) => {
         normalizeString,
         parseListParam,
         loadSearchFiltersModule,
+        loadLocationValidationModule,
         readLocationsFile,
         loadTypeMap,
         validateLocationsDataset,
@@ -366,6 +367,65 @@ module.exports = (register, context) => {
         }
         const dataset = await readLocationsFile();
         json(res, 200, { status: 'ok', locations: dataset });
+    });
+
+    register('GET', '/api/admin/locations/description-audit', async (req, res) => {
+        if (!(await ensureAuthorized(req, res, 'admin'))) {
+            return;
+        }
+        const [dataset, typeMap, validationModule] = await Promise.all([
+            readLocationsFile(),
+            loadTypeMap(),
+            loadLocationValidationModule()
+        ]);
+        const { validateDataset } = validationModule || {};
+        if (typeof validateDataset !== 'function') {
+            json(res, 500, createErrorResponse('error', 'Audit descriptions indisponible.'));
+            return;
+        }
+
+        const { issues } = validateDataset(dataset, { typeMap, sanitizeKeys: false });
+        const relevantIssues = (Array.isArray(issues) ? issues : []).filter(issue => {
+            return issue?.level === 'warning'
+                && typeof issue?.code === 'string'
+                && issue.code.startsWith('location.description.');
+        });
+
+        const grouped = new Map();
+        relevantIssues.forEach(issue => {
+            const continent = sanitizeDraftText(issue?.continent) || 'Continent inconnu';
+            const name = sanitizeDraftText(issue?.name) || 'Lieu sans nom';
+            const key = `${continent}::${name}`;
+            if (!grouped.has(key)) {
+                grouped.set(key, {
+                    continent,
+                    name,
+                    issues: []
+                });
+            }
+            grouped.get(key).issues.push(issue.message);
+        });
+
+        const items = Array.from(grouped.values())
+            .map(entry => ({
+                ...entry,
+                issues: Array.from(new Set(entry.issues))
+            }))
+            .sort((left, right) => {
+                if (right.issues.length !== left.issues.length) {
+                    return right.issues.length - left.issues.length;
+                }
+                return `${left.continent} ${left.name}`.localeCompare(`${right.continent} ${right.name}`, 'fr', { sensitivity: 'base' });
+            });
+
+        json(res, 200, {
+            status: 'ok',
+            summary: {
+                locationsFlagged: items.length,
+                issueCount: relevantIssues.length
+            },
+            items
+        });
     });
 
     register('POST', '/api/admin/locations/generate-description', async (req, res) => {

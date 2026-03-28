@@ -2095,6 +2095,7 @@ const context = {
   normalizeString,
   parseListParam,
   loadSearchFiltersModule,
+  loadLocationValidationModule,
   readLocationsFile,
   loadTypeMap,
   validateLocationsDataset,

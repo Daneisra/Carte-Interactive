@@ -243,6 +243,48 @@ test.describe('Points d\'entree admin', () => {
     expect(requests).toHaveLength(0);
   });
 
+  test('le panneau admin carte charge l audit global des descriptions', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    let auditRequests = 0;
+    await page.route('**/api/admin/locations/description-audit', async route => {
+      auditRequests += 1;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          status: 'ok',
+          summary: {
+            locationsFlagged: 2,
+            issueCount: 3
+          },
+          items: [
+            {
+              continent: 'Vruliwen',
+              name: 'Brumeport',
+              issues: ['Description tres longue sans Historique ni Lore distincts.']
+            },
+            {
+              continent: 'Dipovia',
+              name: 'Irisk',
+              issues: ['Historique/lore renseignes sans resume court dans description.']
+            }
+          ]
+        })
+      });
+    });
+
+    await page.goto('/map/');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('#profile-button').click();
+    await page.locator('#quick-admin-panel').click();
+
+    await expect.poll(() => auditRequests).toBeGreaterThan(0);
+    await expect(page.locator('#admin-description-audit-summary')).toContainText(/2 lieu\(x\) a revoir/i);
+    await expect(page.locator('#admin-description-audit-list')).toContainText(/Brumeport/i);
+    await expect(page.locator('#admin-description-audit-list')).toContainText(/Irisk/i);
+  });
+
   test('l editeur de lieu peut generer une description depuis lore et historique', async ({ page }) => {
     await loginAsAdmin(page);
 

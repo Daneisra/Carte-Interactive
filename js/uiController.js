@@ -441,6 +441,10 @@ export class UiController {
             validationWarnings: document.getElementById('admin-validation-warnings'),
             validationWarningsList: document.getElementById('admin-validation-list'),
             validationWarningsFootnote: document.getElementById('admin-validation-footnote'),
+            descriptionAuditRefresh: document.getElementById('admin-description-audit-refresh'),
+            descriptionAuditSummary: document.getElementById('admin-description-audit-summary'),
+            descriptionAuditList: document.getElementById('admin-description-audit-list'),
+            descriptionAuditEmpty: document.getElementById('admin-description-audit-empty'),
             telemetryList: document.getElementById('admin-telemetry-list'),
             telemetryEmpty: document.getElementById('admin-telemetry-empty')
         };
@@ -525,6 +529,8 @@ export class UiController {
         this.adminTimelineDirty = false;
         this.adminTimelinePending = false;
         this.adminTimelineErrors = [];
+        this.adminDescriptionAudit = null;
+        this.adminDescriptionAuditPending = false;
         this.adminPanelScope = 'map';
         this.requestedAdminSection = resolveRequestedAdminSection();
         this.hasHandledRequestedAdminSection = false;
@@ -3990,6 +3996,7 @@ export class UiController {
         this.setAdminPanelScope(normalizedScope);
         this.syncAdminStatus();
         this.syncAdminValidationWarnings();
+        this.renderAdminDescriptionAudit();
         this.syncAdminTelemetry();
         if (this.shouldLoadHomeAdminState(normalizedScope)) {
             if (!this.adminSiteConfig) {
@@ -4004,6 +4011,7 @@ export class UiController {
             this.fetchAdminTimeline();
         }
         this.fetchAdminAvailability();
+        this.fetchAdminDescriptionAudit();
         this.startAdminMetrics();
         this.closeCharacterOverlay();
         this.adminDom.overlay.hidden = false;
@@ -4095,6 +4103,10 @@ export class UiController {
         if (this.adminDom.downloadAssetsButton && !this.adminDom.downloadAssetsButton.dataset.bound) {
             this.adminDom.downloadAssetsButton.addEventListener('click', () => this.downloadAssetsArchive());
             this.adminDom.downloadAssetsButton.dataset.bound = 'true';
+        }
+        if (this.adminDom.descriptionAuditRefresh && !this.adminDom.descriptionAuditRefresh.dataset.bound) {
+            this.adminDom.descriptionAuditRefresh.addEventListener('click', () => this.fetchAdminDescriptionAudit());
+            this.adminDom.descriptionAuditRefresh.dataset.bound = 'true';
         }
         if (this.adminDom.homeReloadButton && !this.adminDom.homeReloadButton.dataset.bound) {
             this.adminDom.homeReloadButton.addEventListener('click', () => this.fetchAdminSiteConfig());
@@ -4197,6 +4209,54 @@ export class UiController {
         if (foot) {
             foot.hidden = true;
         }
+    }
+
+    renderAdminDescriptionAudit() {
+        const summary = this.adminDom.descriptionAuditSummary;
+        const list = this.adminDom.descriptionAuditList;
+        const empty = this.adminDom.descriptionAuditEmpty;
+        const button = this.adminDom.descriptionAuditRefresh;
+        if (!summary || !list || !empty) {
+            return;
+        }
+
+        clearElement(list);
+        if (button) {
+            button.disabled = this.adminDescriptionAuditPending;
+            button.textContent = this.adminDescriptionAuditPending ? 'Chargement...' : 'Rafraichir';
+        }
+
+        const audit = this.adminDescriptionAudit;
+        if (this.adminDescriptionAuditPending) {
+            summary.textContent = 'Analyse des descriptions en cours...';
+            empty.hidden = true;
+            return;
+        }
+        if (!audit || audit.status !== 'ok') {
+            summary.textContent = 'Aucun audit lance.';
+            empty.hidden = true;
+            return;
+        }
+
+        const flagged = Number(audit?.summary?.locationsFlagged) || 0;
+        const issues = Number(audit?.summary?.issueCount) || 0;
+        summary.textContent = flagged > 0
+            ? `${flagged} lieu(x) a revoir - ${issues} signalement(s) narratif(s).`
+            : 'Aucune incoherence narrative detectee pour le moment.';
+
+        const items = Array.isArray(audit?.items) ? audit.items : [];
+        if (!items.length) {
+            empty.hidden = false;
+            return;
+        }
+
+        empty.hidden = true;
+        items.forEach(item => {
+            const issueCount = Array.isArray(item?.issues) ? item.issues.length : 0;
+            const title = `${item?.continent || 'Continent inconnu'} - ${item?.name || 'Lieu sans nom'} (${issueCount})`;
+            const details = Array.isArray(item?.issues) ? item.issues.join(' | ') : '';
+            list.appendChild(createElement('li', { text: `${title}: ${details}` }));
+        });
     }
 
     syncAdminTelemetry() {
@@ -4488,6 +4548,36 @@ export class UiController {
             card.appendChild(createElement('span', { className: 'admin-live-value', text: String(item.value) }));
             container.appendChild(card);
         });
+    }
+
+    async fetchAdminDescriptionAudit() {
+        if (!this.adminDom.descriptionAuditSummary || !this.adminDom.descriptionAuditList || !this.adminDom.descriptionAuditEmpty) {
+            return;
+        }
+        if (!this.isAdmin()) {
+            this.adminDescriptionAudit = null;
+            this.adminDescriptionAuditPending = false;
+            this.renderAdminDescriptionAudit();
+            return;
+        }
+        this.adminDescriptionAuditPending = true;
+        this.renderAdminDescriptionAudit();
+        try {
+            const response = await fetch('/api/admin/locations/description-audit', {
+                credentials: 'include',
+                cache: 'no-store'
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            this.adminDescriptionAudit = await response.json();
+        } catch (error) {
+            console.error('[admin] description audit fetch failed', error);
+            this.adminDescriptionAudit = null;
+        } finally {
+            this.adminDescriptionAuditPending = false;
+            this.renderAdminDescriptionAudit();
+        }
     }
 
     async fetchAdminMetrics() {
