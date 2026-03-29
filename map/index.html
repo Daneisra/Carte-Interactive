@@ -377,10 +377,10 @@
                 <p id="description-text">Description du lieu...</p>
 
                 <!-- ➕ Sections d'informations supplémentaires -->
+                <div id="lore-section" class="extra-section" data-section="lore"></div>
                 <div id="history-section" class="extra-section" data-section="history"></div>
                 <div id="quests-section" class="extra-section" data-section="quests"></div>
                 <div id="pnjs-section" class="extra-section" data-section="pnj"></div>
-                <div id="lore-section" class="extra-section" data-section="lore"></div>
                 <div id="timeline-section" class="extra-section" data-section="timeline"></div>
                 <div id="instances-section" class="extra-section" data-section="instances"></div>
                 <div id="noble-families-section" class="extra-section" data-section="noble-families"></div>
@@ -591,6 +591,11 @@
                     <fieldset class="editor-section">
                         <legend>Détails supplémentaires</legend>
                         <div class="form-row markdown-list-row">
+                            <label id="editor-lore-label">Lore<br><span class="hint">(Source longue - contexte, ambiance, culture, factions, details d'univers)</span></label>
+                            <div class="markdown-list" data-role="lore-list" role="group" aria-labelledby="editor-lore-label"></div>
+                            <button type="button" class="secondary-button markdown-list-add" data-action="add-lore-entry">Ajouter un element de lore</button>
+                        </div>
+                        <div class="form-row markdown-list-row">
                             <label id="editor-history-label">Historique<br><span class="hint">(Source longue - evenements passes, evolution et chronologie locale)</span></label>
                             <div class="markdown-list" data-role="history-list" role="group" aria-labelledby="editor-history-label"></div>
                             <button type="button" class="secondary-button markdown-list-add" data-action="add-history-entry">Ajouter un historique</button>
@@ -599,11 +604,6 @@
                             <label id="editor-quests-label">Quetes<br><span class="hint">(Markdown - un bloc par element)</span></label>
                             <div class="markdown-list" data-role="quests-list" role="group" aria-labelledby="editor-quests-label"></div>
                             <button type="button" class="secondary-button markdown-list-add" data-action="add-quests-entry">Ajouter une quete</button>
-                        </div>
-                        <div class="form-row markdown-list-row">
-                            <label id="editor-lore-label">Lore<br><span class="hint">(Source longue - contexte, ambiance, culture, factions, details d'univers)</span></label>
-                            <div class="markdown-list" data-role="lore-list" role="group" aria-labelledby="editor-lore-label"></div>
-                            <button type="button" class="secondary-button markdown-list-add" data-action="add-lore-entry">Ajouter un element de lore</button>
                         </div>
                         <div class="form-row markdown-list-row">
                             <label id="editor-instances-label">Instances<br><span class="hint">(Markdown - un bloc par element)</span></label>

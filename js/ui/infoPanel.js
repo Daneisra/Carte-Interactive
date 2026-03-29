@@ -112,9 +112,9 @@ export class InfoPanel {
             this.descriptionElement.innerHTML = renderMarkdown(description);
         }
 
+        this.renderSection(this.loreSection, location.lore, 'info.lore');
         this.renderSection(this.historySection, location.history, 'info.history');
         this.renderSection(this.questsSection, location.quests, 'info.quests');
-        this.renderSection(this.loreSection, location.lore, 'info.lore');
         this.renderTimelineSection(location);
         this.renderSection(this.instancesSection, location.instances, 'info.instances', 'Instances');
         this.renderSection(this.nobleFamiliesSection, location.nobleFamilies, 'info.nobleFamilies', 'Familles nobles');
