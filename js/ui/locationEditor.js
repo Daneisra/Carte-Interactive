@@ -269,6 +269,19 @@ const extractYouTubeId = url => {
 };
 
 const sanitizeText = value => (value ?? '').toString().trim();
+const normalizeAssetUrl = value => {
+    const input = sanitizeText(value);
+    if (!input) {
+        return '';
+    }
+    if (/^(https?:)?\/\//i.test(input) || input.startsWith('/')) {
+        return input;
+    }
+    if (input.startsWith('assets/')) {
+        return `/${input}`;
+    }
+    return input;
+};
 
 const countSentences = value => {
     const text = sanitizeText(value);
@@ -350,6 +363,7 @@ export class LocationEditor {
         this.videoPreview = this.form?.querySelector('[data-preview="videos"]') || null;
         this.pnjPreview = this.form?.querySelector('[data-preview="pnjs"]') || null;
         this.typeSelect = this.form?.querySelector('#editor-type') || null;
+        this.typeOptionGrid = this.form?.querySelector('[data-role="type-option-grid"]') || null;
         this.imageDropZone = this.form?.querySelector('[data-drop-zone="image"]') || null;
         this.audioDropZone = this.form?.querySelector('[data-drop-zone="audio"]') || null;
         this.descriptionInput = this.form?.elements?.description || null;
@@ -560,6 +574,7 @@ export class LocationEditor {
             }
             if (target.name === 'type') {
                 this.validateField('type');
+                this.updateTypeOptionSelection();
             }
             if (target.name === 'audio') {
                 this.validateAudio();
@@ -726,6 +741,19 @@ export class LocationEditor {
             this.cancelButton.addEventListener('click', () => this.close());
         }
 
+        if (this.typeOptionGrid) {
+            this.typeOptionGrid.addEventListener('click', event => {
+                const button = event.target?.closest('[data-action="select-type-option"]');
+                const value = button?.dataset?.typeValue || '';
+                if (!value || !this.typeSelect || (value !== 'default' && !this.types[value])) {
+                    return;
+                }
+                this.typeSelect.value = value;
+                this.updateTypeOptionSelection();
+                this.validateField('type');
+            });
+        }
+
         if (this.closeButton) {
             this.closeButton.addEventListener('click', () => this.close());
         }
@@ -759,6 +787,72 @@ export class LocationEditor {
         if (current && entries.includes(current)) {
             this.typeSelect.value = current;
         }
+        this.renderTypeOptionGrid(entries);
+        this.updateTypeOptionSelection();
+    }
+
+    renderTypeOptionGrid(entries = []) {
+        if (!this.typeOptionGrid) {
+            return;
+        }
+        clearElement(this.typeOptionGrid);
+        entries.forEach(typeName => {
+            const meta = this.getTypeMeta(typeName);
+            const button = createElement('button', {
+                className: 'type-picker-option',
+                dataset: {
+                    action: 'select-type-option',
+                    typeValue: typeName
+                },
+                attributes: {
+                    type: 'button',
+                    'aria-pressed': 'false'
+                }
+            });
+            if (meta.icon) {
+                button.appendChild(createElement('img', {
+                    className: 'type-picker-icon',
+                    attributes: {
+                        src: meta.icon,
+                        alt: '',
+                        loading: 'lazy'
+                    }
+                }));
+            } else {
+                button.appendChild(createElement('span', {
+                    className: 'type-picker-fallback',
+                    text: '•',
+                    attributes: { 'aria-hidden': 'true' }
+                }));
+            }
+            button.appendChild(createElement('span', {
+                className: 'type-picker-label',
+                text: meta.label
+            }));
+            this.typeOptionGrid.appendChild(button);
+        });
+    }
+
+    getTypeMeta(typeName = '') {
+        const entry = this.types?.[typeName];
+        const label = sanitizeText(entry?.label || typeName || 'default');
+        const icon = normalizeAssetUrl(entry?.icon || '');
+        return {
+            label,
+            icon
+        };
+    }
+
+    updateTypeOptionSelection() {
+        if (!this.typeOptionGrid) {
+            return;
+        }
+        const current = this.typeSelect?.value || 'default';
+        Array.from(this.typeOptionGrid.querySelectorAll('[data-action="select-type-option"]')).forEach(button => {
+            const isActive = (button.dataset?.typeValue || '') === current;
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
     }
 
     open({ mode = 'create', location = null, continent = '', disallowedNames = [], questEvents = [], availableLocations = [] } = {}) {

@@ -348,4 +348,25 @@ test.describe('Points d\'entree admin', () => {
     await expect(warningsPanel).toContainText(/Description tres longue sans Historique ni Lore/i);
     await expect(warningsPanel).toContainText(/Description structuree en titres ou listes/i);
   });
+
+  test('l editeur de lieu affiche les apercus d icones de type et synchronise le select', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    await page.goto('/map/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const addButton = page.locator('#add-location');
+    await expect(addButton).toBeVisible({ timeout: 10000 });
+    await addButton.click();
+
+    const typeGrid = page.locator('[data-role="type-option-grid"]');
+    await expect(typeGrid).toBeVisible();
+    await expect(typeGrid.locator('img')).not.toHaveCount(0);
+
+    const fortressButton = typeGrid.getByRole('button', { name: /^Fortress$/i }).first();
+    await fortressButton.click();
+
+    await expect(page.locator('#editor-type')).toHaveValue('Fortress');
+    await expect(fortressButton).toHaveAttribute('aria-pressed', 'true');
+  });
 });

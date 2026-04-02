@@ -231,7 +231,7 @@
 - [x] Tester la cohérence sur plusieurs lieux aux fiches hétérogènes avant généralisation.
 
 ### P7 — Différenciants
-- [ ] Dans modifier un lieu et Creer un lieu, pour Type, ajouter l'aperçu de chaque icone
+- [x] Dans modifier un lieu et Creer un lieu, pour Type, ajouter l'aperçu de chaque icone
 - [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schémas, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
