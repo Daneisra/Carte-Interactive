@@ -17,6 +17,13 @@ npm run test:unit
 npm run test:ui
 ```
 
+Si le changement est livré comme une évolution projet, mettre à jour dans le même commit :
+
+- `package.json` et `package-lock.json`.
+- `assets/site-config.json` avec `version` et une entrée `changelog` visible sur l'accueil.
+- `ROADMAP.md`.
+- `README.md` ou les docs concernées si le comportement/documentation change.
+
 Si les changements touchent les assets ou les données :
 
 ```bash

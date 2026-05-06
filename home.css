@@ -1173,6 +1173,14 @@ button:focus-visible {
     margin-top: 4px !important;
 }
 
+.home-footer-version {
+    color: #93c5fd !important;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-top: 4px !important;
+    text-transform: uppercase;
+}
+
 .home-footer-right {
     display: flex;
     flex-wrap: wrap;

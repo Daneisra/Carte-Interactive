@@ -62,6 +62,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
+  version: '0.17.3',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -117,6 +118,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-06',
+      title: 'Version 0.17.3 - Documentation projet',
+      summary: 'Documentation restructuree, version projet alignee et preparation d un suivi version/changelog a chaque commit.'
+    },
     {
       date: '2026-02-28',
       title: 'Nouvel accueil en ligne',
@@ -775,6 +781,11 @@ const sanitizeSiteConfigMode = value => {
   return normalized === 'discord' ? 'discord' : 'manual';
 };
 
+const sanitizeProjectVersion = value => {
+  const normalized = normalizeString(value);
+  return /^\d+\.\d+\.\d+$/u.test(normalized) ? normalized : '';
+};
+
 const sanitizeSiteConfigMetric = value => {
   if (!value || typeof value !== 'object') {
     return null;
@@ -961,6 +972,7 @@ const sanitizeSiteConfig = value => {
     : defaults.changelog;
 
   return {
+    version: sanitizeProjectVersion(source.version) || defaults.version,
     home: {
       kicker: sanitizeSiteConfigText(homeSource.kicker, 80) || defaults.home.kicker,
       title: sanitizeSiteConfigText(homeSource.title, 180) || defaults.home.title,

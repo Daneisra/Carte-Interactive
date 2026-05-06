@@ -78,6 +78,7 @@ Les modifications faites via l'UI en production écrivent sur le VPS, pas dans l
 - Garder le front en modules ES et le serveur en CommonJS.
 - Préférer des correctifs minimaux et ciblés.
 - Respecter les données JSON existantes et valider avant livraison.
+- Pour chaque changement livré, aligner la version dans `package.json`, `package-lock.json`, `assets/site-config.json`, le changelog accueil, `ROADMAP.md` et les docs concernées.
 
 ## Pièges connus
 

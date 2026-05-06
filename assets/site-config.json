@@ -1,4 +1,5 @@
-﻿{
+{
+  "version": "0.17.3",
   "home": {
     "kicker": "Accueil - Hub narratif",
     "title": "Entrez dans l'univers avant d'ouvrir la carte",
@@ -68,6 +69,11 @@
     "footerNote": "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   "changelog": [
+        {
+            "date": "2026-05-06",
+            "title": "Version 0.17.3 - Documentation projet",
+            "summary": "Documentation restructuree, version projet alignee et preparation d'un suivi version/changelog a chaque commit."
+        },
         {
             "date": "2026-02-28",
             "title": "Nouvel accueil en ligne",

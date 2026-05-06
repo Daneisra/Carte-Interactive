@@ -12,6 +12,8 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
+Version actuelle : `0.17.3`.
+
 ## Réalisations majeures livrées
 
 - [x] Carte interactive modulaire chargée par `js/main.js`, avec `DataService`, `MapController`, `UiController` et préférences locales.
@@ -138,6 +140,7 @@ Objectifs produit :
 
 ## Décisions produit importantes
 
+- Chaque commit fonctionnel doit mettre à jour la version projet si le changement est livré : `package.json`, `package-lock.json`, `assets/site-config.json`, changelog de l'accueil, roadmap et docs concernées.
 - La chronologie complète vit sur une page dédiée ; la carte ne doit proposer qu'une intégration légère.
 - Les trois surfaces administrables restent séparées : accueil, chronologie, carte.
 - Les textes longs doivent vivre dans lore/historique ; la description courte est un résumé de consultation.

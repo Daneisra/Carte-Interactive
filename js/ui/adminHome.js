@@ -62,17 +62,18 @@ export const normalizeAdminSiteConfig = (config = {}) => {
         : [
             { label: 'Hub', value: 'Carte + Communaute' },
             { label: 'Acces', value: 'Lecture / Discord / Admin' },
-            { label: 'Etat', value: 'Pre-P3 en production' }
+            { label: 'Etat', value: 'Version actuelle en production' }
         ];
     const normalizeTags = Array.isArray(home.tags) && home.tags.length
         ? home.tags.map(tag => sanitizeString(tag)).filter(Boolean)
         : ['Carte narrative', 'Quetes live', 'Groupes JDR', 'Profils & personnages'];
     return {
+        version: sanitizeString(config?.version || '0.17.3'),
         home: {
-            kicker: sanitizeString(home.kicker || 'P3.1 - Accueil pre-carte'),
+            kicker: sanitizeString(home.kicker || 'Accueil - Hub narratif'),
             title: sanitizeString(home.title || "Entrez dans l'univers avant d'ouvrir la carte"),
             lead: sanitizeString(home.lead || "Explorez les lieux, suivez les quetes en direct, retrouvez votre groupe JDR et centralisez vos personnages. Cette page sert de point d'entree rapide pour la carte et la communaute."),
-            atmosphere: sanitizeString(home.atmosphere || "Hub pre-carte - entree rapide vers l'univers, la carte et la communaute."),
+            atmosphere: sanitizeString(home.atmosphere || "Accueil narratif - entree rapide vers l'univers, la carte et la communaute."),
             tags: normalizeTags,
             metrics: normalizeMetrics,
             visuals: {
@@ -116,7 +117,7 @@ export const normalizeAdminSiteConfig = (config = {}) => {
         },
         legal: {
             creditsUrl: sanitizeString(legal.creditsUrl || '/docs/ASSETS-CREDITS.md'),
-            footerNote: sanitizeString(legal.footerNote || "Projet narratif / JDR - fan project / page d'accueil pre-carte (P3.1 MVP).")
+            footerNote: sanitizeString(legal.footerNote || "Projet narratif / JDR - fan project / page d'accueil officielle.")
         },
         changelog: changelog
             .map(entry => ({
@@ -316,6 +317,7 @@ export const renderAdminSiteConfig = ctx => {
 };
 
 export const collectAdminSiteConfigDraft = ctx => normalizeAdminSiteConfig({
+    version: ctx.adminSiteConfig?.version || '0.17.3',
     home: {
         kicker: ctx.adminDom.homeKicker?.value || '',
         title: ctx.adminDom.homeTitle?.value || '',

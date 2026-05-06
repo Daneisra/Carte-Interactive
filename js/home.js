@@ -65,6 +65,7 @@
     footerSupport: document.getElementById('home-footer-support'),
     footerContact: document.getElementById('home-footer-contact'),
     footerCredits: document.getElementById('home-footer-credits'),
+    footerVersion: document.getElementById('home-version'),
     footerNote: document.getElementById('home-footer-note'),
     statNewsValue: document.getElementById('home-stat-news-value'),
     statNewsLabel: document.getElementById('home-stat-news-label'),
@@ -80,6 +81,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
+    version: '0.17.3',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -135,6 +137,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-06',
+            title: 'Version 0.17.3 - Documentation projet',
+            summary: 'Documentation restructuree, version projet alignee et preparation d un suivi version/changelog a chaque commit.'
+        },
         {
             date: '2026-02-28',
             title: 'Nouvel accueil en ligne',
@@ -317,6 +324,7 @@ const applySiteConfig = config => {
     setLinkHref(dom.footerContact, contactHref, `mailto:${DEFAULT_SITE_CONFIG.support.contactEmail}`);
     setLinkHref(dom.donateLink, PAYPAL_DONATION_URL, PAYPAL_DONATION_URL);
     setLinkHref(dom.footerCredits, merged.legal.creditsUrl, DEFAULT_SITE_CONFIG.legal.creditsUrl);
+    setTextContent(dom.footerVersion, merged.version || DEFAULT_SITE_CONFIG.version);
     setTextContent(dom.footerNote, merged.legal.footerNote || DEFAULT_SITE_CONFIG.legal.footerNote);
     applyCommunityHighlights(merged.community);
 };
