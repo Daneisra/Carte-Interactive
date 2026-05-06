@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.7`.
+Version actuelle : `0.17.8`.
 
 ## Réalisations majeures livrées
 
@@ -93,7 +93,7 @@ Version actuelle : `0.17.7`.
 
 - [x] Carte : déplacement complètement libre sans blocage sur les bords.
 - [x] Carte : corriger les lieux non cliquables lorsqu'ils sont trop proches du bord.
-- [ ] Peinture éphémère sur la carte pour routes, schémas, instructions et préparation de session.
+- [x] Peinture éphémère sur la carte pour routes, schémas, instructions et préparation de session.
 - [ ] Indicateur de position joueur ou marqueur temporaire partageable.
 - [ ] Carte chronologique/replay des lieux et événements.
 - [ ] Marqueurs évolutifs selon période, quête ou action joueur.

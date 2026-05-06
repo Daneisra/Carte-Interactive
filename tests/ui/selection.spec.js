@@ -116,4 +116,27 @@ test.describe('Carte Interactive - UI', () => {
       new RegExp(`/timeline/\\?event=${exactMatches[0].entry.id}`)
     );
   });
+
+  test('la peinture ephemere trace et efface un schema local', async ({ page }) => {
+    await waitForAppReady(page);
+
+    const paintButton = page.locator('#temporary-paint');
+    const clearButton = page.locator('#clear-temporary-paint');
+    await expect(paintButton).toBeVisible();
+    await expect(clearButton).toBeVisible();
+
+    await paintButton.click();
+    await expect(paintButton).toHaveAttribute('aria-pressed', 'true');
+
+    const mapBox = await page.locator('#map').boundingBox();
+    expect(mapBox).toBeTruthy();
+
+    await page.mouse.click(mapBox.x + mapBox.width * 0.42, mapBox.y + mapBox.height * 0.42);
+    await page.mouse.click(mapBox.x + mapBox.width * 0.48, mapBox.y + mapBox.height * 0.48);
+
+    await expect(page.locator('.leaflet-overlay-pane path.temporary-paint-line')).toHaveCount(1);
+
+    await clearButton.click();
+    await expect(page.locator('.leaflet-overlay-pane path.temporary-paint-line')).toHaveCount(0);
+  });
 });

@@ -45,6 +45,9 @@ export class MapController {
         this.markerLayer = L.layerGroup().addTo(this.map);
         this.annotationLayer = L.layerGroup().addTo(this.map);
         this.annotationMarkers = new Map();
+        this.temporaryPaintLayer = L.layerGroup().addTo(this.map);
+        this.temporaryPaintPoints = [];
+        this.temporaryPaintLine = null;
         this.groupLayer = L.layerGroup().addTo(this.map);
         this.groupMarkers = new Map();
         this.clusterGroup = null;
@@ -427,6 +430,47 @@ export class MapController {
         return () => {
             this.map.off('click', callback);
         };
+    }
+
+    addTemporaryPaintPoint(point) {
+        if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+            return 0;
+        }
+        const latLng = [point.y, point.x];
+        this.temporaryPaintPoints.push(latLng);
+        L.circleMarker(latLng, {
+            radius: 5,
+            color: '#f97316',
+            weight: 2,
+            fillColor: '#fed7aa',
+            fillOpacity: 0.95,
+            interactive: false,
+            className: 'temporary-paint-point'
+        }).addTo(this.temporaryPaintLayer);
+
+        if (this.temporaryPaintPoints.length >= 2) {
+            if (this.temporaryPaintLine) {
+                this.temporaryPaintLine.setLatLngs(this.temporaryPaintPoints);
+            } else {
+                this.temporaryPaintLine = L.polyline(this.temporaryPaintPoints, {
+                    color: '#f97316',
+                    weight: 4,
+                    opacity: 0.92,
+                    dashArray: '10 8',
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                    interactive: false,
+                    className: 'temporary-paint-line'
+                }).addTo(this.temporaryPaintLayer);
+            }
+        }
+        return this.temporaryPaintPoints.length;
+    }
+
+    clearTemporaryPaint() {
+        this.temporaryPaintLayer.clearLayers();
+        this.temporaryPaintPoints = [];
+        this.temporaryPaintLine = null;
     }
 
     zoomIn(step = 1) {

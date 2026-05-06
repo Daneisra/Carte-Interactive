@@ -353,6 +353,8 @@ export class UiController {
             measureDistance: document.getElementById('measure-distance'),
             captureCoordinates: document.getElementById('capture-coordinates'),
             annotationButton: document.getElementById('annotation-mode'),
+            temporaryPaintButton: document.getElementById('temporary-paint'),
+            clearTemporaryPaintButton: document.getElementById('clear-temporary-paint'),
             zoomLevel: document.getElementById('zoom-level'),
             favoriteToggle: document.getElementById('favorite-toggle'),
             audioPlayer: document.getElementById(audioPlayerId),
@@ -627,9 +629,12 @@ export class UiController {
         this.measurementClickUnsubscribe = null;
         this.coordinateTool = { active: false };
         this.coordinateClickUnsubscribe = null;
+        this.temporaryPaintTool = { active: false };
+        this.temporaryPaintClickUnsubscribe = null;
         this.measureTooltip = this.createTooltip('', { persistent: false });
         this.coordinateTooltip = this.createTooltip('', { persistent: false });
         this.annotationTooltip = this.createTooltip('', { persistent: false });
+        this.temporaryPaintTooltip = this.createTooltip('', { persistent: false });
         this.controlTooltipTimeouts = new Map();
 
         this.filtersManager = new FiltersManager({
@@ -901,6 +906,7 @@ export class UiController {
         this.bindMeasurementTool();
         this.bindCoordinateTool();
         this.bindAnnotationTool();
+        this.bindTemporaryPaintTool();
         this.bindMapKeyboardShortcuts();
         this.bindMapBackgroundDismissal();
 
@@ -5227,6 +5233,9 @@ export class UiController {
         if (this.annotationTool.active) {
             this.stopAnnotationMode(false);
         }
+        if (this.temporaryPaintTool.active) {
+            this.stopTemporaryPaintMode(false);
+        }
         this.measurement.active = true;
         this.measurement.points = [];
         if (!this.measurementClickUnsubscribe && this.mapController) {
@@ -5353,6 +5362,9 @@ export class UiController {
         if (this.annotationTool.active) {
             this.stopAnnotationMode(false);
         }
+        if (this.temporaryPaintTool.active) {
+            this.stopTemporaryPaintMode(false);
+        }
         this.coordinateTool.active = true;
         if (!this.coordinateClickUnsubscribe && this.mapController) {
             this.coordinateClickUnsubscribe = this.mapController.onMapClick(event => this.handleCoordinateClick(event));
@@ -5421,6 +5433,114 @@ export class UiController {
         });
     }
 
+    bindTemporaryPaintTool() {
+        const paintButton = this.dom.temporaryPaintButton;
+        if (paintButton) {
+            this.updateTemporaryPaintButton();
+            paintButton.addEventListener('click', () => {
+                if (this.temporaryPaintTool.active) {
+                    this.stopTemporaryPaintMode(true);
+                } else {
+                    this.startTemporaryPaintMode();
+                }
+            });
+        }
+
+        const clearButton = this.dom.clearTemporaryPaintButton;
+        if (clearButton) {
+            clearButton.addEventListener('click', () => this.clearTemporaryPaint(true));
+        }
+    }
+
+    updateTemporaryPaintButton() {
+        const button = this.dom.temporaryPaintButton;
+        if (!button) {
+            return;
+        }
+        const active = Boolean(this.temporaryPaintTool.active);
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+        const label = active
+            ? 'Peinture ephemere active. Cliquez sur la carte pour tracer un schema temporaire.'
+            : 'Activer la peinture ephemere';
+        button.setAttribute('aria-label', label);
+        button.title = label;
+    }
+
+    startTemporaryPaintMode() {
+        if (this.temporaryPaintTool.active) {
+            return;
+        }
+        if (this.measurement.active) {
+            this.stopMeasurementMode(false);
+        }
+        if (this.coordinateTool.active) {
+            this.stopCoordinateMode(false);
+        }
+        if (this.annotationTool.active) {
+            this.stopAnnotationMode(false);
+        }
+        if (this.groupPlacement?.active) {
+            this.stopGroupPlacement(false);
+        }
+        this.temporaryPaintTool.active = true;
+        if (!this.temporaryPaintClickUnsubscribe && this.mapController) {
+            this.temporaryPaintClickUnsubscribe = this.mapController.onMapClick(event => this.handleTemporaryPaintClick(event));
+        }
+        this.updateTemporaryPaintButton();
+        const message = 'Peinture ephemere active. Cliquez plusieurs points sur la carte pour tracer un schema local, puis effacez-le avec le bouton gomme.';
+        this.announcer?.polite(message);
+        this.showControlMessage({
+            button: this.dom.temporaryPaintButton,
+            tooltip: this.temporaryPaintTooltip,
+            message,
+            duration: 5000
+        });
+    }
+
+    stopTemporaryPaintMode(announce = false) {
+        if (!this.temporaryPaintTool.active) {
+            return;
+        }
+        this.temporaryPaintTool.active = false;
+        if (this.temporaryPaintClickUnsubscribe) {
+            this.temporaryPaintClickUnsubscribe();
+            this.temporaryPaintClickUnsubscribe = null;
+        }
+        this.updateTemporaryPaintButton();
+        this.clearControlMessage(this.temporaryPaintTooltip);
+        if (announce) {
+            this.announcer?.polite('Peinture ephemere desactivee.');
+        }
+    }
+
+    handleTemporaryPaintClick(event) {
+        if (!this.temporaryPaintTool.active) {
+            return;
+        }
+        const coords = this.mapController?.toPixelCoordinates(event?.latlng);
+        if (!coords) {
+            return;
+        }
+        const count = this.mapController.addTemporaryPaintPoint({
+            x: coords.x,
+            y: coords.y
+        });
+        const roundedX = Math.round(coords.x);
+        const roundedY = Math.round(coords.y);
+        const message = count > 1
+            ? `Trace temporaire mise a jour : ${count} points.`
+            : `Premier point temporaire place : x ${roundedX}, y ${roundedY}.`;
+        this.announcer?.polite(message);
+    }
+
+    clearTemporaryPaint(announce = false) {
+        this.mapController?.clearTemporaryPaint?.();
+        if (announce) {
+            this.announcer?.polite('Traces temporaires effacees.');
+        }
+    }
+
     updateAnnotationButton() {
         const button = this.dom.annotationButton;
         if (!button) {
@@ -5448,6 +5568,9 @@ export class UiController {
         }
         if (this.coordinateTool.active) {
             this.stopCoordinateMode(false);
+        }
+        if (this.temporaryPaintTool.active) {
+            this.stopTemporaryPaintMode(false);
         }
         this.annotationTool.active = true;
         if (!this.annotationTool.clickUnsubscribe && this.mapController) {
@@ -5629,6 +5752,9 @@ export class UiController {
         }
         if (this.annotationTool.active) {
             this.stopAnnotationMode(false);
+        }
+        if (this.temporaryPaintTool.active) {
+            this.stopTemporaryPaintMode(false);
         }
         this.groupPlacement.active = true;
         this.groupPlacement.group = group;
@@ -5961,6 +6087,12 @@ export class UiController {
                 } else {
                     this.startCoordinateMode();
                 }
+            } else if (event.key === 'p' || event.key === 'P') {
+                if (this.temporaryPaintTool.active) {
+                    this.stopTemporaryPaintMode(true);
+                } else {
+                    this.startTemporaryPaintMode();
+                }
             } else if (event.key === 'c' || event.key === 'C') {
                 if (this.dom.clusteringToggle) {
                     this.dom.clusteringToggle.checked = !this.dom.clusteringToggle.checked;
@@ -5982,7 +6114,7 @@ export class UiController {
         }
 
         this.mapClickUnsubscribe = this.mapController.onMapClick(event => {
-            if (this.measurement?.active || this.coordinateTool?.active || this.annotationTool?.active || this.groupPlacement?.active) {
+            if (this.measurement?.active || this.coordinateTool?.active || this.annotationTool?.active || this.temporaryPaintTool?.active || this.groupPlacement?.active) {
                 return;
             }
             const sidebar = this.dom.infoSidebar;

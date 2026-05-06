@@ -461,11 +461,8 @@ const renderPeriodNav = entries => {
         button.setAttribute('aria-label', `Aller a l epoque ${group.era}`);
         button.setAttribute('aria-pressed', 'false');
         button.addEventListener('click', () => {
-            const targetGroup = dom.track.querySelector(`[data-era-group-id="${firstEntry.id}"]`);
-            if (targetGroup) {
-                targetGroup.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
-            }
             setActiveEntry(firstEntry.id);
+            window.requestAnimationFrame(updatePeriodNavState);
         });
         dom.periodNav.appendChild(button);
     });

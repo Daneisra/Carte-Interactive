@@ -3060,6 +3060,12 @@ body[data-theme="light"] #events-filter option {
     background: #ff9f33;
 }
 
+.temporary-paint-line,
+.temporary-paint-point {
+    filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.55));
+    pointer-events: none;
+}
+
 #map-controls button span[aria-hidden="true"] {
     display: inline-flex;
 }
