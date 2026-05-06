@@ -1,14 +1,31 @@
 module.exports = (register, context) => {
     const { json, readTimelineFile, writeTimelineFile, ensureAuthorized, collectBody } = context;
     const adminTimelinePaths = ['/api/admin/timeline-config', '/api/admin/timeline'];
+    const sortTimelineEntries = entries => (
+        Array.isArray(entries)
+            ? entries
+                .map((entry, index) => ({ entry, index }))
+                .sort((left, right) => {
+                    const leftYear = Number(left.entry?.year);
+                    const rightYear = Number(right.entry?.year);
+                    const leftSafeYear = Number.isFinite(leftYear) ? leftYear : left.index;
+                    const rightSafeYear = Number.isFinite(rightYear) ? rightYear : right.index;
+                    return leftSafeYear - rightSafeYear || left.index - right.index;
+                })
+                .map(item => item.entry)
+            : []
+    );
 
     register('GET', '/api/timeline', async (_req, res) => {
         const timeline = await readTimelineFile();
+        const visibleEntries = Array.isArray(timeline?.entries)
+            ? timeline.entries.filter(entry => entry?.visible !== false)
+            : [];
         json(res, 200, {
             status: 'ok',
             timeline: {
                 ...timeline,
-                entries: Array.isArray(timeline?.entries) ? timeline.entries.filter(entry => entry?.visible !== false) : []
+                entries: sortTimelineEntries(visibleEntries)
             }
         });
     });

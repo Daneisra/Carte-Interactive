@@ -62,7 +62,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.4',
+  version: '0.17.5',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -118,6 +118,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-06',
+      title: 'Version 0.17.5 - Ordre chronologique public',
+      summary: 'La chronologie publique et les tests UI utilisent desormais le meme ordre d evenements trie par annee.'
+    },
     {
       date: '2026-05-06',
       title: 'Version 0.17.4 - Upload images chronologie',
