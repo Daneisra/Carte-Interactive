@@ -420,6 +420,7 @@ export class LocationEditor {
         this.availableLocations = [];
         this.linkSuggestionTimer = null;
         this.ignoredLinkSuggestions = new Set();
+        this.draggedMarkdownRow = null;
 
         this.callbacks = {
             onCreate,
@@ -631,12 +632,16 @@ export class LocationEditor {
         }
 
         const handleMarkdownListClick = event => {
-            const button = event.target?.closest('[data-action="remove-markdown-entry"]');
+            const button = event.target?.closest('[data-action="remove-markdown-entry"], [data-action="move-markdown-entry"]');
             if (!button) {
                 return;
             }
             event.preventDefault();
-            this.handleRemoveMarkdownEntry(button);
+            if (button.dataset?.action === 'remove-markdown-entry') {
+                this.handleRemoveMarkdownEntry(button);
+            } else {
+                this.handleMoveMarkdownEntry(button);
+            }
         };
 
         this.markdownSections.forEach(type => {
@@ -659,6 +664,7 @@ export class LocationEditor {
             const list = this.markdownLists[type];
             if (list) {
                 list.addEventListener('click', handleMarkdownListClick);
+                this.bindMarkdownListDragHandlers(list, type);
             }
         });
 
@@ -1289,6 +1295,7 @@ export class LocationEditor {
         if (textarea) {
             this.updateMarkdownEntryPreview(textarea);
         }
+        this.updateMarkdownEntryOrderControls(type);
         return row;
     }
 
@@ -1299,6 +1306,33 @@ export class LocationEditor {
             dataset: { entryType: type }
         });
         const actions = createElement('div', { className: 'markdown-entry-actions' });
+        const dragHandle = createElement('span', {
+            className: 'markdown-entry-drag-handle',
+            text: 'Deplacer',
+            title: 'Glisser pour reordonner ce bloc',
+            attributes: {
+                draggable: 'true',
+                'aria-hidden': 'true'
+            }
+        });
+        const moveUpButton = createElement('button', {
+            className: 'tertiary-button markdown-entry-move',
+            text: 'Monter',
+            dataset: { action: 'move-markdown-entry', direction: 'up', entryType: type },
+            attributes: {
+                type: 'button',
+                'aria-label': `Monter ${config.label || 'ce bloc'}`
+            }
+        });
+        const moveDownButton = createElement('button', {
+            className: 'tertiary-button markdown-entry-move',
+            text: 'Descendre',
+            dataset: { action: 'move-markdown-entry', direction: 'down', entryType: type },
+            attributes: {
+                type: 'button',
+                'aria-label': `Descendre ${config.label || 'ce bloc'}`
+            }
+        });
         const removeButton = createElement('button', {
             className: 'tertiary-button markdown-entry-remove',
             text: 'Supprimer',
@@ -1308,7 +1342,7 @@ export class LocationEditor {
                 'aria-label': config.removeLabel || 'Supprimer cet element'
             }
         });
-        actions.appendChild(removeButton);
+        actions.append(dragHandle, moveUpButton, moveDownButton, removeButton);
         row.appendChild(actions);
         const textarea = createElement('textarea', {
             className: 'markdown-entry-input',
@@ -1351,6 +1385,7 @@ export class LocationEditor {
         values.forEach(value => {
             this.addMarkdownEntry(type, value);
         });
+        this.updateMarkdownEntryOrderControls(type);
     }
 
     collectMarkdownEntries(type) {
@@ -1411,8 +1446,115 @@ export class LocationEditor {
             const replacement = this.addMarkdownEntry(type, '');
             focusTarget = replacement?.querySelector('textarea[data-role="markdown-entry-input"]') || focusTarget;
         }
+        this.updateMarkdownEntryOrderControls(type);
         focusTarget?.focus?.();
         this.scheduleLinkSuggestions();
+    }
+
+    handleMoveMarkdownEntry(button) {
+        if (!button) {
+            return;
+        }
+        const row = button.closest('.markdown-entry-row');
+        const type = button.dataset?.entryType || row?.dataset?.entryType;
+        const direction = button.dataset?.direction;
+        const list = this.getMarkdownList(type);
+        if (!row || !type || !list) {
+            return;
+        }
+        if (direction === 'up' && row.previousElementSibling) {
+            list.insertBefore(row, row.previousElementSibling);
+        } else if (direction === 'down' && row.nextElementSibling) {
+            list.insertBefore(row.nextElementSibling, row);
+        }
+        this.updateMarkdownEntryOrderControls(type);
+        this.scheduleLinkSuggestions();
+        row.querySelector('textarea[data-role="markdown-entry-input"]')?.focus?.();
+    }
+
+    bindMarkdownListDragHandlers(list, type) {
+        if (!list || list.dataset.dragBound === 'true') {
+            return;
+        }
+        list.dataset.dragBound = 'true';
+        list.addEventListener('dragstart', event => this.handleMarkdownDragStart(event, type));
+        list.addEventListener('dragover', event => this.handleMarkdownDragOver(event, type));
+        list.addEventListener('drop', event => this.handleMarkdownDrop(event, type));
+        list.addEventListener('dragend', () => this.handleMarkdownDragEnd(type));
+    }
+
+    handleMarkdownDragStart(event, type) {
+        const row = event.target?.closest?.('.markdown-entry-row');
+        const isHandle = event.target?.closest?.('.markdown-entry-drag-handle');
+        if (!row || !isHandle || row.dataset?.entryType !== type) {
+            event.preventDefault();
+            return;
+        }
+        this.draggedMarkdownRow = row;
+        row.classList.add('is-dragging');
+        if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', type);
+        }
+    }
+
+    handleMarkdownDragOver(event, type) {
+        const list = this.getMarkdownList(type);
+        const dragged = this.draggedMarkdownRow;
+        if (!list || !dragged || dragged.dataset?.entryType !== type) {
+            return;
+        }
+        event.preventDefault();
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = 'move';
+        }
+        const target = event.target?.closest?.('.markdown-entry-row');
+        if (!target || target === dragged || target.parentElement !== list) {
+            return;
+        }
+        const rect = target.getBoundingClientRect();
+        const insertAfter = event.clientY > rect.top + rect.height / 2;
+        list.insertBefore(dragged, insertAfter ? target.nextSibling : target);
+    }
+
+    handleMarkdownDrop(event, type) {
+        const dragged = this.draggedMarkdownRow;
+        if (!dragged || dragged.dataset?.entryType !== type) {
+            return;
+        }
+        event.preventDefault();
+        this.handleMarkdownDragEnd(type);
+        this.scheduleLinkSuggestions();
+    }
+
+    handleMarkdownDragEnd(type = '') {
+        if (this.draggedMarkdownRow) {
+            this.draggedMarkdownRow.classList.remove('is-dragging');
+            this.draggedMarkdownRow = null;
+        }
+        if (type) {
+            this.updateMarkdownEntryOrderControls(type);
+        }
+    }
+
+    updateMarkdownEntryOrderControls(type) {
+        const list = this.getMarkdownList(type);
+        if (!list) {
+            return;
+        }
+        const rows = Array.from(list.querySelectorAll('.markdown-entry-row'))
+            .filter(row => row.dataset?.entryType === type);
+        rows.forEach((row, index) => {
+            row.dataset.order = String(index + 1);
+            const moveUp = row.querySelector('[data-action="move-markdown-entry"][data-direction="up"]');
+            const moveDown = row.querySelector('[data-action="move-markdown-entry"][data-direction="down"]');
+            if (moveUp) {
+                moveUp.disabled = index === 0;
+            }
+            if (moveDown) {
+                moveDown.disabled = index === rows.length - 1;
+            }
+        });
     }
 
     setQuestEvents(events = []) {

@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.8`.
+Version actuelle : `0.17.9`.
 
 ## Réalisations majeures livrées
 
@@ -87,7 +87,7 @@ Version actuelle : `0.17.8`.
 - [x] Déplacer les descriptions existantes vers le lore lorsque cela évite les doublons.
 - [ ] Brancher une vraie assistance IA côté serveur ou via outil contrôlé.
 - [x] Ajouter un audit admin listant les lieux sans description courte exploitable.
-- [ ] Pouvoir réordonner par glisser-déposer les blocs de lore, historique, quêtes et sections longues.
+- [x] Pouvoir réordonner par glisser-déposer les blocs de lore, historique, quêtes et sections longues.
 
 ### P7 - Différenciants carte et narration
 

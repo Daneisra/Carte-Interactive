@@ -1171,6 +1171,13 @@ body[data-theme="light"] .form-suggestion-item {
     border: 1px solid rgba(148, 163, 184, 0.22);
     border-radius: 10px;
     background: rgba(15, 23, 42, 0.4);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.markdown-entry-row.is-dragging {
+    opacity: 0.62;
+    border-color: rgba(96, 165, 250, 0.72);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.32);
 }
 
 body[data-theme="light"] .markdown-entry-row {
@@ -1180,17 +1187,46 @@ body[data-theme="light"] .markdown-entry-row {
 
 .markdown-entry-actions {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
-.markdown-entry-remove {
+.markdown-entry-drag-handle {
+    margin-right: auto;
+    cursor: grab;
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.markdown-entry-row.is-dragging .markdown-entry-drag-handle {
+    cursor: grabbing;
+}
+
+.markdown-entry-remove,
+.markdown-entry-move {
     padding: 4px 8px;
     font-size: 12px;
 }
 
 .markdown-entry-remove:hover,
-.markdown-entry-remove:focus-visible {
+.markdown-entry-remove:focus-visible,
+.markdown-entry-move:hover,
+.markdown-entry-move:focus-visible {
     background: rgba(148, 163, 184, 0.2);
+}
+
+.markdown-entry-move:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+body[data-theme="light"] .markdown-entry-drag-handle {
+    color: rgba(51, 65, 85, 0.68);
 }
 
 .markdown-entry-row .markdown-preview {

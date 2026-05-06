@@ -81,7 +81,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.8',
+    version: '0.17.9',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -137,6 +137,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-06',
+            title: 'Version 0.17.9 - Reordre des blocs narratifs',
+            summary: 'L editeur de lieux permet de reordonner lore, historique, quetes et sections longues par glisser-deposer ou boutons accessibles.'
+        },
         {
             date: '2026-05-06',
             title: 'Version 0.17.8 - Peinture ephemere carte',

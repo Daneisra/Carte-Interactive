@@ -386,6 +386,55 @@ test.describe('Points d\'entree admin', () => {
     await expect(warningsPanel).toContainText(/Description structuree en titres ou listes/i);
   });
 
+  test('l editeur de lieu reordonne les blocs longs avant sauvegarde', async ({ page }) => {
+    await loginAsAdmin(page);
+
+    let capturedLocations = null;
+    await page.route('**/api/locations', async route => {
+      const request = route.request();
+      if (request.method() !== 'POST') {
+        await route.continue();
+        return;
+      }
+      const payload = JSON.parse(request.postData() || '{}');
+      capturedLocations = payload.locations || null;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'ok', warnings: [], locations: capturedLocations })
+      });
+    });
+
+    await page.goto('/map/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const addButton = page.locator('#add-location');
+    await expect(addButton).toBeVisible({ timeout: 10000 });
+    await addButton.click();
+
+    await page.locator('#editor-name').fill('Lieu reorder test');
+    await page.locator('#editor-continent').fill('Tests');
+    await page.locator('#editor-x').fill('120');
+    await page.locator('#editor-y').fill('240');
+    await page.locator('#editor-description').fill('Resume court du lieu de test.');
+
+    const loreList = page.locator('[data-role="lore-list"]');
+    await loreList.locator('textarea').first().fill('Lore A');
+    await page.getByRole('button', { name: /Ajouter un element de lore/i }).click();
+    await loreList.locator('textarea').nth(1).fill('Lore B');
+
+    await expect(loreList.locator('.markdown-entry-drag-handle').first()).toHaveAttribute('draggable', 'true');
+    await loreList.locator('[data-action="move-markdown-entry"][data-direction="up"]').nth(1).click();
+
+    await expect(loreList.locator('textarea').first()).toHaveValue('Lore B');
+    await expect(loreList.locator('textarea').nth(1)).toHaveValue('Lore A');
+
+    await page.getByRole('button', { name: /^Creer$/i }).click();
+
+    await expect.poll(() => capturedLocations?.Tests?.find(location => location.name === 'Lieu reorder test')?.lore || null)
+      .toEqual(['Lore B', 'Lore A']);
+  });
+
   test('l editeur de lieu affiche les apercus d icones de type et synchronise le select', async ({ page }) => {
     await loginAsAdmin(page);
 
