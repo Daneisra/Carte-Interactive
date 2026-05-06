@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.5`.
+Version actuelle : `0.17.6`.
 
 ## Réalisations majeures livrées
 
@@ -63,7 +63,7 @@ Version actuelle : `0.17.5`.
 - [x] Images de frise fiabilisées via chemins médias normalisés.
 - [x] Upload direct d'image lors de la création/édition d'un événement.
 - [x] Ordre public de la chronologie aligné entre API, UI et tests navigateur.
-- [ ] Dernier polish éditorial : densité, transitions, lisibilité des longues périodes.
+- [x] Dernier polish éditorial : densité, transitions, lisibilité des longues périodes.
 
 ### P5 - Séparation des panneaux admin
 
