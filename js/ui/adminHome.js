@@ -115,7 +115,7 @@ export const normalizeAdminSiteConfig = (config = {}) => {
             contactEmail: sanitizeString(support.contactEmail || 'contact@cartehesta.local')
         },
         legal: {
-            creditsUrl: sanitizeString(legal.creditsUrl || '/docs/credits-assets.md'),
+            creditsUrl: sanitizeString(legal.creditsUrl || '/docs/ASSETS-CREDITS.md'),
             footerNote: sanitizeString(legal.footerNote || "Projet narratif / JDR - fan project / page d'accueil pre-carte (P3.1 MVP).")
         },
         changelog: changelog

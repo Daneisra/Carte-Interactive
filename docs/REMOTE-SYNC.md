@@ -1,45 +1,53 @@
-# Configuration de la synchronisation distante
+# Remote Sync
 
-Le serveur `server.js` peut pousser une copie du dataset des lieux vers un endpoint HTTP externe apres chaque sauvegarde. Cette page recapitule la marche a suivre.
+La remote sync pousse certaines données vers un endpoint externe après des modifications admin. Elle ne remplace pas le déploiement GitHub Actions et ne récupère pas automatiquement les assets de production vers le poste local.
 
-## 1. Variables d'environnement
+## Variables
 
-Remplis le fichier `.env` (ou exporte les variables equivalentes) :
-
-```
-REMOTE_SYNC_URL=http://localhost:4780/sync
-REMOTE_SYNC_METHOD=POST    # POST, PUT ou PATCH
-REMOTE_SYNC_TOKEN=dev-sync-token   # optionnel
-REMOTE_SYNC_TIMEOUT=5000    # en millisecondes
+```env
+REMOTE_SYNC_URL=
+REMOTE_SYNC_METHOD=POST
+REMOTE_SYNC_TOKEN=
+REMOTE_SYNC_TIMEOUT=7000
 ```
 
-- `REMOTE_SYNC_URL` : URL du serveur distant.
-- `REMOTE_SYNC_METHOD` : verbe HTTP utilise.
-- `REMOTE_SYNC_TOKEN` : si renseigne, il est envoye dans le header `Authorization: Bearer <TOKEN>`.
-- `REMOTE_SYNC_TIMEOUT` : delai maximum avant abandon.
+- `REMOTE_SYNC_URL` : endpoint externe appelé après synchronisation.
+- `REMOTE_SYNC_METHOD` : méthode HTTP, généralement `POST`.
+- `REMOTE_SYNC_TOKEN` : jeton optionnel envoyé à l'endpoint distant.
+- `REMOTE_SYNC_TIMEOUT` : timeout en millisecondes.
 
-## 2. Serveur distant de test (optionnel)
+## Mock local
 
-Pour tester en local, lance le mock fourni :
-
-```
+```bash
 npm run sync:mock
 ```
 
-Ce script (`tools/mockRemoteSync.js`) ecoute sur `http://localhost:4780/sync` et enregistre chaque requete dans `assets/logs/remote-sync.log`.
+Le mock écoute sur `http://localhost:4780/sync` et journalise les requêtes dans `assets/logs/remote-sync.log`.
 
-## 3. Tester la synchro
+Exemple local :
 
-1. Demarre le mock (`npm run sync:mock`) ou ton vrai endpoint.
-2. Lance l'application : `npm run serve`.
-3. Depuis l'editeur, ajoute/modifie un lieu puis sauvegarde.
-4. Verifie la reponse JSON : le bloc `sync` doit valider (`status: 'ok'`).
-5. Consulte `assets/logs/remote-sync.log` pour voir la charge utile envoyee (timestamp, diff, dataset).
+```env
+REMOTE_SYNC_URL=http://localhost:4780/sync
+REMOTE_SYNC_METHOD=POST
+REMOTE_SYNC_TOKEN=dev-token
+REMOTE_SYNC_TIMEOUT=7000
+```
 
-En cas d'echec, le serveur loggue l'erreur cote console (`[sync] remote export failed ...`) et la reponse HTTP contient `sync: 'error'` et `syncError`.
+## À ne pas confondre
 
-## 4. Production
+- Remote sync : le serveur pousse une charge utile vers un endpoint externe.
+- Pullback assets : le poste local récupère les fichiers de production.
+- GitHub Actions : déploie le repo vers le VPS.
+- Rsync local : commande manuelle lancée depuis le poste de développement.
 
-- Deploie un endpoint HTTPS accessible depuis ton serveur.
-- Configure `REMOTE_SYNC_URL` avec l'URL publique et `REMOTE_SYNC_TOKEN` avec un secret (ex: token Bearer).
-- Active `COOKIE_SECURE=true` si ton site est servi en HTTPS.
+Un endpoint `/api/admin/pull-back`, s'il est ajouté plus tard côté serveur, ne pourra pas écrire directement sur le PC local. Le serveur tourne sur le VPS ; il ne peut écrire que dans son propre système de fichiers. Pour récupérer les assets de production vers le repo local, utiliser un pullback depuis la machine locale.
+
+## Pullback recommandé des assets
+
+```bash
+rsync -azvr --delete --exclude="logs/" --exclude="icons/README.md" \
+  debian@cartehesta.dannytech.fr:/srv/cartehesta/app/assets/ \
+  ./assets/
+```
+
+Vérifier ensuite les changements avec Git avant de commiter.

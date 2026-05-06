@@ -156,7 +156,7 @@ const buildMarkup = () => `
                             <label for="admin-home-contact-email">Contact</label>
                             <input id="admin-home-contact-email" type="text" placeholder="contact@..." autocomplete="off" />
                             <label for="admin-home-credits-url">URL credits</label>
-                            <input id="admin-home-credits-url" type="text" placeholder="/docs/credits-assets.md" autocomplete="off" />
+                            <input id="admin-home-credits-url" type="text" placeholder="/docs/ASSETS-CREDITS.md" autocomplete="off" />
                             <label for="admin-home-footer-note">Note footer</label>
                             <textarea id="admin-home-footer-note" rows="4"></textarea>
                             <label for="admin-home-changelog">Patch notes (Date | Titre | Resume)</label>

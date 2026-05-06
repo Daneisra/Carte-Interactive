@@ -113,7 +113,7 @@ const DEFAULT_SITE_CONFIG = {
     contactEmail: 'contact@cartehesta.local'
   },
   legal: {
-    creditsUrl: '/docs/credits-assets.md',
+    creditsUrl: '/docs/ASSETS-CREDITS.md',
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [

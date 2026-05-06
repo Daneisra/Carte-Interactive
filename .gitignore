@@ -39,6 +39,7 @@ assets/logs/sessions.json
 # Env & secrets
 .env
 .env.*
+!.env.example
 *.env
 
 # Fichiers temporaires / exports
