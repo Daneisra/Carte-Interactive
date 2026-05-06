@@ -62,7 +62,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.3',
+  version: '0.17.4',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -118,6 +118,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-06',
+      title: 'Version 0.17.4 - Upload images chronologie',
+      summary: 'L admin chronologie permet d uploader directement une image d evenement et de remplir automatiquement l URL media.'
+    },
     {
       date: '2026-05-06',
       title: 'Version 0.17.3 - Documentation projet',

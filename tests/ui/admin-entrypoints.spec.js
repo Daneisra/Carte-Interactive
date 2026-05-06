@@ -193,6 +193,43 @@ test.describe('Points d\'entree admin', () => {
     await expect.poll(() => readCaptured()?.timeline?.entries?.[0]?.eventKind || null).toBe('player');
   });
 
+  test('l admin chronologie upload une image et remplit l URL media', async ({ page }) => {
+    await loginAsAdmin(page);
+    const readCaptured = await mockAdminPatch(page, '**/api/admin/timeline-config', 'timeline');
+    let uploadCaptured = null;
+    await page.route('**/api/upload', async route => {
+      const request = route.request();
+      if (request.method() !== 'POST') {
+        await route.continue();
+        return;
+      }
+      uploadCaptured = JSON.parse(request.postData() || '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'ok', path: 'assets/images/timeline-upload-test.webp' })
+      });
+    });
+
+    await page.goto('/timeline/');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('#timeline-admin-entry').click();
+    await expect(page.locator('#timeline-admin-overlay')).toBeVisible();
+
+    const firstCard = page.locator('.admin-timeline-card').first();
+    await firstCard.locator('.admin-timeline-upload-input').setInputFiles({
+      name: 'timeline-upload-test.webp',
+      mimeType: 'image/webp',
+      buffer: Buffer.from('fake-image')
+    });
+
+    await expect.poll(() => uploadCaptured?.type || null).toBe('image');
+    await expect.poll(() => uploadCaptured?.filename || null).toBe('timeline-upload-test.webp');
+    await expect(firstCard.getByLabel('Image (URL)')).toHaveValue('/assets/images/timeline-upload-test.webp');
+    await page.locator('#admin-timeline-save').click();
+    await expect.poll(() => readCaptured()?.timeline?.entries?.[0]?.imageUrl || null).toBe('/assets/images/timeline-upload-test.webp');
+  });
+
   test('la saisie dans un evenement de chronologie ne remonte pas le panneau en haut', async ({ page }) => {
     await loginAsAdmin(page);
 

@@ -326,6 +326,21 @@ body.admin-surface-open {
     gap: 10px;
 }
 
+.admin-timeline-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-timeline-upload-input {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .admin-timeline-toggle {
     display: flex !important;
     align-items: center;

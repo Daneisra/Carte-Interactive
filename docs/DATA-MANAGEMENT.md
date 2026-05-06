@@ -37,6 +37,7 @@ Peuvent être modifiés depuis l'UI admin :
 - utilisateurs ;
 - événements de quête ;
 - chronologie ;
+- images d'événements de chronologie ;
 - configuration accueil ;
 - médias uploadés.
 

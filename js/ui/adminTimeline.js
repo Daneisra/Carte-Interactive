@@ -9,6 +9,9 @@ import {
 } from './adminShared.js';
 
 const TIMELINE_ADMIN_API_ROUTE = '/api/admin/timeline-config';
+const TIMELINE_UPLOAD_ENDPOINT = '/api/upload';
+const MAX_TIMELINE_IMAGE_UPLOAD_SIZE = 25 * 1024 * 1024;
+const TIMELINE_IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg'];
 
 export const normalizeAdminTimeline = (entriesNormalizer, config = {}) => {
     const source = config && typeof config === 'object' ? config : {};
@@ -78,8 +81,88 @@ export const parseAdminTokenList = (value = '') => (
         .filter(Boolean)
 );
 
+const getFileExtension = fileName => {
+    const normalized = sanitizeString(fileName || '').toLowerCase();
+    const dotIndex = normalized.lastIndexOf('.');
+    return dotIndex >= 0 ? normalized.slice(dotIndex) : '';
+};
+
+const readFileAsDataUrl = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => resolve(reader.result));
+    reader.addEventListener('error', () => reject(reader.error || new Error('Lecture du fichier impossible.')));
+    reader.readAsDataURL(file);
+});
+
 export const setAdminTimelineStatus = (ctx, message, isError = false) => {
     setPanelStatus(ctx.adminDom.timelineStatus, message, isError);
+};
+
+export const uploadAdminTimelineImage = async (ctx, index, file, { urlInput = null, trigger = null } = {}) => {
+    if (!ctx.isAdmin()) {
+        ctx.announcer?.assertive?.('Connexion administrateur requise.');
+        return;
+    }
+    if (!file) {
+        return;
+    }
+    const extension = getFileExtension(file.name);
+    if (!TIMELINE_IMAGE_EXTENSIONS.includes(extension)) {
+        setAdminTimelineStatus(ctx, `Format image non supporte. Formats acceptes: ${TIMELINE_IMAGE_EXTENSIONS.join(', ')}.`, true);
+        return;
+    }
+    if (file.size > MAX_TIMELINE_IMAGE_UPLOAD_SIZE) {
+        setAdminTimelineStatus(ctx, 'Image trop volumineuse (limite 25 Mo).', true);
+        return;
+    }
+    const entry = ctx.adminTimeline?.entries?.[index];
+    if (!entry) {
+        setAdminTimelineStatus(ctx, 'Evenement introuvable pour cet upload.', true);
+        return;
+    }
+    const previousDisabled = Boolean(trigger?.disabled);
+    if (trigger) {
+        trigger.disabled = true;
+        trigger.textContent = 'Upload...';
+    }
+    setAdminTimelineStatus(ctx, "Upload de l'image de chronologie...");
+    try {
+        const data = await readFileAsDataUrl(file);
+        const response = await fetch(TIMELINE_UPLOAD_ENDPOINT, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'image',
+                filename: file.name,
+                data
+            })
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        const path = sanitizeString(payload?.path || '');
+        if (!path) {
+            throw new Error('Chemin image absent de la reponse upload.');
+        }
+        const imagePath = path.startsWith('/') ? path : `/${path}`;
+        entry.imageUrl = imagePath;
+        if (urlInput) {
+            urlInput.value = imagePath;
+        }
+        ctx.markAdminTimelineDirty();
+        setAdminTimelineStatus(ctx, `Image ajoutee a l'evenement: ${imagePath}`);
+        ctx.announcer?.polite?.('Image de chronologie importee.');
+    } catch (error) {
+        console.error('[admin] timeline image upload failed', error);
+        setAdminTimelineStatus(ctx, `Upload image impossible: ${error?.message || 'erreur inconnue'}.`, true);
+    } finally {
+        if (trigger) {
+            trigger.disabled = previousDisabled;
+            trigger.textContent = 'Uploader une image';
+        }
+    }
 };
 
 export const renderAdminTimelineErrors = (ctx, errors = []) => {
@@ -238,8 +321,7 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
         return wrapper;
     };
 
-    grid.append(
-        buildField({
+    const idField = buildField({
             label: 'ID',
             value: entry.id,
             onInput: event => {
@@ -250,8 +332,8 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                     .replace(/^-+|-+$/g, '');
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const yearField = buildField({
             label: 'Annee',
             type: 'number',
             value: String(entry.year ?? ''),
@@ -260,8 +342,8 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const yearLabelField = buildField({
             label: 'Libelle annee',
             value: entry.yearLabel,
             onInput: event => {
@@ -269,8 +351,8 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const kindField = buildField({
             label: 'Type d evenement',
             type: 'select',
             value: entry.eventKind,
@@ -283,8 +365,8 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const periodField = buildField({
             label: 'Periode',
             value: entry.period,
             onInput: event => {
@@ -292,8 +374,8 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const eraField = buildField({
             label: 'Epoque',
             value: entry.era,
             onInput: event => {
@@ -301,8 +383,8 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const sceneField = buildField({
             label: 'Label scene',
             value: entry.sceneLabel,
             placeholder: 'Fondation, rupture, conquete...',
@@ -310,8 +392,8 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 ctx.adminTimeline.entries[index].sceneLabel = event.target.value || '';
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const titleField = buildField({
             label: 'Titre',
             value: entry.title,
             onInput: event => {
@@ -319,8 +401,8 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 refreshHeaderPreview();
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const accentField = buildField({
             label: 'Couleur accent',
             type: 'text',
             value: entry.accentColor,
@@ -329,8 +411,8 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 ctx.adminTimeline.entries[index].accentColor = event.target.value || '';
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const imageField = buildField({
             label: 'Image (URL)',
             value: entry.imageUrl,
             placeholder: '/assets/images/...',
@@ -338,8 +420,27 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 ctx.adminTimeline.entries[index].imageUrl = event.target.value || '';
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const imageUrlInput = imageField.querySelector('input');
+    const imageUploadRow = document.createElement('div');
+    imageUploadRow.className = 'admin-timeline-upload-row';
+    const imageUploadInput = document.createElement('input');
+    imageUploadInput.type = 'file';
+    imageUploadInput.accept = TIMELINE_IMAGE_EXTENSIONS.join(',');
+    imageUploadInput.className = 'admin-timeline-upload-input';
+    imageUploadInput.setAttribute('aria-label', `Uploader une image pour ${entry.title || `evenement ${index + 1}`}`);
+    const imageUploadButton = createElement('button', { className: 'tertiary-button', text: 'Uploader une image' });
+    imageUploadButton.type = 'button';
+    imageUploadButton.addEventListener('click', () => imageUploadInput.click());
+    imageUploadInput.addEventListener('change', event => {
+        const [file] = Array.from(event.target.files || []);
+        uploadAdminTimelineImage(ctx, index, file, { urlInput: imageUrlInput, trigger: imageUploadButton });
+        event.target.value = '';
+    });
+    imageUploadRow.append(imageUploadButton, imageUploadInput);
+    imageField.appendChild(imageUploadRow);
+
+    const mediaAltField = buildField({
             label: 'Alt image',
             value: entry.mediaAlt,
             placeholder: 'Description courte de l illustration',
@@ -347,8 +448,8 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 ctx.adminTimeline.entries[index].mediaAlt = event.target.value || '';
                 ctx.markAdminTimelineDirty();
             }
-        }),
-        buildField({
+        });
+    const visibleField = buildField({
             label: 'Visible publiquement',
             type: 'checkbox',
             checked: entry.visible !== false,
@@ -356,7 +457,21 @@ export const createAdminTimelineEntryCard = (ctx, entry, index) => {
                 ctx.adminTimeline.entries[index].visible = Boolean(event.target.checked);
                 ctx.markAdminTimelineDirty();
             }
-        })
+        });
+
+    grid.append(
+        idField,
+        yearField,
+        yearLabelField,
+        kindField,
+        periodField,
+        eraField,
+        sceneField,
+        titleField,
+        accentField,
+        imageField,
+        mediaAltField,
+        visibleField
     );
 
     block.append(
