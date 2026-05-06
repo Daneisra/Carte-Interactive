@@ -1,5 +1,5 @@
 {
-  "version": "0.17.6",
+  "version": "0.17.7",
   "home": {
     "kicker": "Accueil - Hub narratif",
     "title": "Entrez dans l'univers avant d'ouvrir la carte",
@@ -69,6 +69,11 @@
     "footerNote": "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   "changelog": [
+        {
+            "date": "2026-05-06",
+            "title": "Version 0.17.7 - Navigation libre carte",
+            "summary": "La carte n'est plus verrouillee aux bords afin de rendre les lieux proches des limites plus faciles a atteindre et selectionner."
+        },
         {
             "date": "2026-05-06",
             "title": "Version 0.17.6 - Polish chronologie",

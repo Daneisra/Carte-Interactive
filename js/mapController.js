@@ -35,9 +35,7 @@ export class MapController {
         this.map = L.map(mapId, {
             crs: L.CRS.Simple,
             minZoom: this.minZoom,
-            maxZoom: this.maxZoom,
-            maxBounds: bounds,
-            maxBoundsViscosity: 1.0
+            maxZoom: this.maxZoom
         });
 
         this.typeData = {};

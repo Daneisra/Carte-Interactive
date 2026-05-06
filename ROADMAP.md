@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.6`.
+Version actuelle : `0.17.7`.
 
 ## Réalisations majeures livrées
 
@@ -86,13 +86,13 @@ Version actuelle : `0.17.6`.
 - [x] Définir le format cible : 2 à 4 phrases, ton neutre, informatif, sans invention.
 - [x] Déplacer les descriptions existantes vers le lore lorsque cela évite les doublons.
 - [ ] Brancher une vraie assistance IA côté serveur ou via outil contrôlé.
-- [ ] Ajouter un audit admin listant les lieux sans description courte exploitable.
+- [x] Ajouter un audit admin listant les lieux sans description courte exploitable.
 - [ ] Pouvoir réordonner par glisser-déposer les blocs de lore, historique, quêtes et sections longues.
 
 ### P7 - Différenciants carte et narration
 
-- [ ] Carte : déplacement complètement libre sans blocage sur les bords.
-- [ ] Carte : corriger les lieux non cliquables lorsqu'ils sont trop proches du bord.
+- [x] Carte : déplacement complètement libre sans blocage sur les bords.
+- [x] Carte : corriger les lieux non cliquables lorsqu'ils sont trop proches du bord.
 - [ ] Peinture éphémère sur la carte pour routes, schémas, instructions et préparation de session.
 - [ ] Indicateur de position joueur ou marqueur temporaire partageable.
 - [ ] Carte chronologique/replay des lieux et événements.
