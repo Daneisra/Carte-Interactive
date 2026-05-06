@@ -176,6 +176,7 @@
 - [x] P4.9 - Lien carte -> frise : depuis un lieu, afficher plus tard les événements historiques liés dans un panneau ou une section dédiée.
 - [x] P4.10 - Filtres chronologie : époque, région, faction, type d'événement, recherche texte.
 - [x] P4.11 - QA chronologie : accessibilité clavier, performances, mobile/tablette, validation des contenus et tests navigateur ciblés.
+- [ ] P4.12 - Upload d'image direct dans l'admin chronologie lors de l'ajout ou de l'édition d'un événement.
 
 ### Note produit - Frise chronologique
 - [x] Page dédiée : meilleure lisibilité, plus de place pour une vraie frise horizontale, plus simple à rendre premium et responsive.
@@ -229,9 +230,12 @@
 - [x] Clarifier l'UI admin avec aide contextuelle sur le rôle de chaque champ narratif.
 - [x] Prévoir un mode `Regenerer` et un mode `Ameliorer la description existante`.
 - [x] Tester la cohérence sur plusieurs lieux aux fiches hétérogènes avant généralisation.
+- [ ] Pouvoir réordonner par glisser-déposer les blocs de `lore`, `historique`, `quetes`, etc. dans l'éditeur de lieu, sans tout réécrire manuellement.
 
 ### P7 — Différenciants
 - [x] Dans modifier un lieu et Creer un lieu, pour Type, ajouter l'aperçu de chaque icone
+- [ ] Carte : déplacement complètement libre de la carte, sans blocage sur les bords.
+- [ ] Carte : fix des lieux non cliquables lorsqu'ils sont trop proches du bord de la carte.
 - [ ] Possiblités de pouvoir peindre sur la carte de manière éphémère pour dessiner des schémas, créer des routes, instruction etc
 - [ ] Carte chronologique (replay des lieux/événements).
 - [ ] Partage/Export (JSON + capture visuelle).
@@ -244,7 +248,9 @@
 ### P8 — Hygiène & dette
 - [ ] Modularisation fine de `UiController` et nettoyage des artefacts legacy.
 - [ ] Harmonisation encodages (UTF-8) & lint assets. :contentReference[oaicite:7]{index=7}
+- [ ] Maintien fiable de la connexion Discord (persistance de session, reprise et expiration contrôlée).
 - [ ] Fiabiliser le compteur Discord automatique de l’accueil (invite/widget/API) avec fallback propre.
+- [ ] Améliorer le téléchargement des assets (rapidité, packaging et robustesse du flux).
 - [ ] Automatiser les patch notes de l’accueil depuis GitHub ou l’historique git de production.
 - [ ] Polish UI
 
