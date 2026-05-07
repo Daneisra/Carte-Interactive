@@ -55,7 +55,7 @@ body[data-theme="light"] .markdown-content a {
     align-items: flex-end;
     gap: 10px;
     z-index: 1300;
-    pointer-events: auto;
+    pointer-events: none;
     transition: right 0.25s ease;
 }
 
@@ -80,6 +80,7 @@ body.info-sidebar-open .profile-panel {
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.45);
     backdrop-filter: blur(6px);
     transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    pointer-events: auto;
 }
 
 .profile-button:hover {
@@ -150,6 +151,7 @@ body.info-sidebar-open .profile-panel {
     scroll-padding-top: 84px;
     transform-origin: top right;
     animation: profileMenuIn 0.16s ease-out;
+    pointer-events: auto;
 }
 
 .profile-menu::-webkit-scrollbar {

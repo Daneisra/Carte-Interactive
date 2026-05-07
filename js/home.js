@@ -81,7 +81,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.9',
+    version: '0.17.10',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -137,6 +137,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-07',
+            title: 'Version 0.17.10 - Fix theme clair carte',
+            summary: 'Le bouton theme clair de la barre d outil reapplique correctement le theme, son etat accessible et la preference locale.'
+        },
         {
             date: '2026-05-06',
             title: 'Version 0.17.9 - Reordre des blocs narratifs',

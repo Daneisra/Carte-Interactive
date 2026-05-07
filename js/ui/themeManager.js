@@ -28,11 +28,9 @@ export class ThemeManager {
 
     setTheme(theme) {
         const normalized = theme === 'light' ? 'light' : 'dark';
-        if (this.state.theme === normalized) {
-            return;
-        }
+        const hasChanged = this.state.theme !== normalized;
         this.applyTheme(normalized);
-        if (this.preferences && typeof this.preferences.setTheme === 'function') {
+        if (hasChanged && this.preferences && typeof this.preferences.setTheme === 'function') {
             this.preferences.setTheme(normalized);
         }
     }

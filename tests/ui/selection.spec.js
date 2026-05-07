@@ -139,4 +139,18 @@ test.describe('Carte Interactive - UI', () => {
     await clearButton.click();
     await expect(page.locator('.leaflet-overlay-pane path.temporary-paint-line')).toHaveCount(0);
   });
+
+  test('le bouton theme clair de la barre d outil applique le theme', async ({ page }) => {
+    await waitForAppReady(page);
+
+    const lightButton = page.locator('#theme-toggle [data-theme="light"]');
+    const darkButton = page.locator('#theme-toggle [data-theme="dark"]');
+
+    await expect(lightButton).toBeVisible();
+    await lightButton.click();
+
+    await expect(page.locator('body')).toHaveAttribute('data-theme', 'light');
+    await expect(lightButton).toHaveAttribute('aria-pressed', 'true');
+    await expect(darkButton).toHaveAttribute('aria-pressed', 'false');
+  });
 });
