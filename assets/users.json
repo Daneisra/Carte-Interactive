@@ -7,8 +7,8 @@
     "role": "admin",
     "apiTokens": [],
     "avatar": "https://cdn.discordapp.com/avatars/1172705521317449809/128046ca64cc0ca2529912c88dd18a49.png?size=128",
-    "lastLoginAt": "2026-05-06T15:38:40.954Z",
-    "lastSeenAt": "2026-05-06T15:38:40.954Z",
+    "lastLoginAt": "2026-05-07T12:49:34.769Z",
+    "lastSeenAt": "2026-05-07T12:49:34.769Z",
     "availability": {
       "timezone": "Europe/Warsaw",
       "slots": [
@@ -55,6 +55,16 @@
           true
         ]
       ]
+    },
+    "profile": {
+      "banner": "https://cdn.discordapp.com/attachments/1463350196351143979/1463350340236607549/ALIENOR-HD-NEW-839x1024.png?ex=69fdea74&is=69fc98f4&hm=a27acbe59fe33ff9f64f838a42f7d3b5b9ab8342ad4942ddc8c98f5dd619f0e4",
+      "accentColor": "#7f60fb",
+      "bio": null,
+      "socials": {
+        "website": "https://dannytech.fr",
+        "discord": "https://discord.gg/a67SVZtZXk",
+        "youtube": "https://www.youtube.com/@daneisra"
+      }
     }
   },
   {

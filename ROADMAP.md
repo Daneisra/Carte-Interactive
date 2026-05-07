@@ -61,6 +61,7 @@ Version actuelle : `0.17.10`.
 - [x] Admin chronologie pour créer, éditer, supprimer, réordonner et masquer des événements.
 - [x] Différenciation visuelle des événements de lore écrit et des événements joueurs.
 - [x] Images de frise fiabilisées via chemins médias normalisés.
+- [ ] Ouvrir les images d'événements de chronologie en grand dans une modale ou une vue plein écran.
 - [x] Upload direct d'image lors de la création/édition d'un événement.
 - [x] Ordre public de la chronologie aligné entre API, UI et tests navigateur.
 - [x] Dernier polish éditorial : densité, transitions, lisibilité des longues périodes.
@@ -89,7 +90,17 @@ Version actuelle : `0.17.10`.
 - [x] Ajouter un audit admin listant les lieux sans description courte exploitable.
 - [x] Pouvoir réordonner par glisser-déposer les blocs de lore, historique, quêtes et sections longues.
 
-### P7 - Différenciants carte et narration
+### P7 - Planning et calendrier JDR
+
+- [ ] Créer une page planning/calendrier dédiée à la logistique des parties.
+- [ ] Permettre à chaque utilisateur de renseigner ses disponibilités par jour et par créneau horaire.
+- [ ] Visualiser rapidement les créneaux communs disponibles pour un groupe ou une campagne.
+- [ ] Lier le planning aux groupes JDR et aux personnages lorsque c'est utile.
+- [ ] Ajouter des statuts de réponse : disponible, incertain, indisponible, non renseigné.
+- [ ] Prévoir une vue semaine/mois lisible sur desktop et mobile.
+- [ ] Ajouter une synthèse MJ pour repérer les meilleures dates de session.
+
+### P8 - Différenciants carte et narration
 
 - [x] Carte : déplacement complètement libre sans blocage sur les bords.
 - [x] Carte : corriger les lieux non cliquables lorsqu'ils sont trop proches du bord.
@@ -105,12 +116,13 @@ Version actuelle : `0.17.10`.
 - [ ] Export/partage des annotations et parcours en JSON, PNG ou PDF.
 - [ ] Narrateur audio ou mode lecture guidée.
 
-### P8 - Hygiène, exploitation et dette technique
+### P9 - Hygiène, exploitation et dette technique
 
 - [x] Carte : bouton theme clair de la barre d'outil fiabilise avec etat accessible et preference locale.
 - [ ] Maintien fiable de la connexion Discord : reprise, expiration contrôlée, messages d'état.
 - [ ] Améliorer le téléchargement des assets : rapidité, packaging, exclusions et robustesse.
 - [ ] Fiabiliser le compteur Discord automatique de l'accueil avec fallback clair.
+- [ ] Créer une page changelog dédiée pour consulter l'historique complet des versions et changements.
 - [ ] Automatiser les patch notes de l'accueil depuis GitHub ou l'historique git de production.
 - [ ] Modulariser davantage `UiController` et réduire les dépendances croisées UI.
 - [ ] Nettoyer les artefacts legacy conservés seulement pour compatibilité.
