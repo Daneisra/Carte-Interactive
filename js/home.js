@@ -81,7 +81,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.10',
+    version: '0.17.11',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -137,6 +137,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-07',
+            title: 'Version 0.17.11 - Images chronologie agrandies',
+            summary: 'Les images de detail de la frise peuvent etre ouvertes en grand dans une modale plein ecran accessible.'
+        },
         {
             date: '2026-05-07',
             title: 'Version 0.17.10 - Fix theme clair carte',

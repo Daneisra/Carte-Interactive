@@ -94,6 +94,27 @@ test.describe('Chronologie - UI', () => {
     await expect(page.locator('#timeline-status')).toContainText('evenements affiches');
   });
 
+  test('les images de detail peuvent etre ouvertes en grand', async ({ page }) => {
+    const entries = await loadTimelineEntries(page);
+    const entryWithImage = entries.find(entry => entry.imageUrl);
+
+    test.skip(!entryWithImage, 'Aucune image de chronologie disponible.');
+
+    await page.goto(`/timeline/?event=${encodeURIComponent(entryWithImage.id)}`);
+    await page.waitForLoadState('domcontentloaded');
+
+    await expect(page.locator('#timeline-detail-title')).toHaveText(entryWithImage.title);
+    await page.locator('.timeline-detail-media-button').click();
+
+    const lightbox = page.locator('#timeline-image-lightbox');
+    await expect(lightbox).toBeVisible();
+    await expect(page.locator('#timeline-image-lightbox-title')).toHaveText(entryWithImage.title);
+    await expect(page.locator('#timeline-image-lightbox-img')).toHaveAttribute('src', /\/assets\/images\//);
+
+    await page.keyboard.press('Escape');
+    await expect(lightbox).toBeHidden();
+  });
+
   test('les filtres periode, tag et recherche reduisent la frise', async ({ page }) => {
     const entries = await loadTimelineEntries(page);
     const periods = Array.from(new Set(entries.map(entry => entry.period).filter(Boolean)));

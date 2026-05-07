@@ -935,6 +935,21 @@ a {
         rgba(255, 255, 255, 0.03);
 }
 
+.timeline-detail-media-button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: zoom-in;
+}
+
+.timeline-detail-media-button:focus-visible {
+    outline: 3px solid var(--timeline-detail-accent, var(--timeline-accent));
+    outline-offset: -3px;
+}
+
 .timeline-detail-media img {
     width: 100%;
     max-height: 320px;
@@ -988,6 +1003,95 @@ a {
     padding: 28px;
     color: var(--timeline-text-muted);
     text-align: center;
+}
+
+.timeline-image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: grid;
+    place-items: center;
+    padding: clamp(18px, 4vw, 44px);
+}
+
+.timeline-image-lightbox[hidden] {
+    display: none;
+}
+
+.timeline-image-lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background:
+        radial-gradient(circle at top, rgba(125, 211, 252, 0.12), transparent 38%),
+        rgba(2, 6, 23, 0.86);
+    cursor: zoom-out;
+}
+
+.timeline-image-lightbox-panel {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 1180px);
+    max-height: min(92vh, 900px);
+    display: grid;
+    gap: 12px;
+    padding: clamp(14px, 2vw, 22px);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 24px;
+    background: rgba(8, 15, 29, 0.96);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.52);
+}
+
+.timeline-image-lightbox-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.78);
+    color: #f8fafc;
+    cursor: pointer;
+    font-size: 28px;
+    line-height: 1;
+}
+
+.timeline-image-lightbox-close:hover,
+.timeline-image-lightbox-close:focus-visible {
+    background: rgba(125, 211, 252, 0.18);
+    outline: 2px solid rgba(125, 211, 252, 0.72);
+    outline-offset: 2px;
+}
+
+.timeline-image-lightbox-title,
+.timeline-image-lightbox-caption {
+    margin: 0;
+    padding-right: 48px;
+}
+
+.timeline-image-lightbox-title {
+    color: var(--timeline-text);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.timeline-image-lightbox-img {
+    width: 100%;
+    max-height: 72vh;
+    display: block;
+    object-fit: contain;
+    border-radius: 18px;
+    background: rgba(2, 6, 23, 0.74);
+}
+
+.timeline-image-lightbox-caption {
+    color: var(--timeline-text-muted);
+    line-height: 1.5;
+}
+
+body.timeline-lightbox-open {
+    overflow: hidden;
 }
 
 @keyframes timeline-panel-in {
@@ -1126,5 +1230,18 @@ a {
     .timeline-period-group-track {
         grid-auto-columns: minmax(246px, 82vw);
         gap: 16px;
+    }
+
+    .timeline-image-lightbox {
+        padding: 12px;
+    }
+
+    .timeline-image-lightbox-panel {
+        max-height: 94vh;
+        border-radius: 18px;
+    }
+
+    .timeline-image-lightbox-img {
+        max-height: 70vh;
     }
 }

@@ -26,12 +26,19 @@ const dom = {
     detailLocations: document.getElementById('timeline-detail-locations'),
     mapLink: document.getElementById('timeline-map-link'),
     scrollPrev: document.getElementById('timeline-scroll-prev'),
-    scrollNext: document.getElementById('timeline-scroll-next')
+    scrollNext: document.getElementById('timeline-scroll-next'),
+    imageLightbox: document.getElementById('timeline-image-lightbox'),
+    imageLightboxBackdrop: document.getElementById('timeline-image-lightbox-backdrop'),
+    imageLightboxClose: document.getElementById('timeline-image-lightbox-close'),
+    imageLightboxTitle: document.getElementById('timeline-image-lightbox-title'),
+    imageLightboxImage: document.getElementById('timeline-image-lightbox-img'),
+    imageLightboxCaption: document.getElementById('timeline-image-lightbox-caption')
 };
 
 const TIMELINE_ADMIN_ENTRY_URL = '/timeline/?admin=timeline';
 
 let timelineAdminPanel = null;
+let imageLightboxPreviousFocus = null;
 
 const state = {
     timeline: null,
@@ -231,6 +238,44 @@ const openLocationOnMap = locationName => {
     preferences.lastLocation = target;
     writePreferences(preferences);
     window.location.href = '/map/';
+};
+
+const closeImageLightbox = () => {
+    if (!dom.imageLightbox) {
+        return;
+    }
+    dom.imageLightbox.hidden = true;
+    document.body.classList.remove('timeline-lightbox-open');
+    if (dom.imageLightboxImage) {
+        dom.imageLightboxImage.removeAttribute('src');
+        dom.imageLightboxImage.alt = '';
+    }
+    if (imageLightboxPreviousFocus && typeof imageLightboxPreviousFocus.focus === 'function') {
+        imageLightboxPreviousFocus.focus();
+    }
+    imageLightboxPreviousFocus = null;
+};
+
+const openImageLightbox = entry => {
+    const imageUrl = normalizeMediaUrl(entry?.imageUrl);
+    if (!dom.imageLightbox || !dom.imageLightboxImage || !imageUrl) {
+        return;
+    }
+    imageLightboxPreviousFocus = document.activeElement;
+    const alt = entry.mediaAlt || `Illustration pour ${entry.title}`;
+    dom.imageLightboxImage.src = imageUrl;
+    dom.imageLightboxImage.alt = alt;
+    if (dom.imageLightboxTitle) {
+        dom.imageLightboxTitle.textContent = entry.title || 'Image de chronologie';
+    }
+    if (dom.imageLightboxCaption) {
+        const caption = normalizeText(entry.mediaAlt) || normalizeText(entry.summary);
+        dom.imageLightboxCaption.textContent = caption;
+        dom.imageLightboxCaption.hidden = !caption;
+    }
+    dom.imageLightbox.hidden = false;
+    document.body.classList.add('timeline-lightbox-open');
+    window.requestAnimationFrame(() => dom.imageLightboxClose?.focus());
 };
 
 const createTimelineImage = ({ src, alt = '', className = '', onError } = {}) => {
@@ -575,12 +620,18 @@ const renderDetail = entry => {
     if (entry.imageUrl) {
         const media = document.createElement('div');
         media.className = 'timeline-detail-media';
+        const mediaButton = document.createElement('button');
+        mediaButton.type = 'button';
+        mediaButton.className = 'timeline-detail-media-button';
+        mediaButton.setAttribute('aria-label', `Ouvrir l'image de ${entry.title} en grand`);
         const image = createTimelineImage({
             src: entry.imageUrl,
             alt: entry.mediaAlt || `Illustration pour ${entry.title}`
         });
         if (image) {
-            media.appendChild(image);
+            mediaButton.appendChild(image);
+            mediaButton.addEventListener('click', () => openImageLightbox(entry));
+            media.appendChild(mediaButton);
             dom.detailContent.appendChild(media);
         }
     }
@@ -887,6 +938,17 @@ const bindTrackNavigation = () => {
     window.addEventListener('resize', updateTrackNavigationState, { passive: true });
 };
 
+const bindImageLightbox = () => {
+    dom.imageLightboxClose?.addEventListener('click', closeImageLightbox);
+    dom.imageLightboxBackdrop?.addEventListener('click', closeImageLightbox);
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && dom.imageLightbox && !dom.imageLightbox.hidden) {
+            event.preventDefault();
+            closeImageLightbox();
+        }
+    });
+};
+
 const applyFilters = () => {
     const search = normalizeForSearch(state.filters.search);
     const period = normalizeText(state.filters.period);
@@ -1007,6 +1069,7 @@ const initialize = async () => {
     });
     timelineAdminPanel.bindTriggers([adminEntry]);
     bindTrackNavigation();
+    bindImageLightbox();
     bindFilters();
     fetchSession();
     try {
