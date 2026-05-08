@@ -866,9 +866,10 @@ a {
 }
 
 .timeline-detail-content {
+    width: 100%;
     color: var(--timeline-text);
     line-height: 1.8;
-    max-width: 88ch;
+    max-width: none;
 }
 
 .timeline-detail-context {
@@ -961,6 +962,7 @@ a {
     margin: 0;
     position: relative;
     z-index: 1;
+    max-width: 96ch;
 }
 
 .timeline-detail-tags,

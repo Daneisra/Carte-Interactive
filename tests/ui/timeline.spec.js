@@ -90,6 +90,9 @@ test.describe('Chronologie - UI', () => {
     if (entries[0].imageUrl) {
       await expect(page.locator('.timeline-detail-media img')).toBeVisible();
       await expect(page.locator('.timeline-detail-media img')).toHaveAttribute('src', /\/assets\/images\/Frise\//);
+      const detailWidth = await page.locator('#timeline-detail').evaluate(node => node.getBoundingClientRect().width);
+      const mediaWidth = await page.locator('.timeline-detail-media').evaluate(node => node.getBoundingClientRect().width);
+      expect(mediaWidth).toBeGreaterThan(detailWidth * 0.7);
     }
     await expect(page.locator('#timeline-status')).toContainText('evenements affiches');
   });

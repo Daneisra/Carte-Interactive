@@ -81,7 +81,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.11',
+    version: '0.17.12',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -137,6 +137,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-08',
+            title: 'Version 0.17.12 - Detail chronologie elargi',
+            summary: 'Le detail des evenements de chronologie utilise mieux la largeur du panneau apres l ajout de l agrandissement d image.'
+        },
         {
             date: '2026-05-07',
             title: 'Version 0.17.11 - Images chronologie agrandies',
