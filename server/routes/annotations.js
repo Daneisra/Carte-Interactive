@@ -73,20 +73,34 @@ module.exports = (register, context) => {
         if (!(await ensureAuthorized(req, res, 'admin'))) {
             return;
         }
-        const annotationId = params?.groups ? params.groups.id : params[1];
+        const rawAnnotationId = params?.id || params?.groups?.id || params?.[1];
+        let annotationId = '';
+        try {
+            annotationId = normalizeString(decodeURIComponent(rawAnnotationId || ''));
+        } catch (error) {
+            annotationId = normalizeString(rawAnnotationId || '');
+        }
         if (!annotationId) {
             json(res, 400, createErrorResponse('error', 'Annotation ID manquant.'));
             return;
         }
 
         const annotations = await readAnnotationsFile();
-        const next = annotations.filter(item => item?.id !== annotationId);
+        let deletedAnnotation = null;
+        const next = annotations.filter(item => {
+            const itemId = normalizeString(item?.id);
+            const shouldDelete = itemId === annotationId;
+            if (shouldDelete) {
+                deletedAnnotation = item;
+            }
+            return !shouldDelete;
+        });
         if (next.length === annotations.length) {
             json(res, 404, createErrorResponse('error', 'Annotation introuvable.'));
             return;
         }
         await writeAnnotationsFile(next);
-        broadcastSse('annotation.deleted', { id: annotationId });
+        broadcastSse('annotation.deleted', { id: annotationId, annotation: deletedAnnotation });
         json(res, 204, null);
     });
 };

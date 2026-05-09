@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 import { renderMarkdown } from '../../js/ui/markdown.mjs';
+
+const require = createRequire(import.meta.url);
+const registerAnnotationRoutes = require('../../server/routes/annotations');
 
 const tests = [
     {
@@ -36,6 +40,49 @@ const tests = [
             const html = renderMarkdown('- Item one\n- Item two');
             assert.equal(html, '<ul><li>Item one</li><li>Item two</li></ul>');
         }
+    },
+    {
+        name: 'deletes annotations using named router params and persists the file',
+        run: async () => {
+            const routes = [];
+            let writtenAnnotations = null;
+            let broadcastPayload = null;
+            let responseStatus = null;
+
+            registerAnnotationRoutes((method, pattern, handler) => {
+                routes.push({ method, pattern, handler });
+            }, {
+                logger: { child: () => ({}) },
+                json: (_res, status) => {
+                    responseStatus = status;
+                },
+                ensureAuthorized: async () => true,
+                readAnnotationsFile: async () => [
+                    { id: 'annotation 1', label: 'A supprimer' },
+                    { id: 'annotation_2', label: 'A garder' }
+                ],
+                writeAnnotationsFile: async annotations => {
+                    writtenAnnotations = annotations;
+                },
+                collectBody: async () => '',
+                normalizeString: value => (value ?? '').toString().trim(),
+                broadcastSse: (_eventName, payload) => {
+                    broadcastPayload = payload;
+                }
+            });
+
+            const route = routes.find(entry => entry.method === 'DELETE');
+            assert.ok(route);
+
+            await route.handler({}, {}, null, { id: 'annotation%201' });
+
+            assert.equal(responseStatus, 204);
+            assert.deepEqual(writtenAnnotations, [
+                { id: 'annotation_2', label: 'A garder' }
+            ]);
+            assert.equal(broadcastPayload.id, 'annotation 1');
+            assert.equal(broadcastPayload.annotation.label, 'A supprimer');
+        }
     }
 ];
 
@@ -43,7 +90,7 @@ let failed = false;
 
 for (const test of tests) {
     try {
-        test.run();
+        await test.run();
         console.log(`ok - ${test.name}`);
     } catch (error) {
         failed = true;
