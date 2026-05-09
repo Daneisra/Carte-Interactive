@@ -1,6 +1,6 @@
 {
   "name": "carte-interactive",
-  "version": "0.17.16",
+  "version": "0.17.17",
   "private": true,
   "scripts": {
     "test:ui": "playwright test",

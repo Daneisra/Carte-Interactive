@@ -62,7 +62,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.16',
+  version: '0.17.17',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -118,6 +118,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-09',
+      title: 'Version 0.17.17 - CI chronologie Firefox stabilisee',
+      summary: 'La navigation rapide par periode de la chronologie cible le bon groupe de maniere deterministe dans les tests Firefox.'
+    },
     {
       date: '2026-05-09',
       title: 'Version 0.17.16 - Chronologie mobile consolidee',

@@ -28,6 +28,18 @@ const loadTimelineEntries = async page => {
   return entries;
 };
 
+const sortEntriesByTimelineOrder = entries => entries
+  .map((entry, index) => {
+    const year = Number(entry?.year);
+    return {
+      entry,
+      index,
+      year: Number.isFinite(year) ? year : index
+    };
+  })
+  .sort((left, right) => left.year - right.year || left.index - right.index)
+  .map(item => item.entry);
+
 const countContiguousPeriods = entries => {
   let count = 0;
   let lastPeriod = null;
@@ -239,7 +251,7 @@ test.describe('Chronologie - UI', () => {
   });
 
   test('la navigation rapide par periode active le bon groupe', async ({ page }) => {
-    const entries = await loadTimelineEntries(page);
+    const entries = sortEntriesByTimelineOrder(await loadTimelineEntries(page));
     const groups = [];
     entries.forEach(entry => {
       const era = entry?.era || entry?.period || '';
@@ -263,8 +275,13 @@ test.describe('Chronologie - UI', () => {
 
     const periodChips = page.locator('.timeline-period-nav-chip');
     await expect(periodChips).toHaveCount(groups.length);
-    await periodChips.nth(1).click();
-    await expect(periodChips.nth(1)).toHaveAttribute('aria-pressed', 'true');
+    const targetEntry = targetGroup.entries[0];
+    const targetChip = page.locator(`.timeline-period-nav-chip[data-era-group-id="${targetEntry.id}"]`);
+    await expect(targetChip).toBeVisible();
+    await targetChip.scrollIntoViewIfNeeded();
+    await targetChip.click();
+    await expect.poll(() => readQueryParam(page, 'event')).toBe(targetEntry.id);
+    await expect(targetChip).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('#timeline-stage-overview-title')).toHaveText(targetGroup.entries[0].title);
     await expect(page.locator('#timeline-detail-title')).toHaveText(targetGroup.entries[0].title);
   });
