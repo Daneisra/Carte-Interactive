@@ -79,6 +79,10 @@ body::before {
     gap: 18px;
 }
 
+.home-shell > * {
+    min-width: 0;
+}
+
 .home-shell::before,
 .home-shell::after {
     content: '';
@@ -1292,6 +1296,10 @@ button:focus-visible {
 }
 
 @media (max-width: 720px) {
+    body {
+        background-attachment: scroll;
+    }
+
     .home-shell {
         padding: 12px 12px 16px;
         gap: 12px;
@@ -1319,10 +1327,25 @@ button:focus-visible {
 
     .home-nav {
         width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
         gap: 10px 14px;
         border-radius: 18px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .home-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .home-nav a {
+        flex: 0 0 auto;
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
     }
 
     .home-header-actions {
@@ -1333,6 +1356,7 @@ button:focus-visible {
     }
 
     .home-link-button {
+        min-height: 44px;
         width: 100%;
         text-align: center;
     }
@@ -1439,6 +1463,10 @@ button:focus-visible {
     }
 
     .home-cta {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         text-align: center;
     }
 
@@ -1458,6 +1486,21 @@ button:focus-visible {
     .home-card-actions .home-cta,
     .home-card-actions button {
         width: 100%;
+    }
+
+    .home-support-links,
+    .home-support-roll20-list {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .home-support-roll20-list .home-link-button {
+        width: 100%;
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: normal;
     }
 
     .home-news-head {
