@@ -35,6 +35,30 @@ const mockAdminPatch = async (page, routePattern, payloadKey) => {
   return () => captured;
 };
 
+const expectAdminDialogFitsMobile = async (page, overlaySelector) => {
+  const metrics = await page.locator(overlaySelector).evaluate(overlay => {
+    const dialog = overlay.querySelector('.admin-dialog');
+    const content = overlay.querySelector('.admin-content');
+    const close = overlay.querySelector('.admin-close');
+    const dialogRect = dialog?.getBoundingClientRect();
+    return {
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      dialogWidth: dialogRect ? Math.ceil(dialogRect.width) : 0,
+      dialogHeight: dialogRect ? Math.ceil(dialogRect.height) : 0,
+      contentClientWidth: content?.clientWidth || 0,
+      contentScrollWidth: content?.scrollWidth || 0,
+      closeHeight: close?.getBoundingClientRect().height || 0
+    };
+  });
+
+  expect(metrics.dialogWidth).toBeGreaterThan(0);
+  expect(metrics.dialogWidth).toBeLessThanOrEqual(metrics.viewportWidth);
+  expect(metrics.dialogHeight).toBeLessThanOrEqual(metrics.viewportHeight);
+  expect(metrics.contentScrollWidth).toBeLessThanOrEqual(metrics.contentClientWidth + 1);
+  expect(metrics.closeHeight).toBeGreaterThanOrEqual(44);
+};
+
 test.describe('Points d\'entree admin', () => {
   test('les panneaux admin dedies restent fermes pour un visiteur', async ({ page }) => {
     await page.goto('/?admin=home');
@@ -454,5 +478,28 @@ test.describe('Points d\'entree admin', () => {
 
     await expect(page.locator('#editor-type')).toHaveValue('Fortress');
     await expect(fortressButton).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('les panneaux admin restent exploitables sur mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsAdmin(page);
+
+    await page.goto('/?admin=home');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('#home-admin-overlay')).toBeVisible();
+    await expectAdminDialogFitsMobile(page, '#home-admin-overlay');
+
+    await page.goto('/timeline/?admin=timeline');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('#timeline-admin-overlay')).toBeVisible();
+    await expectAdminDialogFitsMobile(page, '#timeline-admin-overlay');
+
+    await page.goto('/map/');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('#profile-button').click();
+    await expect(page.locator('#quick-admin-panel')).toBeVisible({ timeout: 10000 });
+    await page.locator('#quick-admin-panel').click();
+    await expect(page.locator('#admin-overlay')).toBeVisible();
+    await expectAdminDialogFitsMobile(page, '#admin-overlay');
   });
 });

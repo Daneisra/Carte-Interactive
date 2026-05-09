@@ -18,6 +18,7 @@ body.admin-surface-open {
 }
 
 .admin-dialog {
+    box-sizing: border-box;
     width: 100vw;
     max-width: none;
     min-width: 0;
@@ -31,6 +32,12 @@ body.admin-surface-open {
     display: flex;
     flex-direction: column;
     gap: 0;
+}
+
+.admin-dialog *,
+.admin-dialog *::before,
+.admin-dialog *::after {
+    box-sizing: border-box;
 }
 
 @supports (height: 100dvh) {
@@ -78,7 +85,9 @@ body.admin-surface-open {
     gap: 16px;
     padding: 16px 28px 28px;
     overflow-y: auto;
+    overflow-x: hidden;
     flex: 1;
+    min-width: 0;
     scrollbar-gutter: stable;
 }
 
@@ -91,6 +100,7 @@ body.admin-surface-open {
     flex-direction: column;
     gap: 8px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    min-width: 0;
 }
 
 .admin-section h3 {
@@ -131,6 +141,7 @@ body.admin-surface-open {
     display: grid;
     grid-template-columns: 1fr;
     gap: 12px;
+    min-width: 0;
 }
 
 .admin-home-fieldset {
@@ -140,6 +151,7 @@ body.admin-surface-open {
     background: rgba(15, 23, 42, 0.42);
     display: grid;
     gap: 8px;
+    min-width: 0;
 }
 
 .admin-home-fieldset legend {
@@ -275,6 +287,7 @@ body.admin-surface-open {
 .admin-timeline-list {
     display: grid;
     gap: 12px;
+    min-width: 0;
 }
 
 .admin-timeline-card {
@@ -284,6 +297,7 @@ body.admin-surface-open {
     padding: 12px;
     display: grid;
     gap: 12px;
+    min-width: 0;
 }
 
 .admin-timeline-card-header {
@@ -366,23 +380,58 @@ body.admin-surface-open {
 }
 
 @media (max-width: 640px) {
+    .admin-dialog {
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+
     .admin-header {
-        padding-top: 16px;
-        padding-bottom: 12px;
+        gap: 12px;
+        padding: 14px 14px 10px;
     }
 
     .admin-header h2 {
         font-size: 18px;
     }
 
+    .admin-close {
+        flex: 0 0 auto;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .admin-content {
+        gap: 12px;
+        padding: 12px 12px 20px;
+    }
+
+    .admin-section,
+    .admin-home-fieldset,
+    .admin-timeline-card {
+        border-radius: 14px;
+        padding: 12px;
+    }
+
+    .admin-dialog input,
+    .admin-dialog textarea,
+    .admin-dialog select {
+        min-height: 44px;
+        font-size: 16px;
+    }
+
     .admin-dialog .secondary-button,
     .admin-dialog .tertiary-button {
+        min-height: 44px;
         width: 100%;
         justify-content: center;
     }
 
     .admin-section-heading-actions,
-    .admin-timeline-card-actions {
+    .admin-timeline-card-actions,
+    .admin-timeline-upload-row {
         width: 100%;
+    }
+
+    .admin-timeline-card-header {
+        flex-direction: column;
     }
 }

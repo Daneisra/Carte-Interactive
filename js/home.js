@@ -81,7 +81,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.17',
+    version: '0.17.18',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -137,6 +137,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-09',
+            title: 'Version 0.17.18 - Admin mobile consolide',
+            summary: 'Les panneaux admin accueil, chronologie et carte sont mieux adaptes au telephone avec plein ecran, scroll vertical et controles tactiles.'
+        },
         {
             date: '2026-05-09',
             title: 'Version 0.17.17 - CI chronologie Firefox stabilisee',
