@@ -59,6 +59,10 @@ a {
     padding: 20px;
 }
 
+.timeline-shell > * {
+    min-width: 0;
+}
+
 .timeline-header {
     position: sticky;
     top: 12px;
@@ -1167,10 +1171,60 @@ body.timeline-lightbox-open {
         padding: 14px;
     }
 
+    .timeline-header {
+        top: 8px;
+        gap: 10px;
+        padding: 12px;
+    }
+
     .timeline-header,
     .timeline-stage,
     .timeline-detail {
         border-radius: 20px;
+    }
+
+    .timeline-brand {
+        width: 100%;
+    }
+
+    .timeline-brand-mark {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+    }
+
+    .timeline-nav {
+        width: 100%;
+        justify-self: stretch;
+        justify-content: flex-start;
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .timeline-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .timeline-nav a {
+        flex: 0 0 auto;
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .timeline-header-actions {
+        width: 100%;
+        justify-self: stretch;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 8px;
+    }
+
+    .timeline-header-actions .timeline-link-button {
+        width: 100%;
     }
 
     .timeline-main {
@@ -1202,6 +1256,28 @@ body.timeline-lightbox-open {
 
     .timeline-filters {
         grid-template-columns: 1fr;
+    }
+
+    .timeline-reset-button {
+        width: 100%;
+    }
+
+    .timeline-period-nav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .timeline-period-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .timeline-period-nav-chip {
+        flex: 0 0 auto;
+        min-height: 42px;
     }
 
     .timeline-stage-overview-meta {
@@ -1239,6 +1315,7 @@ body.timeline-lightbox-open {
     }
 
     .timeline-image-lightbox-panel {
+        width: 100%;
         max-height: 94vh;
         border-radius: 18px;
     }

@@ -81,7 +81,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.15',
+    version: '0.17.16',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -137,6 +137,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-09',
+            title: 'Version 0.17.16 - Chronologie mobile consolidee',
+            summary: 'La chronologie mobile gagne un header compact, une navigation tactile, des filtres pleine largeur et une lightbox mieux bornee.'
+        },
         {
             date: '2026-05-09',
             title: 'Version 0.17.15 - Accueil mobile consolide',

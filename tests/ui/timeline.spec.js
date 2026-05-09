@@ -280,12 +280,36 @@ test.describe('Chronologie - mobile', () => {
     await page.goto('/timeline/');
     await page.waitForLoadState('domcontentloaded');
 
+    const hasHorizontalOverflow = await page.evaluate(() => (
+      document.documentElement.scrollWidth > document.documentElement.clientWidth + 2
+    ));
+    expect(hasHorizontalOverflow).toBeFalsy();
+
+    const navBox = await page.locator('.timeline-nav').boundingBox();
+    const headerBox = await page.locator('.timeline-header').boundingBox();
+    expect(navBox).toBeTruthy();
+    expect(headerBox).toBeTruthy();
+    expect(navBox.width).toBeLessThanOrEqual(headerBox.width);
+
     await expect(page.locator('.timeline-filters')).toBeVisible();
+    const searchBox = await page.locator('#timeline-search').boundingBox();
+    expect(searchBox).toBeTruthy();
+    expect(searchBox.height).toBeGreaterThanOrEqual(42);
     await expect(page.locator('.timeline-card')).toHaveCount(entries.length);
 
     await page.locator('.timeline-card').nth(targetIndex).click();
     await expect(page.locator('#timeline-detail-title')).toHaveText(entries[targetIndex].title);
     await expect(page.locator('.timeline-detail-actions .timeline-link-button')).toHaveCount(2);
     await expect(page.locator('#timeline-map-link')).toBeVisible();
+
+    if (entries[targetIndex].imageUrl) {
+      await page.locator('.timeline-detail-media-button').click();
+      await expect(page.locator('#timeline-image-lightbox')).toBeVisible();
+      const lightboxPanel = await page.locator('.timeline-image-lightbox-panel').boundingBox();
+      expect(lightboxPanel).toBeTruthy();
+      expect(lightboxPanel.width).toBeLessThanOrEqual(390);
+      await page.keyboard.press('Escape');
+      await expect(page.locator('#timeline-image-lightbox')).toBeHidden();
+    }
   });
 });
