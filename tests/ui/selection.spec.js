@@ -154,3 +154,31 @@ test.describe('Carte Interactive - UI', () => {
     await expect(darkButton).toHaveAttribute('aria-pressed', 'false');
   });
 });
+
+test.describe('Carte Interactive - mobile', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('la carte garde une barre mobile compacte et un panneau lieu exploitable', async ({ page }) => {
+    await waitForAppReady(page);
+
+    await expect(page.locator('#map-controls')).toBeVisible();
+    const hasHorizontalOverflow = await page.evaluate(() => (
+      document.documentElement.scrollWidth > document.documentElement.clientWidth + 2
+    ));
+    expect(hasHorizontalOverflow).toBeFalsy();
+
+    const controlsBox = await page.locator('#map-controls').boundingBox();
+    expect(controlsBox).toBeTruthy();
+    expect(controlsBox.height).toBeLessThanOrEqual(74);
+
+    const firstLocation = page.locator('.location:visible').first();
+    await firstLocation.click();
+
+    const sidebar = page.locator('#info-sidebar');
+    await expect(sidebar).toHaveClass(/open/);
+    const infoBox = await sidebar.boundingBox();
+    expect(infoBox).toBeTruthy();
+    expect(infoBox.width).toBeGreaterThan(360);
+    expect(infoBox.y).toBeGreaterThan(0);
+  });
+});

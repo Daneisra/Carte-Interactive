@@ -62,7 +62,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.13',
+  version: '0.17.14',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -118,6 +118,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-09',
+      title: 'Version 0.17.14 - Premiere tranche mobile carte',
+      summary: 'La carte gagne une barre d outils mobile compacte, un flux temps reel mieux place et un panneau lieu prioritaire sur telephone.'
+    },
     {
       date: '2026-05-09',
       title: 'Version 0.17.13 - Suppression annotations persistante',

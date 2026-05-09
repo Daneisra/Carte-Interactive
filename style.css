@@ -14,6 +14,11 @@
     white-space: nowrap;
     border: 0;
 }
+
+[hidden] {
+    display: none !important;
+}
+
 .markdown-content {
     line-height: 1.55;
 }
@@ -3107,8 +3112,9 @@ body[data-theme="light"] #events-filter option {
 
     #sidebar {
         width: 100%;
+        box-sizing: border-box;
         height: auto;
-        max-height: min(50vh, 480px);
+        max-height: min(44vh, 430px);
         border-right: none;
         border-bottom: 2px solid #333;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
@@ -3125,10 +3131,11 @@ body[data-theme="light"] #events-filter option {
         width: 100%;
         flex: 1 1 auto;
         height: auto;
-        min-height: 52vh;
+        min-height: 56vh;
     }
 
     #info-sidebar {
+        box-sizing: border-box;
         left: 0;
         right: 0;
         top: auto;
@@ -3142,6 +3149,7 @@ body[data-theme="light"] #events-filter option {
         border-radius: 18px 18px 0 0;
         padding: 16px 14px 20px;
         transform: translateY(100%);
+        z-index: 1200;
     }
 
     #info-sidebar.open {
@@ -3150,6 +3158,25 @@ body[data-theme="light"] #events-filter option {
 
     #info-sidebar.open ~ #map-controls {
         transform: none;
+        opacity: 0.18;
+        pointer-events: none;
+    }
+
+    #events-feed {
+        box-sizing: border-box;
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        bottom: calc(86px + env(safe-area-inset-bottom));
+        width: auto;
+        max-height: min(28vh, 220px);
+        z-index: 999;
+    }
+
+    #info-sidebar.open ~ #events-feed,
+    body.info-sidebar-open #events-feed {
+        opacity: 0;
+        pointer-events: none;
     }
 
     #info-content {
@@ -3179,22 +3206,34 @@ body[data-theme="light"] #events-filter option {
     }
 
     #map-controls {
+        box-sizing: border-box;
         left: 16px;
         right: 16px;
         bottom: 16px;
-        justify-content: center;
-        flex-wrap: wrap;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
         gap: 12px;
         padding: 12px 16px;
         transform: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        z-index: 1100;
+    }
+
+    #map-controls::-webkit-scrollbar {
+        display: none;
     }
 
     #map-controls button {
+        flex: 0 0 auto;
         font-size: 22px;
         padding: 12px;
     }
 
     #map-controls .map-home-link {
+        flex: 0 0 auto;
         min-height: 46px;
         padding: 0 18px;
         font-size: 16px;
@@ -3207,7 +3246,7 @@ body[data-theme="light"] #events-filter option {
 
 @media (max-width: 768px) {
     #sidebar {
-        max-height: min(48vh, 420px);
+        max-height: min(42vh, 390px);
         padding: 14px 12px 16px;
     }
 
@@ -3298,7 +3337,7 @@ body[data-theme="light"] #events-filter option {
     }
 
     #sidebar {
-        max-height: min(46vh, 360px);
+        max-height: min(40vh, 330px);
     }
 
     #info-header {
@@ -3322,8 +3361,46 @@ body[data-theme="light"] #events-filter option {
     }
 
     #map-controls {
-        gap: 10px;
-        padding: 12px;
+        left: 10px;
+        right: 10px;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        gap: 8px;
+        padding: 10px;
+        border-radius: 14px;
+    }
+
+    #map-controls button {
+        min-width: 42px;
+        min-height: 42px;
+        padding: 9px;
+        font-size: 19px;
+    }
+
+    #map-controls .map-home-link {
+        min-height: 42px;
+        padding: 0 14px;
+        font-size: 14px;
+    }
+
+    #events-feed {
+        left: 10px;
+        right: 10px;
+        bottom: calc(68px + env(safe-area-inset-bottom));
+        max-height: min(24vh, 180px);
+        padding: 10px;
+    }
+
+    #events-feed .feed-header {
+        gap: 8px;
+    }
+
+    #events-feed-title {
+        font-size: 11px;
+    }
+
+    #events-filter {
+        max-width: 120px;
+        font-size: 11px;
     }
 
     #history-container {

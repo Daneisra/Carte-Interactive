@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.13`.
+Version actuelle : `0.17.14`.
 
 ## Réalisations majeures livrées
 
@@ -120,6 +120,7 @@ Version actuelle : `0.17.13`.
 
 - [x] Carte : bouton theme clair de la barre d'outil fiabilise avec etat accessible et preference locale.
 - [x] Carte : suppression des annotations fiabilisee cote API, persistance JSON et synchronisation temps reel.
+- [x] Mobile carte : barre d'outils compacte, flux temps reel repositionne et panneau lieu prioritaire en bottom sheet.
 - [ ] Intégration mobile fluide et complète sur accueil, carte, chronologie, planning et panneaux admin, sans dégrader la version desktop.
 - [ ] QA responsive dédiée : navigation tactile, panneaux latéraux, modales, formulaires longs, scroll, performance et lisibilité sur téléphone.
 - [ ] Maintien fiable de la connexion Discord : reprise, expiration contrôlée, messages d'état.
