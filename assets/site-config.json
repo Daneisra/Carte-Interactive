@@ -1,5 +1,5 @@
 {
-  "version": "0.17.21",
+  "version": "0.17.22",
   "home": {
     "kicker": "Accueil - Hub narratif",
     "title": "Entrez dans l'univers avant d'ouvrir la carte",
@@ -69,6 +69,11 @@
     "footerNote": "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   "changelog": [
+        {
+            "date": "2026-05-12",
+            "title": "Version 0.17.22 - Compteur Discord fiabilise",
+            "summary": "Le compteur Discord de l'accueil affiche un etat live ou un fallback manuel clair quand l API Discord est indisponible."
+        },
         {
             "date": "2026-05-11",
             "title": "Version 0.17.21 - Telechargement assets fiabilise",

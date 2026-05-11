@@ -44,6 +44,7 @@
     communityDiscordTitle: document.getElementById('home-community-discord-title'),
     communityDiscordCopy: document.getElementById('home-community-discord-copy'),
     communityDiscordLink: document.getElementById('home-community-discord-link'),
+    communityDiscordProof: document.getElementById('home-community-discord-proof'),
     discordWidgetCard: document.getElementById('home-discord-widget-card'),
     discordWidget: document.getElementById('home-discord-widget'),
     discordWidgetLink: document.getElementById('home-discord-widget-link'),
@@ -76,12 +77,13 @@
 const PREFERENCES_STORAGE_KEY = 'interactive-map-preferences';
 const SITE_CONFIG_URL = '/assets/site-config.json';
 const LOCATIONS_DATA_URL = '/assets/locations.json';
+const DISCORD_PROOF_URL = '/api/community/discord';
 const LIVE_ITEMS_LIMIT = 5;
 const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr_FR';
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.21',
+    version: '0.17.22',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -137,6 +139,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-12',
+            title: 'Version 0.17.22 - Compteur Discord fiabilise',
+            summary: "Le compteur Discord de l'accueil affiche un etat live ou un fallback manuel clair quand l API Discord est indisponible."
+        },
         {
             date: '2026-05-11',
             title: 'Version 0.17.21 - Telechargement assets fiabilise',
@@ -427,9 +434,11 @@ const loadSiteConfig = async () => {
         }
         const payload = await response.json();
         applySiteConfig(payload);
+        await fetchDiscordProof();
     } catch (error) {
         console.warn('[home] site config unavailable, fallback defaults used', error);
         applySiteConfig(DEFAULT_SITE_CONFIG);
+        await fetchDiscordProof();
     }
 };
 
@@ -594,6 +603,20 @@ const renderStat = (valueNode, labelNode, value, label) => {
     setTextContent(labelNode, label || '');
 };
 
+const setDiscordProofState = (message, state = 'loading') => {
+    if (!dom.communityDiscordProof) {
+        return;
+    }
+    dom.communityDiscordProof.hidden = !message;
+    dom.communityDiscordProof.textContent = message || '';
+    dom.communityDiscordProof.dataset.state = state;
+};
+
+const formatDiscordProofCount = value => {
+    const count = Math.max(0, Number(value) || 0);
+    return count.toLocaleString('fr-FR');
+};
+
 const renderDiscordWidget = community => {
     const guildId = normalizeText(community?.proof?.guildId);
     const discordUrl = normalizeText(community?.discordUrl) || DEFAULT_SITE_CONFIG.community.discordUrl;
@@ -621,6 +644,10 @@ const applyCommunityHighlights = community => {
     setTextContent(dom.communityDiscordBadge, discord.badge || DEFAULT_SITE_CONFIG.community.discord.badge);
     setTextContent(dom.communityDiscordTitle, discord.title || DEFAULT_SITE_CONFIG.community.discord.title);
     setTextContent(dom.communityDiscordCopy, discord.copy || DEFAULT_SITE_CONFIG.community.discord.copy);
+    const proof = community?.proof || DEFAULT_SITE_CONFIG.community.proof;
+    const manualCount = Math.max(0, Number(proof?.manualCount) || 0);
+    const proofLabel = proof?.label || DEFAULT_SITE_CONFIG.community.proof.label;
+    setDiscordProofState(`${formatDiscordProofCount(manualCount)} ${proofLabel} (estimation)`, 'fallback');
 
     setTextContent(dom.communityYoutubeBadge, youtube.badge || DEFAULT_SITE_CONFIG.community.youtube.badge);
     setTextContent(dom.communityYoutubeTitle, youtube.title || DEFAULT_SITE_CONFIG.community.youtube.title);
@@ -633,6 +660,33 @@ const applyCommunityHighlights = community => {
     setTextContent(dom.proofNote, 'Discord reste le point d entree principal. Retrouvez aussi les recaps YouTube et les discussions communautaires.');
     setTextContent(dom.communityNote, 'Discord reste le point d entree principal. Le widget ci-dessous reprend l activite du serveur en direct.');
     renderDiscordWidget(community);
+};
+
+const fetchDiscordProof = async () => {
+    if (!dom.communityDiscordProof) {
+        return;
+    }
+    setDiscordProofState('Compteur Discord en verification...', 'loading');
+    try {
+        const response = await fetch(DISCORD_PROOF_URL, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        const label = payload?.label || DEFAULT_SITE_CONFIG.community.proof.label;
+        const count = formatDiscordProofCount(payload?.count);
+        if (payload?.live) {
+            setDiscordProofState(`${count} ${label} en direct`, 'live');
+            setTextContent(dom.communityNote, payload?.note || 'Compteur Discord live actif.');
+            return;
+        }
+        const message = payload?.message || `Compteur live indisponible - estimation: ${count} ${label}`;
+        setDiscordProofState(message, 'fallback');
+        setTextContent(dom.communityNote, payload?.note || 'Discord reste le point d entree principal.');
+    } catch (error) {
+        console.warn('[home] discord proof unavailable', error);
+        setDiscordProofState('Compteur Discord indisponible pour le moment', 'error');
+    }
 };
 
 const renderNewsItems = events => {

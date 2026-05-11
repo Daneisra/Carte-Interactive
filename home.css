@@ -1843,6 +1843,32 @@ button:focus-visible {
     line-height: 1.55;
 }
 
+.home-community-proof {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 24px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(125, 211, 252, 0.2);
+    background: rgba(14, 165, 233, 0.1);
+    color: #bae6fd;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.home-community-proof[data-state="fallback"] {
+    border-color: rgba(251, 191, 36, 0.28);
+    background: rgba(251, 191, 36, 0.1);
+    color: #fde68a;
+}
+
+.home-community-proof[data-state="error"] {
+    border-color: rgba(248, 113, 113, 0.28);
+    background: rgba(248, 113, 113, 0.1);
+    color: #fecaca;
+}
+
 .home-community-link-label {
     margin-top: 4px;
     display: inline-flex;

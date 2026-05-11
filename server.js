@@ -68,7 +68,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.21',
+  version: '0.17.22',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -124,6 +124,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-12',
+      title: 'Version 0.17.22 - Compteur Discord fiabilise',
+      summary: "Le compteur Discord de l'accueil affiche un etat live ou un fallback manuel clair quand l API Discord est indisponible."
+    },
     {
       date: '2026-05-11',
       title: 'Version 0.17.21 - Telechargement assets fiabilise',
@@ -2471,7 +2476,9 @@ const server = http.createServer(async (req, res) => {
                 note,
                 guildId: inviteStats.guildId || normalizeString(proof.guildId) || null,
                 inviteUrl: config?.community?.discordUrl || null,
-                live: true
+                live: true,
+                fallback: false,
+                message: ''
               }), { 'Content-Type': 'application/json' });
               return;
             }
@@ -2490,7 +2497,9 @@ const server = http.createServer(async (req, res) => {
                 note,
                 guildId: live.guildId,
                 inviteUrl: live.instantInvite || config?.community?.discordUrl || null,
-                live: true
+                live: true,
+                fallback: false,
+                message: ''
               }), { 'Content-Type': 'application/json' });
               return;
             } catch (error) {
@@ -2507,7 +2516,11 @@ const server = http.createServer(async (req, res) => {
           note,
           guildId: normalizeString(proof.guildId) || null,
           inviteUrl: config?.community?.discordUrl || null,
-          live: false
+          live: false,
+          fallback: proof.mode === 'discord',
+          message: proof.mode === 'discord'
+            ? `Compteur live indisponible - estimation: ${manualCount.toLocaleString('fr-FR')} ${label}`
+            : `${manualCount.toLocaleString('fr-FR')} ${label} (estimation)`
         }), { 'Content-Type': 'application/json' });
       } catch (error) {
         send(res, 500, JSON.stringify({ status: 'error', message: 'Discord community stats unavailable.' }), { 'Content-Type': 'application/json' });

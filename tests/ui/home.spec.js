@@ -1,5 +1,54 @@
 const { test, expect } = require('@playwright/test');
 
+test.describe('Accueil - compteur Discord', () => {
+  test('affiche le compteur Discord live quand l API repond', async ({ page }) => {
+    await page.route('**/api/community/discord', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'ok',
+        live: true,
+        fallback: false,
+        count: 321,
+        label: 'membres sur Discord',
+        note: 'Compteur Discord live actif.'
+      })
+    }));
+
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const proof = page.locator('#home-community-discord-proof');
+    await expect(proof).toHaveText('321 membres sur Discord en direct');
+    await expect(proof).toHaveAttribute('data-state', 'live');
+    await expect(page.locator('#home-community-note')).toContainText('Compteur Discord live actif.');
+  });
+
+  test('affiche un fallback clair quand le compteur Discord live est indisponible', async ({ page }) => {
+    await page.route('**/api/community/discord', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'ok',
+        live: false,
+        fallback: true,
+        count: 200,
+        label: 'membres sur Discord',
+        message: 'Compteur live indisponible - estimation: 200 membres sur Discord',
+        note: 'Lore, sessions, annonces et coordination des groupes JDR.'
+      })
+    }));
+
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const proof = page.locator('#home-community-discord-proof');
+    await expect(proof).toHaveText('Compteur live indisponible - estimation: 200 membres sur Discord');
+    await expect(proof).toHaveAttribute('data-state', 'fallback');
+    await expect(page.locator('#home-community-note')).toContainText('Lore, sessions, annonces et coordination des groupes JDR.');
+  });
+});
+
 test.describe('Accueil - mobile', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
