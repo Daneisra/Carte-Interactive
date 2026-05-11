@@ -4,6 +4,11 @@ import { renderMarkdown } from '../../js/ui/markdown.mjs';
 
 const require = createRequire(import.meta.url);
 const registerAnnotationRoutes = require('../../server/routes/annotations');
+const {
+    buildZipArgs,
+    buildTarArgs,
+    getArchiveDescriptor
+} = require('../../server/utils/assetsArchive');
 
 const tests = [
     {
@@ -82,6 +87,35 @@ const tests = [
             ]);
             assert.equal(broadcastPayload.id, 'annotation 1');
             assert.equal(broadcastPayload.annotation.label, 'A supprimer');
+        }
+    },
+    {
+        name: 'builds asset archive commands with consistent exclusions',
+        run: () => {
+            assert.deepEqual(getArchiveDescriptor('zip'), {
+                filename: 'assets.zip',
+                contentType: 'application/zip'
+            });
+            assert.deepEqual(getArchiveDescriptor('tar'), {
+                filename: 'assets.tar.gz',
+                contentType: 'application/gzip'
+            });
+            assert.deepEqual(buildZipArgs('/tmp/assets.zip'), [
+                '-r',
+                '/tmp/assets.zip',
+                '.',
+                '-x',
+                'logs/*',
+                '-x',
+                'icons/README.md'
+            ]);
+            assert.deepEqual(buildTarArgs('/tmp/assets.tar.gz'), [
+                '-czf',
+                '/tmp/assets.tar.gz',
+                '--exclude=logs',
+                '--exclude=icons/README.md',
+                '.'
+            ]);
         }
     }
 ];

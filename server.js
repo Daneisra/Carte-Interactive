@@ -9,6 +9,12 @@ const { execFile } = require('child_process');
 const { URL, pathToFileURL } = require('url');
 const logger = require('./server/utils/logger');
 const { withFileLock } = require('./server/utils/fileLock');
+const {
+  getArchiveDescriptor,
+  buildZipArgs,
+  buildTarArgs,
+  buildPowershellArchiveCommand
+} = require('./server/utils/assetsArchive');
 const createRouter = require('./server/routes');
 
 const loadEnvFile = filePath => {
@@ -62,7 +68,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.20',
+  version: '0.17.21',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -118,6 +124,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-11',
+      title: 'Version 0.17.21 - Telechargement assets fiabilise',
+      summary: 'La generation d archive assets corrige le fallback tar, harmonise les exclusions et expose la taille de l archive au telechargement.'
+    },
     {
       date: '2026-05-11',
       title: 'Version 0.17.20 - Session Discord prolongee',
@@ -2296,7 +2307,6 @@ const server = http.createServer(async (req, res) => {
       if (!(await ensureAuthorized(req, res, 'admin'))) {
         return;
       }
-      const filename = 'assets.zip';
       let tempDir = null;
       let archivePath = null;
       let methodUsed = null;
@@ -2311,7 +2321,7 @@ const server = http.createServer(async (req, res) => {
       };
       const createWithZipCmd = async targetPath => {
         const zipCommand = process.env.ZIP_COMMAND || 'zip';
-        const args = ['-r', targetPath, '.', '-x', 'logs/*'];
+        const args = buildZipArgs(targetPath);
         await new Promise((resolve, reject) => {
           execFile(zipCommand, args, { cwd: ASSETS_PATH }, (error, stdout, stderr) => {
             if (error) {
@@ -2324,14 +2334,7 @@ const server = http.createServer(async (req, res) => {
         });
       };
       const createWithPowershell = async targetPath => {
-        const command = [
-          'Compress-Archive',
-          '-Path', '*',
-          '-DestinationPath', `"${targetPath}"`,
-          '-Force',
-          '-CompressionLevel', 'Optimal',
-          '-Exclude', 'logs/*', 'icons/README.md'
-        ].join(' ');
+        const command = buildPowershellArchiveCommand(targetPath);
         await new Promise((resolve, reject) => {
           execFile('powershell', ['-Command', command], { cwd: ASSETS_PATH }, (error, stdout, stderr) => {
             if (error) {
@@ -2344,7 +2347,7 @@ const server = http.createServer(async (req, res) => {
         });
       };
       const createWithTar = async targetPath => {
-        const args = ['-czf', targetPath, '--exclude=logs', '--exclude=icons/README.md', '.'];
+        const args = buildTarArgs(targetPath);
         await new Promise((resolve, reject) => {
           execFile('tar', args, { cwd: ASSETS_PATH }, (error, stdout, stderr) => {
             if (error) {
@@ -2358,6 +2361,8 @@ const server = http.createServer(async (req, res) => {
       };
       try {
         tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'assets-zip-'));
+        let descriptor = getArchiveDescriptor('zip');
+        let filename = descriptor.filename;
         archivePath = path.join(tempDir, filename);
         try {
           await createWithZipCmd(archivePath);
@@ -2368,7 +2373,8 @@ const server = http.createServer(async (req, res) => {
             await createWithPowershell(archivePath);
             methodUsed = 'powershell';
           } else if (missingZip) {
-            filename = 'assets.tar.gz';
+            descriptor = getArchiveDescriptor('tar');
+            filename = descriptor.filename;
             archivePath = path.join(tempDir, filename);
             await createWithTar(archivePath);
             methodUsed = 'tar';
@@ -2376,11 +2382,16 @@ const server = http.createServer(async (req, res) => {
             throw zipError;
           }
         }
+        descriptor = getArchiveDescriptor(methodUsed === 'tar' ? 'tar' : 'zip');
+        const archiveStat = await fs.promises.stat(archivePath);
         res.writeHead(200, {
           ...SECURITY_HEADERS,
-          'Content-Type': methodUsed === 'tar' ? 'application/gzip' : 'application/zip',
-          'Content-Disposition': `attachment; filename="${filename}"`,
-          'X-Archive-Method': methodUsed || 'unknown'
+          'Content-Type': descriptor.contentType,
+          'Content-Disposition': `attachment; filename="${descriptor.filename}"`,
+          'Content-Length': archiveStat.size,
+          'Cache-Control': 'no-store',
+          'X-Archive-Method': methodUsed || 'unknown',
+          'X-Archive-Size': archiveStat.size
         });
         const stream = fs.createReadStream(archivePath);
         stream.on('error', async error => {
