@@ -1,5 +1,5 @@
 {
-  "version": "0.17.19",
+  "version": "0.17.20",
   "home": {
     "kicker": "Accueil - Hub narratif",
     "title": "Entrez dans l'univers avant d'ouvrir la carte",
@@ -69,6 +69,11 @@
     "footerNote": "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   "changelog": [
+        {
+            "date": "2026-05-11",
+            "title": "Version 0.17.20 - Session Discord prolongee",
+            "summary": "La verification de session renouvelle le cookie Discord actif afin de maintenir la connexion pendant l usage regulier."
+        },
         {
             "date": "2026-05-11",
             "title": "Version 0.17.19 - QA responsive mobile",

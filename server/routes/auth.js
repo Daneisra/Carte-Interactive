@@ -42,6 +42,7 @@ module.exports = (register, context) => {
         createSession,
         getSession,
         sendSessionCookie,
+        refreshSessionCookie,
         clearSessionCookie,
         destroySession,
         findUserById,
@@ -131,7 +132,7 @@ module.exports = (register, context) => {
                 session.data.availability = sanitized.availability || null;
                 session.data.account = sanitized.account || null;
             }
-            return { user: sanitized };
+            return { user: sanitized, sessionId: session.sessionId };
         }
         if (data.role) {
             const role = sanitizeRole(data.role);
@@ -152,7 +153,7 @@ module.exports = (register, context) => {
             if (session.data) {
                 session.data.role = role;
             }
-            return { user };
+            return { user, sessionId: session.sessionId };
         }
         return { user: null };
     };
@@ -255,7 +256,7 @@ module.exports = (register, context) => {
 
     register('GET', '/auth/session', async (req, res) => {
         try {
-            const { user } = await resolveSessionUser(req, res);
+            const { user, sessionId } = await resolveSessionUser(req, res);
             let groupDetails = [];
             if (user && Array.isArray(user.groups) && user.groups.length && typeof readGroupsFile === 'function') {
                 const groups = await readGroupsFile();
@@ -268,6 +269,9 @@ module.exports = (register, context) => {
                         name: group.name || group.id,
                         color: group.color || null
                     }));
+            }
+            if (user && sessionId && typeof refreshSessionCookie === 'function') {
+                refreshSessionCookie(res, sessionId);
             }
             json(res, 200, createAuthResponse(user, groupDetails));
         } catch (error) {

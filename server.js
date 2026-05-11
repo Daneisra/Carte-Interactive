@@ -62,7 +62,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.19',
+  version: '0.17.20',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -118,6 +118,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-11',
+      title: 'Version 0.17.20 - Session Discord prolongee',
+      summary: 'La verification de session renouvelle le cookie Discord actif afin de maintenir la connexion pendant l usage regulier.'
+    },
     {
       date: '2026-05-11',
       title: 'Version 0.17.19 - QA responsive mobile',
@@ -635,6 +640,13 @@ const sendSessionCookie = (res, signedId) => {
   const secure = process.env.COOKIE_SECURE === 'true' ? '; Secure' : '';
   const cookie = `${SESSION_COOKIE_NAME}=${encodeURIComponent(signedId)}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Lax${secure}`;
   res.setHeader('Set-Cookie', cookie);
+};
+
+const refreshSessionCookie = (res, sessionId) => {
+  if (!sessionId) {
+    return;
+  }
+  sendSessionCookie(res, signSessionId(sessionId));
 };
 
 const clearSessionCookie = res => {
@@ -2219,6 +2231,7 @@ const context = {
   createSession,
   getSession,
   sendSessionCookie,
+  refreshSessionCookie,
   clearSessionCookie,
   destroySession,
   findUserById,

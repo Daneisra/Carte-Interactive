@@ -71,6 +71,9 @@ test.describe('Integration Auth API', () => {
 
         const sessionResponse = await request.get('/auth/session');
         expect(sessionResponse.status()).toBe(200);
+        const refreshedCookie = sessionResponse.headers()['set-cookie'] || '';
+        expect(refreshedCookie).toContain('map_session=');
+        expect(refreshedCookie).toContain('Max-Age=');
         const sessionPayload = await sessionResponse.json();
         expect(sessionPayload.authenticated).toBeTruthy();
         expect(sessionPayload.provider).toBe('discord');
