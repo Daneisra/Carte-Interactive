@@ -68,7 +68,7 @@ export const normalizeAdminSiteConfig = (config = {}) => {
         ? home.tags.map(tag => sanitizeString(tag)).filter(Boolean)
         : ['Carte narrative', 'Quetes live', 'Groupes JDR', 'Profils & personnages'];
     return {
-        version: sanitizeString(config?.version || '0.17.18'),
+        version: sanitizeString(config?.version || '0.17.19'),
         home: {
             kicker: sanitizeString(home.kicker || 'Accueil - Hub narratif'),
             title: sanitizeString(home.title || "Entrez dans l'univers avant d'ouvrir la carte"),
@@ -317,7 +317,7 @@ export const renderAdminSiteConfig = ctx => {
 };
 
 export const collectAdminSiteConfigDraft = ctx => normalizeAdminSiteConfig({
-    version: ctx.adminSiteConfig?.version || '0.17.18',
+    version: ctx.adminSiteConfig?.version || '0.17.19',
     home: {
         kicker: ctx.adminDom.homeKicker?.value || '',
         title: ctx.adminDom.homeTitle?.value || '',

@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.18`.
+Version actuelle : `0.17.19`.
 
 ## Réalisations majeures livrées
 
@@ -126,7 +126,7 @@ Version actuelle : `0.17.18`.
 - [x] Mobile chronologie : header compact, navigation tactile, filtres pleine largeur et lightbox bornée au viewport.
 - [x] Mobile admin : panneaux accueil, chronologie et carte exploitables en plein écran sans débordement horizontal.
 - [ ] Intégration mobile fluide et complète sur accueil, carte, chronologie, planning et panneaux admin, sans dégrader la version desktop.
-- [ ] QA responsive dédiée : navigation tactile, panneaux latéraux, modales, formulaires longs, scroll, performance et lisibilité sur téléphone.
+- [x] QA responsive dédiée : navigation tactile, panneaux latéraux, modales, formulaires longs, scroll, performance et lisibilité sur téléphone.
 - [ ] Maintien fiable de la connexion Discord : reprise, expiration contrôlée, messages d'état.
 - [ ] Améliorer le téléchargement des assets : rapidité, packaging, exclusions et robustesse.
 - [ ] Fiabiliser le compteur Discord automatique de l'accueil avec fallback clair.

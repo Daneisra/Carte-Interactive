@@ -159,12 +159,22 @@
       "images": [],
       "videos": [],
       "audio": "assets/audio/un-loco-gigante-128-ytshorts.savetube.me-1.mp3",
-      "history": [],
+      "history": [
+        "45 ap C.C : Libération du repère et  création de l'Escale"
+      ],
       "quests": [],
-      "lore": [],
+      "lore": [
+        "Anciennement repère du terrible Sharknadow, l'équipage de Bertholo Bhogausse en a prit le contrôle et oeuvre à en faire un lieu de stabilité dans le chaos de Trekrerith."
+      ],
       "instances": [],
       "nobleFamilies": [],
-      "pnjs": [],
+      "pnjs": [
+        {
+          "name": "Sharknadow",
+          "role": "",
+          "description": "Mort"
+        }
+      ],
       "tags": [],
       "questEvents": []
     }
@@ -355,7 +365,7 @@
       "description": "",
       "images": [],
       "videos": [],
-      "audio": null,
+      "audio": "assets/audio/ezio-s-family.mp3",
       "history": [],
       "quests": [],
       "lore": [],
@@ -378,10 +388,25 @@
       "audio": null,
       "history": [],
       "quests": [],
-      "lore": [],
+      "lore": [
+        "Anciennement domaine du Baron Mihail d'où il menait ses exactions. Désormais sous le contrôle de la Baronne Claria Mihail."
+      ],
       "instances": [],
-      "nobleFamilies": [],
-      "pnjs": [],
+      "nobleFamilies": [
+        "Mihail"
+      ],
+      "pnjs": [
+        {
+          "name": "Baron Mihail",
+          "role": "",
+          "description": "Mort"
+        },
+        {
+          "name": "Claria Mihail",
+          "role": "Baronne",
+          "description": "à été ressuscité"
+        }
+      ],
       "tags": [],
       "questEvents": []
     },
@@ -433,7 +458,9 @@
         "Aujourd'hui, Caevorum est en ruines, mais elle conserve une aura de mystère et de puissance. Les rares sorceleurs survivants y retournent parfois pour méditer, s'entraîner ou se remémorer leur passé. Les murs écroulés et les salles abandonnées sont des témoins silencieux d'une époque révolue, mais l'esprit de Caevorum perdure.",
         "Thorin, ayant survécu au massacre, porte en lui la mémoire de ses frères et sœurs d'armes. Sa mission est non seulement de venger la chute de Caevorum mais aussi de préserver les connaissances et les traditions des sorceleurs. Il cherche à transmettre cet héritage aux générations futures, espérant un jour voir renaître l'ordre des sorceleurs."
       ],
-      "instances": [],
+      "instances": [
+        "Sorceleurs"
+      ],
       "nobleFamilies": [],
       "pnjs": [],
       "tags": [],
@@ -502,7 +529,9 @@
       "audio": null,
       "history": [],
       "quests": [],
-      "lore": [],
+      "lore": [
+        "Le peuple nain habitant ces montages est en bon terme avec les Valdefers."
+      ],
       "instances": [],
       "nobleFamilies": [],
       "pnjs": [],
@@ -543,7 +572,9 @@
       "audio": null,
       "history": [],
       "quests": [],
-      "lore": [],
+      "lore": [
+        "Montagne où réside un peuple nain approvisionnant les villes de Crawen et Carléone avec leurs mines."
+      ],
       "instances": [],
       "nobleFamilies": [],
       "pnjs": [],
@@ -706,7 +737,9 @@
       "audio": "assets/audio/time-and-again-black-templars-ambient-music-music-of-40k-youtube.mp3",
       "history": [],
       "quests": [],
-      "lore": [],
+      "lore": [
+        "Centre impériale de rééducation de la jeunesse C.I.R.J"
+      ],
       "instances": [],
       "nobleFamilies": [],
       "pnjs": [],
@@ -785,12 +818,17 @@
       "history": [],
       "quests": [],
       "lore": [
-        "Les Mines de Mandrake, sous le joug de Gaël Rouget, les mineurs vivent dans la peur. Des rumeurs parlent d’esclavage, de créatures tapies dans les galeries et d’expériences interdites. Qui contrôle vraiment les profondeurs ?",
         "Les Mines de Mandrake, dirigées par Gaël Rouget. Ces mines, censées être une source de richesse pour l'Empire de Vruliwen, sont en réalité des lieux de souffrance et de mort. Les ouvriers y sont traités comme des esclaves, forcés de travailler dans des conditions inhumaines. Des créatures monstrueuses, errent dans les tunnels, causant des accidents mortels."
       ],
       "instances": [],
       "nobleFamilies": [],
-      "pnjs": [],
+      "pnjs": [
+        {
+          "name": "Gaël Rouget",
+          "role": "",
+          "description": ""
+        }
+      ],
       "tags": [
         "Mine",
         "Quete"
@@ -808,7 +846,9 @@
       "audio": null,
       "history": [],
       "quests": [],
-      "lore": [],
+      "lore": [
+        "Chaîne de montagnes excentrée et peu peuplée, ce qui favorise la prolifération des gobelins."
+      ],
       "instances": [],
       "nobleFamilies": [],
       "pnjs": [],
@@ -938,7 +978,9 @@
       "images": [],
       "videos": [],
       "audio": null,
-      "history": [],
+      "history": [
+        "Bataille du Pas-Du-Roc : -2 av.C.C"
+      ],
       "quests": [],
       "lore": [
         "# **__Le Pas-du-Roc, le Goulet des Âmes__**\n\nLa vallée du Pas-du-Roc, étroite et sinueuse, est le seul passage entre les montagnes qui séparent le Nord et les terres du Sud. Coincée entre deux chaînes de montagnes aux pics acérés, cette vallée semble avoir été taillée dans la pierre par les dragons eux-mêmes, une vallée où la nature montre toute sa puissance brute. Les montagnes qui l'encadrent se dressent comme des murailles naturelles, leurs sommets enneigés se perdant dans les nuages, tandis que leurs flancs abrupts sont parsemés de forêts sombres et impénétrables, où les ombres semblent prendre vie. Les batailles qui ont ravagé cette vallée au fil des siècles y ont laissé bien plus que des cicatrices de guerre ; elles y ont ancré une puissance mystique, un écho éternel des sorts jetés et des vies arrachées.\n\nLorsque la brume descend sur la vallée, elle n'est pas seulement faite d'humidité et de froid ; c'est un voile du passé. Une mer de souvenirs animés par la magie ancienne qui imprègne le sol. Ceux qui s'y aventurent sont témoins des évènements passés. D'abord, on y perçoit simplement des formes, des cris, des chants et des incantations. Plus le temps passe, mieux on en discerne le sens. Les spectateurs peuvent y voir l'engouement des troupes, leur courage et leur fin tragique. Même les créatures de la vallée semblent respecter ces moments de mémoire en restant passives les jours de brumes. Le danger réside dans l'attention que portent les voyageurs à ces souvenirs, rester trop longtemps dans la brume c'est se retrouver dans des recoins sombres et dangereux lorsqu'elle se lève.\n\nLes trois rivières qui traversent le Pas-du-Roc: la Frémissante, l’Oubliée, et la Sombre-Courant; ne sont pas des cours d'eau ordinaires. Elles ont été marquées par la magie au point qu'elles défient les lois naturelles. Parfois, sans avertissement, leurs lits se déplacent, modifiant le paysage en un instant, comme si une force invisible les dirigeait. Ces changements soudains et imprévisibles transforment la vallée en un labyrinthe mouvant, ajoutant au mystère et au danger du lieu. Ces rivières sont sources de vies tant pour les créatures dont les nymphes, la faune plus ou moins dangereuse, ou les hommes vivants et traversant les lieux. En effet, elles apportent à la fois les éléments vitaux à la survie mais constituent aussi un véritable boussole malgré leur nature imprévisible et changeante.\n\nLa faune du Pas-du-Roc est aussi étrange que ses rivières. Des créatures y rôdent, nées de la magie résiduelle qui imprègne chaque recoin. Des ombres ailées traversent le ciel nocturne, des bêtes aux yeux incandescents guettent dans l'obscurité des sous-bois, des êtres faits de brume, de pierres et de ronces. Les Valdefer, gardiens de ce passage millénaire, veillent à la conservation de ce qui y vit et de ce qui y a vécu. De plus, contrôler la traversée de la vallée est leur mission sacrée.\n\nLes phénomènes inexplicables qui surviennent dans la vallée ne sont pas limités aux créatures et aux cours d'eau. Des feux follets apparaissent sans prévenir, dansant au-dessus des rivières et des pierres, guidant parfois les voyageurs égarés vers une mort certaine ou, plus rarement, vers une sortie salvatrice."
@@ -1050,7 +1092,8 @@
       "instances": [
         "Académie des Mages",
         "La guilde des protecteurs",
-        "L'Eglise de la Lumière"
+        "L'Eglise de la Lumière",
+        "Comosicus Regere Securitas"
       ],
       "nobleFamilies": [],
       "pnjs": [
@@ -1123,7 +1166,9 @@
       "audio": "assets/audio/sabaton-templars-official-lyric-video-sabaton-youtube.mp3",
       "history": [],
       "quests": [],
-      "lore": [],
+      "lore": [
+        "L'Ordre Exterminatus est projeté en Zemantis pour préparer une croisade future et ancrer un avant-poste durable."
+      ],
       "instances": [],
       "nobleFamilies": [],
       "pnjs": [],
@@ -1142,7 +1187,7 @@
       "history": [],
       "quests": [],
       "lore": [
-        "Description du lieu de Zemantis"
+        "Petite île au sud de ⁠zemantis, elle est contrôlée par le clan Vuben qui à transformer l'île en camp d'entraînement pour esclave au fil du temps.\n\nC’est d'ailleurs l'endroit où Voronezh fut capturé pendant 6 ans.\n\nUn jour, dont on ne connaît pas la date, un être mystérieux décida de décimer toute forme de vie sur l'île,  la seule personne épargnée fut Voro.\n\nDepuis le changement de propriétaire de l'île, il y a eu plusieurs tentatives de reprise de l'île par le clan Vuben.\n\nLa raison ?\n\nL'apparition de fortification visiblement construite par l'occupant qui empêche tout débarquement.\n\nOccupés par leurs guerres, au fil du temps ils oublieront cette histoire.\n\nAprès une trentaine d'années, le clan Vuben se souviendra de l'existence de cette île et décida d'utiliser les grands moyens: un sort de grandes envergure, nécessitant la majorité de leurs chamans, malheureusement les chamans mobiliser pour cette opération ont tous disparues lors des guerres incessantes, nous n'avons donc pas plus d'informations sur la spécificité de l'attaque nous savons seulement qu’ensuite les Orcs on put déloger le défenseur et reconquérir leur ancien terrain.\n\nAprès ces événements, l'île n'eut pas d'autres choses notables."
       ],
       "instances": [],
       "nobleFamilies": [],

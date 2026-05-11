@@ -80,7 +80,7 @@
       "eventKind": "lore",
       "era": "Ascension imperiale",
       "eraSummary": "L'Empire passe de la conquête a la légitimité, et impose sa propre mesure du temps.",
-      "sceneLabel": "Fondation",
+      "sceneLabel": "Couronnement",
       "period": "Pax Maxima",
       "tags": [
         "Couronnement",
@@ -146,6 +146,29 @@
       "visible": true
     },
     {
+      "id": "la-grande-purge",
+      "year": 29,
+      "yearLabel": "29 ap CC",
+      "title": "La Grande Purge",
+      "summary": "Suite à l'échec de l'Eglise, l'Empereur prit les choses en mains.",
+      "content": "La Grande Purge\n\nAprès le désastre d'Imossa et l'embrigadement de l'Eglise de la Lumière dans l'orbite de l'Empire, la décision inébranlable de l'Empereur-Dieu fut de purifier les rangs de l'église en traquant implacablement tout soupçon d'hérésie.\n\nLes arcanes et les pratiques jugées ambiguës, auparavant tolérées par l'Eglise et l'Empire, furent soudainement bannies, leurs adeptes pourchassés de la même manière que les traîtres et les apostats.\n\nCette purification, implacable et méthodique, s'étala sur deux années d'une chasse acharnée, jusqu'à ce que le Saint Empereur, vigilant et guidé par une détermination inébranlable, puisse affirmer avec certitude que toute source de corruption ou de malice avait été éradiquée de l'Eglise de la Lumière.\n\nComosicus, empreint de la responsabilité sacrée qui pesait sur ses épaules, confia cette lourde, mais cruciale mission aux inquisiteurs puritains, les plus dignes de sa confiance.\n\nLe nombre de déviants révélé fut plus considérable qu'initialement envisagé, forçant l'Empereur-Dieu à invoquer l'Ordre Exterminatus, une mesure ultime pour extirper la moindre trace de cette infamie.\n\nAu fil de cette campagne implacable, des milliers d'âmes corrompues furent découvertes, chacune subissant tour à tour la torture et la sentence ultime, délivrant ainsi l'Empire de cette sombre tache.\n\nParmi ces milliers d'hérétiques, plusieurs individus de rang éminent furent démasqués, tels que :\n \n- L'archiprêtre Radiant de Gloria, Philippe De Saint-Pierre.\n- Louis Walsak, un Gardien de la Foi très proche de l'Empereur.\n\nDepuis cette douloureuse purification, ceux qui aspirent aux sommets de l'Eglise se voient contraints de prouver leur foi de manière extrême, soumis à de multiples épreuves qui attestent de leur dévotion inébranlable envers l'Empereur-Dieu et la pureté de la Lumière. Chaque pas vers les hauteurs de l'Eglise devient ainsi un chemin pavé d'épreuves ardentes et d'obstacles sacrés.",
+      "eventKind": "lore",
+      "era": "Chutes et croisades",
+      "eraSummary": "Les conséquences de la chute d'Imossa",
+      "sceneLabel": "Purge",
+      "period": "Crise d'Imossa",
+      "tags": [
+        "Imossa",
+        "Eglise",
+        "Purge"
+      ],
+      "locationNames": [],
+      "imageUrl": "/assets/images/la-grande-purge.png",
+      "mediaAlt": "",
+      "accentColor": "#7dd3fc",
+      "visible": true
+    },
+    {
       "id": "pas-zemantis",
       "year": 40,
       "yearLabel": "40 ap. CC",
@@ -167,6 +190,29 @@
       ],
       "imageUrl": "/assets/images/Frise/premier-pas-zemantis.png",
       "mediaAlt": "Avant-poste de l Ordre Exterminatus pose sur les terres de Zemantis.",
+      "accentColor": "#7dd3fc",
+      "visible": true
+    },
+    {
+      "id": "vol-hache",
+      "year": 42,
+      "yearLabel": "42 ap. cc",
+      "title": "Vol de la hache de l'éternel nord",
+      "summary": "Un groupe d'aventurier s'est aventuré en Dipovia pour voler l'arme légendaire de Tola Skardson",
+      "content": "Voro, Guenièvre, Toby, Azrael menés et engagés par Pidasaul réussirent à dérober la hache de l'éternel nord des mains de Tola Skardson, unificatrice des peuples Dipoviens. Le groupe  s'est ensuite entretué pour le contrôle de l'arme mais c'est bien Pidasaul qui est reparti avec.\nCet évènement provoqua la guerre Vrulio-Dipovienne",
+      "eventKind": "player",
+      "era": "Frontieres nouvelles",
+      "eraSummary": "",
+      "sceneLabel": "Vol",
+      "period": "Guerre Vrulio-Dipovienne",
+      "tags": [
+        "Artefact",
+        "Dipovia",
+        "Echec"
+      ],
+      "locationNames": [],
+      "imageUrl": "/assets/images/vol-hache.png",
+      "mediaAlt": "",
       "accentColor": "#7dd3fc",
       "visible": true
     },
@@ -243,25 +289,6 @@
         "Dipovia"
       ],
       "imageUrl": "/assets/images/Frise/fondations.png",
-      "mediaAlt": "",
-      "accentColor": "#7dd3fc",
-      "visible": true
-    },
-    {
-      "id": "vol-hache",
-      "year": 42,
-      "yearLabel": "42 ap. cc",
-      "title": "Vol de la hache de l'éternel nord",
-      "summary": "Un groupe d'aventurier s'est aventuré en Dipovia pour voler l'arme légendaire de Tola Skardson",
-      "content": "Voro, Guenièvre, Toby, Azrael menés et engagés par Pidasaul réussirent à dérober la hache de l'éternel nord des mains de Tola Skardson, unificatrice des peuples Dipoviens. Le groupe  s'est ensuite entretué pour le contrôle de l'arme mais c'est bien Pidasaul qui est reparti avec.\nCet évènement provoqua la guerre Vrulio-Dipovienne",
-      "eventKind": "player",
-      "era": "Frontieres nouvelles",
-      "eraSummary": "",
-      "sceneLabel": "Vol",
-      "period": "Guerre Vrulio-Dipovienne",
-      "tags": [],
-      "locationNames": [],
-      "imageUrl": "/assets/images/vol-hache.png",
       "mediaAlt": "",
       "accentColor": "#7dd3fc",
       "visible": true
