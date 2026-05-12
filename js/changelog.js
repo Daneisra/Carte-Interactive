@@ -13,8 +13,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-12',
-        title: 'Version 0.17.23 - Page changelog dediee',
-        summary: 'Une page publique regroupe les versions et changements recents de la carte.'
+        title: 'Version 0.17.24 - Changelog produit prioritaire',
+        summary: 'La page changelog affiche les versions produit avant l historique Git brut.'
     }
 ];
 

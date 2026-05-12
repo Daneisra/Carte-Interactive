@@ -68,7 +68,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.23',
+  version: '0.17.24',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -124,6 +124,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-12',
+      title: 'Version 0.17.24 - Changelog produit prioritaire',
+      summary: "La page changelog est accessible depuis la navigation accueil et affiche les versions produit avant l historique Git brut."
+    },
     {
       date: '2026-05-12',
       title: 'Version 0.17.23 - Page changelog dediee',
@@ -2434,26 +2439,46 @@ const server = http.createServer(async (req, res) => {
         send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
         return;
       }
+      const limit = Math.max(1, Math.min(50, Number(urlObj.searchParams.get('limit')) || 6));
+      const source = normalizeString(urlObj.searchParams.get('source')).toLowerCase();
+      if (source === 'git') {
+        try {
+          const entries = await readGitChangelogEntries(limit);
+          send(res, 200, JSON.stringify({
+            status: 'ok',
+            source: 'git',
+            entries
+          }), { 'Content-Type': 'application/json' });
+        } catch (error) {
+          logger.warn('[changelog] git history unavailable', { error: error.message });
+          try {
+            const config = await readSiteConfigFile();
+            send(res, 200, JSON.stringify({
+              status: 'ok',
+              source: 'config',
+              entries: Array.isArray(config?.changelog) ? config.changelog.slice(0, limit) : []
+            }), { 'Content-Type': 'application/json' });
+          } catch (configError) {
+            send(res, 500, JSON.stringify({ status: 'error', message: 'Changelog unavailable.' }), { 'Content-Type': 'application/json' });
+          }
+        }
+        return;
+      }
       try {
-        const limit = Math.max(1, Math.min(50, Number(urlObj.searchParams.get('limit')) || 6));
+        const config = await readSiteConfigFile();
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          source: 'config',
+          entries: Array.isArray(config?.changelog) ? config.changelog.slice(0, limit) : []
+        }), { 'Content-Type': 'application/json' });
+      } catch (configError) {
+        logger.warn('[changelog] config unavailable', { error: configError.message });
         const entries = await readGitChangelogEntries(limit);
         send(res, 200, JSON.stringify({
           status: 'ok',
           source: 'git',
           entries
         }), { 'Content-Type': 'application/json' });
-      } catch (error) {
-        logger.warn('[changelog] git history unavailable', { error: error.message });
-        try {
-          const config = await readSiteConfigFile();
-          send(res, 200, JSON.stringify({
-            status: 'ok',
-            source: 'config',
-            entries: Array.isArray(config?.changelog) ? config.changelog : []
-          }), { 'Content-Type': 'application/json' });
-        } catch (configError) {
-          send(res, 500, JSON.stringify({ status: 'error', message: 'Changelog unavailable.' }), { 'Content-Type': 'application/json' });
-        }
       }
       return;
     }

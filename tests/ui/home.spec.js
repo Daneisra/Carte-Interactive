@@ -59,6 +59,7 @@ test.describe('Accueil - mobile', () => {
 
     await expect(page.locator('.home-header')).toBeVisible();
     await expect(page.locator('.home-nav')).toBeVisible();
+    await expect(page.locator('.home-nav a[href="/changelog/"]')).toHaveText('Changelog');
     await expect(page.locator('#home-enter-map')).toBeVisible();
     await expect(page.locator('#home-support-title')).toBeVisible();
 
