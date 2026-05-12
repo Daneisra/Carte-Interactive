@@ -49,6 +49,13 @@ import {
 } from './ui/adminTimeline.js';
 import { LocationEditor } from './ui/locationEditor.js';
 import { EventsFeed } from './ui/eventsFeed.js';
+import {
+    AVAILABILITY_DAYS,
+    AVAILABILITY_SLOTS,
+    createAvailabilityMatrix,
+    normalizeAvailabilityPayload,
+    resolveLocalTimezone
+} from './ui/availability.mjs';
 import { getString } from './i18n.js';
 import {
     sanitizeString,
@@ -92,21 +99,6 @@ const clusteringIcon = clustered => clustered
     : localized('clustering.iconOff', 'OFF');
 const clusteringEmptyIcon = () => localized('clustering.iconEmpty', '-');
 const CLUSTERING_TOOLTIP_SEPARATOR = ' - ';
-const AVAILABILITY_DAYS = [
-    { id: 'mon', label: 'Lun' },
-    { id: 'tue', label: 'Mar' },
-    { id: 'wed', label: 'Mer' },
-    { id: 'thu', label: 'Jeu' },
-    { id: 'fri', label: 'Ven' },
-    { id: 'sat', label: 'Sam' },
-    { id: 'sun', label: 'Dim' }
-];
-const AVAILABILITY_SLOTS = [
-    { id: 'morning', label: 'Matin', range: '08-12' },
-    { id: 'afternoon', label: 'Apres-midi', range: '12-18' },
-    { id: 'evening', label: 'Soir', range: '18-22' },
-    { id: 'night', label: 'Nuit', range: '22-02' }
-];
 const PROFILE_SOCIAL_LABELS = {
     website: 'Site web',
     discord: 'Discord',
@@ -140,42 +132,6 @@ const normalizeAnnotationId = annotationId => {
         return '';
     }
     return String(annotationId).trim();
-};
-
-const resolveLocalTimezone = () => {
-    try {
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        return tz || 'UTC';
-    } catch (error) {
-        return 'UTC';
-    }
-};
-
-const createAvailabilityMatrix = () => (
-    AVAILABILITY_DAYS.map(() => AVAILABILITY_SLOTS.map(() => false))
-);
-
-const normalizeAvailabilityPayload = (payload, fallbackTimezone = '') => {
-    if (!payload || typeof payload !== 'object') {
-        return null;
-    }
-    const timezone = typeof payload.timezone === 'string' && payload.timezone.trim()
-        ? payload.timezone.trim()
-        : (fallbackTimezone || '');
-    const source = Array.isArray(payload.slots)
-        ? payload.slots
-        : (Array.isArray(payload.days) ? payload.days : null);
-    if (!Array.isArray(source)) {
-        return null;
-    }
-    const matrix = createAvailabilityMatrix();
-    for (let dayIndex = 0; dayIndex < AVAILABILITY_DAYS.length; dayIndex += 1) {
-        const daySlots = Array.isArray(source[dayIndex]) ? source[dayIndex] : [];
-        for (let slotIndex = 0; slotIndex < AVAILABILITY_SLOTS.length; slotIndex += 1) {
-            matrix[dayIndex][slotIndex] = Boolean(daySlots[slotIndex]);
-        }
-    }
-    return { timezone: timezone || null, slots: matrix };
 };
 
 const isInteractiveTextField = element => {

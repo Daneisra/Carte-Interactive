@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { renderMarkdown } from '../../js/ui/markdown.mjs';
+import {
+    AVAILABILITY_DAYS,
+    AVAILABILITY_SLOTS,
+    createAvailabilityMatrix,
+    normalizeAvailabilityPayload
+} from '../../js/ui/availability.mjs';
 
 const require = createRequire(import.meta.url);
 const registerAnnotationRoutes = require('../../server/routes/annotations');
@@ -44,6 +50,33 @@ const tests = [
         run: () => {
             const html = renderMarkdown('- Item one\n- Item two');
             assert.equal(html, '<ul><li>Item one</li><li>Item two</li></ul>');
+        }
+    },
+    {
+        name: 'normalizes availability payloads with a stable weekly matrix',
+        run: () => {
+            const normalized = normalizeAvailabilityPayload({
+                timezone: 'Europe/Warsaw',
+                slots: [
+                    [true, false, true],
+                    [0, 1, '', 'yes']
+                ]
+            });
+            assert.equal(normalized.timezone, 'Europe/Warsaw');
+            assert.equal(normalized.slots.length, AVAILABILITY_DAYS.length);
+            assert.equal(normalized.slots[0].length, AVAILABILITY_SLOTS.length);
+            assert.deepEqual(normalized.slots[0], [true, false, true, false]);
+            assert.deepEqual(normalized.slots[1], [false, true, false, true]);
+            assert.deepEqual(normalized.slots[6], [false, false, false, false]);
+        }
+    },
+    {
+        name: 'creates independent availability matrices',
+        run: () => {
+            const first = createAvailabilityMatrix();
+            const second = createAvailabilityMatrix();
+            first[0][0] = true;
+            assert.equal(second[0][0], false);
         }
     },
     {

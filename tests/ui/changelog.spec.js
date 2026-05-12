@@ -11,8 +11,8 @@ test.describe('Changelog - UI', () => {
         entries: [
           {
             date: '2026-05-12',
-            title: 'Version 0.17.25 - Patch notes accueil automatises',
-            summary: "L'accueil affiche les dernieres versions depuis l API changelog."
+            title: 'Version 0.17.26 - Disponibilites modularisees',
+            summary: 'Le modele des disponibilites sort de UiController.'
           },
           {
             date: '2026-05-12',
@@ -30,7 +30,7 @@ test.describe('Changelog - UI', () => {
     await expect(page.locator('#changelog-count')).toHaveText('2');
     await expect(page.locator('#changelog-source')).toHaveText('Config');
     await expect(page.locator('.changelog-entry')).toHaveCount(2);
-    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.25 - Patch notes accueil automatises');
+    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.26 - Disponibilites modularisees');
   });
 
   test('la page reste exploitable sur mobile', async ({ page }) => {
