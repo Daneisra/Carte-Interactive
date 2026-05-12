@@ -84,7 +84,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.27',
+    version: '0.17.28',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -140,6 +140,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-13',
+            title: 'Version 0.17.28 - Personnages modularises',
+            summary: 'La normalisation des personnages utilisateur sort de UiController avec tests unitaires dedies.'
+        },
         {
             date: '2026-05-13',
             title: 'Version 0.17.27 - Personnalisation profil modularisee',

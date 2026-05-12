@@ -12,6 +12,10 @@ import {
     normalizeProfileCustomization,
     normalizeProfileUrl
 } from '../../js/ui/profileCustomization.mjs';
+import {
+    enforceSingleActiveCharacter,
+    normalizeCharacterList
+} from '../../js/ui/characterModel.mjs';
 
 const require = createRequire(import.meta.url);
 const registerAnnotationRoutes = require('../../server/routes/annotations');
@@ -105,6 +109,55 @@ const tests = [
             assert.equal(profile.accentColor, '#60a5fa');
             assert.equal(profile.bio.length, 6000);
             assert.deepEqual(profile.socials, { website: 'https://example.com' });
+        }
+    },
+    {
+        name: 'normalizes character lists and keeps a single active character',
+        run: () => {
+            let nextId = 1;
+            const characters = normalizeCharacterList([
+                { id: ' hero ', name: '  Danny ', active: true, group: ' main ' },
+                { id: 'hero', name: 'Duplicate without assign' },
+                { name: ' Alienor ', avatar: ' /assets/alienor.png ', active: true },
+                null,
+                { id: 'empty' }
+            ], {
+                assignIds: true,
+                createId: () => `char_test_${nextId++}`
+            });
+            assert.deepEqual(characters, [
+                {
+                    id: 'hero',
+                    name: 'Danny',
+                    bio: null,
+                    avatar: null,
+                    groupId: 'main',
+                    active: true
+                },
+                {
+                    id: 'char_test_1',
+                    name: 'Duplicate without assign',
+                    bio: null,
+                    avatar: null,
+                    groupId: null,
+                    active: false
+                },
+                {
+                    id: 'char_test_2',
+                    name: 'Alienor',
+                    bio: null,
+                    avatar: '/assets/alienor.png',
+                    groupId: null,
+                    active: false
+                }
+            ]);
+            assert.deepEqual(enforceSingleActiveCharacter([
+                { id: 'a', active: true },
+                { id: 'b', active: true }
+            ]), [
+                { id: 'a', active: true },
+                { id: 'b', active: false }
+            ]);
         }
     },
     {
