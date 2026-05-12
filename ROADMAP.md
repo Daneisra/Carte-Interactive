@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.26`.
+Version actuelle : `0.17.27`.
 
 ## Réalisations majeures livrées
 
@@ -132,7 +132,7 @@ Version actuelle : `0.17.26`.
 - [x] Fiabiliser le compteur Discord automatique de l'accueil avec fallback clair.
 - [x] Créer une page changelog dédiée pour consulter l'historique complet des versions et changements.
 - [x] Automatiser les patch notes de l'accueil depuis le changelog produit et l'API changelog.
-- [ ] Modulariser davantage `UiController` et réduire les dépendances croisées UI. En cours : modèle disponibilités extrait dans `js/ui/availability.mjs`.
+- [ ] Modulariser davantage `UiController` et réduire les dépendances croisées UI. En cours : modèles disponibilités et personnalisation profil extraits dans `js/ui/availability.mjs` et `js/ui/profileCustomization.mjs`.
 - [ ] Nettoyer les artefacts legacy conservés seulement pour compatibilité.
 - [ ] Harmoniser les encodages UTF-8 et conserver le lint dédié.
 - [ ] Optimiser la CI Playwright : cache, durée, diagnostics.

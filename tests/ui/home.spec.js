@@ -60,8 +60,8 @@ test.describe('Accueil - patch notes', () => {
         entries: [
           {
             date: '2026-05-12',
-            title: 'Version 0.17.26 - Disponibilites modularisees',
-            summary: 'Le modele des disponibilites sort de UiController.'
+            title: 'Version 0.17.27 - Personnalisation profil modularisee',
+            summary: 'La normalisation du profil utilisateur sort de UiController.'
           }
         ]
       })
@@ -73,7 +73,7 @@ test.describe('Accueil - patch notes', () => {
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.26 - Disponibilites modularisees');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.27 - Personnalisation profil modularisee');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
 });

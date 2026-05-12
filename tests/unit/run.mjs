@@ -7,6 +7,11 @@ import {
     createAvailabilityMatrix,
     normalizeAvailabilityPayload
 } from '../../js/ui/availability.mjs';
+import {
+    isValidAccentColor,
+    normalizeProfileCustomization,
+    normalizeProfileUrl
+} from '../../js/ui/profileCustomization.mjs';
 
 const require = createRequire(import.meta.url);
 const registerAnnotationRoutes = require('../../server/routes/annotations');
@@ -77,6 +82,29 @@ const tests = [
             const second = createAvailabilityMatrix();
             first[0][0] = true;
             assert.equal(second[0][0], false);
+        }
+    },
+    {
+        name: 'normalizes profile customization URLs and social links',
+        run: () => {
+            assert.equal(normalizeProfileUrl('/assets/banner.jpg'), '/assets/banner.jpg');
+            assert.equal(normalizeProfileUrl('https://example.com/profile'), 'https://example.com/profile');
+            assert.equal(normalizeProfileUrl('javascript:alert(1)'), null);
+            assert.equal(isValidAccentColor('#60a5fa'), true);
+            assert.equal(isValidAccentColor('#bad'), false);
+            const profile = normalizeProfileCustomization({
+                banner: 'https://example.com/banner.jpg',
+                accentColor: '#60a5fa',
+                bio: ` ${'x'.repeat(6100)} `,
+                socials: {
+                    website: 'https://example.com',
+                    twitch: 'ftp://invalid.example'
+                }
+            });
+            assert.equal(profile.banner, 'https://example.com/banner.jpg');
+            assert.equal(profile.accentColor, '#60a5fa');
+            assert.equal(profile.bio.length, 6000);
+            assert.deepEqual(profile.socials, { website: 'https://example.com' });
         }
     },
     {

@@ -56,6 +56,12 @@ import {
     normalizeAvailabilityPayload,
     resolveLocalTimezone
 } from './ui/availability.mjs';
+import {
+    PROFILE_SOCIAL_LABELS,
+    isValidAccentColor as isValidAccentColorValue,
+    normalizeProfileCustomization as normalizeProfileCustomizationValue,
+    normalizeProfileUrl as normalizeProfileUrlValue
+} from './ui/profileCustomization.mjs';
 import { getString } from './i18n.js';
 import {
     sanitizeString,
@@ -99,13 +105,6 @@ const clusteringIcon = clustered => clustered
     : localized('clustering.iconOff', 'OFF');
 const clusteringEmptyIcon = () => localized('clustering.iconEmpty', '-');
 const CLUSTERING_TOOLTIP_SEPARATOR = ' - ';
-const PROFILE_SOCIAL_LABELS = {
-    website: 'Site web',
-    discord: 'Discord',
-    twitch: 'Twitch',
-    youtube: 'YouTube',
-    x: 'X/Twitter'
-};
 const ADMIN_ENTRY_SECTION_IDS = {
     home: 'admin-section-home-config',
     timeline: 'admin-section-timeline-config'
@@ -2883,48 +2882,15 @@ export class UiController {
     }
 
     isValidAccentColor(value) {
-        return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value.trim());
+        return isValidAccentColorValue(value);
     }
 
     normalizeProfileUrl(value) {
-        const normalized = typeof value === 'string' ? value.trim() : '';
-        if (!normalized) {
-            return null;
-        }
-        if (normalized.startsWith('/')) {
-            return normalized;
-        }
-        if (/^https?:\/\//i.test(normalized)) {
-            return normalized;
-        }
-        return null;
+        return normalizeProfileUrlValue(value);
     }
 
     normalizeProfileCustomization(payload) {
-        const source = payload && typeof payload === 'object' ? payload : {};
-        const banner = this.normalizeProfileUrl(source.banner);
-        const accentColor = this.isValidAccentColor(source.accentColor || '')
-            ? (source.accentColor || '').trim()
-            : null;
-        const bio = typeof source.bio === 'string'
-            ? source.bio.trim().slice(0, 6000)
-            : '';
-        const socialsSource = source.socials && typeof source.socials === 'object'
-            ? source.socials
-            : source;
-        const socials = {};
-        Object.keys(PROFILE_SOCIAL_LABELS).forEach(key => {
-            const value = this.normalizeProfileUrl(socialsSource[key]);
-            if (value) {
-                socials[key] = value;
-            }
-        });
-        return {
-            banner: banner || null,
-            accentColor: accentColor || null,
-            bio: bio || '',
-            socials
-        };
+        return normalizeProfileCustomizationValue(payload);
     }
 
     collectProfileCustomizationDraft() {
