@@ -13,8 +13,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-12',
-        title: 'Version 0.17.24 - Changelog produit prioritaire',
-        summary: 'La page changelog affiche les versions produit avant l historique Git brut.'
+        title: 'Version 0.17.25 - Patch notes accueil automatises',
+        summary: "L'accueil affiche les dernieres versions depuis l API changelog avec fallback local."
     }
 ];
 

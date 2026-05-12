@@ -175,7 +175,7 @@
       "title": "1er Pas en Zemantis",
       "summary": "L'Ordre Exterminatus est projeté en Zemantis pour préparer une croisade future et ancrer un avant-poste durable.",
       "content": "L'envoi de l'Ordre Exterminatus en Zemantis ne vise pas encore la conquête totale. Il s'agit d'une implantation, d'une prise de mesure du territoire, d'un test grandeur nature des capacités de projection impériale vers des espaces moins connus. Ce premier pas structure des routes, des relais et des ambitions qui pèseront longtemps sur l'équilibre du continent.",
-      "eventKind": "lore",
+      "eventKind": "player",
       "era": "Frontieres nouvelles",
       "eraSummary": "L'expansion ne se joue plus seulement au cœur de l'Empire, mais sur des marges appelées a devenir centrales.",
       "sceneLabel": "Projection",

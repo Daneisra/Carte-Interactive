@@ -49,6 +49,35 @@ test.describe('Accueil - compteur Discord', () => {
   });
 });
 
+test.describe('Accueil - patch notes', () => {
+  test('affiche les derniers changements depuis l API changelog', async ({ page }) => {
+    await page.route('**/api/changelog**', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'ok',
+        source: 'config',
+        entries: [
+          {
+            date: '2026-05-12',
+            title: 'Version 0.17.25 - Patch notes accueil automatises',
+            summary: "L'accueil affiche les dernieres versions depuis l API changelog."
+          }
+        ]
+      })
+    }));
+
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+
+    await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
+    await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
+    await expect(page.locator('.home-changelog-item')).toHaveCount(1);
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.25 - Patch notes accueil automatises');
+    await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
+  });
+});
+
 test.describe('Accueil - mobile', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 

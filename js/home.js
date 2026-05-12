@@ -78,12 +78,13 @@ const PREFERENCES_STORAGE_KEY = 'interactive-map-preferences';
 const SITE_CONFIG_URL = '/assets/site-config.json';
 const LOCATIONS_DATA_URL = '/assets/locations.json';
 const DISCORD_PROOF_URL = '/api/community/discord';
+const CHANGELOG_URL = '/api/changelog?limit=3';
 const LIVE_ITEMS_LIMIT = 5;
 const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr_FR';
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.24',
+    version: '0.17.25',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -139,6 +140,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-12',
+            title: 'Version 0.17.25 - Patch notes accueil automatises',
+            summary: "L'accueil affiche les dernieres versions depuis l API changelog avec fallback local."
+        },
         {
             date: '2026-05-12',
             title: 'Version 0.17.24 - Changelog produit prioritaire',
@@ -433,6 +439,7 @@ const applySiteConfig = config => {
     setLinkHref(dom.footerCredits, merged.legal.creditsUrl, DEFAULT_SITE_CONFIG.legal.creditsUrl);
     setTextContent(dom.footerVersion, merged.version || DEFAULT_SITE_CONFIG.version);
     setTextContent(dom.footerNote, merged.legal.footerNote || DEFAULT_SITE_CONFIG.legal.footerNote);
+    renderHomeChangelog(merged.changelog || DEFAULT_SITE_CONFIG.changelog, 'config');
     applyCommunityHighlights(merged.community);
 };
 
@@ -445,10 +452,12 @@ const loadSiteConfig = async () => {
         const payload = await response.json();
         applySiteConfig(payload);
         await fetchDiscordProof();
+        await fetchHomeChangelog();
     } catch (error) {
         console.warn('[home] site config unavailable, fallback defaults used', error);
         applySiteConfig(DEFAULT_SITE_CONFIG);
         await fetchDiscordProof();
+        await fetchHomeChangelog();
     }
 };
 
@@ -556,6 +565,78 @@ const setTextContent = (element, value) => {
         return;
     }
     element.textContent = normalizeText(value) || '';
+};
+
+const normalizeChangelogEntries = entries => {
+    if (!Array.isArray(entries)) {
+        return [];
+    }
+    return entries
+        .map(entry => ({
+            date: normalizeText(entry?.date),
+            title: normalizeText(entry?.title) || 'Mise a jour',
+            summary: normalizeText(entry?.summary) || normalizeText(entry?.title) || 'Changement livre.'
+        }))
+        .filter(entry => entry.title);
+};
+
+const formatChangelogDate = value => {
+    const raw = normalizeText(value);
+    if (!raw) {
+        return 'Date inconnue';
+    }
+    const parsed = Date.parse(raw);
+    if (!Number.isFinite(parsed)) {
+        return raw;
+    }
+    try {
+        return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(parsed));
+    } catch (_error) {
+        return raw;
+    }
+};
+
+const renderHomeChangelog = (entries, source = 'config') => {
+    if (!dom.changelogList) {
+        return;
+    }
+    const safeEntries = normalizeChangelogEntries(entries).slice(0, 3);
+    if (!safeEntries.length) {
+        dom.changelogList.innerHTML = '<li class="home-news-empty">Aucun patch note disponible pour le moment.</li>';
+        setStatusPill(dom.changelogStatus, 'Vide', 'error');
+        setTextContent(dom.changelogNote, 'Le changelog public reste accessible depuis la page dediee.');
+        return;
+    }
+    dom.changelogList.innerHTML = safeEntries.map(entry => `
+<li class="home-changelog-item">
+    <div class="home-changelog-head">
+        <strong>${escapeHtml(entry.title)}</strong>
+        <span>${escapeHtml(formatChangelogDate(entry.date))}</span>
+    </div>
+    <p class="home-changelog-text">${escapeHtml(entry.summary)}</p>
+</li>`).join('');
+    setStatusPill(dom.changelogStatus, source === 'git' ? 'Git' : 'A jour', 'ok');
+    setTextContent(dom.changelogNote, source === 'git'
+        ? 'Patch notes alimentes depuis l historique Git.'
+        : 'Patch notes alimentes depuis le changelog produit.');
+};
+
+const fetchHomeChangelog = async () => {
+    if (!dom.changelogList) {
+        return;
+    }
+    setStatusPill(dom.changelogStatus, 'Chargement...');
+    try {
+        const response = await fetch(CHANGELOG_URL, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        renderHomeChangelog(payload?.entries, payload?.source || 'api');
+    } catch (error) {
+        console.warn('[home] changelog API unavailable, fallback site config used', error);
+        renderHomeChangelog(state.siteConfig?.changelog || DEFAULT_SITE_CONFIG.changelog, 'config');
+    }
 };
 
 const formatDisplayDate = value => {

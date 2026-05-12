@@ -68,7 +68,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.24',
+  version: '0.17.25',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -124,6 +124,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-12',
+      title: 'Version 0.17.25 - Patch notes accueil automatises',
+      summary: "L'accueil affiche les dernieres versions depuis l API changelog avec fallback local."
+    },
     {
       date: '2026-05-12',
       title: 'Version 0.17.24 - Changelog produit prioritaire',
