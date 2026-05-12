@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.22`.
+Version actuelle : `0.17.23`.
 
 ## Réalisations majeures livrées
 
@@ -130,7 +130,7 @@ Version actuelle : `0.17.22`.
 - [x] Maintien fiable de la connexion Discord : reprise, expiration contrôlée, messages d'état.
 - [x] Améliorer le téléchargement des assets : rapidité, packaging, exclusions et robustesse.
 - [x] Fiabiliser le compteur Discord automatique de l'accueil avec fallback clair.
-- [ ] Créer une page changelog dédiée pour consulter l'historique complet des versions et changements.
+- [x] Créer une page changelog dédiée pour consulter l'historique complet des versions et changements.
 - [ ] Automatiser les patch notes de l'accueil depuis GitHub ou l'historique git de production.
 - [ ] Modulariser davantage `UiController` et réduire les dépendances croisées UI.
 - [ ] Nettoyer les artefacts legacy conservés seulement pour compatibilité.

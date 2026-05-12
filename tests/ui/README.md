@@ -6,6 +6,7 @@ Cette batterie de tests automatise plusieurs scénarios clés :
 2. **Activation du clustering** : confirme que la case à cocher change bien d’état.
 3. **Galerie média** : contrôle la présence d’au moins une vignette vidéo affichant un titre (Nikaïus).
 4. **Frise chronologique** : vérifie le chargement de la page `/timeline/`, l’affichage du détail actif, les filtres principaux, la navigation clavier et un scénario mobile.
+5. **Changelog** : vérifie la page `/changelog/`, le chargement des entrées depuis l’API et la lisibilité mobile.
 
 ## Pré-requis
 
@@ -34,4 +35,5 @@ Options utiles :
 - `playwright.config.js` : configuration partagée (serveur, navigateurs, timeouts).
 - `tests/ui/selection.spec.js` : scénarios Playwright.
 - `tests/ui/timeline.spec.js` : chronologie dédiée, filtres, deep links carte -> frise, clavier et mobile.
+- `tests/ui/changelog.spec.js` : page changelog dédiée, source API et scénario mobile.
 - `assets/fixtures/` : jeux de données réduits pour des tests rapides ou des futurs scénarios spécifiques.

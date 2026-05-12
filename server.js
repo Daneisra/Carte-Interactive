@@ -68,7 +68,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.22',
+  version: '0.17.23',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -124,6 +124,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-12',
+      title: 'Version 0.17.23 - Page changelog dediee',
+      summary: "Une page publique /changelog/ regroupe les versions et changements recents de la carte."
+    },
     {
       date: '2026-05-12',
       title: 'Version 0.17.22 - Compteur Discord fiabilise',
@@ -714,10 +719,11 @@ const execFileText = (file, args, options = {}) => new Promise((resolve, reject)
 });
 
 const readGitChangelogEntries = async (limit = 6) => {
-  const count = Math.max(1, Math.min(12, Number(limit) || 6));
+  const count = Math.max(1, Math.min(50, Number(limit) || 6));
   const output = await execFileText('git', [
     'log',
-    `-n=${count}`,
+    '-n',
+    String(count),
     '--date=short',
     '--pretty=format:%ad%x1f%s%x1f%b%x1e'
   ], { cwd: ROOT });
@@ -2429,7 +2435,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       try {
-        const limit = Math.max(1, Math.min(12, Number(urlObj.searchParams.get('limit')) || 6));
+        const limit = Math.max(1, Math.min(50, Number(urlObj.searchParams.get('limit')) || 6));
         const entries = await readGitChangelogEntries(limit);
         send(res, 200, JSON.stringify({
           status: 'ok',
