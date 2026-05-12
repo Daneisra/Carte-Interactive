@@ -13,8 +13,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-12',
-        title: 'Version 0.17.28 - Personnages modularises',
-        summary: 'La normalisation des personnages utilisateur sort de UiController avec tests unitaires dedies.'
+        title: 'Version 0.17.29 - Annotations modularisees',
+        summary: 'La normalisation des annotations sort de UiController avec tests unitaires dedies.'
     }
 ];
 

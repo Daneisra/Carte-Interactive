@@ -16,6 +16,10 @@ import {
     enforceSingleActiveCharacter,
     normalizeCharacterList
 } from '../../js/ui/characterModel.mjs';
+import {
+    normalizeAnnotationColor,
+    normalizeAnnotationId
+} from '../../js/ui/annotationModel.mjs';
 
 const require = createRequire(import.meta.url);
 const registerAnnotationRoutes = require('../../server/routes/annotations');
@@ -158,6 +162,18 @@ const tests = [
                 { id: 'a', active: true },
                 { id: 'b', active: false }
             ]);
+        }
+    },
+    {
+        name: 'normalizes annotation ids and colors',
+        run: () => {
+            assert.equal(normalizeAnnotationId('  abc  '), 'abc');
+            assert.equal(normalizeAnnotationId(null), '');
+            assert.equal(normalizeAnnotationColor(''), '#ff8a00');
+            assert.equal(normalizeAnnotationColor('f80'), '#f80');
+            assert.equal(normalizeAnnotationColor('ff8800'), '#ff8800');
+            assert.equal(normalizeAnnotationColor('#abc'), '#abc');
+            assert.equal(normalizeAnnotationColor('not-a-color'), '#ff8a00');
         }
     },
     {

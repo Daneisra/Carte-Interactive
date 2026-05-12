@@ -67,6 +67,10 @@ import {
     enforceSingleActiveCharacter as enforceSingleActiveCharacterValue,
     normalizeCharacterList as normalizeCharacterListValue
 } from './ui/characterModel.mjs';
+import {
+    normalizeAnnotationColor as normalizeAnnotationColorValue,
+    normalizeAnnotationId
+} from './ui/annotationModel.mjs';
 import { getString } from './i18n.js';
 import {
     sanitizeString,
@@ -131,13 +135,6 @@ const resolveRequestedAdminSection = () => {
         return '';
     }
 };
-const normalizeAnnotationId = annotationId => {
-    if (annotationId === null || annotationId === undefined) {
-        return '';
-    }
-    return String(annotationId).trim();
-};
-
 const isInteractiveTextField = element => {
     if (!element) {
         return false;
@@ -5522,20 +5519,7 @@ export class UiController {
     }
 
     normalizeAnnotationColor(value) {
-        const normalized = (value || '').toString().trim();
-        if (!normalized) {
-            return '#ff8a00';
-        }
-        if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(normalized)) {
-            return normalized;
-        }
-        if (/^[0-9a-f]{3}$/i.test(normalized)) {
-            return `#${normalized}`;
-        }
-        if (/^[0-9a-f]{6}$/i.test(normalized)) {
-            return `#${normalized}`;
-        }
-        return '#ff8a00';
+        return normalizeAnnotationColorValue(value);
     }
 
     async createAnnotation(annotation) {
