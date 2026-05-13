@@ -2,7 +2,7 @@
 
 Hub narratif et carte interactive pour l'univers d'Hesta. Le projet sert à explorer les lieux, suivre les quêtes, relier la chronologie aux zones de la carte et administrer les contenus sans modifier les JSON à la main.
 
-Version actuelle : `0.17.33`.
+Version actuelle : `0.17.34`.
 
 ## Fonctionnalités principales
 
@@ -11,7 +11,7 @@ Version actuelle : `0.17.33`.
 - Authentification Discord OAuth avec rôles utilisateur/admin.
 - Accueil immersif avec liens communauté, dons, crédits et panneau admin dédié.
 - Chronologie horizontale dédiée avec événements, filtres, médias et liens vers la carte.
-- Planning JDR dédié pour préparer les disponibilités et la logistique des sessions.
+- Planning JDR dédié pour saisir les disponibilités et préparer la logistique des sessions.
 - Page changelog publique pour consulter les versions et changements récents.
 - Flux temps réel SSE pour les changements utiles en session.
 

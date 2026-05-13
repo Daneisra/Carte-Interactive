@@ -44,8 +44,8 @@
                     <p class="planning-kicker">P7 - Planning JDR</p>
                     <h1 id="planning-title">Trouver une date sans fouiller trois conversations</h1>
                     <p class="planning-lead">
-                        Cette page pose la base du calendrier de campagne : disponibilites, groupes, statuts de reponse
-                        et synthese rapide pour aider le MJ a choisir le meilleur creneau.
+                        Cette page centralise vos disponibilites de semaine type pour aider le MJ a reperer les
+                        meilleurs creneaux sans disperser les reponses dans plusieurs conversations.
                     </p>
                     <div class="planning-hero-actions">
                         <a class="planning-cta planning-cta-primary" href="#planning-week">Voir la semaine type</a>
@@ -55,11 +55,11 @@
                 <div class="planning-hero-meta" aria-label="Etat du module planning">
                     <div class="planning-stat">
                         <span>Version</span>
-                        <strong id="planning-version">0.17.33</strong>
+                        <strong id="planning-version">0.17.34</strong>
                     </div>
                     <div class="planning-stat">
                         <span>Statut</span>
-                        <strong>Socle UI</strong>
+                        <strong>Saisie profil</strong>
                     </div>
                     <div class="planning-stat">
                         <span>Objectif</span>
@@ -98,50 +98,27 @@
                         <p class="planning-panel-kicker">Prototype de lecture</p>
                         <h2 id="planning-week-title">Semaine type</h2>
                     </div>
-                    <p class="planning-status" role="status">Mode lecture - saisie a venir</p>
+                    <p id="planning-status" class="planning-status" role="status" aria-live="polite">Chargement de la session...</p>
                 </div>
                 <div class="planning-legend" aria-label="Legende des disponibilites">
                     <span><i class="planning-dot planning-dot-available"></i>Disponible</span>
-                    <span><i class="planning-dot planning-dot-maybe"></i>Incertain</span>
-                    <span><i class="planning-dot planning-dot-busy"></i>Indisponible</span>
-                    <span><i class="planning-dot planning-dot-empty"></i>Non renseigne</span>
+                    <span><i class="planning-dot planning-dot-empty"></i>Non disponible / non renseigne</span>
                 </div>
-                <div class="planning-calendar" role="table" aria-label="Disponibilites de la semaine">
-                    <div class="planning-calendar-row planning-calendar-head" role="row">
-                        <span role="columnheader">Jour</span>
-                        <span role="columnheader">Matin</span>
-                        <span role="columnheader">Apres-midi</span>
-                        <span role="columnheader">Soir</span>
-                        <span role="columnheader">Nuit</span>
+                <div class="planning-session-card">
+                    <div>
+                        <span class="planning-session-label">Profil</span>
+                        <strong id="planning-profile-name">Invite</strong>
                     </div>
-                    <div class="planning-calendar-row" role="row">
-                        <strong role="rowheader">Lundi</strong>
-                        <span class="planning-slot planning-slot-empty" role="cell">--</span>
-                        <span class="planning-slot planning-slot-maybe" role="cell">2 incertains</span>
-                        <span class="planning-slot planning-slot-available" role="cell">4 dispo</span>
-                        <span class="planning-slot planning-slot-busy" role="cell">Charge</span>
+                    <div>
+                        <span class="planning-session-label">Fuseau</span>
+                        <strong id="planning-timezone">--</strong>
                     </div>
-                    <div class="planning-calendar-row" role="row">
-                        <strong role="rowheader">Mercredi</strong>
-                        <span class="planning-slot planning-slot-empty" role="cell">--</span>
-                        <span class="planning-slot planning-slot-empty" role="cell">--</span>
-                        <span class="planning-slot planning-slot-available" role="cell">5 dispo</span>
-                        <span class="planning-slot planning-slot-maybe" role="cell">A confirmer</span>
-                    </div>
-                    <div class="planning-calendar-row" role="row">
-                        <strong role="rowheader">Vendredi</strong>
-                        <span class="planning-slot planning-slot-busy" role="cell">Travail</span>
-                        <span class="planning-slot planning-slot-maybe" role="cell">Variable</span>
-                        <span class="planning-slot planning-slot-available" role="cell">Meilleur</span>
-                        <span class="planning-slot planning-slot-available" role="cell">Tardif</span>
-                    </div>
-                    <div class="planning-calendar-row" role="row">
-                        <strong role="rowheader">Dimanche</strong>
-                        <span class="planning-slot planning-slot-available" role="cell">3 dispo</span>
-                        <span class="planning-slot planning-slot-available" role="cell">4 dispo</span>
-                        <span class="planning-slot planning-slot-maybe" role="cell">Court</span>
-                        <span class="planning-slot planning-slot-busy" role="cell">Repos</span>
-                    </div>
+                    <a id="planning-login" class="planning-link-button" href="/auth/discord/login?redirect=/planning/">Connexion Discord</a>
+                </div>
+                <div id="planning-calendar" class="planning-calendar" role="table" aria-label="Disponibilites de la semaine"></div>
+                <div class="planning-actions">
+                    <button id="planning-save" class="planning-cta planning-cta-primary" type="button" disabled>Enregistrer mes disponibilites</button>
+                    <button id="planning-clear" class="planning-cta" type="button" disabled>Vider la semaine</button>
                 </div>
             </section>
 
@@ -151,8 +128,8 @@
                     <h2 id="planning-next-title">Prochaines briques a brancher</h2>
                 </div>
                 <ol>
-                    <li>Relier les disponibilites au profil utilisateur existant.</li>
-                    <li>Ajouter la sauvegarde par groupe JDR et par campagne.</li>
+                    <li>Ajouter les statuts incertain et indisponible explicite.</li>
+                    <li>Lier la synthese aux groupes JDR et aux campagnes.</li>
                     <li>Calculer automatiquement les meilleurs creneaux communs.</li>
                     <li>Preparer une vue semaine/mois pleinement interactive.</li>
                 </ol>

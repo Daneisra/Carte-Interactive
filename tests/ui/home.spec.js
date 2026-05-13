@@ -60,8 +60,8 @@ test.describe('Accueil - patch notes', () => {
         entries: [
           {
             date: '2026-05-12',
-            title: 'Version 0.17.33 - Page planning JDR',
-            summary: 'Une page dediee /planning/ pose le socle UI.'
+            title: 'Version 0.17.34 - Disponibilites planning',
+            summary: 'La page planning permet aux utilisateurs connectes de cocher leurs disponibilites.'
           }
         ]
       })
@@ -73,7 +73,7 @@ test.describe('Accueil - patch notes', () => {
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.33 - Page planning JDR');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.34 - Disponibilites planning');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
 });

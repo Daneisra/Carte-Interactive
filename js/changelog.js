@@ -13,8 +13,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-12',
-        title: 'Version 0.17.33 - Page planning JDR',
-        summary: 'Une page dediee /planning/ pose le socle UI pour organiser les sessions et preparer les disponibilites des groupes.'
+        title: 'Version 0.17.34 - Disponibilites planning',
+        summary: 'La page planning permet aux utilisateurs connectes de cocher leurs disponibilites par jour et creneau puis de les enregistrer dans leur profil.'
     }
 ];
 

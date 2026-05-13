@@ -6,7 +6,7 @@ Cette batterie de tests automatise les parcours navigateur clés :
 2. Filtres avancés, recherche, tags et réinitialisation.
 3. Chronologie : chargement, filtres, liens profonds, navigation clavier et mobile.
 4. Accueil : compteur Discord, patch notes, navigation et responsive mobile.
-5. Planning : page dédiée, socle calendrier et lisibilité mobile.
+5. Planning : page dédiée, saisie des disponibilités, sauvegarde profil et lisibilité mobile.
 6. Changelog : chargement des entrées depuis l'API et lisibilité mobile.
 7. Points d'entrée admin et sauvegardes mockées.
 

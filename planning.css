@@ -305,6 +305,11 @@ a {
     font-size: 13px;
 }
 
+.planning-status.is-error {
+    border-color: rgba(248, 113, 113, 0.32);
+    color: #fecaca;
+}
+
 .planning-overview-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -379,6 +384,45 @@ a {
     background: rgba(148, 163, 184, 0.5);
 }
 
+.planning-session-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 16px;
+}
+
+.planning-session-card > * {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.44);
+}
+
+.planning-session-label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--planning-muted);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.planning-session-card strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.planning-session-card .planning-link-button {
+    padding: 0 18px;
+}
+
+.planning-session-card .planning-link-button[hidden] {
+    display: none;
+}
+
 .planning-calendar {
     display: grid;
     gap: 8px;
@@ -405,6 +449,16 @@ a {
     border: 1px solid rgba(148, 163, 184, 0.16);
     border-radius: 14px;
     background: rgba(15, 23, 42, 0.44);
+}
+
+.planning-calendar-row > button {
+    color: inherit;
+    cursor: pointer;
+}
+
+.planning-calendar-row > button:disabled {
+    cursor: not-allowed;
+    opacity: 0.68;
 }
 
 .planning-calendar-head span {
@@ -440,6 +494,28 @@ a {
 
 .planning-slot-empty {
     color: rgba(237, 242, 255, 0.44);
+}
+
+.planning-calendar.is-disabled .planning-slot {
+    opacity: 0.72;
+}
+
+.planning-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.planning-actions .planning-cta {
+    border: 0;
+    cursor: pointer;
+}
+
+.planning-actions .planning-cta:disabled {
+    cursor: not-allowed;
+    opacity: 0.56;
+    transform: none;
 }
 
 .planning-next ol {
@@ -500,6 +576,10 @@ a {
     .planning-overview-grid {
         grid-template-columns: 1fr;
     }
+
+    .planning-session-card {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 560px) {
@@ -524,7 +604,8 @@ a {
         letter-spacing: -0.05em;
     }
 
-    .planning-hero-actions {
+    .planning-hero-actions,
+    .planning-actions {
         display: grid;
         grid-template-columns: 1fr;
     }
