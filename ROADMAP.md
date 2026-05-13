@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.29`.
+Version actuelle : `0.17.30`.
 
 ## Réalisations majeures livrées
 
@@ -133,7 +133,7 @@ Version actuelle : `0.17.29`.
 - [x] Créer une page changelog dédiée pour consulter l'historique complet des versions et changements.
 - [x] Automatiser les patch notes de l'accueil depuis le changelog produit et l'API changelog.
 - [ ] Modulariser davantage `UiController` et réduire les dépendances croisées UI. En cours : modèles disponibilités, personnalisation profil, personnages et annotations extraits dans `js/ui/`.
-- [ ] Nettoyer les artefacts legacy conservés seulement pour compatibilité.
+- [ ] Nettoyer les artefacts legacy conservés seulement pour compatibilité. En cours : ancien placeholder de test unitaire supprimé, alias API legacy conservés car couverts par tests.
 - [ ] Harmoniser les encodages UTF-8 et conserver le lint dédié.
 - [ ] Optimiser la CI Playwright : cache, durée, diagnostics.
 - [ ] Observabilité plus complète : métriques serveur, traces client, dashboard admin.
