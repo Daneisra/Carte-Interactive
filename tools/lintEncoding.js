@@ -4,7 +4,14 @@ const path = require('path');
 const { promises: fs } = require('fs');
 const { TextDecoder } = require('util');
 
-const ALLOWED_EXTENSIONS = new Set(['.md', '.js', '.json', '.ts', '.css', '.html']);
+const ALLOWED_EXTENSIONS = new Set(['.md', '.js', '.mjs', '.json', '.ts', '.css', '.html', '.yml', '.yaml']);
+const ALLOWED_BASENAMES = new Set(['.editorconfig', '.gitattributes', '.gitignore']);
+const IGNORED_DIRECTORIES = new Set([
+    '.git',
+    'node_modules',
+    'test-results',
+    'playwright-report'
+]);
 const decoder = new TextDecoder('utf-8', { fatal: true });
 
 const hasUtf8Bom = buffer =>
@@ -16,7 +23,7 @@ async function collectTargets(targetPath) {
         const entries = await fs.readdir(targetPath);
         const collected = [];
         for (const entry of entries) {
-            if (entry.startsWith('.')) {
+            if (IGNORED_DIRECTORIES.has(entry)) {
                 continue;
             }
             const nested = await collectTargets(path.join(targetPath, entry));
@@ -26,7 +33,8 @@ async function collectTargets(targetPath) {
     }
 
     const extension = path.extname(targetPath).toLowerCase();
-    if (!ALLOWED_EXTENSIONS.has(extension)) {
+    const basename = path.basename(targetPath);
+    if (!ALLOWED_EXTENSIONS.has(extension) && !ALLOWED_BASENAMES.has(basename)) {
         return [];
     }
     return [targetPath];
@@ -52,7 +60,23 @@ async function lintFile(filePath) {
 
 async function main() {
     const args = process.argv.slice(2);
-    const targets = args.length ? args : ['docs', path.join('js', 'i18n.js')];
+    const targets = args.length ? args : [
+        'README.md',
+        'ROADMAP.md',
+        'docs',
+        'js',
+        'server',
+        'tests',
+        'tools',
+        'index.html',
+        path.join('changelog', 'index.html'),
+        path.join('assets', 'site-config.json'),
+        'package.json',
+        'package-lock.json',
+        '.editorconfig',
+        '.gitattributes',
+        '.gitignore'
+    ];
     const root = process.cwd();
     const results = [];
 
@@ -72,19 +96,19 @@ async function main() {
     }
 
     if (results.length) {
-        console.error('✖ Problèmes d\'encodage detectes:');
+        console.error("X Problemes d'encodage detectes:");
         results.forEach(entry => {
             console.error(`  - ${entry.file}`);
-            entry.issues.forEach(issue => console.error(`      • ${issue}`));
+            entry.issues.forEach(issue => console.error(`      - ${issue}`));
         });
         process.exitCode = 1;
         return;
     }
 
-    console.log('✓ Encodage valide (UTF-8 sans BOM) pour les fichiers inspectes.');
+    console.log('OK Encodage valide (UTF-8 sans BOM) pour les fichiers inspectes.');
 }
 
 main().catch(error => {
-    console.error('✖ Erreur inattendue lors du lint encodage:', error);
+    console.error('X Erreur inattendue lors du lint encodage:', error);
     process.exitCode = 1;
 });

@@ -13,8 +13,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-12',
-        title: 'Version 0.17.30 - Nettoyage legacy tests',
-        summary: 'L ancien placeholder de test unitaire est retire, les compatibilites serveur utiles restent couvertes.'
+        title: 'Version 0.17.31 - Encodage UTF-8 verrouille',
+        summary: 'Les conventions d encodage sont explicites via EditorConfig et le lint UTF-8 controle les fichiers texte du projet.'
     }
 ];
 

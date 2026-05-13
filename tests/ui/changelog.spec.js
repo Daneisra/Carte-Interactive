@@ -11,8 +11,8 @@ test.describe('Changelog - UI', () => {
         entries: [
           {
             date: '2026-05-12',
-            title: 'Version 0.17.30 - Nettoyage legacy tests',
-            summary: 'L ancien placeholder de test unitaire est retire.'
+            title: 'Version 0.17.31 - Encodage UTF-8 verrouille',
+            summary: 'Les conventions d encodage sont explicites.'
           },
           {
             date: '2026-05-12',
@@ -30,7 +30,7 @@ test.describe('Changelog - UI', () => {
     await expect(page.locator('#changelog-count')).toHaveText('2');
     await expect(page.locator('#changelog-source')).toHaveText('Config');
     await expect(page.locator('.changelog-entry')).toHaveCount(2);
-    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.30 - Nettoyage legacy tests');
+    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.31 - Encodage UTF-8 verrouille');
   });
 
   test('la page reste exploitable sur mobile', async ({ page }) => {

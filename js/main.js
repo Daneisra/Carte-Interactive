@@ -1,4 +1,4 @@
-﻿import { DataService } from './dataService.js';
+import { DataService } from './dataService.js';
 import { MapController } from './mapController.js';
 import { UiController } from './uiController.js';
 import { PreferencesService } from './preferencesService.js';

@@ -1,4 +1,4 @@
-﻿import { getString } from '../i18n.js';
+import { getString } from '../i18n.js';
 
 export class HistoryManager {
     constructor({ container, listElement, backButton, maxVisibleItems = 4 }) {

@@ -61,6 +61,7 @@ rsync -azvr --delete --exclude="logs/" --exclude="icons/README.md" \
 - Serveur : CommonJS.
 - Routes : routeur maison, pas Express.
 - Données : JSON lisibles et validés.
+- Encodage : UTF-8 sans BOM, conventions partagees via `.editorconfig` et controlees par `npm run lint`.
 - Docs : pas de secrets, chemins exacts, commandes copiables.
 
 ## Après déploiement

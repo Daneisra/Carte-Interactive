@@ -68,7 +68,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.30',
+  version: '0.17.31',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -124,6 +124,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-13',
+      title: 'Version 0.17.31 - Encodage UTF-8 verrouille',
+      summary: 'Les conventions d encodage sont explicites via EditorConfig et le lint UTF-8 controle les fichiers texte du projet.'
+    },
     {
       date: '2026-05-13',
       title: 'Version 0.17.30 - Nettoyage legacy tests',

@@ -1,4 +1,4 @@
-﻿# Tests UI (Playwright)
+# Tests UI (Playwright)
 
 Cette batterie de tests automatise plusieurs scénarios clés :
 

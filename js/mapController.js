@@ -1,4 +1,4 @@
-﻿import { startTimer, endTimer, logMetric } from './utils/metrics.js';
+import { startTimer, endTimer, logMetric } from './utils/metrics.js';
 
 const DEFAULT_BOUNDS = [[0, 0], [6144, 8192]];
 const DEFAULT_IMAGE = 'assets/map.png';

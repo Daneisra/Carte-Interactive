@@ -1,4 +1,4 @@
-﻿import { UiState } from './ui/state.js';
+import { UiState } from './ui/state.js';
 import { FiltersManager } from './ui/filtersManager.js';
 import { ThemeManager } from './ui/themeManager.js';
 import { MapControlsManager } from './ui/mapControlsManager.js';

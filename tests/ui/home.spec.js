@@ -60,8 +60,8 @@ test.describe('Accueil - patch notes', () => {
         entries: [
           {
             date: '2026-05-12',
-            title: 'Version 0.17.30 - Nettoyage legacy tests',
-            summary: 'L ancien placeholder de test unitaire est retire.'
+            title: 'Version 0.17.31 - Encodage UTF-8 verrouille',
+            summary: 'Les conventions d encodage sont explicites.'
           }
         ]
       })
@@ -73,7 +73,7 @@ test.describe('Accueil - patch notes', () => {
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.30 - Nettoyage legacy tests');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.31 - Encodage UTF-8 verrouille');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
 });
