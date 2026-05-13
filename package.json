@@ -1,9 +1,12 @@
 {
   "name": "carte-interactive",
-  "version": "0.17.31",
+  "version": "0.17.32",
   "private": true,
   "scripts": {
     "test:ui": "playwright test",
+    "test:ui:chromium": "playwright test --project=chromium",
+    "test:ui:firefox": "playwright test --project=firefox",
+    "test:api": "playwright test --project=api",
     "test:ui:headed": "playwright test --headed",
     "test:ui:update": "playwright test --update-snapshots",
     "test:unit": "node tests/unit/run.mjs",

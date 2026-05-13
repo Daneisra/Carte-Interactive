@@ -17,6 +17,14 @@ npm run test:unit
 npm run test:ui
 ```
 
+Pour cibler un échec navigateur sans relancer toute la suite :
+
+```bash
+npm run test:api
+npm run test:ui:chromium
+npm run test:ui:firefox
+```
+
 Si le changement est livré comme une évolution projet, mettre à jour dans le même commit :
 
 - `package.json` et `package-lock.json`.

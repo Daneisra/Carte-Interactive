@@ -18,9 +18,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Lint
         run: npm run lint
@@ -39,8 +40,32 @@ jobs:
       - name: Validate data integrity
         run: python tools/validate_assets.py
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: UI tests (Playwright)
-        run: npm run test:ui
+      - name: API tests (Playwright)
+        run: npm run test:api
+
+      - name: UI tests Chromium
+        run: npm run test:ui:chromium
+
+      - name: UI tests Firefox
+        run: npm run test:ui:firefox
+
+      - name: Upload Playwright diagnostics
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-diagnostics
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
