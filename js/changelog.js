@@ -13,8 +13,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-12',
-        title: 'Version 0.17.32 - CI Playwright optimisee',
-        summary: 'La CI utilise npm ci, cache les dependances et navigateurs, separe les projets Playwright et conserve les diagnostics en echec.'
+        title: 'Version 0.17.33 - Page planning JDR',
+        summary: 'Une page dediee /planning/ pose le socle UI pour organiser les sessions et preparer les disponibilites des groupes.'
     }
 ];
 

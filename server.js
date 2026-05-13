@@ -68,7 +68,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.32',
+  version: '0.17.33',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -124,6 +124,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-14',
+      title: 'Version 0.17.33 - Page planning JDR',
+      summary: 'Une page dediee /planning/ pose le socle UI pour organiser les sessions et preparer les disponibilites des groupes.'
+    },
     {
       date: '2026-05-14',
       title: 'Version 0.17.32 - CI Playwright optimisee',

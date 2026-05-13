@@ -60,8 +60,8 @@ test.describe('Accueil - patch notes', () => {
         entries: [
           {
             date: '2026-05-12',
-            title: 'Version 0.17.32 - CI Playwright optimisee',
-            summary: 'La CI conserve les diagnostics en echec.'
+            title: 'Version 0.17.33 - Page planning JDR',
+            summary: 'Une page dediee /planning/ pose le socle UI.'
           }
         ]
       })
@@ -73,7 +73,7 @@ test.describe('Accueil - patch notes', () => {
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.32 - CI Playwright optimisee');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.33 - Page planning JDR');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
 });
@@ -89,6 +89,7 @@ test.describe('Accueil - mobile', () => {
     await expect(page.locator('.home-header')).toBeVisible();
     await expect(page.locator('.home-nav')).toBeVisible();
     await expect(page.locator('.home-nav a[href="/changelog/"]')).toHaveText('Changelog');
+    await expect(page.locator('.home-nav a[href="/planning/"]')).toHaveText('Planning');
     await expect(page.locator('#home-enter-map')).toBeVisible();
     await expect(page.locator('#home-support-title')).toBeVisible();
 

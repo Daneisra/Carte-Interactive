@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte Hesta | Planning JDR</title>
+    <meta name="description" content="Planning JDR Hesta pour organiser les sessions, visualiser les disponibilites et preparer les prochaines parties." />
+    <meta property="og:title" content="Carte Hesta | Planning JDR" />
+    <meta property="og:description" content="Une page dediee a la logistique des parties JDR et aux disponibilites des groupes." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cartehesta.dannytech.fr/planning/" />
+    <meta property="og:image" content="https://cartehesta.dannytech.fr/assets/logo.png" />
+    <link rel="stylesheet" href="/planning.css">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+</head>
+<body>
+    <a class="planning-skip-link" href="#planning-main">Aller au contenu principal</a>
+    <div class="planning-shell">
+        <header class="planning-header">
+            <a class="planning-brand" href="/" aria-label="Accueil Carte Hesta">
+                <span class="planning-brand-mark" aria-hidden="true">
+                    <img src="/assets/logo.png" alt="" />
+                </span>
+                <span class="planning-brand-text">
+                    <strong>Carte Hesta</strong>
+                    <small>Planning des parties</small>
+                </span>
+            </a>
+            <nav class="planning-nav" aria-label="Navigation principale">
+                <a href="/">Accueil</a>
+                <a href="/map/">Carte</a>
+                <a href="/timeline/">Chronologie</a>
+                <a href="/planning/" aria-current="page">Planning</a>
+                <a href="/changelog/">Changelog</a>
+            </nav>
+            <div class="planning-header-actions">
+                <a class="planning-link-button" href="/map/">Entrer sur la carte</a>
+            </div>
+        </header>
+
+        <main id="planning-main" class="planning-main">
+            <section class="planning-hero" aria-labelledby="planning-title">
+                <div>
+                    <p class="planning-kicker">P7 - Planning JDR</p>
+                    <h1 id="planning-title">Trouver une date sans fouiller trois conversations</h1>
+                    <p class="planning-lead">
+                        Cette page pose la base du calendrier de campagne : disponibilites, groupes, statuts de reponse
+                        et synthese rapide pour aider le MJ a choisir le meilleur creneau.
+                    </p>
+                    <div class="planning-hero-actions">
+                        <a class="planning-cta planning-cta-primary" href="#planning-week">Voir la semaine type</a>
+                        <a class="planning-cta" href="#planning-next">Prochaines etapes</a>
+                    </div>
+                </div>
+                <div class="planning-hero-meta" aria-label="Etat du module planning">
+                    <div class="planning-stat">
+                        <span>Version</span>
+                        <strong id="planning-version">0.17.33</strong>
+                    </div>
+                    <div class="planning-stat">
+                        <span>Statut</span>
+                        <strong>Socle UI</strong>
+                    </div>
+                    <div class="planning-stat">
+                        <span>Objectif</span>
+                        <strong>Disponibilites</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="planning-panel planning-overview" aria-labelledby="planning-overview-title">
+                <div>
+                    <p class="planning-panel-kicker">Logistique</p>
+                    <h2 id="planning-overview-title">Ce que le planning devra centraliser</h2>
+                </div>
+                <div class="planning-overview-grid">
+                    <article>
+                        <span aria-hidden="true">01</span>
+                        <h3>Disponibilites joueurs</h3>
+                        <p>Chaque joueur indique ses creneaux disponibles, incertains ou indisponibles.</p>
+                    </article>
+                    <article>
+                        <span aria-hidden="true">02</span>
+                        <h3>Lecture MJ</h3>
+                        <p>Les meilleurs creneaux ressortent rapidement, par groupe ou campagne.</p>
+                    </article>
+                    <article>
+                        <span aria-hidden="true">03</span>
+                        <h3>Session suivante</h3>
+                        <p>Une date candidate peut etre confirmee puis relayee au groupe.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section id="planning-week" class="planning-panel" aria-labelledby="planning-week-title">
+                <div class="planning-panel-header">
+                    <div>
+                        <p class="planning-panel-kicker">Prototype de lecture</p>
+                        <h2 id="planning-week-title">Semaine type</h2>
+                    </div>
+                    <p class="planning-status" role="status">Mode lecture - saisie a venir</p>
+                </div>
+                <div class="planning-legend" aria-label="Legende des disponibilites">
+                    <span><i class="planning-dot planning-dot-available"></i>Disponible</span>
+                    <span><i class="planning-dot planning-dot-maybe"></i>Incertain</span>
+                    <span><i class="planning-dot planning-dot-busy"></i>Indisponible</span>
+                    <span><i class="planning-dot planning-dot-empty"></i>Non renseigne</span>
+                </div>
+                <div class="planning-calendar" role="table" aria-label="Disponibilites de la semaine">
+                    <div class="planning-calendar-row planning-calendar-head" role="row">
+                        <span role="columnheader">Jour</span>
+                        <span role="columnheader">Matin</span>
+                        <span role="columnheader">Apres-midi</span>
+                        <span role="columnheader">Soir</span>
+                        <span role="columnheader">Nuit</span>
+                    </div>
+                    <div class="planning-calendar-row" role="row">
+                        <strong role="rowheader">Lundi</strong>
+                        <span class="planning-slot planning-slot-empty" role="cell">--</span>
+                        <span class="planning-slot planning-slot-maybe" role="cell">2 incertains</span>
+                        <span class="planning-slot planning-slot-available" role="cell">4 dispo</span>
+                        <span class="planning-slot planning-slot-busy" role="cell">Charge</span>
+                    </div>
+                    <div class="planning-calendar-row" role="row">
+                        <strong role="rowheader">Mercredi</strong>
+                        <span class="planning-slot planning-slot-empty" role="cell">--</span>
+                        <span class="planning-slot planning-slot-empty" role="cell">--</span>
+                        <span class="planning-slot planning-slot-available" role="cell">5 dispo</span>
+                        <span class="planning-slot planning-slot-maybe" role="cell">A confirmer</span>
+                    </div>
+                    <div class="planning-calendar-row" role="row">
+                        <strong role="rowheader">Vendredi</strong>
+                        <span class="planning-slot planning-slot-busy" role="cell">Travail</span>
+                        <span class="planning-slot planning-slot-maybe" role="cell">Variable</span>
+                        <span class="planning-slot planning-slot-available" role="cell">Meilleur</span>
+                        <span class="planning-slot planning-slot-available" role="cell">Tardif</span>
+                    </div>
+                    <div class="planning-calendar-row" role="row">
+                        <strong role="rowheader">Dimanche</strong>
+                        <span class="planning-slot planning-slot-available" role="cell">3 dispo</span>
+                        <span class="planning-slot planning-slot-available" role="cell">4 dispo</span>
+                        <span class="planning-slot planning-slot-maybe" role="cell">Court</span>
+                        <span class="planning-slot planning-slot-busy" role="cell">Repos</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="planning-next" class="planning-panel planning-next" aria-labelledby="planning-next-title">
+                <div>
+                    <p class="planning-panel-kicker">Suite P7</p>
+                    <h2 id="planning-next-title">Prochaines briques a brancher</h2>
+                </div>
+                <ol>
+                    <li>Relier les disponibilites au profil utilisateur existant.</li>
+                    <li>Ajouter la sauvegarde par groupe JDR et par campagne.</li>
+                    <li>Calculer automatiquement les meilleurs creneaux communs.</li>
+                    <li>Preparer une vue semaine/mois pleinement interactive.</li>
+                </ol>
+            </section>
+        </main>
+
+        <footer class="planning-footer">
+            <span>&copy; <span id="planning-year"></span> Carte Hesta</span>
+            <nav aria-label="Liens secondaires">
+                <a href="/">Accueil</a>
+                <a href="/timeline/">Chronologie</a>
+                <a href="/changelog/">Changelog</a>
+            </nav>
+        </footer>
+    </div>
+
+    <script type="module" src="/js/planning.js"></script>
+</body>
+</html>
