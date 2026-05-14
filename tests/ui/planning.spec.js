@@ -11,6 +11,7 @@ test.describe('Planning - UI', () => {
     await expect(page.locator('.planning-calendar-row')).toHaveCount(8);
     await expect(page.locator('.planning-slot').first()).toBeVisible();
     await expect(page.locator('#planning-status')).toContainText('Connectez-vous');
+    await expect(page.locator('#planning-summary-status')).toContainText('Connectez-vous');
   });
 
   test('un utilisateur connecte peut modifier et enregistrer ses disponibilites', async ({ page }) => {
@@ -41,6 +42,26 @@ test.describe('Planning - UI', () => {
         })
       });
     });
+    await page.route('**/api/planning/availability-summary', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'ok',
+        scopes: [
+          {
+            id: 'all',
+            label: 'Tous les joueurs',
+            kind: 'global',
+            respondents: 2,
+            totalUsers: 3,
+            best: [
+              { day: 'mon', slot: 'evening', count: 2 },
+              { day: 'fri', slot: 'night', count: 1 }
+            ]
+          }
+        ]
+      })
+    }));
 
     await page.goto('/planning/');
     await page.waitForLoadState('domcontentloaded');
@@ -57,6 +78,55 @@ test.describe('Planning - UI', () => {
     expect(savedPayload.availability.timezone).toBe('Europe/Warsaw');
     expect(savedPayload.availability.slots[0][0]).toBe(true);
     expect(savedPayload.availability.slots[0][2]).toBe(true);
+    await expect(page.locator('.planning-best-slot').first()).toContainText('Lun - Soir');
+    await expect(page.locator('.planning-best-slot').first()).toContainText('2 dispo');
+  });
+
+  test('la synthese planning affiche les scopes de groupe', async ({ page }) => {
+    await page.route('**/auth/session', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        username: 'Danny',
+        availability: { timezone: 'Europe/Warsaw', slots: [] }
+      })
+    }));
+    await page.route('**/api/planning/availability-summary', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'ok',
+        scopes: [
+          {
+            id: 'all',
+            label: 'Tous les joueurs',
+            kind: 'global',
+            respondents: 4,
+            totalUsers: 5,
+            best: [{ day: 'wed', slot: 'evening', count: 4 }]
+          },
+          {
+            id: 'groupe-a',
+            label: 'Groupe A',
+            kind: 'group',
+            respondents: 3,
+            totalUsers: 3,
+            best: [{ day: 'fri', slot: 'night', count: 3 }]
+          }
+        ]
+      })
+    }));
+
+    await page.goto('/planning/');
+    await page.waitForLoadState('domcontentloaded');
+
+    await expect(page.locator('#planning-summary-status')).toHaveText('2 syntheses chargees.');
+    await expect(page.locator('#planning-scope')).toBeEnabled();
+    await expect(page.locator('.planning-best-slot').first()).toContainText('Mer - Soir');
+    await page.locator('#planning-scope').selectOption('groupe-a');
+    await expect(page.locator('.planning-best-slot').first()).toContainText('Ven - Nuit');
+    await expect(page.locator('.planning-best-slot').first()).toContainText('3 dispo');
   });
 
   test('la page planning reste exploitable sur mobile', async ({ page }) => {

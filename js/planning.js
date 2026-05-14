@@ -9,6 +9,7 @@ import {
 const SITE_CONFIG_URL = '/assets/site-config.json';
 const SESSION_URL = '/auth/session';
 const PROFILE_URL = '/api/profile';
+const SUMMARY_URL = '/api/planning/availability-summary';
 
 const dom = {
     year: document.getElementById('planning-year'),
@@ -19,7 +20,10 @@ const dom = {
     login: document.getElementById('planning-login'),
     calendar: document.getElementById('planning-calendar'),
     save: document.getElementById('planning-save'),
-    clear: document.getElementById('planning-clear')
+    clear: document.getElementById('planning-clear'),
+    summaryStatus: document.getElementById('planning-summary-status'),
+    scope: document.getElementById('planning-scope'),
+    bestSlots: document.getElementById('planning-best-slots')
 };
 
 const state = {
@@ -27,6 +31,7 @@ const state = {
     username: 'Invite',
     timezone: resolveLocalTimezone(),
     slots: createAvailabilityMatrix(),
+    summaryScopes: [],
     dirty: false,
     saving: false
 };
@@ -44,6 +49,17 @@ const setStatus = (message, isError = false) => {
     dom.status.textContent = message;
     dom.status.classList.toggle('is-error', isError);
 };
+
+const setSummaryStatus = (message, isError = false) => {
+    if (!dom.summaryStatus) {
+        return;
+    }
+    dom.summaryStatus.textContent = message;
+    dom.summaryStatus.classList.toggle('is-error', isError);
+};
+
+const getDayLabel = dayId => AVAILABILITY_DAYS.find(day => day.id === dayId)?.label || dayId;
+const getSlotLabel = slotId => AVAILABILITY_SLOTS.find(slot => slot.id === slotId)?.label || slotId;
 
 const getAvailabilityFromState = () => ({
     timezone: state.timezone || resolveLocalTimezone(),
@@ -223,6 +239,7 @@ const saveAvailability = async () => {
         state.dirty = false;
         setStatus('Disponibilites enregistrees.');
         renderCalendar();
+        loadSummary();
     } catch (error) {
         console.error('[planning] availability save failed', error);
         setStatus('Impossible d enregistrer les disponibilites.', true);
@@ -244,6 +261,80 @@ const clearAvailability = () => {
     syncActions();
 };
 
+const renderSummary = () => {
+    if (!dom.scope || !dom.bestSlots) {
+        return;
+    }
+    const requestedScopeId = dom.scope.value;
+    dom.scope.replaceChildren(...state.summaryScopes.map(scope => {
+        const option = document.createElement('option');
+        option.value = scope.id;
+        option.textContent = scope.kind === 'group' ? `Groupe - ${scope.label}` : scope.label;
+        return option;
+    }));
+    dom.scope.disabled = !state.authenticated || state.summaryScopes.length <= 1;
+    const selected = state.summaryScopes.find(scope => scope.id === requestedScopeId) || state.summaryScopes[0] || null;
+    if (!selected) {
+        dom.bestSlots.replaceChildren(Object.assign(document.createElement('article'), {
+            className: 'planning-best-empty',
+            textContent: state.authenticated ? 'Aucune synthese disponible.' : 'Connectez-vous pour charger la synthese.'
+        }));
+        return;
+    }
+    dom.scope.value = selected.id;
+    if (!Array.isArray(selected.best) || !selected.best.length) {
+        dom.bestSlots.replaceChildren(Object.assign(document.createElement('article'), {
+            className: 'planning-best-empty',
+            textContent: `${selected.label}: aucun creneau commun renseigne.`
+        }));
+        return;
+    }
+    dom.bestSlots.replaceChildren(...selected.best.map(slot => {
+        const item = document.createElement('article');
+        item.className = 'planning-best-slot';
+        const title = document.createElement('strong');
+        title.textContent = `${getDayLabel(slot.day)} - ${getSlotLabel(slot.slot)}`;
+        const detail = document.createElement('span');
+        detail.textContent = `${selected.label} - ${selected.respondents} repondant${selected.respondents > 1 ? 's' : ''}`;
+        const count = document.createElement('span');
+        count.className = 'planning-best-slot-count';
+        count.textContent = `${slot.count} dispo`;
+        item.append(title, detail, count);
+        return item;
+    }));
+};
+
+const loadSummary = async () => {
+    if (!state.authenticated) {
+        state.summaryScopes = [];
+        setSummaryStatus('Connectez-vous pour charger la synthese.', true);
+        renderSummary();
+        return;
+    }
+    setSummaryStatus('Chargement des creneaux communs...');
+    try {
+        const response = await fetch(SUMMARY_URL, { credentials: 'include', cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        state.summaryScopes = Array.isArray(payload?.scopes) ? payload.scopes : [];
+        const scopeCount = state.summaryScopes.length;
+        setSummaryStatus(scopeCount
+            ? `${scopeCount} synthese${scopeCount > 1 ? 's' : ''} chargee${scopeCount > 1 ? 's' : ''}.`
+            : 'Aucun creneau commun disponible.');
+    } catch (error) {
+        console.warn('[planning] availability summary unavailable', error);
+        state.summaryScopes = [];
+        setSummaryStatus('Synthese indisponible pour le moment.', true);
+    }
+    renderSummary();
+};
+
+if (dom.scope) {
+    dom.scope.addEventListener('change', renderSummary);
+}
+
 if (dom.save) {
     dom.save.addEventListener('click', saveAvailability);
 }
@@ -255,4 +346,4 @@ setText(dom.year, String(new Date().getFullYear()));
 buildCalendar();
 syncSessionCard();
 loadVersion();
-loadSession();
+loadSession().then(loadSummary);

@@ -68,7 +68,7 @@ const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.34',
+  version: '0.17.35',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -124,6 +124,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-14',
+      title: 'Version 0.17.35 - Synthese planning',
+      summary: 'Le planning affiche les meilleurs creneaux communs avec une synthese globale et des scopes de groupes JDR quand ils existent.'
+    },
     {
       date: '2026-05-14',
       title: 'Version 0.17.34 - Disponibilites planning',
@@ -1627,6 +1632,81 @@ const availabilityHasSlots = availability => {
   return availability.slots.some(day => Array.isArray(day) && day.some(Boolean));
 };
 
+const collectUserGroupIds = user => {
+  const ids = new Set();
+  if (Array.isArray(user?.groups)) {
+    user.groups.forEach(groupId => {
+      const normalized = normalizeString(groupId);
+      if (normalized) {
+        ids.add(normalized);
+      }
+    });
+  }
+  sanitizeCharacterList(resolveUserCharacters(user)).forEach(character => {
+    const normalized = normalizeString(character?.groupId);
+    if (normalized) {
+      ids.add(normalized);
+    }
+  });
+  return ids;
+};
+
+const createAvailabilityCounts = () => Array.from({ length: AVAILABILITY_DAYS.length }, () => (
+  Array.from({ length: AVAILABILITY_SLOTS.length }, () => 0)
+));
+
+const buildAvailabilityScope = ({ id, label, kind, users }) => {
+  const counts = createAvailabilityCounts();
+  const timezones = {};
+  let respondents = 0;
+  users.forEach(user => {
+    const availability = sanitizeAvailabilityRecord(user?.availability);
+    if (!availability || !availabilityHasSlots(availability)) {
+      return;
+    }
+    respondents += 1;
+    availability.slots.forEach((daySlots, dayIndex) => {
+      daySlots.forEach((active, slotIndex) => {
+        if (active) {
+          counts[dayIndex][slotIndex] += 1;
+        }
+      });
+    });
+    if (availability.timezone) {
+      timezones[availability.timezone] = (timezones[availability.timezone] || 0) + 1;
+    }
+  });
+  const best = [];
+  counts.forEach((daySlots, dayIndex) => {
+    daySlots.forEach((count, slotIndex) => {
+      if (count > 0) {
+        best.push({
+          day: AVAILABILITY_DAYS[dayIndex],
+          slot: AVAILABILITY_SLOTS[slotIndex],
+          dayIndex,
+          slotIndex,
+          count
+        });
+      }
+    });
+  });
+  best.sort((left, right) => (
+    right.count - left.count ||
+    left.dayIndex - right.dayIndex ||
+    left.slotIndex - right.slotIndex
+  ));
+  return {
+    id,
+    label,
+    kind,
+    respondents,
+    totalUsers: users.length,
+    counts,
+    timezones,
+    best: best.slice(0, 5)
+  };
+};
+
 const resolveUserCharacters = user => {
   if (Array.isArray(user?.characters) && user.characters.length) {
     return user.characters;
@@ -2672,6 +2752,59 @@ const server = http.createServer(async (req, res) => {
             memberCount: members.length
           };
         })
+      }), { 'Content-Type': 'application/json' });
+      return;
+    }
+
+    if (urlObj.pathname === '/api/planning/availability-summary') {
+      if (req.method !== 'GET') {
+        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
+        return;
+      }
+      if (!(await ensureAuthorized(req, res, 'user'))) {
+        return;
+      }
+      const users = await readUsersFile();
+      const groups = await readGroupsFile();
+      const currentUserId = req.auth?.user?.id || null;
+      const currentUser = currentUserId ? users.find(user => user?.id === currentUserId) : null;
+      const currentGroupIds = collectUserGroupIds(currentUser);
+      const isAdmin = req.auth?.role === 'admin';
+      const scopes = [
+        buildAvailabilityScope({
+          id: 'all',
+          label: 'Tous les joueurs',
+          kind: 'global',
+          users
+        })
+      ];
+      groups.forEach(group => {
+        const record = sanitizeGroupRecord(group);
+        if (!record.id) {
+          return;
+        }
+        if (!isAdmin && currentGroupIds.size && !currentGroupIds.has(record.id)) {
+          return;
+        }
+        if (!isAdmin && !currentGroupIds.size) {
+          return;
+        }
+        const members = users.filter(user => collectUserGroupIds(user).has(record.id));
+        if (!members.length) {
+          return;
+        }
+        scopes.push(buildAvailabilityScope({
+          id: record.id,
+          label: record.name || record.id,
+          kind: 'group',
+          users: members
+        }));
+      });
+      send(res, 200, JSON.stringify({
+        status: 'ok',
+        days: AVAILABILITY_DAYS,
+        slots: AVAILABILITY_SLOTS,
+        scopes
       }), { 'Content-Type': 'application/json' });
       return;
     }

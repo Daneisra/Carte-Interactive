@@ -55,7 +55,7 @@
                 <div class="planning-hero-meta" aria-label="Etat du module planning">
                     <div class="planning-stat">
                         <span>Version</span>
-                        <strong id="planning-version">0.17.34</strong>
+                        <strong id="planning-version">0.17.35</strong>
                     </div>
                     <div class="planning-stat">
                         <span>Statut</span>
@@ -119,6 +119,25 @@
                 <div class="planning-actions">
                     <button id="planning-save" class="planning-cta planning-cta-primary" type="button" disabled>Enregistrer mes disponibilites</button>
                     <button id="planning-clear" class="planning-cta" type="button" disabled>Vider la semaine</button>
+                </div>
+            </section>
+
+            <section id="planning-summary" class="planning-panel" aria-labelledby="planning-summary-title">
+                <div class="planning-panel-header">
+                    <div>
+                        <p class="planning-panel-kicker">Synthese MJ</p>
+                        <h2 id="planning-summary-title">Creneaux communs</h2>
+                    </div>
+                    <p id="planning-summary-status" class="planning-status" role="status" aria-live="polite">Connectez-vous pour charger la synthese.</p>
+                </div>
+                <div class="planning-summary-toolbar">
+                    <label for="planning-scope">Groupe</label>
+                    <select id="planning-scope" disabled>
+                        <option value="all">Tous les joueurs</option>
+                    </select>
+                </div>
+                <div id="planning-best-slots" class="planning-best-slots" aria-live="polite">
+                    <article class="planning-best-empty">Aucune synthese chargee.</article>
                 </div>
             </section>
 

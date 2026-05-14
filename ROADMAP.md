@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.34`.
+Version actuelle : `0.17.35`.
 
 ## Réalisations majeures livrées
 
@@ -95,8 +95,8 @@ Version actuelle : `0.17.34`.
 
 - [x] Créer une page planning/calendrier dédiée à la logistique des parties.
 - [x] Permettre à chaque utilisateur de renseigner ses disponibilités par jour et par créneau horaire.
-- [ ] Visualiser rapidement les créneaux communs disponibles pour un groupe ou une campagne.
-- [ ] Lier le planning aux groupes JDR et aux personnages lorsque c'est utile.
+- [x] Visualiser rapidement les créneaux communs disponibles pour un groupe ou une campagne.
+- [x] Lier le planning aux groupes JDR et aux personnages lorsque c'est utile.
 - [ ] Ajouter des statuts de réponse : disponible, incertain, indisponible, non renseigné.
 - [ ] Prévoir une vue semaine/mois lisible sur desktop et mobile.
 - [ ] Ajouter une synthèse MJ pour repérer les meilleures dates de session.
