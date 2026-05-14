@@ -7,52 +7,52 @@
     "role": "admin",
     "apiTokens": [],
     "avatar": "https://cdn.discordapp.com/avatars/1172705521317449809/128046ca64cc0ca2529912c88dd18a49.png?size=128",
-    "lastLoginAt": "2026-05-12T12:47:31.801Z",
-    "lastSeenAt": "2026-05-12T12:47:31.801Z",
+    "lastLoginAt": "2026-05-14T10:42:20.389Z",
+    "lastSeenAt": "2026-05-14T10:42:20.389Z",
     "availability": {
       "timezone": "Europe/Warsaw",
       "slots": [
         [
-          false,
-          false,
-          true,
-          true
+          "busy",
+          "maybe",
+          "available",
+          null
         ],
         [
-          false,
-          false,
-          true,
-          true
+          "busy",
+          "maybe",
+          "available",
+          null
         ],
         [
-          false,
-          false,
-          true,
-          true
+          "busy",
+          "maybe",
+          "available",
+          null
         ],
         [
-          false,
-          false,
-          true,
-          true
+          "busy",
+          "maybe",
+          "available",
+          null
         ],
         [
-          false,
-          false,
-          true,
-          true
+          "busy",
+          "maybe",
+          "available",
+          "available"
         ],
         [
-          false,
-          true,
-          true,
-          true
+          "maybe",
+          "available",
+          "available",
+          "available"
         ],
         [
-          false,
-          true,
-          true,
-          true
+          "maybe",
+          "available",
+          "available",
+          null
         ]
       ]
     },
@@ -63,6 +63,7 @@
       "socials": {
         "website": "https://dannytech.fr",
         "discord": "https://discord.gg/a67SVZtZXk",
+        "twitch": "https://www.twitch.tv/daneisra",
         "youtube": "https://www.youtube.com/@daneisra"
       }
     }
@@ -75,8 +76,55 @@
     "role": "admin",
     "apiTokens": [],
     "avatar": "https://cdn.discordapp.com/avatars/449219148636225547/79a9ebbe266b1619b0be7ae40892b81c.png?size=128",
-    "lastLoginAt": "2026-05-12T19:50:32.135Z",
-    "lastSeenAt": "2026-05-12T19:50:32.135Z"
+    "lastLoginAt": "2026-05-14T12:23:19.014Z",
+    "lastSeenAt": "2026-05-14T12:23:19.014Z",
+    "availability": {
+      "timezone": "Europe/Paris",
+      "slots": [
+        [
+          "busy",
+          "maybe",
+          "available",
+          "available"
+        ],
+        [
+          "busy",
+          "maybe",
+          "available",
+          "available"
+        ],
+        [
+          "busy",
+          "maybe",
+          "available",
+          "available"
+        ],
+        [
+          "busy",
+          "maybe",
+          "available",
+          "available"
+        ],
+        [
+          "busy",
+          "maybe",
+          "available",
+          "available"
+        ],
+        [
+          "available",
+          "available",
+          "available",
+          "available"
+        ],
+        [
+          "available",
+          "available",
+          "available",
+          "available"
+        ]
+      ]
+    }
   },
   {
     "id": "discord:249277347231039489",

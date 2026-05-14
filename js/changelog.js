@@ -13,8 +13,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-12',
-        title: 'Version 0.17.37 - Vue mois planning',
-        summary: 'Le planning propose une bascule semaine/mois lisible sur desktop et mobile, avec projection des disponibilites sur les prochaines semaines.'
+        title: 'Version 0.17.38 - Roadmap agenda reel',
+        summary: 'La roadmap distingue le socle de disponibilites du futur rework agenda/calendrier date avec sessions candidates.'
     }
 ];
 

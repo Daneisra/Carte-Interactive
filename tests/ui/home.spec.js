@@ -60,8 +60,8 @@ test.describe('Accueil - patch notes', () => {
         entries: [
           {
             date: '2026-05-12',
-            title: 'Version 0.17.37 - Vue mois planning',
-            summary: 'Le planning propose une bascule semaine/mois lisible.'
+            title: 'Version 0.17.38 - Roadmap agenda reel',
+            summary: 'La roadmap distingue le socle de disponibilites.'
           }
         ]
       })
@@ -73,7 +73,7 @@ test.describe('Accueil - patch notes', () => {
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.37 - Vue mois planning');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.38 - Roadmap agenda reel');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
 });

@@ -173,6 +173,16 @@
           "name": "Sharknadow",
           "role": "",
           "description": "Mort"
+        },
+        {
+          "name": "Sophia Camiña",
+          "role": "Monarque de l’Eau",
+          "description": "Vagabonde et veille sur l'Archipel"
+        },
+        {
+          "name": "Lina Sakura",
+          "role": "",
+          "description": "Dryade noire"
         }
       ],
       "tags": [],
@@ -300,7 +310,7 @@
       "pnjs": [
         {
           "name": "Almos Progoni",
-          "role": "Roi",
+          "role": "Roi de l'île de droite",
           "description": ""
         }
       ],
@@ -405,6 +415,16 @@
           "name": "Claria Mihail",
           "role": "Baronne",
           "description": "à été ressuscité"
+        },
+        {
+          "name": "Solma",
+          "role": "Archfey Warlock",
+          "description": "Actuellement sous la protection de la famille Jouvelieu, sur leur domaine dans la forêt de Brume-sombre"
+        },
+        {
+          "name": "Selesta Mihail",
+          "role": "Noble",
+          "description": "A retrouvé sa mère et a été mariée à Godet de Jouvelieu."
         }
       ],
       "tags": [],
@@ -428,7 +448,9 @@
         "**Brumeport **: Organisation militaire :\n\nL’armée stationnée à Brumeport n’en est pas vraiment une.\nIl y a la garde de la ville sous le commandement du seigneur.\n\nLa grande partie de « l’armée » est constituée de mercenaires et de brigands qui collaborent ou qui sont endettés avec les Rongefrey ainsi que de la population locale qui n’a pas le choix.\nNéanmoins, la force la plus crainte sont les spadassins qui ne répondent qu’aux membres de la maison Rongefrey. Habituellement, ils éliminent les ennemis de la famille dans des ruelles mais elle peut s’avérer un obstacle redoutable pour ceux qui veulent conquérir la ville.\n\nLa marine de Brumeport n’est composée que de corsaires collaborant ou endettés auprès des Rongefrey.\n\n**Brumeport durant la guerre :**\n\nDurant la guerre contre l’empire, Brumeport avait principalement un rôle de renseignement et d’espionnage. Quelques généraux impériaux ont également mystérieusement « disparus ».\n\nMais le fait d’arme le plus étonnant, c’est le jour où la flotte des Carlevan affronta la flotte impériale. La flotte du royaume du sud rencontra des difficultés car quelqu'un avait divulgué des informations à l'empire (Il s'agit du cousin du chef de la famille Carlevan de l'époque). Un détachement de la flotte impériale comptant une vingtaine de bateaux partie conquérir Brumeport. Mais ce qu’ils ne savaient pas, c’est qu’Oronte de Rongefrey était un amoureux de la mer. Cet homme d’une longue chevelure noire, vêtu d’un chapeau à plume et d’un bandeau sur son œil droit et étant toujours accompagné d'un rat sur son épaule (qui s'appelait Gruyère) était d’ailleurs très reconnu et respecté en Trekerith où il s’était fait un certain nombre d’ami chez les marins. Il avait également fortement agrandi la fortune familiale en pillant des navires marchands impériaux sur son navire : une caraque nommée « Le rat des mers » (qui était le surnom donné à Oronte). Le détachement vit donc émerger de la brûme une caraque avec une voilure bordeau arborant le rat noir des Rongefrey, ainsi qu’une trentaine de bateaux pirates venue de Trekerith pour aider Oronte. C’est ainsi que les Rongefrey ont remporté la bataille navale de Brumeport."
       ],
       "instances": [],
-      "nobleFamilies": [],
+      "nobleFamilies": [
+        "Rongefrey"
+      ],
       "pnjs": [],
       "tags": [],
       "questEvents": []
@@ -483,11 +505,23 @@
       "instances": [
         "La guilde des artisans"
       ],
-      "nobleFamilies": [],
+      "nobleFamilies": [
+        "Jouvelieu"
+      ],
       "pnjs": [
         {
           "name": "Ulrich von Stahl",
           "role": "Seigneur de Carleone",
+          "description": ""
+        },
+        {
+          "name": "Florentin de Jouvelieu",
+          "role": "Barron",
+          "description": "Banneret de Ulrich von Stahl"
+        },
+        {
+          "name": "Armandus Martinez",
+          "role": "Seigneur Inquisiteur / Grand Protecteur de Carleone",
           "description": ""
         }
       ],
@@ -514,7 +548,13 @@
         "La guilde des aventuriers"
       ],
       "nobleFamilies": [],
-      "pnjs": [],
+      "pnjs": [
+        {
+          "name": "Tontrem Santratum",
+          "role": "Seigneur Inquisiteur / Grand Protecteur de Crawen",
+          "description": "Depuis qu'il est Grand Protecteur de Crawen, Tontrem passe son temps à examiner les rapports délivrés par son fidèle Aigle Angelplume ou à mener personnellement ses forces contre les Démons, les hérétiques et les envahisseur assez idiots pour s'aventurer dans sa cité."
+        }
+      ],
       "tags": [],
       "questEvents": []
     },
@@ -577,7 +617,13 @@
       ],
       "instances": [],
       "nobleFamilies": [],
-      "pnjs": [],
+      "pnjs": [
+        {
+          "name": "Bardyl",
+          "role": "Nain guerrier / barde",
+          "description": ""
+        }
+      ],
       "tags": [],
       "questEvents": []
     },
@@ -659,7 +705,13 @@
         "La guilde des marchands"
       ],
       "nobleFamilies": [],
-      "pnjs": [],
+      "pnjs": [
+        {
+          "name": "Luc le forgeron",
+          "role": "Forgeron",
+          "description": "Forgeron réputé ayant sa force à Gloria"
+        }
+      ],
       "tags": [
         "Port",
         "Quete"
@@ -762,7 +814,13 @@
       "lore": [],
       "instances": [],
       "nobleFamilies": [],
-      "pnjs": [],
+      "pnjs": [
+        {
+          "name": "Arlayna Yinnorin",
+          "role": "Guide / Protectrice",
+          "description": "Elfe femelle, engagée comme guide par Florentin de Jouvelieu⁠ pour traverser la région de Irohazy woods , elle vie avec son fidèle Ent Sylris dans la forêt après avoir été bannie de son village elfes pour des raison de magie. Elle a approché de trop près les limites des magies acceptées par les elfes."
+        }
+      ],
       "tags": [],
       "questEvents": []
     },
@@ -851,7 +909,13 @@
       ],
       "instances": [],
       "nobleFamilies": [],
-      "pnjs": [],
+      "pnjs": [
+        {
+          "name": "Mol",
+          "role": "Chef de guerre",
+          "description": "Mol, provenant de Zemantis, anciennement chef du clan orc Vuben maintenant dirigé par Grikug, humilié et exilés il est le dirigeant de troupes gobelins en Vruliwen contre son grés."
+        }
+      ],
       "tags": [],
       "questEvents": []
     },
@@ -888,8 +952,16 @@
         "Capital des Terres du Sud de Vruliwen"
       ],
       "instances": [],
-      "nobleFamilies": [],
-      "pnjs": [],
+      "nobleFamilies": [
+        "Montségur"
+      ],
+      "pnjs": [
+        {
+          "name": "Clovis Monstégur",
+          "role": "Seigneur des Terres du Sud",
+          "description": "Ancien roi des Terres du Sud, aujourd'hui banneret de l'Empereur"
+        }
+      ],
       "tags": [],
       "questEvents": []
     },
@@ -912,7 +984,7 @@
       ],
       "audio": "assets/audio/tabletop-audio-battle-of-the-amazons-128-ytshorts.savetube.me.mp3",
       "history": [
-        "43 ap CC : Raid Dipovien sur Nikaïus"
+        "43 ap. CC : Raid Dipovien sur Nikaïus"
       ],
       "quests": [],
       "lore": [
@@ -922,7 +994,13 @@
         "La guilde des mercenaires"
       ],
       "nobleFamilies": [],
-      "pnjs": [],
+      "pnjs": [
+        {
+          "name": "Bayard",
+          "role": "Champion de la Foi",
+          "description": "A défendu Nikaïus lors du raid viking en 43 ap. CC"
+        }
+      ],
       "tags": [
         "Port",
         "Guilde"
@@ -945,7 +1023,13 @@
       ],
       "instances": [],
       "nobleFamilies": [],
-      "pnjs": [],
+      "pnjs": [
+        {
+          "name": "Vulkan",
+          "role": "Fondateur des Blood Brothers",
+          "description": "Mort"
+        }
+      ],
       "tags": [],
       "questEvents": []
     },
@@ -1093,7 +1177,8 @@
         "Académie des Mages",
         "La guilde des protecteurs",
         "L'Eglise de la Lumière",
-        "Comosicus Regere Securitas"
+        "Comosicus Regere Securitas",
+        "Ordre Exterminatus"
       ],
       "nobleFamilies": [],
       "pnjs": [
@@ -1101,6 +1186,11 @@
           "name": "Comosicus Thiri",
           "role": "Empereur-Dieu de Vruliwen / Unificateur du continent / Porteur de la Pax Maxima / Le Dieu sur Terre",
           "description": ""
+        },
+        {
+          "name": "Blar Van Gron",
+          "role": "Juge Monstrueux de L'Ordre Exterminatus",
+          "description": "Chef de l'Ordre Exterminatus"
         }
       ],
       "tags": [
@@ -1129,7 +1219,13 @@
         "La Garde"
       ],
       "nobleFamilies": [],
-      "pnjs": [],
+      "pnjs": [
+        {
+          "name": "Luceran Veyr",
+          "role": "Le Porte-Cendres",
+          "description": "L’homme de la rébellion de Vardanys"
+        }
+      ],
       "tags": [],
       "questEvents": []
     },

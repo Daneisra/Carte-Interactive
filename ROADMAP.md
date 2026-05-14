@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.37`.
+Version actuelle : `0.17.38`.
 
 ## Réalisations majeures livrées
 
@@ -93,6 +93,8 @@ Version actuelle : `0.17.37`.
 
 ### P7 - Planning et calendrier JDR
 
+Socle livré : disponibilités de semaine type, synthèse de créneaux communs et projection mensuelle simple.
+
 - [x] Créer une page planning/calendrier dédiée à la logistique des parties.
 - [x] Permettre à chaque utilisateur de renseigner ses disponibilités par jour et par créneau horaire.
 - [x] Visualiser rapidement les créneaux communs disponibles pour un groupe ou une campagne.
@@ -100,6 +102,19 @@ Version actuelle : `0.17.37`.
 - [x] Ajouter des statuts de réponse : disponible, incertain, indisponible, non renseigné.
 - [x] Prévoir une vue semaine/mois lisible sur desktop et mobile.
 - [x] Ajouter une synthèse MJ pour repérer les meilleures dates de session.
+
+### P7.1 - Rework agenda/calendrier réel
+
+- [ ] Transformer la page planning en véritable agenda daté, avec navigation mois précédent/suivant et semaine courante.
+- [ ] Ajouter un modèle de sessions candidates : titre, date, heure de début, durée, groupe, description et statut.
+- [ ] Permettre au MJ de proposer plusieurs dates candidates pour une partie.
+- [ ] Permettre aux joueurs de répondre à une date précise : disponible, incertain, indisponible, commentaire optionnel.
+- [ ] Afficher les événements confirmés dans une vue calendrier mensuelle, pas seulement une projection de semaine type.
+- [ ] Conserver la semaine type comme aide à la proposition automatique de dates.
+- [ ] Ajouter une synthèse par session candidate : nombre de oui/incertain/non, meilleurs créneaux et conflits visibles.
+- [ ] Prévoir une vue mobile agenda claire : liste chronologique + mini calendrier compact.
+- [ ] Préparer la persistance JSON dédiée, par exemple `assets/planning.json`, avec API admin/utilisateur séparée.
+- [ ] Ajouter des tests Playwright sur création de session candidate, réponse joueur et affichage mensuel.
 
 ### P8 - Différenciants carte et narration
 

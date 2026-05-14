@@ -73,7 +73,7 @@ const AVAILABILITY_STATUS = {
   BUSY: 'busy'
 };
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.37',
+  version: '0.17.38',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -129,6 +129,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-14',
+      title: 'Version 0.17.38 - Roadmap agenda reel',
+      summary: 'La roadmap distingue le socle de disponibilites du futur rework agenda/calendrier date avec sessions candidates.'
+    },
     {
       date: '2026-05-14',
       title: 'Version 0.17.37 - Vue mois planning',
