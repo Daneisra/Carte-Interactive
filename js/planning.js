@@ -25,7 +25,13 @@ const dom = {
     clear: document.getElementById('planning-clear'),
     summaryStatus: document.getElementById('planning-summary-status'),
     scope: document.getElementById('planning-scope'),
-    bestSlots: document.getElementById('planning-best-slots')
+    bestSlots: document.getElementById('planning-best-slots'),
+    viewWeek: document.getElementById('planning-view-week'),
+    viewMonth: document.getElementById('planning-view-month'),
+    weekView: document.getElementById('planning-week-view'),
+    monthView: document.getElementById('planning-month-view'),
+    monthTitle: document.getElementById('planning-month-title'),
+    monthGrid: document.getElementById('planning-month-grid')
 };
 
 const state = {
@@ -34,6 +40,7 @@ const state = {
     timezone: resolveLocalTimezone(),
     slots: createAvailabilityStatusMatrix(),
     summaryScopes: [],
+    view: 'week',
     dirty: false,
     saving: false
 };
@@ -63,6 +70,20 @@ const setSummaryStatus = (message, isError = false) => {
 const getDayLabel = dayId => AVAILABILITY_DAYS.find(day => day.id === dayId)?.label || dayId;
 const getSlotLabel = slotId => AVAILABILITY_SLOTS.find(slot => slot.id === slotId)?.label || slotId;
 const getStatusLabel = status => AVAILABILITY_STATUS_OPTIONS.find(option => option.id === status)?.label || 'Non renseigne';
+const formatMonthDate = date => {
+    try {
+        return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(date);
+    } catch (_error) {
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+    }
+};
+const formatMonthTitle = date => {
+    try {
+        return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(date);
+    } catch (_error) {
+        return `${date.getMonth() + 1}/${date.getFullYear()}`;
+    }
+};
 const getNextStatus = status => {
     if (!status) {
         return AVAILABILITY_STATUS.AVAILABLE;
@@ -187,6 +208,70 @@ const renderCalendar = () => {
         button.disabled = state.saving;
         button.textContent = status ? getStatusLabel(status) : '--';
     });
+    renderMonthView();
+};
+
+const renderMonthView = () => {
+    if (!dom.monthGrid) {
+        return;
+    }
+    const today = new Date();
+    const days = [];
+    for (let offset = 0; offset < 35; offset += 1) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + offset);
+        days.push(date);
+    }
+    setText(dom.monthTitle, `Projection ${formatMonthTitle(today)}`);
+    dom.monthGrid.replaceChildren(...days.map(date => {
+        const dayIndex = (date.getDay() + 6) % 7;
+        const daySlots = state.slots?.[dayIndex] || [];
+        const item = document.createElement('article');
+        item.className = 'planning-month-day';
+        const title = document.createElement('strong');
+        title.textContent = formatMonthDate(date);
+        const weekday = document.createElement('small');
+        weekday.textContent = getDayLabel(AVAILABILITY_DAYS[dayIndex]?.id || '');
+        const tags = document.createElement('div');
+        tags.className = 'planning-month-tags';
+        daySlots.forEach((status, slotIndex) => {
+            if (!status) {
+                return;
+            }
+            const tag = document.createElement('span');
+            tag.className = `planning-month-tag planning-month-tag-${status}`;
+            tag.textContent = `${getSlotLabel(AVAILABILITY_SLOTS[slotIndex]?.id || '')}: ${getStatusLabel(status)}`;
+            tags.appendChild(tag);
+        });
+        if (!tags.childElementCount) {
+            const empty = document.createElement('span');
+            empty.className = 'planning-month-tag';
+            empty.textContent = 'Non renseigne';
+            tags.appendChild(empty);
+        }
+        item.append(title, weekday, tags);
+        return item;
+    }));
+};
+
+const setPlanningView = view => {
+    state.view = view === 'month' ? 'month' : 'week';
+    const isMonth = state.view === 'month';
+    if (dom.weekView) {
+        dom.weekView.hidden = isMonth;
+    }
+    if (dom.monthView) {
+        dom.monthView.hidden = !isMonth;
+    }
+    if (dom.viewWeek) {
+        dom.viewWeek.classList.toggle('is-active', !isMonth);
+        dom.viewWeek.setAttribute('aria-selected', String(!isMonth));
+    }
+    if (dom.viewMonth) {
+        dom.viewMonth.classList.toggle('is-active', isMonth);
+        dom.viewMonth.setAttribute('aria-selected', String(isMonth));
+    }
+    renderMonthView();
 };
 
 const loadVersion = async () => {
@@ -359,9 +444,16 @@ if (dom.save) {
 if (dom.clear) {
     dom.clear.addEventListener('click', clearAvailability);
 }
+if (dom.viewWeek) {
+    dom.viewWeek.addEventListener('click', () => setPlanningView('week'));
+}
+if (dom.viewMonth) {
+    dom.viewMonth.addEventListener('click', () => setPlanningView('month'));
+}
 
 setText(dom.year, String(new Date().getFullYear()));
 buildCalendar();
+setPlanningView('week');
 syncSessionCard();
 loadVersion();
 loadSession().then(loadSummary);

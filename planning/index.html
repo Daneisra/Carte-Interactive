@@ -55,7 +55,7 @@
                 <div class="planning-hero-meta" aria-label="Etat du module planning">
                     <div class="planning-stat">
                         <span>Version</span>
-                        <strong id="planning-version">0.17.36</strong>
+                        <strong id="planning-version">0.17.37</strong>
                     </div>
                     <div class="planning-stat">
                         <span>Statut</span>
@@ -106,21 +106,34 @@
                     <span><i class="planning-dot planning-dot-busy"></i>Indisponible</span>
                     <span><i class="planning-dot planning-dot-empty"></i>Non renseigne</span>
                 </div>
-                <div class="planning-session-card">
-                    <div>
-                        <span class="planning-session-label">Profil</span>
-                        <strong id="planning-profile-name">Invite</strong>
-                    </div>
-                    <div>
-                        <span class="planning-session-label">Fuseau</span>
-                        <strong id="planning-timezone">--</strong>
-                    </div>
-                    <a id="planning-login" class="planning-link-button" href="/auth/discord/login?redirect=/planning/">Connexion Discord</a>
+                <div class="planning-view-toggle" role="tablist" aria-label="Mode d'affichage du planning">
+                    <button id="planning-view-week" class="is-active" type="button" role="tab" aria-selected="true" aria-controls="planning-week-view">Vue semaine</button>
+                    <button id="planning-view-month" type="button" role="tab" aria-selected="false" aria-controls="planning-month-view">Vue mois</button>
                 </div>
-                <div id="planning-calendar" class="planning-calendar" role="table" aria-label="Disponibilites de la semaine"></div>
-                <div class="planning-actions">
-                    <button id="planning-save" class="planning-cta planning-cta-primary" type="button" disabled>Enregistrer mes disponibilites</button>
-                    <button id="planning-clear" class="planning-cta" type="button" disabled>Vider la semaine</button>
+                <div id="planning-week-view" class="planning-week-view" role="tabpanel" aria-labelledby="planning-view-week">
+                    <div class="planning-session-card">
+                        <div>
+                            <span class="planning-session-label">Profil</span>
+                            <strong id="planning-profile-name">Invite</strong>
+                        </div>
+                        <div>
+                            <span class="planning-session-label">Fuseau</span>
+                            <strong id="planning-timezone">--</strong>
+                        </div>
+                        <a id="planning-login" class="planning-link-button" href="/auth/discord/login?redirect=/planning/">Connexion Discord</a>
+                    </div>
+                    <div id="planning-calendar" class="planning-calendar" role="table" aria-label="Disponibilites de la semaine"></div>
+                    <div class="planning-actions">
+                        <button id="planning-save" class="planning-cta planning-cta-primary" type="button" disabled>Enregistrer mes disponibilites</button>
+                        <button id="planning-clear" class="planning-cta" type="button" disabled>Vider la semaine</button>
+                    </div>
+                </div>
+                <div id="planning-month-view" class="planning-month-view" role="tabpanel" aria-labelledby="planning-view-month" hidden>
+                    <div class="planning-month-header">
+                        <h3 id="planning-month-title">Projection mensuelle</h3>
+                        <p>Vue lecture seule basee sur votre semaine type.</p>
+                    </div>
+                    <div id="planning-month-grid" class="planning-month-grid" aria-label="Projection mensuelle des disponibilites"></div>
                 </div>
             </section>
 
@@ -149,10 +162,10 @@
                     <h2 id="planning-next-title">Prochaines briques a brancher</h2>
                 </div>
                 <ol>
-                    <li>Ajouter les statuts incertain et indisponible explicite.</li>
-                    <li>Lier la synthese aux groupes JDR et aux campagnes.</li>
-                    <li>Calculer automatiquement les meilleurs creneaux communs.</li>
-                    <li>Preparer une vue semaine/mois pleinement interactive.</li>
+                    <li>Brancher les indisponibilites datees pour les exceptions aux semaines types.</li>
+                    <li>Lier la synthese aux campagnes lorsque le modele campagne existera.</li>
+                    <li>Ajouter une confirmation de session candidate par le MJ.</li>
+                    <li>Exporter ou partager un creneau propose au groupe.</li>
                 </ol>
             </section>
         </main>

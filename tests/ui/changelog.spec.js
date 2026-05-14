@@ -11,8 +11,8 @@ test.describe('Changelog - UI', () => {
         entries: [
           {
             date: '2026-05-12',
-            title: 'Version 0.17.36 - Statuts planning',
-            summary: 'Les disponibilites du planning gerent maintenant les statuts.'
+            title: 'Version 0.17.37 - Vue mois planning',
+            summary: 'Le planning propose une bascule semaine/mois lisible.'
           },
           {
             date: '2026-05-12',
@@ -30,7 +30,7 @@ test.describe('Changelog - UI', () => {
     await expect(page.locator('#changelog-count')).toHaveText('2');
     await expect(page.locator('#changelog-source')).toHaveText('Config');
     await expect(page.locator('.changelog-entry')).toHaveCount(2);
-    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.36 - Statuts planning');
+    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.37 - Vue mois planning');
   });
 
   test('la page reste exploitable sur mobile', async ({ page }) => {

@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.36`.
+Version actuelle : `0.17.37`.
 
 ## Réalisations majeures livrées
 
@@ -98,8 +98,8 @@ Version actuelle : `0.17.36`.
 - [x] Visualiser rapidement les créneaux communs disponibles pour un groupe ou une campagne.
 - [x] Lier le planning aux groupes JDR et aux personnages lorsque c'est utile.
 - [x] Ajouter des statuts de réponse : disponible, incertain, indisponible, non renseigné.
-- [ ] Prévoir une vue semaine/mois lisible sur desktop et mobile.
-- [ ] Ajouter une synthèse MJ pour repérer les meilleures dates de session.
+- [x] Prévoir une vue semaine/mois lisible sur desktop et mobile.
+- [x] Ajouter une synthèse MJ pour repérer les meilleures dates de session.
 
 ### P8 - Différenciants carte et narration
 

@@ -423,6 +423,35 @@ a {
     display: none;
 }
 
+.planning-view-toggle {
+    display: inline-flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    padding: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.48);
+}
+
+.planning-view-toggle button {
+    min-height: 38px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--planning-muted);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+}
+
+.planning-view-toggle button:hover,
+.planning-view-toggle button:focus-visible,
+.planning-view-toggle button.is-active {
+    background: rgba(79, 140, 255, 0.2);
+    color: var(--planning-text);
+}
+
 .planning-calendar {
     display: grid;
     gap: 8px;
@@ -516,6 +545,84 @@ a {
     cursor: not-allowed;
     opacity: 0.56;
     transform: none;
+}
+
+.planning-month-view[hidden] {
+    display: none;
+}
+
+.planning-month-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-end;
+    margin-bottom: 16px;
+}
+
+.planning-month-header h3,
+.planning-month-header p {
+    margin: 0;
+}
+
+.planning-month-header p {
+    color: var(--planning-muted);
+}
+
+.planning-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.planning-month-day {
+    min-width: 0;
+    min-height: 116px;
+    padding: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.44);
+}
+
+.planning-month-day strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.planning-month-day small {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--planning-muted);
+}
+
+.planning-month-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.planning-month-tag {
+    display: inline-flex;
+    padding: 5px 7px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--planning-muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.planning-month-tag-available {
+    background: rgba(52, 211, 153, 0.14);
+    color: #bbf7d0;
+}
+
+.planning-month-tag-maybe {
+    background: rgba(251, 191, 36, 0.12);
+    color: #fde68a;
+}
+
+.planning-month-tag-busy {
+    background: rgba(248, 113, 113, 0.12);
+    color: #fecaca;
 }
 
 .planning-summary-toolbar {
@@ -648,6 +755,10 @@ a {
     .planning-session-card {
         grid-template-columns: 1fr;
     }
+
+    .planning-month-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 560px) {
@@ -685,6 +796,20 @@ a {
     }
 
     .planning-best-slots {
+        grid-template-columns: 1fr;
+    }
+
+    .planning-view-toggle {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .planning-month-header {
+        display: block;
+    }
+
+    .planning-month-grid {
         grid-template-columns: 1fr;
     }
 

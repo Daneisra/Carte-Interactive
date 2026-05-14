@@ -10,6 +10,7 @@ test.describe('Planning - UI', () => {
     await expect(page.locator('#planning-week-title')).toHaveText('Semaine type');
     await expect(page.locator('.planning-calendar-row')).toHaveCount(8);
     await expect(page.locator('.planning-slot').first()).toBeVisible();
+    await expect(page.locator('#planning-view-week')).toHaveAttribute('aria-selected', 'true');
     await expect(page.locator('#planning-status')).toContainText('Connectez-vous');
     await expect(page.locator('#planning-summary-status')).toContainText('Connectez-vous');
   });
@@ -110,6 +111,40 @@ test.describe('Planning - UI', () => {
     await expect(firstSlot).toHaveText('Indisponible');
     await firstSlot.click();
     await expect(firstSlot).toHaveText('--');
+  });
+
+  test('la vue mois projette la semaine type sur les prochaines semaines', async ({ page }) => {
+    const slots = Array.from({ length: 7 }, () => Array.from({ length: 4 }, () => null));
+    slots[0][2] = 'available';
+    slots[2][3] = 'maybe';
+
+    await page.route('**/auth/session', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        username: 'Danny',
+        availability: { timezone: 'Europe/Warsaw', slots }
+      })
+    }));
+    await page.route('**/api/planning/availability-summary', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'ok', scopes: [] })
+    }));
+
+    await page.goto('/planning/');
+    await page.waitForLoadState('domcontentloaded');
+
+    await page.locator('#planning-view-month').click();
+    await expect(page.locator('#planning-view-month')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#planning-month-view')).toBeVisible();
+    await expect(page.locator('.planning-month-day')).toHaveCount(35);
+    await expect(page.locator('.planning-month-tag-available').first()).toContainText('Disponible');
+    await expect(page.locator('.planning-month-tag-maybe').first()).toContainText('Incertain');
+
+    await page.locator('#planning-view-week').click();
+    await expect(page.locator('#planning-week-view')).toBeVisible();
   });
 
   test('la synthese planning affiche les scopes de groupe', async ({ page }) => {
