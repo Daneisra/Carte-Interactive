@@ -1,5 +1,5 @@
 {
-  "version": "0.17.35",
+  "version": "0.17.36",
   "home": {
     "kicker": "Accueil - Hub narratif",
     "title": "Entrez dans l'univers avant d'ouvrir la carte",
@@ -69,6 +69,11 @@
     "footerNote": "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   "changelog": [
+        {
+            "date": "2026-05-14",
+            "title": "Version 0.17.36 - Statuts planning",
+            "summary": "Les disponibilites du planning gerent maintenant les statuts disponible, incertain, indisponible et non renseigne."
+        },
         {
             "date": "2026-05-14",
             "title": "Version 0.17.35 - Synthese planning",

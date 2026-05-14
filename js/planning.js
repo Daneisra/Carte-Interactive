@@ -1,8 +1,10 @@
 import {
     AVAILABILITY_DAYS,
     AVAILABILITY_SLOTS,
-    createAvailabilityMatrix,
-    normalizeAvailabilityPayload,
+    AVAILABILITY_STATUS,
+    AVAILABILITY_STATUS_OPTIONS,
+    createAvailabilityStatusMatrix,
+    normalizeAvailabilityStatusPayload,
     resolveLocalTimezone
 } from './ui/availability.mjs';
 
@@ -30,7 +32,7 @@ const state = {
     authenticated: false,
     username: 'Invite',
     timezone: resolveLocalTimezone(),
-    slots: createAvailabilityMatrix(),
+    slots: createAvailabilityStatusMatrix(),
     summaryScopes: [],
     dirty: false,
     saving: false
@@ -60,6 +62,19 @@ const setSummaryStatus = (message, isError = false) => {
 
 const getDayLabel = dayId => AVAILABILITY_DAYS.find(day => day.id === dayId)?.label || dayId;
 const getSlotLabel = slotId => AVAILABILITY_SLOTS.find(slot => slot.id === slotId)?.label || slotId;
+const getStatusLabel = status => AVAILABILITY_STATUS_OPTIONS.find(option => option.id === status)?.label || 'Non renseigne';
+const getNextStatus = status => {
+    if (!status) {
+        return AVAILABILITY_STATUS.AVAILABLE;
+    }
+    if (status === AVAILABILITY_STATUS.AVAILABLE) {
+        return AVAILABILITY_STATUS.MAYBE;
+    }
+    if (status === AVAILABILITY_STATUS.MAYBE) {
+        return AVAILABILITY_STATUS.BUSY;
+    }
+    return null;
+};
 
 const getAvailabilityFromState = () => ({
     timezone: state.timezone || resolveLocalTimezone(),
@@ -143,7 +158,7 @@ const buildCalendar = () => {
         if (!Number.isFinite(dayIndex) || !Number.isFinite(slotIndex) || !state.slots[dayIndex]) {
             return;
         }
-        state.slots[dayIndex][slotIndex] = !state.slots[dayIndex][slotIndex];
+        state.slots[dayIndex][slotIndex] = getNextStatus(state.slots[dayIndex][slotIndex]);
         state.dirty = true;
         setStatus('Modifications en attente.');
         renderCalendar();
@@ -162,12 +177,15 @@ const renderCalendar = () => {
     dom.calendar.querySelectorAll('.planning-slot').forEach(button => {
         const dayIndex = Number(button.dataset.dayIndex);
         const slotIndex = Number(button.dataset.slotIndex);
-        const active = Boolean(state.slots?.[dayIndex]?.[slotIndex]);
-        button.classList.toggle('planning-slot-available', active);
-        button.classList.toggle('planning-slot-empty', !active);
-        button.setAttribute('aria-pressed', String(active));
+        const status = state.slots?.[dayIndex]?.[slotIndex] || null;
+        button.classList.toggle('planning-slot-available', status === AVAILABILITY_STATUS.AVAILABLE);
+        button.classList.toggle('planning-slot-maybe', status === AVAILABILITY_STATUS.MAYBE);
+        button.classList.toggle('planning-slot-busy', status === AVAILABILITY_STATUS.BUSY);
+        button.classList.toggle('planning-slot-empty', !status);
+        button.setAttribute('aria-pressed', String(Boolean(status)));
+        button.setAttribute('aria-label', `${button.getAttribute('aria-label')?.split(':')[0] || ''}: ${getStatusLabel(status)}`);
         button.disabled = state.saving;
-        button.textContent = active ? 'Dispo' : '--';
+        button.textContent = status ? getStatusLabel(status) : '--';
     });
 };
 
@@ -195,9 +213,9 @@ const loadSession = async () => {
         const session = await response.json();
         state.authenticated = Boolean(session?.authenticated);
         state.username = session?.username || 'Invite';
-        const normalized = normalizeAvailabilityPayload(session?.availability, state.timezone);
+        const normalized = normalizeAvailabilityStatusPayload(session?.availability, state.timezone);
         state.timezone = normalized?.timezone || state.timezone || resolveLocalTimezone();
-        state.slots = normalized?.slots || createAvailabilityMatrix();
+        state.slots = normalized?.slots || createAvailabilityStatusMatrix();
         state.dirty = false;
         setStatus(state.authenticated
             ? 'Cochez les creneaux ou vous etes disponible, puis enregistrez.'
@@ -206,7 +224,7 @@ const loadSession = async () => {
     } catch (error) {
         console.warn('[planning] session unavailable', error);
         state.authenticated = false;
-        state.slots = createAvailabilityMatrix();
+        state.slots = createAvailabilityStatusMatrix();
         setStatus('Session indisponible. Reessayez plus tard.', true);
     }
     syncSessionCard();
@@ -231,7 +249,7 @@ const saveAvailability = async () => {
             throw new Error(`HTTP ${response.status}`);
         }
         const payload = await response.json();
-        const normalized = normalizeAvailabilityPayload(payload?.profile?.availability, state.timezone);
+        const normalized = normalizeAvailabilityStatusPayload(payload?.profile?.availability, state.timezone);
         if (normalized) {
             state.timezone = normalized.timezone || state.timezone;
             state.slots = normalized.slots;
@@ -254,7 +272,7 @@ const clearAvailability = () => {
     if (!state.authenticated || state.saving) {
         return;
     }
-    state.slots = createAvailabilityMatrix();
+    state.slots = createAvailabilityStatusMatrix();
     state.dirty = true;
     setStatus('Semaine vide. Enregistrez pour confirmer.');
     renderCalendar();

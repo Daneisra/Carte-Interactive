@@ -67,8 +67,13 @@ const MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
 const MAX_BODY_SIZE = 40 * 1024 * 1024;
 const AVAILABILITY_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const AVAILABILITY_SLOTS = ['morning', 'afternoon', 'evening', 'night'];
+const AVAILABILITY_STATUS = {
+  AVAILABLE: 'available',
+  MAYBE: 'maybe',
+  BUSY: 'busy'
+};
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.35',
+  version: '0.17.36',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -124,6 +129,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-14',
+      title: 'Version 0.17.36 - Statuts planning',
+      summary: 'Les disponibilites du planning gerent maintenant les statuts disponible, incertain, indisponible et non renseigne.'
+    },
     {
       date: '2026-05-14',
       title: 'Version 0.17.35 - Synthese planning',
@@ -1603,11 +1613,31 @@ const normalizeAvailabilityMatrix = slots => {
     const daySlots = Array.isArray(slots[dayIndex]) ? slots[dayIndex] : [];
     const row = [];
     for (let slotIndex = 0; slotIndex < AVAILABILITY_SLOTS.length; slotIndex += 1) {
-      row.push(Boolean(daySlots[slotIndex]));
+      row.push(normalizeAvailabilityStatus(daySlots[slotIndex]));
     }
     matrix.push(row);
   }
   return matrix;
+};
+
+const normalizeAvailabilityStatus = value => {
+  if (value === true) {
+    return AVAILABILITY_STATUS.AVAILABLE;
+  }
+  if (value === false || value === null || value === undefined || value === '') {
+    return null;
+  }
+  const normalized = normalizeString(value).toLowerCase();
+  if (['available', 'disponible', 'yes', 'true', '1'].includes(normalized)) {
+    return AVAILABILITY_STATUS.AVAILABLE;
+  }
+  if (['maybe', 'uncertain', 'incertain'].includes(normalized)) {
+    return AVAILABILITY_STATUS.MAYBE;
+  }
+  if (['busy', 'unavailable', 'indisponible', 'no', 'false', '0'].includes(normalized)) {
+    return AVAILABILITY_STATUS.BUSY;
+  }
+  return value ? AVAILABILITY_STATUS.AVAILABLE : null;
 };
 
 const sanitizeAvailabilityRecord = value => {
@@ -1629,7 +1659,7 @@ const availabilityHasSlots = availability => {
   if (!availability || !Array.isArray(availability.slots)) {
     return false;
   }
-  return availability.slots.some(day => Array.isArray(day) && day.some(Boolean));
+  return availability.slots.some(day => Array.isArray(day) && day.some(status => Boolean(status)));
 };
 
 const collectUserGroupIds = user => {
@@ -1667,7 +1697,7 @@ const buildAvailabilityScope = ({ id, label, kind, users }) => {
     respondents += 1;
     availability.slots.forEach((daySlots, dayIndex) => {
       daySlots.forEach((active, slotIndex) => {
-        if (active) {
+        if (active === AVAILABILITY_STATUS.AVAILABLE) {
           counts[dayIndex][slotIndex] += 1;
         }
       });
@@ -2953,7 +2983,7 @@ const server = http.createServer(async (req, res) => {
         respondents += 1;
         availability.slots.forEach((daySlots, dayIndex) => {
           daySlots.forEach((active, slotIndex) => {
-            if (active) {
+            if (active === AVAILABILITY_STATUS.AVAILABLE) {
               counts[dayIndex][slotIndex] += 1;
             }
           });

@@ -60,8 +60,8 @@ test.describe('Accueil - patch notes', () => {
         entries: [
           {
             date: '2026-05-12',
-            title: 'Version 0.17.35 - Synthese planning',
-            summary: 'Le planning affiche les meilleurs creneaux communs.'
+            title: 'Version 0.17.36 - Statuts planning',
+            summary: 'Les disponibilites du planning gerent maintenant les statuts.'
           }
         ]
       })
@@ -73,7 +73,7 @@ test.describe('Accueil - patch notes', () => {
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.35 - Synthese planning');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.36 - Statuts planning');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
 });

@@ -11,8 +11,8 @@ test.describe('Changelog - UI', () => {
         entries: [
           {
             date: '2026-05-12',
-            title: 'Version 0.17.35 - Synthese planning',
-            summary: 'Le planning affiche les meilleurs creneaux communs.'
+            title: 'Version 0.17.36 - Statuts planning',
+            summary: 'Les disponibilites du planning gerent maintenant les statuts.'
           },
           {
             date: '2026-05-12',
@@ -30,7 +30,7 @@ test.describe('Changelog - UI', () => {
     await expect(page.locator('#changelog-count')).toHaveText('2');
     await expect(page.locator('#changelog-source')).toHaveText('Config');
     await expect(page.locator('.changelog-entry')).toHaveCount(2);
-    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.35 - Synthese planning');
+    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.36 - Statuts planning');
   });
 
   test('la page reste exploitable sur mobile', async ({ page }) => {

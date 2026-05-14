@@ -76,10 +76,40 @@ test.describe('Planning - UI', () => {
 
     await expect(page.locator('#planning-status')).toHaveText('Disponibilites enregistrees.');
     expect(savedPayload.availability.timezone).toBe('Europe/Warsaw');
-    expect(savedPayload.availability.slots[0][0]).toBe(true);
-    expect(savedPayload.availability.slots[0][2]).toBe(true);
+    expect(savedPayload.availability.slots[0][0]).toBe('available');
+    expect(savedPayload.availability.slots[0][2]).toBe('available');
     await expect(page.locator('.planning-best-slot').first()).toContainText('Lun - Soir');
     await expect(page.locator('.planning-best-slot').first()).toContainText('2 dispo');
+  });
+
+  test('la grille planning cycle entre disponible, incertain, indisponible et vide', async ({ page }) => {
+    await page.route('**/auth/session', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        username: 'Danny',
+        availability: { timezone: 'Europe/Warsaw', slots: [] }
+      })
+    }));
+    await page.route('**/api/planning/availability-summary', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'ok', scopes: [] })
+    }));
+
+    await page.goto('/planning/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const firstSlot = page.locator('.planning-slot').first();
+    await firstSlot.click();
+    await expect(firstSlot).toHaveText('Disponible');
+    await firstSlot.click();
+    await expect(firstSlot).toHaveText('Incertain');
+    await firstSlot.click();
+    await expect(firstSlot).toHaveText('Indisponible');
+    await firstSlot.click();
+    await expect(firstSlot).toHaveText('--');
   });
 
   test('la synthese planning affiche les scopes de groupe', async ({ page }) => {

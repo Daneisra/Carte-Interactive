@@ -13,8 +13,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-12',
-        title: 'Version 0.17.35 - Synthese planning',
-        summary: 'Le planning affiche les meilleurs creneaux communs avec une synthese globale et des scopes de groupes JDR quand ils existent.'
+        title: 'Version 0.17.36 - Statuts planning',
+        summary: 'Les disponibilites du planning gerent maintenant les statuts disponible, incertain, indisponible et non renseigne.'
     }
 ];
 

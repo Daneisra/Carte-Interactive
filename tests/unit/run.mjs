@@ -4,8 +4,11 @@ import { renderMarkdown } from '../../js/ui/markdown.mjs';
 import {
     AVAILABILITY_DAYS,
     AVAILABILITY_SLOTS,
+    AVAILABILITY_STATUS,
     createAvailabilityMatrix,
-    normalizeAvailabilityPayload
+    createAvailabilityStatusMatrix,
+    normalizeAvailabilityPayload,
+    normalizeAvailabilityStatusPayload
 } from '../../js/ui/availability.mjs';
 import {
     isValidAccentColor,
@@ -90,6 +93,24 @@ const tests = [
             const second = createAvailabilityMatrix();
             first[0][0] = true;
             assert.equal(second[0][0], false);
+        }
+    },
+    {
+        name: 'normalizes availability status payloads without breaking booleans',
+        run: () => {
+            const normalized = normalizeAvailabilityStatusPayload({
+                timezone: 'Europe/Warsaw',
+                slots: [
+                    [true, 'maybe', 'busy', false],
+                    ['available', 'incertain', 'indisponible', '']
+                ]
+            });
+            assert.deepEqual(normalized.slots[0], [AVAILABILITY_STATUS.AVAILABLE, AVAILABILITY_STATUS.MAYBE, AVAILABILITY_STATUS.BUSY, null]);
+            assert.deepEqual(normalized.slots[1], [AVAILABILITY_STATUS.AVAILABLE, AVAILABILITY_STATUS.MAYBE, AVAILABILITY_STATUS.BUSY, null]);
+            const first = createAvailabilityStatusMatrix();
+            const second = createAvailabilityStatusMatrix();
+            first[0][0] = AVAILABILITY_STATUS.BUSY;
+            assert.equal(second[0][0], null);
         }
     },
     {
