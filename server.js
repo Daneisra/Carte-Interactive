@@ -74,7 +74,7 @@ const AVAILABILITY_STATUS = {
   BUSY: 'busy'
 };
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.39',
+  version: '0.17.40',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -130,6 +130,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-18',
+      title: 'Version 0.17.40 - Reponses agenda planning',
+      summary: 'Les sessions du planning peuvent etre creees cote API, modifiees par admin et recevoir les reponses des joueurs par date precise.'
+    },
     {
       date: '2026-05-17',
       title: 'Version 0.17.39 - Agenda planning date',
@@ -446,6 +451,7 @@ const writeAnnotationsFile = async annotations => writeJsonFile(ANNOTATIONS_FILE
 const readTimelineFile = async () => sanitizeTimelineConfig(await readJsonFile(TIMELINE_FILE, DEFAULT_TIMELINE));
 const writeTimelineFile = async timeline => writeJsonFile(TIMELINE_FILE, sanitizeTimelineConfig(timeline));
 const readPlanningFile = async () => sanitizePlanningConfig(await readJsonFile(PLANNING_FILE, DEFAULT_PLANNING));
+const writePlanningFile = async planning => writeJsonFile(PLANNING_FILE, sanitizePlanningConfig(planning));
 
 let searchFiltersModulePromise = null;
 const loadSearchFiltersModule = () => {
@@ -939,6 +945,27 @@ const sanitizePlanningStatus = value => {
   return ['candidate', 'confirmed', 'cancelled'].includes(normalized) ? normalized : 'candidate';
 };
 
+const sanitizePlanningId = value => normalizeString(value)
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-z0-9_-]+/g, '-')
+  .replace(/-+/g, '-')
+  .replace(/^-+|-+$/g, '')
+  .slice(0, 120);
+
+const ensureUniquePlanningId = (sessions, baseId) => {
+  const used = new Set(sessions.map(session => session?.id).filter(Boolean));
+  const base = sanitizePlanningId(baseId) || `session-${crypto.randomUUID()}`;
+  let candidate = base;
+  let index = 2;
+  while (used.has(candidate)) {
+    candidate = `${base}-${index}`;
+    index += 1;
+  }
+  return candidate;
+};
+
 const sanitizePlanningResponses = value => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return {};
@@ -984,6 +1011,19 @@ const sanitizePlanningSession = value => {
   };
 };
 
+const buildPlanningSessionFromPayload = (payload, { existing = null, sessions = [] } = {}) => {
+  const now = new Date().toISOString();
+  const source = payload && typeof payload === 'object' ? payload : {};
+  const merged = {
+    ...(existing || {}),
+    ...source,
+    id: existing?.id || source.id || ensureUniquePlanningId(sessions, source.id || source.title || source.date),
+    createdAt: existing?.createdAt || source.createdAt || now,
+    updatedAt: now
+  };
+  return sanitizePlanningSession(merged);
+};
+
 const sanitizePlanningConfig = value => {
   const sessionsSource = Array.isArray(value)
     ? value
@@ -997,6 +1037,26 @@ const sanitizePlanningConfig = value => {
     });
   return { sessions };
 };
+
+const summarizePlanningSessionResponses = responses => {
+  const counts = {
+    available: 0,
+    maybe: 0,
+    busy: 0
+  };
+  Object.values(responses || {}).forEach(entry => {
+    const status = entry?.status;
+    if (Object.prototype.hasOwnProperty.call(counts, status)) {
+      counts[status] += 1;
+    }
+  });
+  return counts;
+};
+
+const withPlanningResponseSummary = session => ({
+  ...session,
+  responseSummary: summarizePlanningSessionResponses(session.responses)
+});
 
 const parseListParam = (searchParams, key) => {
   const rawValues = searchParams.getAll(key) || [];
@@ -2895,6 +2955,157 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (urlObj.pathname === '/api/admin/planning/sessions') {
+      if (!(await ensureAuthorized(req, res, 'admin'))) {
+        return;
+      }
+      if (req.method === 'POST') {
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const planning = await readPlanningFile();
+        const session = buildPlanningSessionFromPayload(payload, { sessions: planning.sessions });
+        if (!session) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'Session invalide: titre et date sont requis.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        planning.sessions.push(session);
+        await writePlanningFile(planning);
+        send(res, 201, JSON.stringify({
+          status: 'ok',
+          session: withPlanningResponseSummary(session),
+          sessions: planning.sessions.map(withPlanningResponseSummary)
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      if (req.method === 'PATCH' || req.method === 'PUT') {
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = JSON.parse(body || '{}');
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const id = sanitizePlanningId(payload?.id);
+        if (!id) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'id is required.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const planning = await readPlanningFile();
+        const index = planning.sessions.findIndex(session => session.id === id);
+        if (index === -1) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'Session not found.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const session = buildPlanningSessionFromPayload(payload, {
+          existing: planning.sessions[index],
+          sessions: planning.sessions
+        });
+        if (!session) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'Session invalide: titre et date sont requis.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        planning.sessions[index] = session;
+        await writePlanningFile(planning);
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          session: withPlanningResponseSummary(session),
+          sessions: planning.sessions.map(withPlanningResponseSummary)
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      if (req.method === 'DELETE') {
+        const body = await collectBody(req);
+        let payload;
+        try {
+          payload = body ? JSON.parse(body) : {};
+        } catch (error) {
+          send(res, 400, 'Invalid JSON');
+          return;
+        }
+        const id = sanitizePlanningId(payload?.id || urlObj.searchParams.get('id'));
+        if (!id) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'id is required.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const planning = await readPlanningFile();
+        const index = planning.sessions.findIndex(session => session.id === id);
+        if (index === -1) {
+          send(res, 404, JSON.stringify({ status: 'error', message: 'Session not found.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const [removed] = planning.sessions.splice(index, 1);
+        await writePlanningFile(planning);
+        send(res, 200, JSON.stringify({
+          status: 'ok',
+          removed: withPlanningResponseSummary(removed),
+          sessions: planning.sessions.map(withPlanningResponseSummary)
+        }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'POST,PATCH,PUT,DELETE' });
+      return;
+    }
+
+    const planningResponseMatch = urlObj.pathname.match(/^\/api\/planning\/sessions\/([^/]+)\/response$/);
+    if (planningResponseMatch) {
+      if (req.method !== 'PATCH' && req.method !== 'PUT') {
+        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'PATCH,PUT' });
+        return;
+      }
+      if (!(await ensureAuthorized(req, res, 'user'))) {
+        return;
+      }
+      const currentUserId = normalizeString(req.auth?.user?.id);
+      if (!currentUserId) {
+        send(res, 403, JSON.stringify({ status: 'error', message: 'User profile unavailable.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const body = await collectBody(req);
+      let payload;
+      try {
+        payload = JSON.parse(body || '{}');
+      } catch (error) {
+        send(res, 400, 'Invalid JSON');
+        return;
+      }
+      const sessionId = sanitizePlanningId(decodeURIComponent(planningResponseMatch[1] || ''));
+      const status = normalizeAvailabilityStatus(payload?.status || payload?.response);
+      if (!sessionId || !status) {
+        send(res, 400, JSON.stringify({ status: 'error', message: 'Session et statut de reponse requis.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const planning = await readPlanningFile();
+      const index = planning.sessions.findIndex(session => session.id === sessionId);
+      if (index === -1) {
+        send(res, 404, JSON.stringify({ status: 'error', message: 'Session not found.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const session = planning.sessions[index];
+      session.responses = {
+        ...(session.responses || {}),
+        [currentUserId]: {
+          status,
+          comment: normalizeString(payload?.comment).slice(0, 280),
+          updatedAt: new Date().toISOString()
+        }
+      };
+      session.updatedAt = new Date().toISOString();
+      planning.sessions[index] = sanitizePlanningSession(session);
+      await writePlanningFile(planning);
+      send(res, 200, JSON.stringify({
+        status: 'ok',
+        session: withPlanningResponseSummary(planning.sessions[index])
+      }), { 'Content-Type': 'application/json' });
+      return;
+    }
+
     if (urlObj.pathname === '/api/planning/sessions') {
       if (req.method !== 'GET') {
         send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
@@ -2903,7 +3114,7 @@ const server = http.createServer(async (req, res) => {
       const planning = await readPlanningFile();
       send(res, 200, JSON.stringify({
         status: 'ok',
-        sessions: planning.sessions
+        sessions: planning.sessions.map(withPlanningResponseSummary)
       }), { 'Content-Type': 'application/json' });
       return;
     }

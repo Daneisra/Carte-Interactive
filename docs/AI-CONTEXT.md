@@ -49,6 +49,11 @@ Routes utiles :
 - `GET /api/locations/search`
 - `POST /api/locations`
 - `GET /api/timeline`
+- `GET /api/planning/sessions`
+- `POST /api/admin/planning/sessions`
+- `PATCH /api/admin/planning/sessions`
+- `DELETE /api/admin/planning/sessions`
+- `PATCH /api/planning/sessions/:id/response`
 - `GET /api/events/stream`
 - `GET /api/admin/home-config`
 - `PATCH /api/admin/home-config`

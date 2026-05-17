@@ -38,6 +38,7 @@ Peuvent être modifiés depuis l'UI admin :
 - utilisateurs ;
 - événements de quête ;
 - chronologie ;
+- sessions candidates du planning via API dédiée, UI admin à finaliser ;
 - images d'événements de chronologie ;
 - configuration accueil ;
 - médias uploadés.

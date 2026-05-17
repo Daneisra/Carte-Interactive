@@ -600,6 +600,7 @@ a {
 
 .planning-agenda-session-meta,
 .planning-agenda-session small,
+.planning-agenda-response-summary,
 .planning-agenda-empty {
     color: var(--planning-muted);
 }
@@ -615,6 +616,46 @@ a {
 
 .planning-agenda-session-badge {
     justify-self: start;
+}
+
+.planning-agenda-response-summary {
+    display: inline-flex;
+    justify-self: start;
+    padding: 7px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.48);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.planning-agenda-response-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.planning-agenda-response-actions[hidden] {
+    display: none;
+}
+
+.planning-agenda-response-actions button {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--planning-text);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.planning-agenda-response-actions button:hover,
+.planning-agenda-response-actions button:focus-visible {
+    border-color: rgba(125, 211, 252, 0.42);
+    background: rgba(79, 140, 255, 0.18);
 }
 
 .planning-calendar {

@@ -205,7 +205,17 @@ test.describe('Planning - UI', () => {
       String(date.getMonth() + 1).padStart(2, '0'),
       String(date.getDate()).padStart(2, '0')
     ].join('-');
+    let savedResponse = null;
 
+    await page.route('**/auth/session', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        username: 'Danny',
+        availability: { timezone: 'Europe/Warsaw', slots: [] }
+      })
+    }));
     await page.route('**/api/planning/sessions', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -221,6 +231,7 @@ test.describe('Planning - UI', () => {
             groupName: 'Groupe principal',
             status: 'candidate',
             description: 'Date candidate pour organiser la prochaine partie.',
+            responseSummary: { available: 0, maybe: 1, busy: 0 },
             responses: {}
           },
           {
@@ -232,11 +243,34 @@ test.describe('Planning - UI', () => {
             groupName: 'Table Hesta',
             status: 'confirmed',
             description: 'Partie confirmee.',
+            responseSummary: { available: 2, maybe: 0, busy: 1 },
             responses: {}
           }
         ]
       })
     }));
+    await page.route('**/api/planning/sessions/*/response', route => {
+      savedResponse = route.request().postDataJSON();
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          status: 'ok',
+          session: {
+            id: 'session-current',
+            title: 'Conseil des routes',
+            date: toKey(currentMonthDate),
+            startTime: '20:30',
+            durationMinutes: 180,
+            groupName: 'Groupe principal',
+            status: 'candidate',
+            description: 'Date candidate pour organiser la prochaine partie.',
+            responseSummary: { available: 1, maybe: 1, busy: 0 },
+            responses: {}
+          }
+        })
+      });
+    });
 
     await page.goto('/planning/');
     await page.waitForLoadState('domcontentloaded');
@@ -245,6 +279,11 @@ test.describe('Planning - UI', () => {
     await expect(page.locator('.planning-agenda-session')).toHaveCount(1);
     await expect(page.locator('.planning-agenda-session').first()).toContainText('Conseil des routes');
     await expect(page.locator('.planning-agenda-chip').first()).toContainText('Conseil des routes');
+    await expect(page.locator('.planning-agenda-response-summary').first()).toContainText('0 dispo / 1 incertain / 0 indispo');
+    await page.locator('.planning-agenda-response-actions button', { hasText: 'Disponible' }).first().click();
+    expect(savedResponse.status).toBe('available');
+    await expect(page.locator('#planning-agenda-status')).toHaveText('Reponse enregistree.');
+    await expect(page.locator('.planning-agenda-response-summary').first()).toContainText('1 dispo / 1 incertain / 0 indispo');
 
     await page.locator('#planning-month-next').click();
     await expect(page.locator('.planning-agenda-session')).toHaveCount(1);

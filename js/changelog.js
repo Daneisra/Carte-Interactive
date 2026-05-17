@@ -12,9 +12,9 @@ const dom = {
 
 const FALLBACK_CHANGELOG = [
     {
-        date: '2026-05-17',
-        title: 'Version 0.17.39 - Agenda planning date',
-        summary: 'Le planning gagne un agenda mensuel date, une API de lecture des sessions candidates et une persistance JSON dediee.'
+        date: '2026-05-18',
+        title: 'Version 0.17.40 - Reponses agenda planning',
+        summary: 'Les sessions du planning peuvent etre creees cote API, modifiees par admin et recevoir les reponses des joueurs par date precise.'
     }
 ];
 

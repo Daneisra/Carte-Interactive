@@ -141,6 +141,12 @@ const getSessionStatusClass = status => {
     }
     return 'is-candidate';
 };
+const getResponseSummaryText = summary => {
+    const available = Number(summary?.available) || 0;
+    const maybe = Number(summary?.maybe) || 0;
+    const busy = Number(summary?.busy) || 0;
+    return `${available} dispo / ${maybe} incertain / ${busy} indispo`;
+};
 const getNextStatus = status => {
     if (!status) {
         return AVAILABILITY_STATUS.AVAILABLE;
@@ -241,9 +247,58 @@ const renderAgenda = () => {
         description.textContent = session.description || 'Aucune description renseignee.';
         const group = document.createElement('small');
         group.textContent = session.groupName || session.groupId || 'Aucun groupe lie';
-        item.append(meta, title, badge, description, group);
+        const summary = document.createElement('span');
+        summary.className = 'planning-agenda-response-summary';
+        summary.textContent = getResponseSummaryText(session.responseSummary);
+        const actions = document.createElement('div');
+        actions.className = 'planning-agenda-response-actions';
+        actions.hidden = !state.authenticated;
+        [
+            { status: AVAILABILITY_STATUS.AVAILABLE, label: 'Disponible' },
+            { status: AVAILABILITY_STATUS.MAYBE, label: 'Incertain' },
+            { status: AVAILABILITY_STATUS.BUSY, label: 'Indisponible' }
+        ].forEach(option => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.dataset.sessionId = session.id;
+            button.dataset.responseStatus = option.status;
+            button.textContent = option.label;
+            actions.appendChild(button);
+        });
+        item.append(meta, title, badge, description, group, summary, actions);
         return item;
     }));
+};
+
+const saveSessionResponse = async (sessionId, status) => {
+    if (!state.authenticated || !sessionId || !status) {
+        setAgendaStatus('Connectez-vous via Discord pour repondre a une session.', true);
+        return;
+    }
+    setAgendaStatus('Sauvegarde de votre reponse...');
+    try {
+        const response = await fetch(`/api/planning/sessions/${encodeURIComponent(sessionId)}/response`, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        const nextSession = payload?.session;
+        if (nextSession?.id) {
+            state.sessions = state.sessions.map(session => (
+                session.id === nextSession.id ? nextSession : session
+            ));
+        }
+        setAgendaStatus('Reponse enregistree.');
+        renderAgenda();
+    } catch (error) {
+        console.warn('[planning] session response save failed', error);
+        setAgendaStatus('Impossible d enregistrer votre reponse.', true);
+    }
 };
 
 const loadSessions = async () => {
@@ -488,6 +543,7 @@ const loadSession = async () => {
     }
     syncSessionCard();
     renderCalendar();
+    renderAgenda();
 };
 
 const saveAvailability = async () => {
@@ -635,6 +691,15 @@ if (dom.agendaToday) {
         const today = new Date();
         state.agendaMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         renderAgenda();
+    });
+}
+if (dom.agendaList) {
+    dom.agendaList.addEventListener('click', event => {
+        const button = event.target?.closest?.('[data-session-id][data-response-status]');
+        if (!button || !dom.agendaList.contains(button)) {
+            return;
+        }
+        saveSessionResponse(button.dataset.sessionId, button.dataset.responseStatus);
     });
 }
 

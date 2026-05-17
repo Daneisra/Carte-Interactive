@@ -118,3 +118,11 @@ Les uploads admin utilisent une limite applicative de 25 Mo. Nginx doit aussi d�
 2. L'admin chronologie charge la config complète via `/api/admin/timeline-config`.
 3. Les modifications sont sauvegardées dans `assets/timeline.json`.
 4. Les liens carte/frise utilisent les IDs de lieux liés.
+
+## Flux planning
+
+1. La page `/planning/` charge les sessions via `GET /api/planning/sessions`.
+2. Les disponibilités de semaine type restent stockées dans le profil utilisateur.
+3. Les sessions candidates/confirmées sont persistées dans `assets/planning.json`.
+4. L'admin peut créer, modifier et supprimer une session via `/api/admin/planning/sessions`.
+5. Un utilisateur connecté peut répondre à une date précise via `/api/planning/sessions/:id/response`.
