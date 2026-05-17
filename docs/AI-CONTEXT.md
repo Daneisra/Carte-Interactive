@@ -61,6 +61,7 @@ Routes utiles :
 - `assets/annotations.json` : annotations de carte.
 - `assets/types.json` : types de lieux, icônes et paramètres de zoom.
 - `assets/timeline.json` : chronologie.
+- `assets/planning.json` : agenda planning, sessions candidates ou confirmées.
 - `assets/site-config.json` : configuration de l'accueil.
 - `assets/users.json` : utilisateurs persistés.
 - `assets/groups.json` : groupes JDR.

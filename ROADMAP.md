@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.38`.
+Version actuelle : `0.17.39`.
 
 ## Réalisations majeures livrées
 
@@ -105,15 +105,16 @@ Socle livré : disponibilités de semaine type, synthèse de créneaux communs e
 
 ### P7.1 - Rework agenda/calendrier réel
 
-- [ ] Transformer la page planning en véritable agenda daté, avec navigation mois précédent/suivant et semaine courante.
-- [ ] Ajouter un modèle de sessions candidates : titre, date, heure de début, durée, groupe, description et statut.
+- [x] Transformer la page planning en véritable agenda daté, avec navigation mois précédent/suivant et semaine courante.
+- [x] Ajouter un modèle de sessions candidates : titre, date, heure de début, durée, groupe, description et statut.
 - [ ] Permettre au MJ de proposer plusieurs dates candidates pour une partie.
 - [ ] Permettre aux joueurs de répondre à une date précise : disponible, incertain, indisponible, commentaire optionnel.
-- [ ] Afficher les événements confirmés dans une vue calendrier mensuelle, pas seulement une projection de semaine type.
-- [ ] Conserver la semaine type comme aide à la proposition automatique de dates.
+- [x] Afficher les événements confirmés dans une vue calendrier mensuelle, pas seulement une projection de semaine type.
+- [x] Conserver la semaine type comme aide à la proposition automatique de dates.
 - [ ] Ajouter une synthèse par session candidate : nombre de oui/incertain/non, meilleurs créneaux et conflits visibles.
-- [ ] Prévoir une vue mobile agenda claire : liste chronologique + mini calendrier compact.
-- [ ] Préparer la persistance JSON dédiée, par exemple `assets/planning.json`, avec API admin/utilisateur séparée.
+- [x] Prévoir une vue mobile agenda claire : liste chronologique + mini calendrier compact.
+- [x] Préparer la persistance JSON dédiée, par exemple `assets/planning.json`, avec API de lecture publique.
+- [ ] Ajouter l'API admin/utilisateur d'écriture des sessions candidates.
 - [ ] Ajouter des tests Playwright sur création de session candidate, réponse joueur et affichage mensuel.
 
 ### P8 - Différenciants carte et narration

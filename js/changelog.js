@@ -12,9 +12,9 @@ const dom = {
 
 const FALLBACK_CHANGELOG = [
     {
-        date: '2026-05-12',
-        title: 'Version 0.17.38 - Roadmap agenda reel',
-        summary: 'La roadmap distingue le socle de disponibilites du futur rework agenda/calendrier date avec sessions candidates.'
+        date: '2026-05-17',
+        title: 'Version 0.17.39 - Agenda planning date',
+        summary: 'Le planning gagne un agenda mensuel date, une API de lecture des sessions candidates et une persistance JSON dediee.'
     }
 ];
 

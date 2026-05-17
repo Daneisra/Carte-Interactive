@@ -59,9 +59,9 @@ test.describe('Accueil - patch notes', () => {
         source: 'config',
         entries: [
           {
-            date: '2026-05-12',
-            title: 'Version 0.17.38 - Roadmap agenda reel',
-            summary: 'La roadmap distingue le socle de disponibilites.'
+            date: '2026-05-17',
+            title: 'Version 0.17.39 - Agenda planning date',
+            summary: 'Le planning gagne un agenda mensuel date.'
           }
         ]
       })
@@ -73,7 +73,7 @@ test.describe('Accueil - patch notes', () => {
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.38 - Roadmap agenda reel');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.39 - Agenda planning date');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
 });

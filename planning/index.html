@@ -41,29 +41,30 @@
         <main id="planning-main" class="planning-main">
             <section class="planning-hero" aria-labelledby="planning-title">
                 <div>
-                    <p class="planning-kicker">P7 - Planning JDR</p>
+                    <p class="planning-kicker">P7.1 - Agenda JDR</p>
                     <h1 id="planning-title">Trouver une date sans fouiller trois conversations</h1>
                     <p class="planning-lead">
-                        Cette page centralise vos disponibilites de semaine type pour aider le MJ a reperer les
-                        meilleurs creneaux sans disperser les reponses dans plusieurs conversations.
+                        Cette page commence a centraliser un agenda date pour les sessions candidates et conserve
+                        vos disponibilites de semaine type pour aider le MJ a reperer les meilleurs creneaux.
                     </p>
                     <div class="planning-hero-actions">
-                        <a class="planning-cta planning-cta-primary" href="#planning-week">Voir la semaine type</a>
+                        <a class="planning-cta planning-cta-primary" href="#planning-agenda">Voir l'agenda</a>
+                        <a class="planning-cta" href="#planning-week">Voir la semaine type</a>
                         <a class="planning-cta" href="#planning-next">Prochaines etapes</a>
                     </div>
                 </div>
                 <div class="planning-hero-meta" aria-label="Etat du module planning">
                     <div class="planning-stat">
                         <span>Version</span>
-                        <strong id="planning-version">0.17.38</strong>
+                        <strong id="planning-version">0.17.39</strong>
                     </div>
                     <div class="planning-stat">
                         <span>Statut</span>
-                        <strong>Saisie profil</strong>
+                        <strong>Agenda date</strong>
                     </div>
                     <div class="planning-stat">
                         <span>Objectif</span>
-                        <strong>Disponibilites</strong>
+                        <strong>Sessions</strong>
                     </div>
                 </div>
             </section>
@@ -89,6 +90,36 @@
                         <h3>Session suivante</h3>
                         <p>Une date candidate peut etre confirmee puis relayee au groupe.</p>
                     </article>
+                </div>
+            </section>
+
+            <section id="planning-agenda" class="planning-panel" aria-labelledby="planning-agenda-title">
+                <div class="planning-panel-header">
+                    <div>
+                        <p class="planning-panel-kicker">Agenda date</p>
+                        <h2 id="planning-agenda-title">Sessions candidates</h2>
+                    </div>
+                    <p id="planning-agenda-status" class="planning-status" role="status" aria-live="polite">Chargement de l'agenda...</p>
+                </div>
+                <div class="planning-agenda-toolbar" aria-label="Navigation de l'agenda">
+                    <button id="planning-month-prev" class="planning-cta" type="button">Mois precedent</button>
+                    <h3 id="planning-agenda-month">Mois en cours</h3>
+                    <button id="planning-month-next" class="planning-cta" type="button">Mois suivant</button>
+                    <button id="planning-month-today" class="planning-cta" type="button">Aujourd'hui</button>
+                </div>
+                <div class="planning-agenda-weekdays" aria-hidden="true">
+                    <span>Lun</span>
+                    <span>Mar</span>
+                    <span>Mer</span>
+                    <span>Jeu</span>
+                    <span>Ven</span>
+                    <span>Sam</span>
+                    <span>Dim</span>
+                </div>
+                <div id="planning-agenda-grid" class="planning-agenda-grid" aria-label="Agenda mensuel"></div>
+                <div class="planning-agenda-list-wrap">
+                    <h3>Sessions du mois</h3>
+                    <div id="planning-agenda-list" class="planning-agenda-list" aria-live="polite"></div>
                 </div>
             </section>
 
@@ -162,9 +193,10 @@
                     <h2 id="planning-next-title">Prochaines briques a brancher</h2>
                 </div>
                 <ol>
-                    <li>Brancher les indisponibilites datees pour les exceptions aux semaines types.</li>
+                    <li>Ajouter la creation admin des sessions candidates depuis l'interface planning.</li>
+                    <li>Brancher les reponses joueur par date precise : disponible, incertain, indisponible.</li>
                     <li>Lier la synthese aux campagnes lorsque le modele campagne existera.</li>
-                    <li>Ajouter une confirmation de session candidate par le MJ.</li>
+                    <li>Ajouter une confirmation de session candidate par le MJ avec statut visible.</li>
                     <li>Exporter ou partager un creneau propose au groupe.</li>
                 </ol>
             </section>

@@ -62,6 +62,7 @@ Routes principales :
 - `assets/annotations.json` : annotations.
 - `assets/groups.json` : groupes.
 - `assets/timeline.json` : événements de chronologie.
+- `assets/planning.json` : sessions candidates/confirmées du planning.
 - `assets/site-config.json` : accueil.
 - `assets/users.json` : utilisateurs.
 - `assets/logs/*` : logs, audit, sessions.

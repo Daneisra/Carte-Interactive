@@ -84,7 +84,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.38',
+    version: '0.17.39',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -140,6 +140,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-17',
+            title: 'Version 0.17.39 - Agenda planning date',
+            summary: 'Le planning gagne un agenda mensuel date, une API de lecture des sessions candidates et une persistance JSON dediee.'
+        },
         {
             date: '2026-05-14',
             title: 'Version 0.17.38 - Roadmap agenda reel',

@@ -58,6 +58,7 @@ const GROUPS_FILE = path.join(ASSETS_PATH, 'groups.json');
 const ANNOTATIONS_FILE = path.join(ASSETS_PATH, 'annotations.json');
 const TIMELINE_FILE = path.join(ASSETS_PATH, 'timeline.json');
 const SITE_CONFIG_FILE = path.join(ASSETS_PATH, 'site-config.json');
+const PLANNING_FILE = path.join(ASSETS_PATH, 'planning.json');
 const REMOTE_SYNC_URL = (process.env.REMOTE_SYNC_URL || '').trim();
 const REMOTE_SYNC_TOKEN = (process.env.REMOTE_SYNC_TOKEN || '').trim();
 const rawRemoteSyncMethod = (process.env.REMOTE_SYNC_METHOD || 'POST').trim().toUpperCase();
@@ -73,7 +74,7 @@ const AVAILABILITY_STATUS = {
   BUSY: 'busy'
 };
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.38',
+  version: '0.17.39',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -129,6 +130,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-17',
+      title: 'Version 0.17.39 - Agenda planning date',
+      summary: 'Le planning gagne un agenda mensuel date, une API de lecture des sessions candidates et une persistance JSON dediee.'
+    },
     {
       date: '2026-05-14',
       title: 'Version 0.17.38 - Roadmap agenda reel',
@@ -321,6 +327,9 @@ const DEFAULT_TIMELINE = {
   subtitle: "Une lecture lineaire des bascules politiques, spirituelles et militaires qui structurent les campagnes.",
   entries: []
 };
+const DEFAULT_PLANNING = {
+  sessions: []
+};
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -436,6 +445,7 @@ const readAnnotationsFile = async () => readJsonFile(ANNOTATIONS_FILE, []);
 const writeAnnotationsFile = async annotations => writeJsonFile(ANNOTATIONS_FILE, annotations);
 const readTimelineFile = async () => sanitizeTimelineConfig(await readJsonFile(TIMELINE_FILE, DEFAULT_TIMELINE));
 const writeTimelineFile = async timeline => writeJsonFile(TIMELINE_FILE, sanitizeTimelineConfig(timeline));
+const readPlanningFile = async () => sanitizePlanningConfig(await readJsonFile(PLANNING_FILE, DEFAULT_PLANNING));
 
 let searchFiltersModulePromise = null;
 const loadSearchFiltersModule = () => {
@@ -899,6 +909,95 @@ const loadTypeMap = async () => {
 };
 
 const normalizeString = value => (value ?? '').toString().trim();
+
+const sanitizePlanningDate = value => {
+  const normalized = normalizeString(value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    return null;
+  }
+  const date = new Date(`${normalized}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return date.toISOString().slice(0, 10);
+};
+
+const sanitizePlanningTime = value => {
+  const normalized = normalizeString(value);
+  if (!/^\d{2}:\d{2}$/.test(normalized)) {
+    return '';
+  }
+  const [hours, minutes] = normalized.split(':').map(Number);
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return '';
+  }
+  return normalized;
+};
+
+const sanitizePlanningStatus = value => {
+  const normalized = normalizeString(value).toLowerCase();
+  return ['candidate', 'confirmed', 'cancelled'].includes(normalized) ? normalized : 'candidate';
+};
+
+const sanitizePlanningResponses = value => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  return Object.entries(value).reduce((responses, [key, entry]) => {
+    const userId = normalizeString(key).slice(0, 120);
+    if (!userId || !entry || typeof entry !== 'object') {
+      return responses;
+    }
+    const status = normalizeAvailabilityStatus(entry.status || entry.response);
+    responses[userId] = {
+      status: status || AVAILABILITY_STATUS.MAYBE,
+      comment: normalizeString(entry.comment).slice(0, 280) || ''
+    };
+    return responses;
+  }, {});
+};
+
+const sanitizePlanningSession = value => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const id = normalizeString(value.id).slice(0, 120);
+  const title = normalizeString(value.title).slice(0, 140);
+  const date = sanitizePlanningDate(value.date);
+  if (!id || !title || !date) {
+    return null;
+  }
+  const duration = Math.max(0, Math.min(720, Number(value.durationMinutes) || 0));
+  return {
+    id,
+    title,
+    date,
+    startTime: sanitizePlanningTime(value.startTime || value.time),
+    durationMinutes: duration || 180,
+    groupId: normalizeString(value.groupId).slice(0, 120),
+    groupName: normalizeString(value.groupName || value.group).slice(0, 140),
+    status: sanitizePlanningStatus(value.status),
+    description: normalizeString(value.description).slice(0, 600),
+    responses: sanitizePlanningResponses(value.responses),
+    createdAt: sanitizeIsoDateString(value.createdAt),
+    updatedAt: sanitizeIsoDateString(value.updatedAt)
+  };
+};
+
+const sanitizePlanningConfig = value => {
+  const sessionsSource = Array.isArray(value)
+    ? value
+    : (Array.isArray(value?.sessions) ? value.sessions : []);
+  const sessions = sessionsSource
+    .map(sanitizePlanningSession)
+    .filter(Boolean)
+    .sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      return dateCompare || a.startTime.localeCompare(b.startTime) || a.title.localeCompare(b.title);
+    });
+  return { sessions };
+};
+
 const parseListParam = (searchParams, key) => {
   const rawValues = searchParams.getAll(key) || [];
   const collected = [];
@@ -2792,6 +2891,19 @@ const server = http.createServer(async (req, res) => {
             memberCount: members.length
           };
         })
+      }), { 'Content-Type': 'application/json' });
+      return;
+    }
+
+    if (urlObj.pathname === '/api/planning/sessions') {
+      if (req.method !== 'GET') {
+        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
+        return;
+      }
+      const planning = await readPlanningFile();
+      send(res, 200, JSON.stringify({
+        status: 'ok',
+        sessions: planning.sessions
       }), { 'Content-Type': 'application/json' });
       return;
     }

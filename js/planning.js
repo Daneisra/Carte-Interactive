@@ -11,6 +11,7 @@ import {
 const SITE_CONFIG_URL = '/assets/site-config.json';
 const SESSION_URL = '/auth/session';
 const PROFILE_URL = '/api/profile';
+const SESSIONS_URL = '/api/planning/sessions';
 const SUMMARY_URL = '/api/planning/availability-summary';
 
 const dom = {
@@ -31,7 +32,14 @@ const dom = {
     weekView: document.getElementById('planning-week-view'),
     monthView: document.getElementById('planning-month-view'),
     monthTitle: document.getElementById('planning-month-title'),
-    monthGrid: document.getElementById('planning-month-grid')
+    monthGrid: document.getElementById('planning-month-grid'),
+    agendaStatus: document.getElementById('planning-agenda-status'),
+    agendaMonth: document.getElementById('planning-agenda-month'),
+    agendaGrid: document.getElementById('planning-agenda-grid'),
+    agendaList: document.getElementById('planning-agenda-list'),
+    agendaPrev: document.getElementById('planning-month-prev'),
+    agendaNext: document.getElementById('planning-month-next'),
+    agendaToday: document.getElementById('planning-month-today')
 };
 
 const state = {
@@ -39,6 +47,8 @@ const state = {
     username: 'Invite',
     timezone: resolveLocalTimezone(),
     slots: createAvailabilityStatusMatrix(),
+    sessions: [],
+    agendaMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     summaryScopes: [],
     view: 'week',
     dirty: false,
@@ -70,6 +80,19 @@ const setSummaryStatus = (message, isError = false) => {
 const getDayLabel = dayId => AVAILABILITY_DAYS.find(day => day.id === dayId)?.label || dayId;
 const getSlotLabel = slotId => AVAILABILITY_SLOTS.find(slot => slot.id === slotId)?.label || slotId;
 const getStatusLabel = status => AVAILABILITY_STATUS_OPTIONS.find(option => option.id === status)?.label || 'Non renseigne';
+const setAgendaStatus = (message, isError = false) => {
+    if (!dom.agendaStatus) {
+        return;
+    }
+    dom.agendaStatus.textContent = message;
+    dom.agendaStatus.classList.toggle('is-error', isError);
+};
+const formatDateKey = date => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 const formatMonthDate = date => {
     try {
         return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(date);
@@ -84,6 +107,40 @@ const formatMonthTitle = date => {
         return `${date.getMonth() + 1}/${date.getFullYear()}`;
     }
 };
+const formatFullDate = value => {
+    const date = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+    try {
+        return new Intl.DateTimeFormat('fr-FR', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        }).format(date);
+    } catch (_error) {
+        return value;
+    }
+};
+const getSessionStatusLabel = status => {
+    if (status === 'confirmed') {
+        return 'Confirmee';
+    }
+    if (status === 'cancelled') {
+        return 'Annulee';
+    }
+    return 'Candidate';
+};
+const getSessionStatusClass = status => {
+    if (status === 'confirmed') {
+        return 'is-confirmed';
+    }
+    if (status === 'cancelled') {
+        return 'is-cancelled';
+    }
+    return 'is-candidate';
+};
 const getNextStatus = status => {
     if (!status) {
         return AVAILABILITY_STATUS.AVAILABLE;
@@ -95,6 +152,123 @@ const getNextStatus = status => {
         return AVAILABILITY_STATUS.BUSY;
     }
     return null;
+};
+
+const getMonthDays = monthDate => {
+    const firstOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+    const startOffset = (firstOfMonth.getDay() + 6) % 7;
+    const start = new Date(firstOfMonth);
+    start.setDate(firstOfMonth.getDate() - startOffset);
+    return Array.from({ length: 42 }, (_entry, index) => {
+        const date = new Date(start);
+        date.setDate(start.getDate() + index);
+        return date;
+    });
+};
+
+const getSessionsForMonth = () => {
+    const year = state.agendaMonth.getFullYear();
+    const month = state.agendaMonth.getMonth();
+    return state.sessions.filter(session => {
+        const date = new Date(`${session.date}T00:00:00`);
+        return !Number.isNaN(date.getTime()) && date.getFullYear() === year && date.getMonth() === month;
+    });
+};
+
+const renderAgenda = () => {
+    if (!dom.agendaGrid || !dom.agendaList) {
+        return;
+    }
+    setText(dom.agendaMonth, formatMonthTitle(state.agendaMonth));
+    const month = state.agendaMonth.getMonth();
+    const sessionsByDate = state.sessions.reduce((lookup, session) => {
+        if (!lookup.has(session.date)) {
+            lookup.set(session.date, []);
+        }
+        lookup.get(session.date).push(session);
+        return lookup;
+    }, new Map());
+    const days = getMonthDays(state.agendaMonth);
+    dom.agendaGrid.replaceChildren(...days.map(date => {
+        const dateKey = formatDateKey(date);
+        const daySessions = sessionsByDate.get(dateKey) || [];
+        const item = document.createElement('article');
+        item.className = 'planning-agenda-day';
+        item.classList.toggle('is-outside-month', date.getMonth() !== month);
+        item.classList.toggle('has-session', daySessions.length > 0);
+        item.setAttribute('aria-label', `${formatFullDate(dateKey)} - ${daySessions.length} session${daySessions.length > 1 ? 's' : ''}`);
+
+        const label = document.createElement('strong');
+        label.textContent = String(date.getDate());
+        item.appendChild(label);
+
+        daySessions.slice(0, 3).forEach(session => {
+            const chip = document.createElement('span');
+            chip.className = `planning-agenda-chip ${getSessionStatusClass(session.status)}`;
+            chip.textContent = `${session.startTime || '--:--'} ${session.title}`;
+            item.appendChild(chip);
+        });
+        if (daySessions.length > 3) {
+            const more = document.createElement('span');
+            more.className = 'planning-agenda-more';
+            more.textContent = `+${daySessions.length - 3}`;
+            item.appendChild(more);
+        }
+        return item;
+    }));
+
+    const monthSessions = getSessionsForMonth();
+    if (!monthSessions.length) {
+        dom.agendaList.replaceChildren(Object.assign(document.createElement('article'), {
+            className: 'planning-agenda-empty',
+            textContent: 'Aucune session candidate ou confirmee pour ce mois.'
+        }));
+        return;
+    }
+    dom.agendaList.replaceChildren(...monthSessions.map(session => {
+        const item = document.createElement('article');
+        item.className = `planning-agenda-session ${getSessionStatusClass(session.status)}`;
+        const meta = document.createElement('span');
+        meta.className = 'planning-agenda-session-meta';
+        const duration = session.durationMinutes ? ` - ${session.durationMinutes} min` : '';
+        meta.textContent = `${formatFullDate(session.date)} - ${session.startTime || '--:--'}${duration}`;
+        const title = document.createElement('strong');
+        title.textContent = session.title;
+        const badge = document.createElement('span');
+        badge.className = 'planning-agenda-session-badge';
+        badge.textContent = getSessionStatusLabel(session.status);
+        const description = document.createElement('p');
+        description.textContent = session.description || 'Aucune description renseignee.';
+        const group = document.createElement('small');
+        group.textContent = session.groupName || session.groupId || 'Aucun groupe lie';
+        item.append(meta, title, badge, description, group);
+        return item;
+    }));
+};
+
+const loadSessions = async () => {
+    setAgendaStatus('Chargement de l agenda...');
+    try {
+        const response = await fetch(SESSIONS_URL, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        state.sessions = Array.isArray(payload?.sessions) ? payload.sessions : [];
+        setAgendaStatus(state.sessions.length
+            ? `${state.sessions.length} session${state.sessions.length > 1 ? 's' : ''} chargee${state.sessions.length > 1 ? 's' : ''}.`
+            : 'Aucune session candidate pour le moment.');
+    } catch (error) {
+        console.warn('[planning] sessions unavailable', error);
+        state.sessions = [];
+        setAgendaStatus('Agenda indisponible pour le moment.', true);
+    }
+    renderAgenda();
+};
+
+const shiftAgendaMonth = offset => {
+    state.agendaMonth = new Date(state.agendaMonth.getFullYear(), state.agendaMonth.getMonth() + offset, 1);
+    renderAgenda();
 };
 
 const getAvailabilityFromState = () => ({
@@ -450,10 +624,25 @@ if (dom.viewWeek) {
 if (dom.viewMonth) {
     dom.viewMonth.addEventListener('click', () => setPlanningView('month'));
 }
+if (dom.agendaPrev) {
+    dom.agendaPrev.addEventListener('click', () => shiftAgendaMonth(-1));
+}
+if (dom.agendaNext) {
+    dom.agendaNext.addEventListener('click', () => shiftAgendaMonth(1));
+}
+if (dom.agendaToday) {
+    dom.agendaToday.addEventListener('click', () => {
+        const today = new Date();
+        state.agendaMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        renderAgenda();
+    });
+}
 
 setText(dom.year, String(new Date().getFullYear()));
 buildCalendar();
+renderAgenda();
 setPlanningView('week');
 syncSessionCard();
 loadVersion();
+loadSessions();
 loadSession().then(loadSummary);

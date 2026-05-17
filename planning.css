@@ -452,6 +452,171 @@ a {
     color: var(--planning-text);
 }
 
+.planning-agenda-toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.planning-agenda-toolbar h3 {
+    margin: 0;
+    text-align: center;
+    text-transform: capitalize;
+}
+
+.planning-agenda-toolbar .planning-cta {
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    cursor: pointer;
+}
+
+.planning-agenda-weekdays,
+.planning-agenda-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.planning-agenda-weekdays {
+    margin-bottom: 8px;
+}
+
+.planning-agenda-weekdays span {
+    padding: 0 10px;
+    color: #bfdbfe;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.planning-agenda-day {
+    min-width: 0;
+    min-height: 124px;
+    padding: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.42);
+}
+
+.planning-agenda-day.is-outside-month {
+    opacity: 0.48;
+}
+
+.planning-agenda-day.has-session {
+    border-color: rgba(125, 211, 252, 0.32);
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.76), rgba(30, 64, 175, 0.18));
+}
+
+.planning-agenda-day strong {
+    display: inline-flex;
+    margin-bottom: 8px;
+    color: var(--planning-text);
+}
+
+.planning-agenda-chip,
+.planning-agenda-more,
+.planning-agenda-session-badge {
+    display: inline-flex;
+    max-width: 100%;
+    padding: 5px 7px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.planning-agenda-chip {
+    display: flex;
+    margin-top: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.planning-agenda-chip.is-candidate,
+.planning-agenda-session.is-candidate .planning-agenda-session-badge {
+    background: rgba(251, 191, 36, 0.14);
+    color: #fde68a;
+}
+
+.planning-agenda-chip.is-confirmed,
+.planning-agenda-session.is-confirmed .planning-agenda-session-badge {
+    background: rgba(52, 211, 153, 0.14);
+    color: #bbf7d0;
+}
+
+.planning-agenda-chip.is-cancelled,
+.planning-agenda-session.is-cancelled .planning-agenda-session-badge {
+    background: rgba(248, 113, 113, 0.14);
+    color: #fecaca;
+}
+
+.planning-agenda-more {
+    margin-top: 6px;
+    background: rgba(148, 163, 184, 0.14);
+    color: var(--planning-muted);
+}
+
+.planning-agenda-list-wrap {
+    margin-top: 22px;
+}
+
+.planning-agenda-list-wrap h3 {
+    margin: 0 0 12px;
+}
+
+.planning-agenda-list {
+    display: grid;
+    gap: 12px;
+}
+
+.planning-agenda-session,
+.planning-agenda-empty {
+    position: relative;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(30, 41, 59, 0.38));
+}
+
+.planning-agenda-session {
+    display: grid;
+    gap: 8px;
+}
+
+.planning-agenda-session.is-confirmed {
+    border-color: rgba(52, 211, 153, 0.28);
+}
+
+.planning-agenda-session.is-candidate {
+    border-color: rgba(251, 191, 36, 0.28);
+}
+
+.planning-agenda-session.is-cancelled {
+    border-color: rgba(248, 113, 113, 0.28);
+}
+
+.planning-agenda-session-meta,
+.planning-agenda-session small,
+.planning-agenda-empty {
+    color: var(--planning-muted);
+}
+
+.planning-agenda-session strong {
+    font-size: 1.15rem;
+}
+
+.planning-agenda-session p {
+    margin: 0;
+    line-height: 1.55;
+}
+
+.planning-agenda-session-badge {
+    justify-self: start;
+}
+
 .planning-calendar {
     display: grid;
     gap: 8px;
@@ -756,6 +921,27 @@ a {
         grid-template-columns: 1fr;
     }
 
+    .planning-agenda-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .planning-agenda-toolbar h3 {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+
+    .planning-agenda-toolbar .planning-cta {
+        width: 100%;
+    }
+
+    .planning-agenda-weekdays {
+        display: none;
+    }
+
+    .planning-agenda-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .planning-month-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -807,6 +993,15 @@ a {
 
     .planning-month-header {
         display: block;
+    }
+
+    .planning-agenda-toolbar,
+    .planning-agenda-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .planning-agenda-day {
+        min-height: auto;
     }
 
     .planning-month-grid {

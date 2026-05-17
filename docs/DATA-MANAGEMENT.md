@@ -8,6 +8,7 @@ Les données principales du projet sont stockées en JSON dans `assets/`. En pro
 - `assets/annotations.json` : annotations de carte, peut être `[]`.
 - `assets/types.json` : types de lieux, icônes, paramètres de zoom.
 - `assets/timeline.json` : chronologie et événements.
+- `assets/planning.json` : agenda planning, sessions candidates ou confirmées.
 - `assets/site-config.json` : configuration éditoriale de l'accueil, version affichée et changelog public.
 - `assets/users.json` : utilisateurs et rôles.
 - `assets/groups.json` : groupes JDR, peut être `[]`.

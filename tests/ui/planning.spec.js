@@ -7,7 +7,9 @@ test.describe('Planning - UI', () => {
 
     await expect(page.locator('.planning-nav a[aria-current="page"]')).toHaveText('Planning');
     await expect(page.locator('#planning-title')).toContainText('Trouver une date');
+    await expect(page.locator('#planning-agenda-title')).toHaveText('Sessions candidates');
     await expect(page.locator('#planning-week-title')).toHaveText('Semaine type');
+    await expect(page.locator('.planning-agenda-day')).toHaveCount(42);
     await expect(page.locator('.planning-calendar-row')).toHaveCount(8);
     await expect(page.locator('.planning-slot').first()).toBeVisible();
     await expect(page.locator('#planning-view-week')).toHaveAttribute('aria-selected', 'true');
@@ -192,6 +194,62 @@ test.describe('Planning - UI', () => {
     await page.locator('#planning-scope').selectOption('groupe-a');
     await expect(page.locator('.planning-best-slot').first()).toContainText('Ven - Nuit');
     await expect(page.locator('.planning-best-slot').first()).toContainText('3 dispo');
+  });
+
+  test('la vue agenda affiche les sessions datees et navigue par mois', async ({ page }) => {
+    const now = new Date();
+    const currentMonthDate = new Date(now.getFullYear(), now.getMonth(), 12);
+    const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 8);
+    const toKey = date => [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0')
+    ].join('-');
+
+    await page.route('**/api/planning/sessions', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'ok',
+        sessions: [
+          {
+            id: 'session-current',
+            title: 'Conseil des routes',
+            date: toKey(currentMonthDate),
+            startTime: '20:30',
+            durationMinutes: 180,
+            groupName: 'Groupe principal',
+            status: 'candidate',
+            description: 'Date candidate pour organiser la prochaine partie.',
+            responses: {}
+          },
+          {
+            id: 'session-next',
+            title: 'Session confirmee',
+            date: toKey(nextMonthDate),
+            startTime: '21:00',
+            durationMinutes: 210,
+            groupName: 'Table Hesta',
+            status: 'confirmed',
+            description: 'Partie confirmee.',
+            responses: {}
+          }
+        ]
+      })
+    }));
+
+    await page.goto('/planning/');
+    await page.waitForLoadState('domcontentloaded');
+
+    await expect(page.locator('#planning-agenda-status')).toHaveText('2 sessions chargees.');
+    await expect(page.locator('.planning-agenda-session')).toHaveCount(1);
+    await expect(page.locator('.planning-agenda-session').first()).toContainText('Conseil des routes');
+    await expect(page.locator('.planning-agenda-chip').first()).toContainText('Conseil des routes');
+
+    await page.locator('#planning-month-next').click();
+    await expect(page.locator('.planning-agenda-session')).toHaveCount(1);
+    await expect(page.locator('.planning-agenda-session').first()).toContainText('Session confirmee');
+    await expect(page.locator('.planning-agenda-session').first()).toContainText('Confirmee');
   });
 
   test('la page planning reste exploitable sur mobile', async ({ page }) => {
