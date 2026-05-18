@@ -60,8 +60,8 @@ test.describe('Accueil - patch notes', () => {
         entries: [
           {
             date: '2026-05-18',
-            title: 'Version 0.17.41 - Conflits agenda planning',
-            summary: 'Chaque session du planning affiche les conflits.'
+            title: 'Version 0.17.42 - Disponibilites datees planning',
+            summary: 'Le planning affiche les disponibilites datees.'
           }
         ]
       })
@@ -73,7 +73,7 @@ test.describe('Accueil - patch notes', () => {
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.41 - Conflits agenda planning');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.42 - Disponibilites datees planning');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
 });

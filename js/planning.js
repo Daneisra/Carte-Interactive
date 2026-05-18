@@ -12,6 +12,7 @@ const SITE_CONFIG_URL = '/assets/site-config.json';
 const SESSION_URL = '/auth/session';
 const PROFILE_URL = '/api/profile';
 const SESSIONS_URL = '/api/planning/sessions';
+const DATED_AVAILABILITY_URL = '/api/planning/my-availability';
 const SUMMARY_URL = '/api/planning/availability-summary';
 
 const dom = {
@@ -39,7 +40,15 @@ const dom = {
     agendaList: document.getElementById('planning-agenda-list'),
     agendaPrev: document.getElementById('planning-month-prev'),
     agendaNext: document.getElementById('planning-month-next'),
-    agendaToday: document.getElementById('planning-month-today')
+    agendaToday: document.getElementById('planning-month-today'),
+    datedStatus: document.getElementById('planning-dated-status'),
+    datedForm: document.getElementById('planning-dated-form'),
+    datedDate: document.getElementById('planning-dated-date'),
+    datedStart: document.getElementById('planning-dated-start'),
+    datedEnd: document.getElementById('planning-dated-end'),
+    datedResponse: document.getElementById('planning-dated-response'),
+    datedComment: document.getElementById('planning-dated-comment'),
+    datedList: document.getElementById('planning-dated-list')
 };
 
 const state = {
@@ -48,11 +57,13 @@ const state = {
     timezone: resolveLocalTimezone(),
     slots: createAvailabilityStatusMatrix(),
     sessions: [],
+    datedAvailability: [],
     agendaMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     summaryScopes: [],
     view: 'week',
     dirty: false,
-    saving: false
+    saving: false,
+    datedSaving: false
 };
 
 const setText = (node, value) => {
@@ -80,6 +91,22 @@ const setSummaryStatus = (message, isError = false) => {
 const getDayLabel = dayId => AVAILABILITY_DAYS.find(day => day.id === dayId)?.label || dayId;
 const getSlotLabel = slotId => AVAILABILITY_SLOTS.find(slot => slot.id === slotId)?.label || slotId;
 const getStatusLabel = status => AVAILABILITY_STATUS_OPTIONS.find(option => option.id === status)?.label || 'Non renseigne';
+const getAvailabilityChipClass = status => {
+    if (status === AVAILABILITY_STATUS.BUSY) {
+        return 'is-availability-busy';
+    }
+    if (status === AVAILABILITY_STATUS.MAYBE) {
+        return 'is-availability-maybe';
+    }
+    return 'is-availability';
+};
+const setDatedStatus = (message, isError = false) => {
+    if (!dom.datedStatus) {
+        return;
+    }
+    dom.datedStatus.textContent = message;
+    dom.datedStatus.classList.toggle('is-error', isError);
+};
 const setAgendaStatus = (message, isError = false) => {
     if (!dom.agendaStatus) {
         return;
@@ -148,14 +175,16 @@ const getResponseSummaryText = summary => {
     return `${available} dispo / ${maybe} incertain / ${busy} indispo`;
 };
 const getPlanningInsightText = insight => {
+    const dated = insight?.dated || {};
     const weekly = insight?.weekly || {};
-    const available = Number(weekly.available) || 0;
-    const maybe = Number(weekly.maybe) || 0;
-    const busy = Number(weekly.busy) || 0;
+    const signal = Number(dated.respondents) > 0 ? dated : weekly;
+    const available = Number(signal.available) || 0;
+    const maybe = Number(signal.maybe) || 0;
+    const busy = Number(signal.busy) || 0;
     if (!insight || insight.quality === 'unknown') {
         return 'Pas assez de disponibilites pour evaluer ce creneau.';
     }
-    return `Creneau prevu: ${available} dispo / ${maybe} incertain / ${busy} conflit`;
+    return `${Number(dated.respondents) > 0 ? 'Disponibilites datees' : 'Creneau prevu'}: ${available} dispo / ${maybe} incertain / ${busy} conflit`;
 };
 const getBestSlotsText = insight => {
     const bestSlots = Array.isArray(insight?.bestSlots) ? insight.bestSlots : [];
@@ -201,6 +230,78 @@ const getSessionsForMonth = () => {
     });
 };
 
+const getDatedAvailabilityForMonth = () => {
+    const year = state.agendaMonth.getFullYear();
+    const month = state.agendaMonth.getMonth();
+    return state.datedAvailability.filter(entry => {
+        const date = new Date(`${entry.date}T00:00:00`);
+        return !Number.isNaN(date.getTime()) && date.getFullYear() === year && date.getMonth() === month;
+    });
+};
+
+const syncDatedForm = () => {
+    const disabled = !state.authenticated || state.datedSaving;
+    [
+        dom.datedDate,
+        dom.datedStart,
+        dom.datedEnd,
+        dom.datedResponse,
+        dom.datedComment
+    ].forEach(field => {
+        if (field) {
+            field.disabled = disabled;
+        }
+    });
+    const button = dom.datedForm?.querySelector?.('button[type="submit"]');
+    if (button) {
+        button.disabled = disabled;
+        button.textContent = state.datedSaving ? 'Sauvegarde...' : 'Ajouter ce creneau';
+    }
+};
+
+const renderDatedAvailability = () => {
+    syncDatedForm();
+    if (!dom.datedList) {
+        return;
+    }
+    if (!state.authenticated) {
+        dom.datedList.replaceChildren(Object.assign(document.createElement('article'), {
+            className: 'planning-dated-empty',
+            textContent: 'Connectez-vous via Discord pour renseigner vos disponibilites datees.'
+        }));
+        return;
+    }
+    const entries = [...state.datedAvailability].sort((a, b) => (
+        a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime)
+    ));
+    if (!entries.length) {
+        dom.datedList.replaceChildren(Object.assign(document.createElement('article'), {
+            className: 'planning-dated-empty',
+            textContent: 'Aucune disponibilite datee enregistree.'
+        }));
+        return;
+    }
+    dom.datedList.replaceChildren(...entries.map(entry => {
+        const item = document.createElement('article');
+        item.className = `planning-dated-entry is-${entry.status || 'available'}`;
+        const content = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = `${formatFullDate(entry.date)} - ${entry.startTime} a ${entry.endTime}`;
+        const status = document.createElement('span');
+        status.textContent = getStatusLabel(entry.status);
+        const comment = document.createElement('small');
+        comment.textContent = entry.comment || 'Sans note.';
+        content.append(title, status, comment);
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'planning-dated-delete';
+        deleteButton.dataset.availabilityId = entry.id;
+        deleteButton.textContent = 'Supprimer';
+        item.append(content, deleteButton);
+        return item;
+    }));
+};
+
 const renderAgenda = () => {
     if (!dom.agendaGrid || !dom.agendaList) {
         return;
@@ -214,15 +315,24 @@ const renderAgenda = () => {
         lookup.get(session.date).push(session);
         return lookup;
     }, new Map());
+    const availabilityByDate = state.datedAvailability.reduce((lookup, entry) => {
+        if (!lookup.has(entry.date)) {
+            lookup.set(entry.date, []);
+        }
+        lookup.get(entry.date).push(entry);
+        return lookup;
+    }, new Map());
     const days = getMonthDays(state.agendaMonth);
     dom.agendaGrid.replaceChildren(...days.map(date => {
         const dateKey = formatDateKey(date);
         const daySessions = sessionsByDate.get(dateKey) || [];
+        const dayAvailability = availabilityByDate.get(dateKey) || [];
         const item = document.createElement('article');
         item.className = 'planning-agenda-day';
         item.classList.toggle('is-outside-month', date.getMonth() !== month);
         item.classList.toggle('has-session', daySessions.length > 0);
-        item.setAttribute('aria-label', `${formatFullDate(dateKey)} - ${daySessions.length} session${daySessions.length > 1 ? 's' : ''}`);
+        item.classList.toggle('has-availability', dayAvailability.length > 0);
+        item.setAttribute('aria-label', `${formatFullDate(dateKey)} - ${daySessions.length} session${daySessions.length > 1 ? 's' : ''}, ${dayAvailability.length} disponibilite${dayAvailability.length > 1 ? 's' : ''}`);
 
         const label = document.createElement('strong');
         label.textContent = String(date.getDate());
@@ -234,10 +344,17 @@ const renderAgenda = () => {
             chip.textContent = `${session.startTime || '--:--'} ${session.title}`;
             item.appendChild(chip);
         });
-        if (daySessions.length > 3) {
+        dayAvailability.slice(0, Math.max(0, 3 - daySessions.length)).forEach(entry => {
+            const chip = document.createElement('span');
+            chip.className = `planning-agenda-chip ${getAvailabilityChipClass(entry.status)}`;
+            chip.textContent = `${entry.startTime} Moi: ${getStatusLabel(entry.status)}`;
+            item.appendChild(chip);
+        });
+        const hiddenCount = Math.max(0, (daySessions.length + dayAvailability.length) - 3);
+        if (hiddenCount > 0) {
             const more = document.createElement('span');
             more.className = 'planning-agenda-more';
-            more.textContent = `+${daySessions.length - 3}`;
+            more.textContent = `+${hiddenCount}`;
             item.appendChild(more);
         }
         return item;
@@ -297,6 +414,110 @@ const renderAgenda = () => {
     }));
 };
 
+const loadDatedAvailability = async () => {
+    if (!state.authenticated) {
+        state.datedAvailability = [];
+        setDatedStatus('Connectez-vous pour renseigner vos disponibilites.', true);
+        renderDatedAvailability();
+        renderAgenda();
+        return;
+    }
+    setDatedStatus('Chargement de vos disponibilites datees...');
+    try {
+        const response = await fetch(DATED_AVAILABILITY_URL, { credentials: 'include', cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        state.datedAvailability = Array.isArray(payload?.availability) ? payload.availability : [];
+        setDatedStatus(state.datedAvailability.length
+            ? `${state.datedAvailability.length} disponibilite${state.datedAvailability.length > 1 ? 's' : ''} chargee${state.datedAvailability.length > 1 ? 's' : ''}.`
+            : 'Aucune disponibilite datee pour le moment.');
+    } catch (error) {
+        console.warn('[planning] dated availability unavailable', error);
+        state.datedAvailability = [];
+        setDatedStatus('Disponibilites datees indisponibles.', true);
+    }
+    renderDatedAvailability();
+    renderAgenda();
+};
+
+const saveDatedAvailability = async event => {
+    event?.preventDefault?.();
+    if (!state.authenticated || state.datedSaving) {
+        setDatedStatus('Connectez-vous via Discord pour renseigner vos disponibilites.', true);
+        return;
+    }
+    const payload = {
+        date: dom.datedDate?.value || '',
+        startTime: dom.datedStart?.value || '',
+        endTime: dom.datedEnd?.value || '',
+        status: dom.datedResponse?.value || AVAILABILITY_STATUS.AVAILABLE,
+        comment: dom.datedComment?.value || ''
+    };
+    state.datedSaving = true;
+    syncDatedForm();
+    setDatedStatus('Sauvegarde du creneau...');
+    try {
+        const response = await fetch(DATED_AVAILABILITY_URL, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const result = await response.json();
+        state.datedAvailability = Array.isArray(result?.availability) ? result.availability : state.datedAvailability;
+        if (dom.datedComment) {
+            dom.datedComment.value = '';
+        }
+        setDatedStatus('Disponibilite datee enregistree.');
+        renderDatedAvailability();
+        renderAgenda();
+        loadSessions();
+    } catch (error) {
+        console.error('[planning] dated availability save failed', error);
+        setDatedStatus('Impossible d enregistrer ce creneau.', true);
+    } finally {
+        state.datedSaving = false;
+        syncDatedForm();
+    }
+};
+
+const deleteDatedAvailability = async id => {
+    if (!state.authenticated || state.datedSaving || !id) {
+        return;
+    }
+    state.datedSaving = true;
+    syncDatedForm();
+    setDatedStatus('Suppression du creneau...');
+    try {
+        const response = await fetch(DATED_AVAILABILITY_URL, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const result = await response.json();
+        state.datedAvailability = Array.isArray(result?.availability) ? result.availability : [];
+        setDatedStatus('Disponibilite supprimee.');
+        renderDatedAvailability();
+        renderAgenda();
+        loadSessions();
+    } catch (error) {
+        console.error('[planning] dated availability delete failed', error);
+        setDatedStatus('Impossible de supprimer ce creneau.', true);
+    } finally {
+        state.datedSaving = false;
+        syncDatedForm();
+    }
+};
+
 const saveSessionResponse = async (sessionId, status) => {
     if (!state.authenticated || !sessionId || !status) {
         setAgendaStatus('Connectez-vous via Discord pour repondre a une session.', true);
@@ -351,6 +572,7 @@ const loadSessions = async () => {
 const shiftAgendaMonth = offset => {
     state.agendaMonth = new Date(state.agendaMonth.getFullYear(), state.agendaMonth.getMonth() + offset, 1);
     renderAgenda();
+    renderDatedAvailability();
 };
 
 const getAvailabilityFromState = () => ({
@@ -718,6 +940,7 @@ if (dom.agendaToday) {
         const today = new Date();
         state.agendaMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         renderAgenda();
+        renderDatedAvailability();
     });
 }
 if (dom.agendaList) {
@@ -729,12 +952,38 @@ if (dom.agendaList) {
         saveSessionResponse(button.dataset.sessionId, button.dataset.responseStatus);
     });
 }
+if (dom.datedForm) {
+    dom.datedForm.addEventListener('submit', saveDatedAvailability);
+}
+if (dom.datedList) {
+    dom.datedList.addEventListener('click', event => {
+        const button = event.target?.closest?.('[data-availability-id]');
+        if (!button || !dom.datedList.contains(button)) {
+            return;
+        }
+        deleteDatedAvailability(button.dataset.availabilityId);
+    });
+}
+
+if (dom.datedDate && !dom.datedDate.value) {
+    dom.datedDate.value = formatDateKey(new Date());
+}
+if (dom.datedStart && !dom.datedStart.value) {
+    dom.datedStart.value = '20:00';
+}
+if (dom.datedEnd && !dom.datedEnd.value) {
+    dom.datedEnd.value = '23:00';
+}
 
 setText(dom.year, String(new Date().getFullYear()));
 buildCalendar();
 renderAgenda();
+renderDatedAvailability();
 setPlanningView('week');
 syncSessionCard();
 loadVersion();
 loadSessions();
-loadSession().then(loadSummary);
+loadSession().then(() => {
+    loadDatedAvailability();
+    loadSummary();
+});

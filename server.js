@@ -74,7 +74,7 @@ const AVAILABILITY_STATUS = {
   BUSY: 'busy'
 };
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.41',
+  version: '0.17.42',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -130,6 +130,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-18',
+      title: 'Version 0.17.42 - Disponibilites datees planning',
+      summary: 'Le planning permet aux utilisateurs de declarer des disponibilites a une date et une heure precises, avec affichage direct dans l agenda.'
+    },
     {
       date: '2026-05-18',
       title: 'Version 0.17.41 - Conflits agenda planning',
@@ -945,6 +950,22 @@ const sanitizePlanningTime = value => {
   return normalized;
 };
 
+const planningTimeToMinutes = value => {
+  const time = sanitizePlanningTime(value);
+  if (!time) {
+    return null;
+  }
+  const [hours, minutes] = time.split(':').map(Number);
+  return (hours * 60) + minutes;
+};
+
+const minutesToPlanningTime = value => {
+  const bounded = Math.max(0, Math.min(23 * 60 + 59, Number(value) || 0));
+  const hours = Math.floor(bounded / 60);
+  const minutes = bounded % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
 const sanitizePlanningStatus = value => {
   const normalized = normalizeString(value).toLowerCase();
   return ['candidate', 'confirmed', 'cancelled'].includes(normalized) ? normalized : 'candidate';
@@ -987,6 +1008,56 @@ const sanitizePlanningResponses = value => {
     };
     return responses;
   }, {});
+};
+
+const sanitizePlanningAvailabilityEntry = (value, { existing = null, touch = false } = {}) => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const date = sanitizePlanningDate(value.date || existing?.date);
+  const startTime = sanitizePlanningTime(value.startTime || value.start || existing?.startTime);
+  if (!date || !startTime) {
+    return null;
+  }
+  const startMinutes = planningTimeToMinutes(startTime);
+  const rawEndTime = sanitizePlanningTime(value.endTime || value.end || existing?.endTime);
+  let endMinutes = planningTimeToMinutes(rawEndTime);
+  if (endMinutes === null || endMinutes <= startMinutes) {
+    endMinutes = Math.min(startMinutes + 180, 23 * 60 + 59);
+  }
+  const id = sanitizePlanningId(value.id || existing?.id) || `availability-${crypto.randomUUID()}`;
+  const now = new Date().toISOString();
+  return {
+    id,
+    date,
+    startTime,
+    endTime: minutesToPlanningTime(endMinutes),
+    status: normalizeAvailabilityStatus(value.status || value.response || existing?.status) || AVAILABILITY_STATUS.AVAILABLE,
+    comment: normalizeString(value.comment || existing?.comment).slice(0, 280),
+    createdAt: sanitizeIsoDateString(existing?.createdAt || value.createdAt) || now,
+    updatedAt: touch ? now : (sanitizeIsoDateString(value.updatedAt || existing?.updatedAt) || now)
+  };
+};
+
+const sanitizePlanningAvailabilityList = value => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const used = new Set();
+  return value
+    .map(entry => sanitizePlanningAvailabilityEntry(entry))
+    .filter(Boolean)
+    .map(entry => {
+      let id = entry.id;
+      let index = 2;
+      while (used.has(id)) {
+        id = `${entry.id}-${index}`;
+        index += 1;
+      }
+      used.add(id);
+      return { ...entry, id };
+    })
+    .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
 };
 
 const sanitizePlanningSession = value => {
@@ -1975,6 +2046,67 @@ const getAvailabilityCountsForSlot = (users, dayIndex, slotIndex) => {
   return counts;
 };
 
+const rangesOverlap = (startA, endA, startB, endB) => (
+  startA !== null
+  && endA !== null
+  && startB !== null
+  && endB !== null
+  && startA < endB
+  && startB < endA
+);
+
+const getPlanningSessionRange = session => {
+  const start = planningTimeToMinutes(session?.startTime);
+  if (start === null) {
+    return null;
+  }
+  const duration = Math.max(1, Math.min(720, Number(session?.durationMinutes) || 180));
+  return {
+    start,
+    end: Math.min(start + duration, 24 * 60)
+  };
+};
+
+const getDatedAvailabilityCountsForSession = (users, session) => {
+  const counts = {
+    available: 0,
+    maybe: 0,
+    busy: 0,
+    empty: 0,
+    respondents: 0
+  };
+  const date = sanitizePlanningDate(session?.date);
+  const range = getPlanningSessionRange(session);
+  if (!date || !range) {
+    counts.empty = users.length;
+    return counts;
+  }
+  users.forEach(user => {
+    const entries = sanitizePlanningAvailabilityList(user?.planningAvailability)
+      .filter(entry => entry.date === date)
+      .filter(entry => rangesOverlap(
+        planningTimeToMinutes(entry.startTime),
+        planningTimeToMinutes(entry.endTime),
+        range.start,
+        range.end
+      ));
+    const statuses = entries.map(entry => entry.status);
+    if (statuses.includes(AVAILABILITY_STATUS.BUSY)) {
+      counts.busy += 1;
+      counts.respondents += 1;
+    } else if (statuses.includes(AVAILABILITY_STATUS.AVAILABLE)) {
+      counts.available += 1;
+      counts.respondents += 1;
+    } else if (statuses.includes(AVAILABILITY_STATUS.MAYBE)) {
+      counts.maybe += 1;
+      counts.respondents += 1;
+    } else {
+      counts.empty += 1;
+    }
+  });
+  return counts;
+};
+
 const scorePlanningSlot = counts => (
   (counts.available * 3) + counts.maybe - (counts.busy * 2)
 );
@@ -2014,8 +2146,10 @@ const buildPlanningSessionInsight = (session, users = []) => {
   const weekly = slot && slot.slotIndex !== null
     ? getAvailabilityCountsForSlot(targetUsers, slot.dayIndex, slot.slotIndex)
     : { available: 0, maybe: 0, busy: 0, empty: targetUsers.length, respondents: 0 };
-  const conflicts = responseSummary.busy + weekly.busy;
-  const positives = responseSummary.available + weekly.available;
+  const dated = getDatedAvailabilityCountsForSession(targetUsers, session);
+  const signal = dated.respondents > 0 ? dated : weekly;
+  const conflicts = responseSummary.busy + signal.busy;
+  const positives = responseSummary.available + signal.available;
   let quality = 'unknown';
   if (targetUsers.length || Object.keys(session?.responses || {}).length) {
     quality = conflicts > positives ? 'conflict' : (positives > 0 ? 'good' : 'mixed');
@@ -2027,6 +2161,7 @@ const buildPlanningSessionInsight = (session, users = []) => {
       slot: slot.slot
     } : null,
     weekly,
+    dated,
     bestSlots: buildPlanningBestSlots(targetUsers),
     conflicts,
     quality
@@ -2072,6 +2207,7 @@ const sanitizeUserRecord = user => {
   characters,
   profile: sanitizeProfileRecord(user?.profile),
   availability: sanitizeAvailabilityRecord(user?.availability),
+  planningAvailability: sanitizePlanningAvailabilityList(user?.planningAvailability),
   account: {
     lastLoginAt: sanitizeIsoDateString(user?.lastLoginAt),
     lastSeenAt: sanitizeIsoDateString(user?.lastSeenAt)
@@ -3233,6 +3369,74 @@ const server = http.createServer(async (req, res) => {
       send(res, 200, JSON.stringify({
         status: 'ok',
         session: withPlanningResponseSummary(planning.sessions[index], { users })
+      }), { 'Content-Type': 'application/json' });
+      return;
+    }
+
+    if (urlObj.pathname === '/api/planning/my-availability') {
+      if (!['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method)) {
+        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET,POST,PATCH,PUT,DELETE' });
+        return;
+      }
+      if (!(await ensureAuthorized(req, res, 'user'))) {
+        return;
+      }
+      const currentUserId = normalizeString(req.auth?.user?.id);
+      if (!currentUserId) {
+        send(res, 403, JSON.stringify({ status: 'error', message: 'User profile unavailable.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const users = await readUsersFile();
+      const index = users.findIndex(entry => entry.id === currentUserId);
+      const user = index === -1 ? null : users[index];
+      if (!user) {
+        send(res, 404, JSON.stringify({ status: 'error', message: 'User not found.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      if (req.method === 'GET') {
+        const availability = sanitizePlanningAvailabilityList(user.planningAvailability);
+        send(res, 200, JSON.stringify({ status: 'ok', availability }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const body = await collectBody(req);
+      let payload = {};
+      try {
+        payload = JSON.parse(body || '{}');
+      } catch (error) {
+        send(res, 400, 'Invalid JSON');
+        return;
+      }
+      const current = sanitizePlanningAvailabilityList(user.planningAvailability);
+      if (req.method === 'DELETE') {
+        const id = sanitizePlanningId(payload?.id || urlObj.searchParams.get('id'));
+        if (!id) {
+          send(res, 400, JSON.stringify({ status: 'error', message: 'id is required.' }), { 'Content-Type': 'application/json' });
+          return;
+        }
+        const next = current.filter(entry => entry.id !== id);
+        user.planningAvailability = next;
+        await writeUsersFile(users);
+        updateSessionsForUser(user.id, { planningAvailability: next });
+        send(res, 200, JSON.stringify({ status: 'ok', availability: next }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const requestedId = sanitizePlanningId(payload?.id);
+      const existing = requestedId ? current.find(entry => entry.id === requestedId) : null;
+      const entry = sanitizePlanningAvailabilityEntry(payload, { existing, touch: true });
+      if (!entry) {
+        send(res, 400, JSON.stringify({ status: 'error', message: 'Disponibilite invalide: date et heures sont requises.' }), { 'Content-Type': 'application/json' });
+        return;
+      }
+      const next = existing
+        ? current.map(item => (item.id === existing.id ? entry : item))
+        : [...current, entry];
+      user.planningAvailability = sanitizePlanningAvailabilityList(next);
+      await writeUsersFile(users);
+      updateSessionsForUser(user.id, { planningAvailability: user.planningAvailability });
+      send(res, existing ? 200 : 201, JSON.stringify({
+        status: 'ok',
+        entry,
+        availability: user.planningAvailability
       }), { 'Content-Type': 'application/json' });
       return;
     }

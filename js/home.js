@@ -84,7 +84,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.41',
+    version: '0.17.42',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -139,7 +139,12 @@ const DEFAULT_SITE_CONFIG = {
         creditsUrl: '/docs/ASSETS-CREDITS.md',
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
-    changelog: [
+        changelog: [
+        {
+            date: '2026-05-18',
+            title: 'Version 0.17.42 - Disponibilites datees planning',
+            summary: 'Le planning permet aux utilisateurs de declarer des disponibilites a une date et une heure precises, avec affichage direct dans l agenda.'
+        },
         {
             date: '2026-05-18',
             title: 'Version 0.17.41 - Conflits agenda planning',

@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.41`.
+Version actuelle : `0.17.42`.
 
 ## Réalisations majeures livrées
 
@@ -29,6 +29,7 @@ Version actuelle : `0.17.41`.
 - [x] Groupes JDR, personnages liés aux utilisateurs et visualisation des groupes sur la carte.
 - [x] Page d'accueil immersive avec CTA carte, état de session, communauté, dons, crédits et panneau admin dédié.
 - [x] Page chronologie dédiée avec frise horizontale, filtres, détail événement, liens carte/frise et panneau admin dédié.
+- [x] Page planning dédiée avec agenda mensuel, sessions candidates, réponses joueur et disponibilités datées.
 - [x] Séparation des panneaux admin : accueil, chronologie et carte.
 - [x] Admin accueil branché sur `/api/admin/home-config`.
 - [x] Admin chronologie branché sur `/api/admin/timeline-config`.
@@ -93,7 +94,7 @@ Version actuelle : `0.17.41`.
 
 ### P7 - Planning et calendrier JDR
 
-Socle livré : disponibilités de semaine type, synthèse de créneaux communs et projection mensuelle simple.
+Socle livré : agenda daté, sessions candidates, disponibilités par date/heure, semaine type conservée en compatibilité et synthèse de créneaux communs.
 
 - [x] Créer une page planning/calendrier dédiée à la logistique des parties.
 - [x] Permettre à chaque utilisateur de renseigner ses disponibilités par jour et par créneau horaire.
@@ -108,11 +109,12 @@ Socle livré : disponibilités de semaine type, synthèse de créneaux communs e
 - [x] Transformer la page planning en véritable agenda daté, avec navigation mois précédent/suivant et semaine courante.
 - [x] Ajouter un modèle de sessions candidates : titre, date, heure de début, durée, groupe, description et statut.
 - [ ] Permettre au MJ de proposer plusieurs dates candidates pour une partie.
+- [x] Permettre à chaque utilisateur de déclarer ses disponibilités à n'importe quelle date et n'importe quelle heure.
 - [x] Permettre aux joueurs de répondre à une date précise : disponible, incertain, indisponible, commentaire optionnel.
 - [x] Afficher les événements confirmés dans une vue calendrier mensuelle, pas seulement une projection de semaine type.
-- [x] Conserver la semaine type comme aide à la proposition automatique de dates.
+- [x] Conserver la semaine type comme aide secondaire/compatibilité, sans en faire le système principal.
 - [x] Ajouter une synthèse par session candidate : nombre de oui/incertain/non.
-- [x] Ajouter les meilleurs créneaux et conflits visibles par session candidate.
+- [x] Ajouter les meilleurs créneaux et conflits visibles par session candidate, avec prise en compte des disponibilités datées quand elles existent.
 - [x] Prévoir une vue mobile agenda claire : liste chronologique + mini calendrier compact.
 - [x] Préparer la persistance JSON dédiée, par exemple `assets/planning.json`, avec API de lecture publique.
 - [x] Ajouter l'API admin/utilisateur d'écriture des sessions candidates.

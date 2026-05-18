@@ -70,6 +70,20 @@ test.describe('Planning - API', () => {
         });
         expect(profileResponse.status()).toBe(200);
 
+        const datedAvailabilityResponse = await request.post('/api/planning/my-availability', {
+            data: {
+                date: '2026-07-12',
+                startTime: '20:00',
+                endTime: '23:30',
+                status: 'busy',
+                comment: 'Conflit date precise.'
+            }
+        });
+        expect(datedAvailabilityResponse.status()).toBe(201);
+        const datedAvailabilityPayload = await datedAvailabilityResponse.json();
+        expect(datedAvailabilityPayload.availability[0].date).toBe('2026-07-12');
+        expect(datedAvailabilityPayload.availability[0].status).toBe('busy');
+
         const createResponse = await request.post('/api/admin/planning/sessions', {
             data: {
                 title: 'Session candidate API',
@@ -87,6 +101,7 @@ test.describe('Planning - API', () => {
         expect(createdPayload.session.id).toBeTruthy();
         expect(createdPayload.session.responseSummary.available).toBe(0);
         expect(createdPayload.session.planningInsight.weekly.busy).toBeGreaterThanOrEqual(1);
+        expect(createdPayload.session.planningInsight.dated.busy).toBeGreaterThanOrEqual(1);
         expect(createdPayload.session.planningInsight.bestSlots.length).toBeGreaterThanOrEqual(1);
 
         const sessionId = createdPayload.session.id;
@@ -125,5 +140,12 @@ test.describe('Planning - API', () => {
         expect(deleteResponse.status()).toBe(200);
         const deletePayload = await deleteResponse.json();
         expect(deletePayload.removed.id).toBe(sessionId);
+
+        const deleteAvailabilityResponse = await request.delete('/api/planning/my-availability', {
+            data: { id: datedAvailabilityPayload.availability[0].id }
+        });
+        expect(deleteAvailabilityResponse.status()).toBe(200);
+        const deleteAvailabilityPayload = await deleteAvailabilityResponse.json();
+        expect(deleteAvailabilityPayload.availability).toHaveLength(0);
     });
 });

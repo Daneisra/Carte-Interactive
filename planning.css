@@ -131,11 +131,17 @@ a {
     gap: 8px;
     justify-self: center;
     max-width: 100%;
-    contain: inline-size;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
     padding: 6px;
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.04);
+}
+
+.planning-nav::-webkit-scrollbar {
+    display: none;
 }
 
 .planning-nav a {
@@ -509,6 +515,10 @@ a {
     background: linear-gradient(145deg, rgba(15, 23, 42, 0.76), rgba(30, 64, 175, 0.18));
 }
 
+.planning-agenda-day.has-availability {
+    border-color: rgba(52, 211, 153, 0.24);
+}
+
 .planning-agenda-day strong {
     display: inline-flex;
     margin-bottom: 8px;
@@ -549,6 +559,21 @@ a {
 .planning-agenda-chip.is-cancelled,
 .planning-agenda-session.is-cancelled .planning-agenda-session-badge {
     background: rgba(248, 113, 113, 0.14);
+    color: #fecaca;
+}
+
+.planning-agenda-chip.is-availability {
+    background: rgba(52, 211, 153, 0.13);
+    color: #bbf7d0;
+}
+
+.planning-agenda-chip.is-availability-maybe {
+    background: rgba(251, 191, 36, 0.13);
+    color: #fde68a;
+}
+
+.planning-agenda-chip.is-availability-busy {
+    background: rgba(248, 113, 113, 0.13);
     color: #fecaca;
 }
 
@@ -681,6 +706,101 @@ a {
 .planning-agenda-response-actions button:focus-visible {
     border-color: rgba(125, 211, 252, 0.42);
     background: rgba(79, 140, 255, 0.18);
+}
+
+.planning-dated-form {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) repeat(3, minmax(120px, 0.75fr));
+    gap: 12px;
+    align-items: end;
+}
+
+.planning-dated-form label,
+.planning-panel-note {
+    color: var(--planning-muted);
+}
+
+.planning-dated-form label {
+    display: grid;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.planning-dated-form input,
+.planning-dated-form select {
+    min-height: 46px;
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.58);
+    color: var(--planning-text);
+    font: inherit;
+    padding: 0 12px;
+}
+
+.planning-dated-form input:disabled,
+.planning-dated-form select:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+}
+
+.planning-dated-comment {
+    grid-column: span 2;
+}
+
+.planning-dated-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.planning-dated-entry,
+.planning-dated-empty {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.42);
+}
+
+.planning-dated-entry strong,
+.planning-dated-entry span,
+.planning-dated-entry small {
+    display: block;
+}
+
+.planning-dated-entry small,
+.planning-dated-empty {
+    color: var(--planning-muted);
+}
+
+.planning-dated-entry.is-available {
+    border-color: rgba(52, 211, 153, 0.28);
+}
+
+.planning-dated-entry.is-maybe {
+    border-color: rgba(251, 191, 36, 0.28);
+}
+
+.planning-dated-entry.is-busy {
+    border-color: rgba(248, 113, 113, 0.28);
+}
+
+.planning-dated-delete {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid rgba(248, 113, 113, 0.28);
+    border-radius: 999px;
+    background: rgba(248, 113, 113, 0.1);
+    color: #fecaca;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
 }
 
 .planning-calendar {
@@ -920,18 +1040,6 @@ a {
     font-weight: 800;
 }
 
-.planning-next ol {
-    display: grid;
-    gap: 12px;
-    margin: 18px 0 0;
-    padding-left: 22px;
-}
-
-.planning-next li {
-    line-height: 1.6;
-    color: var(--planning-muted);
-}
-
 .planning-footer {
     display: flex;
     justify-content: space-between;
@@ -1008,6 +1116,14 @@ a {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .planning-dated-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .planning-dated-comment {
+        grid-column: 1 / -1;
+    }
+
     .planning-month-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1068,6 +1184,12 @@ a {
 
     .planning-agenda-day {
         min-height: auto;
+    }
+
+    .planning-dated-form,
+    .planning-dated-entry,
+    .planning-dated-empty {
+        grid-template-columns: 1fr;
     }
 
     .planning-month-grid {

@@ -8,13 +8,93 @@ test.describe('Planning - UI', () => {
     await expect(page.locator('.planning-nav a[aria-current="page"]')).toHaveText('Planning');
     await expect(page.locator('#planning-title')).toContainText('Trouver une date');
     await expect(page.locator('#planning-agenda-title')).toHaveText('Sessions candidates');
-    await expect(page.locator('#planning-week-title')).toHaveText('Semaine type');
+    await expect(page.locator('#planning-dated-title')).toHaveText("Mes disponibilites dans l'agenda");
+    await expect(page.locator('#planning-week-title')).toHaveText('Semaine type (ancien systeme)');
     await expect(page.locator('.planning-agenda-day')).toHaveCount(42);
     await expect(page.locator('.planning-calendar-row')).toHaveCount(8);
     await expect(page.locator('.planning-slot').first()).toBeVisible();
     await expect(page.locator('#planning-view-week')).toHaveAttribute('aria-selected', 'true');
     await expect(page.locator('#planning-status')).toContainText('Connectez-vous');
     await expect(page.locator('#planning-summary-status')).toContainText('Connectez-vous');
+  });
+
+  test('un utilisateur connecte peut renseigner une disponibilite datee', async ({ page }) => {
+    let savedPayload = null;
+    let deletedPayload = null;
+
+    await page.route('**/auth/session', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        username: 'Danny',
+        availability: { timezone: 'Europe/Warsaw', slots: [] }
+      })
+    }));
+    await page.route('**/api/planning/my-availability', route => {
+      if (route.request().method() === 'GET') {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ status: 'ok', availability: [] })
+        });
+      }
+      if (route.request().method() === 'DELETE') {
+        deletedPayload = route.request().postDataJSON();
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ status: 'ok', availability: [] })
+        });
+      }
+      savedPayload = route.request().postDataJSON();
+      return route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          status: 'ok',
+          availability: [
+            {
+              id: 'availability-test',
+              date: savedPayload.date,
+              startTime: savedPayload.startTime,
+              endTime: savedPayload.endTime,
+              status: savedPayload.status,
+              comment: savedPayload.comment
+            }
+          ]
+        })
+      });
+    });
+    await page.route('**/api/planning/availability-summary', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'ok', scopes: [] })
+    }));
+
+    await page.goto('/planning/');
+    await page.waitForLoadState('domcontentloaded');
+
+    await page.locator('#planning-dated-date').fill('2026-07-12');
+    await page.locator('#planning-dated-start').fill('20:30');
+    await page.locator('#planning-dated-end').fill('23:30');
+    await page.locator('#planning-dated-response').selectOption('available');
+    await page.locator('#planning-dated-comment').fill('Disponible apres le repas');
+    await page.locator('#planning-dated-save').click();
+
+    await expect(page.locator('#planning-dated-status')).toHaveText('Disponibilite datee enregistree.');
+    expect(savedPayload).toMatchObject({
+      date: '2026-07-12',
+      startTime: '20:30',
+      endTime: '23:30',
+      status: 'available',
+      comment: 'Disponible apres le repas'
+    });
+    await expect(page.locator('.planning-dated-entry')).toContainText('Disponible apres le repas');
+
+    await page.locator('.planning-dated-delete').click();
+    await expect(page.locator('#planning-dated-status')).toHaveText('Disponibilite supprimee.');
+    expect(deletedPayload.id).toBe('availability-test');
   });
 
   test('un utilisateur connecte peut modifier et enregistrer ses disponibilites', async ({ page }) => {

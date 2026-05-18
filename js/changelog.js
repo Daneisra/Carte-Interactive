@@ -13,8 +13,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-18',
-        title: 'Version 0.17.41 - Conflits agenda planning',
-        summary: 'Chaque session du planning affiche les conflits, le signal de disponibilite hebdomadaire et les meilleurs creneaux possibles.'
+        title: 'Version 0.17.42 - Disponibilites datees planning',
+        summary: 'Le planning permet aux utilisateurs de declarer des disponibilites a une date et une heure precises, avec affichage direct dans l agenda.'
     }
 ];
 
