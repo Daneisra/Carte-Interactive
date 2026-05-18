@@ -84,7 +84,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.40',
+    version: '0.17.41',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -140,6 +140,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
     changelog: [
+        {
+            date: '2026-05-18',
+            title: 'Version 0.17.41 - Conflits agenda planning',
+            summary: 'Chaque session du planning affiche les conflits, le signal de disponibilite hebdomadaire et les meilleurs creneaux possibles.'
+        },
         {
             date: '2026-05-18',
             title: 'Version 0.17.40 - Reponses agenda planning',

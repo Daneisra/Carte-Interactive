@@ -11,8 +11,8 @@ test.describe('Changelog - UI', () => {
         entries: [
           {
             date: '2026-05-18',
-            title: 'Version 0.17.40 - Reponses agenda planning',
-            summary: 'Les sessions du planning peuvent recevoir les reponses.'
+            title: 'Version 0.17.41 - Conflits agenda planning',
+            summary: 'Chaque session du planning affiche les conflits.'
           },
           {
             date: '2026-05-12',
@@ -30,7 +30,7 @@ test.describe('Changelog - UI', () => {
     await expect(page.locator('#changelog-count')).toHaveText('2');
     await expect(page.locator('#changelog-source')).toHaveText('Config');
     await expect(page.locator('.changelog-entry')).toHaveCount(2);
-    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.40 - Reponses agenda planning');
+    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.41 - Conflits agenda planning');
   });
 
   test('la page reste exploitable sur mobile', async ({ page }) => {

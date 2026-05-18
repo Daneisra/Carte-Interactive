@@ -74,7 +74,7 @@ const AVAILABILITY_STATUS = {
   BUSY: 'busy'
 };
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.40',
+  version: '0.17.41',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -130,6 +130,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-18',
+      title: 'Version 0.17.41 - Conflits agenda planning',
+      summary: 'Chaque session du planning affiche les conflits, le signal de disponibilite hebdomadaire et les meilleurs creneaux possibles.'
+    },
     {
       date: '2026-05-18',
       title: 'Version 0.17.40 - Reponses agenda planning',
@@ -1053,9 +1058,10 @@ const summarizePlanningSessionResponses = responses => {
   return counts;
 };
 
-const withPlanningResponseSummary = session => ({
+const withPlanningResponseSummary = (session, { users = [] } = {}) => ({
   ...session,
-  responseSummary: summarizePlanningSessionResponses(session.responses)
+  responseSummary: summarizePlanningSessionResponses(session.responses),
+  planningInsight: buildPlanningSessionInsight(session, users)
 });
 
 const parseListParam = (searchParams, key) => {
@@ -1903,6 +1909,127 @@ const buildAvailabilityScope = ({ id, label, kind, users }) => {
     counts,
     timezones,
     best: best.slice(0, 5)
+  };
+};
+
+const resolvePlanningSessionSlot = session => {
+  const date = new Date(`${session?.date || ''}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  const dayIndex = (date.getUTCDay() + 6) % 7;
+  const [hoursRaw] = normalizeString(session?.startTime).split(':');
+  const hours = Number(hoursRaw);
+  let slotIndex = null;
+  if (Number.isFinite(hours)) {
+    if (hours < 12) {
+      slotIndex = 0;
+    } else if (hours < 18) {
+      slotIndex = 1;
+    } else if (hours < 22) {
+      slotIndex = 2;
+    } else {
+      slotIndex = 3;
+    }
+  }
+  return {
+    day: AVAILABILITY_DAYS[dayIndex],
+    dayIndex,
+    slot: slotIndex === null ? null : AVAILABILITY_SLOTS[slotIndex],
+    slotIndex
+  };
+};
+
+const collectPlanningTargetUsers = (session, users) => {
+  const groupId = normalizeString(session?.groupId);
+  if (!groupId) {
+    return users;
+  }
+  return users.filter(user => collectUserGroupIds(user).has(groupId));
+};
+
+const getAvailabilityCountsForSlot = (users, dayIndex, slotIndex) => {
+  const counts = {
+    available: 0,
+    maybe: 0,
+    busy: 0,
+    empty: 0,
+    respondents: 0
+  };
+  users.forEach(user => {
+    const availability = sanitizeAvailabilityRecord(user?.availability);
+    const status = availability?.slots?.[dayIndex]?.[slotIndex] || null;
+    if (status === AVAILABILITY_STATUS.AVAILABLE) {
+      counts.available += 1;
+      counts.respondents += 1;
+    } else if (status === AVAILABILITY_STATUS.MAYBE) {
+      counts.maybe += 1;
+      counts.respondents += 1;
+    } else if (status === AVAILABILITY_STATUS.BUSY) {
+      counts.busy += 1;
+      counts.respondents += 1;
+    } else {
+      counts.empty += 1;
+    }
+  });
+  return counts;
+};
+
+const scorePlanningSlot = counts => (
+  (counts.available * 3) + counts.maybe - (counts.busy * 2)
+);
+
+const buildPlanningBestSlots = users => {
+  const candidates = [];
+  AVAILABILITY_DAYS.forEach((day, dayIndex) => {
+    AVAILABILITY_SLOTS.forEach((slot, slotIndex) => {
+      const counts = getAvailabilityCountsForSlot(users, dayIndex, slotIndex);
+      candidates.push({
+        day,
+        slot,
+        dayIndex,
+        slotIndex,
+        ...counts,
+        score: scorePlanningSlot(counts)
+      });
+    });
+  });
+  return candidates
+    .filter(candidate => candidate.respondents > 0)
+    .sort((a, b) => (
+      b.score - a.score
+      || b.available - a.available
+      || a.busy - b.busy
+      || a.dayIndex - b.dayIndex
+      || a.slotIndex - b.slotIndex
+    ))
+    .slice(0, 3)
+    .map(({ dayIndex, slotIndex, ...candidate }) => candidate);
+};
+
+const buildPlanningSessionInsight = (session, users = []) => {
+  const targetUsers = collectPlanningTargetUsers(session, Array.isArray(users) ? users : []);
+  const responseSummary = summarizePlanningSessionResponses(session?.responses);
+  const slot = resolvePlanningSessionSlot(session);
+  const weekly = slot && slot.slotIndex !== null
+    ? getAvailabilityCountsForSlot(targetUsers, slot.dayIndex, slot.slotIndex)
+    : { available: 0, maybe: 0, busy: 0, empty: targetUsers.length, respondents: 0 };
+  const conflicts = responseSummary.busy + weekly.busy;
+  const positives = responseSummary.available + weekly.available;
+  let quality = 'unknown';
+  if (targetUsers.length || Object.keys(session?.responses || {}).length) {
+    quality = conflicts > positives ? 'conflict' : (positives > 0 ? 'good' : 'mixed');
+  }
+  return {
+    targetUsers: targetUsers.length,
+    slot: slot ? {
+      day: slot.day,
+      slot: slot.slot
+    } : null,
+    weekly,
+    bestSlots: buildPlanningBestSlots(targetUsers),
+    conflicts,
+    quality
   };
 };
 
@@ -2976,10 +3103,11 @@ const server = http.createServer(async (req, res) => {
         }
         planning.sessions.push(session);
         await writePlanningFile(planning);
+        const users = await readUsersFile();
         send(res, 201, JSON.stringify({
           status: 'ok',
-          session: withPlanningResponseSummary(session),
-          sessions: planning.sessions.map(withPlanningResponseSummary)
+          session: withPlanningResponseSummary(session, { users }),
+          sessions: planning.sessions.map(entry => withPlanningResponseSummary(entry, { users }))
         }), { 'Content-Type': 'application/json' });
         return;
       }
@@ -3013,10 +3141,11 @@ const server = http.createServer(async (req, res) => {
         }
         planning.sessions[index] = session;
         await writePlanningFile(planning);
+        const users = await readUsersFile();
         send(res, 200, JSON.stringify({
           status: 'ok',
-          session: withPlanningResponseSummary(session),
-          sessions: planning.sessions.map(withPlanningResponseSummary)
+          session: withPlanningResponseSummary(session, { users }),
+          sessions: planning.sessions.map(entry => withPlanningResponseSummary(entry, { users }))
         }), { 'Content-Type': 'application/json' });
         return;
       }
@@ -3042,10 +3171,11 @@ const server = http.createServer(async (req, res) => {
         }
         const [removed] = planning.sessions.splice(index, 1);
         await writePlanningFile(planning);
+        const users = await readUsersFile();
         send(res, 200, JSON.stringify({
           status: 'ok',
-          removed: withPlanningResponseSummary(removed),
-          sessions: planning.sessions.map(withPlanningResponseSummary)
+          removed: withPlanningResponseSummary(removed, { users }),
+          sessions: planning.sessions.map(entry => withPlanningResponseSummary(entry, { users }))
         }), { 'Content-Type': 'application/json' });
         return;
       }
@@ -3099,9 +3229,10 @@ const server = http.createServer(async (req, res) => {
       session.updatedAt = new Date().toISOString();
       planning.sessions[index] = sanitizePlanningSession(session);
       await writePlanningFile(planning);
+      const users = await readUsersFile();
       send(res, 200, JSON.stringify({
         status: 'ok',
-        session: withPlanningResponseSummary(planning.sessions[index])
+        session: withPlanningResponseSummary(planning.sessions[index], { users })
       }), { 'Content-Type': 'application/json' });
       return;
     }
@@ -3112,9 +3243,10 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       const planning = await readPlanningFile();
+      const users = await readUsersFile();
       send(res, 200, JSON.stringify({
         status: 'ok',
-        sessions: planning.sessions.map(withPlanningResponseSummary)
+        sessions: planning.sessions.map(session => withPlanningResponseSummary(session, { users }))
       }), { 'Content-Type': 'application/json' });
       return;
     }

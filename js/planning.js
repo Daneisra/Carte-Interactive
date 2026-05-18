@@ -147,6 +147,26 @@ const getResponseSummaryText = summary => {
     const busy = Number(summary?.busy) || 0;
     return `${available} dispo / ${maybe} incertain / ${busy} indispo`;
 };
+const getPlanningInsightText = insight => {
+    const weekly = insight?.weekly || {};
+    const available = Number(weekly.available) || 0;
+    const maybe = Number(weekly.maybe) || 0;
+    const busy = Number(weekly.busy) || 0;
+    if (!insight || insight.quality === 'unknown') {
+        return 'Pas assez de disponibilites pour evaluer ce creneau.';
+    }
+    return `Creneau prevu: ${available} dispo / ${maybe} incertain / ${busy} conflit`;
+};
+const getBestSlotsText = insight => {
+    const bestSlots = Array.isArray(insight?.bestSlots) ? insight.bestSlots : [];
+    if (!bestSlots.length) {
+        return 'Meilleurs creneaux: aucun signal pour le moment.';
+    }
+    const formatted = bestSlots.map(slot => (
+        `${getDayLabel(slot.day)} ${getSlotLabel(slot.slot)} (${slot.available} dispo)`
+    ));
+    return `Meilleurs creneaux: ${formatted.join(', ')}`;
+};
 const getNextStatus = status => {
     if (!status) {
         return AVAILABILITY_STATUS.AVAILABLE;
@@ -250,6 +270,13 @@ const renderAgenda = () => {
         const summary = document.createElement('span');
         summary.className = 'planning-agenda-response-summary';
         summary.textContent = getResponseSummaryText(session.responseSummary);
+        const insight = document.createElement('div');
+        insight.className = `planning-agenda-insight is-${session.planningInsight?.quality || 'unknown'}`;
+        const insightText = document.createElement('span');
+        insightText.textContent = getPlanningInsightText(session.planningInsight);
+        const bestSlots = document.createElement('span');
+        bestSlots.textContent = getBestSlotsText(session.planningInsight);
+        insight.append(insightText, bestSlots);
         const actions = document.createElement('div');
         actions.className = 'planning-agenda-response-actions';
         actions.hidden = !state.authenticated;
@@ -265,7 +292,7 @@ const renderAgenda = () => {
             button.textContent = option.label;
             actions.appendChild(button);
         });
-        item.append(meta, title, badge, description, group, summary, actions);
+        item.append(meta, title, badge, description, group, summary, insight, actions);
         return item;
     }));
 };

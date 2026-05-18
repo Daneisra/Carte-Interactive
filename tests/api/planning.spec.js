@@ -57,6 +57,18 @@ test.describe('Planning - API', () => {
         expect(Array.isArray(publicPayload.sessions)).toBeTruthy();
 
         await loginWithDiscordStub(request);
+        const slots = Array.from({ length: 7 }, () => Array.from({ length: 4 }, () => null));
+        slots[0][2] = 'available';
+        slots[6][2] = 'busy';
+        const profileResponse = await request.patch('/api/profile', {
+            data: {
+                availability: {
+                    timezone: 'Europe/Warsaw',
+                    slots
+                }
+            }
+        });
+        expect(profileResponse.status()).toBe(200);
 
         const createResponse = await request.post('/api/admin/planning/sessions', {
             data: {
@@ -74,6 +86,8 @@ test.describe('Planning - API', () => {
         expect(createdPayload.status).toBe('ok');
         expect(createdPayload.session.id).toBeTruthy();
         expect(createdPayload.session.responseSummary.available).toBe(0);
+        expect(createdPayload.session.planningInsight.weekly.busy).toBeGreaterThanOrEqual(1);
+        expect(createdPayload.session.planningInsight.bestSlots.length).toBeGreaterThanOrEqual(1);
 
         const sessionId = createdPayload.session.id;
         const response = await request.patch(`/api/planning/sessions/${sessionId}/response`, {
@@ -86,6 +100,7 @@ test.describe('Planning - API', () => {
         const responsePayload = await response.json();
         expect(responsePayload.status).toBe('ok');
         expect(responsePayload.session.responseSummary.available).toBe(1);
+        expect(responsePayload.session.planningInsight.conflicts).toBeGreaterThanOrEqual(1);
 
         const updateResponse = await request.patch('/api/admin/planning/sessions', {
             data: {

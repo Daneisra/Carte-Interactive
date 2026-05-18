@@ -13,8 +13,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-18',
-        title: 'Version 0.17.40 - Reponses agenda planning',
-        summary: 'Les sessions du planning peuvent etre creees cote API, modifiees par admin et recevoir les reponses des joueurs par date precise.'
+        title: 'Version 0.17.41 - Conflits agenda planning',
+        summary: 'Chaque session du planning affiche les conflits, le signal de disponibilite hebdomadaire et les meilleurs creneaux possibles.'
     }
 ];
 

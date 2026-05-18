@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.40`.
+Version actuelle : `0.17.41`.
 
 ## Réalisations majeures livrées
 
@@ -112,7 +112,7 @@ Socle livré : disponibilités de semaine type, synthèse de créneaux communs e
 - [x] Afficher les événements confirmés dans une vue calendrier mensuelle, pas seulement une projection de semaine type.
 - [x] Conserver la semaine type comme aide à la proposition automatique de dates.
 - [x] Ajouter une synthèse par session candidate : nombre de oui/incertain/non.
-- [ ] Ajouter les meilleurs créneaux et conflits visibles par session candidate.
+- [x] Ajouter les meilleurs créneaux et conflits visibles par session candidate.
 - [x] Prévoir une vue mobile agenda claire : liste chronologique + mini calendrier compact.
 - [x] Préparer la persistance JSON dédiée, par exemple `assets/planning.json`, avec API de lecture publique.
 - [x] Ajouter l'API admin/utilisateur d'écriture des sessions candidates.

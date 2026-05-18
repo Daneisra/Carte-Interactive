@@ -232,6 +232,15 @@ test.describe('Planning - UI', () => {
             status: 'candidate',
             description: 'Date candidate pour organiser la prochaine partie.',
             responseSummary: { available: 0, maybe: 1, busy: 0 },
+            planningInsight: {
+              quality: 'conflict',
+              weekly: { available: 0, maybe: 1, busy: 1, empty: 0, respondents: 2 },
+              bestSlots: [
+                { day: 'mon', slot: 'evening', available: 2, maybe: 0, busy: 0, score: 6 }
+              ],
+              conflicts: 1,
+              targetUsers: 2
+            },
             responses: {}
           },
           {
@@ -244,6 +253,15 @@ test.describe('Planning - UI', () => {
             status: 'confirmed',
             description: 'Partie confirmee.',
             responseSummary: { available: 2, maybe: 0, busy: 1 },
+            planningInsight: {
+              quality: 'good',
+              weekly: { available: 2, maybe: 0, busy: 0, empty: 0, respondents: 2 },
+              bestSlots: [
+                { day: 'wed', slot: 'night', available: 2, maybe: 0, busy: 0, score: 6 }
+              ],
+              conflicts: 1,
+              targetUsers: 2
+            },
             responses: {}
           }
         ]
@@ -266,6 +284,15 @@ test.describe('Planning - UI', () => {
             status: 'candidate',
             description: 'Date candidate pour organiser la prochaine partie.',
             responseSummary: { available: 1, maybe: 1, busy: 0 },
+            planningInsight: {
+              quality: 'good',
+              weekly: { available: 1, maybe: 1, busy: 0, empty: 0, respondents: 2 },
+              bestSlots: [
+                { day: 'mon', slot: 'evening', available: 2, maybe: 0, busy: 0, score: 6 }
+              ],
+              conflicts: 0,
+              targetUsers: 2
+            },
             responses: {}
           }
         })
@@ -280,6 +307,8 @@ test.describe('Planning - UI', () => {
     await expect(page.locator('.planning-agenda-session').first()).toContainText('Conseil des routes');
     await expect(page.locator('.planning-agenda-chip').first()).toContainText('Conseil des routes');
     await expect(page.locator('.planning-agenda-response-summary').first()).toContainText('0 dispo / 1 incertain / 0 indispo');
+    await expect(page.locator('.planning-agenda-insight').first()).toContainText('Creneau prevu: 0 dispo / 1 incertain / 1 conflit');
+    await expect(page.locator('.planning-agenda-insight').first()).toContainText('Meilleurs creneaux: Lun Soir');
     await page.locator('.planning-agenda-response-actions button', { hasText: 'Disponible' }).first().click();
     expect(savedResponse.status).toBe('available');
     await expect(page.locator('#planning-agenda-status')).toHaveText('Reponse enregistree.');
