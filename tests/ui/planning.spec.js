@@ -97,6 +97,129 @@ test.describe('Planning - UI', () => {
     expect(deletedPayload.id).toBe('availability-test');
   });
 
+  test('un admin peut creer modifier et supprimer une session candidate', async ({ page }) => {
+    let sessions = [];
+    const adminRequests = [];
+
+    await page.route('**/auth/session', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        role: 'admin',
+        username: 'Danny',
+        availability: { timezone: 'Europe/Warsaw', slots: [] }
+      })
+    }));
+    await page.route('**/api/planning/sessions', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'ok', sessions })
+    }));
+    await page.route('**/api/planning/my-availability', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'ok', availability: [] })
+    }));
+    await page.route('**/api/planning/availability-summary', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'ok', scopes: [] })
+    }));
+    await page.route('**/api/admin/planning/sessions', route => {
+      const method = route.request().method();
+      const payload = route.request().postDataJSON();
+      adminRequests.push({ method, payload });
+      if (method === 'POST') {
+        sessions = [
+          {
+            id: 'session-admin',
+            title: payload.title,
+            date: payload.date,
+            startTime: payload.startTime,
+            durationMinutes: payload.durationMinutes,
+            groupName: payload.groupName,
+            status: payload.status,
+            description: payload.description,
+            responseSummary: { available: 0, maybe: 0, busy: 0 },
+            planningInsight: { quality: 'unknown', weekly: {}, dated: {}, bestSlots: [] },
+            responses: {}
+          }
+        ];
+        return route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify({ status: 'ok', session: sessions[0], sessions })
+        });
+      }
+      if (method === 'PATCH') {
+        sessions = sessions.map(session => session.id === payload.id ? { ...session, ...payload } : session);
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ status: 'ok', session: sessions[0], sessions })
+        });
+      }
+      sessions = sessions.filter(session => session.id !== payload.id);
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'ok', removed: { id: payload.id }, sessions })
+      });
+    });
+
+    await page.goto('/planning/');
+    await page.waitForLoadState('domcontentloaded');
+
+    await expect(page.locator('#planning-admin-link')).toBeVisible();
+    await expect(page.locator('#planning-admin')).toBeVisible();
+
+    await page.locator('#planning-admin-title-input').fill('Session admin test');
+    await page.locator('#planning-admin-date').fill('2026-08-14');
+    await page.locator('#planning-admin-start').fill('20:45');
+    await page.locator('#planning-admin-duration').fill('210');
+    await page.locator('#planning-admin-group').fill('Table Hesta');
+    await page.locator('#planning-admin-description').fill('Session creee depuis admin planning.');
+    await page.locator('#planning-admin-save').click();
+
+    await expect(page.locator('#planning-admin-status')).toHaveText('Session creee.');
+    await expect(page.locator('.planning-admin-entry')).toContainText('Session admin test');
+    expect(adminRequests[0]).toMatchObject({
+      method: 'POST',
+      payload: {
+        title: 'Session admin test',
+        date: '2026-08-14',
+        startTime: '20:45',
+        durationMinutes: 210,
+        groupName: 'Table Hesta',
+        status: 'candidate'
+      }
+    });
+
+    await page.locator('[data-admin-action="edit"]').click();
+    await page.locator('#planning-admin-title-input').fill('Session admin modifiee');
+    await page.locator('#planning-admin-session-status').selectOption('confirmed');
+    await page.locator('#planning-admin-save').click();
+
+    await expect(page.locator('#planning-admin-status')).toHaveText('Session modifiee.');
+    expect(adminRequests[1]).toMatchObject({
+      method: 'PATCH',
+      payload: {
+        id: 'session-admin',
+        title: 'Session admin modifiee',
+        status: 'confirmed'
+      }
+    });
+
+    await page.locator('[data-admin-action="delete"]').click();
+    await expect(page.locator('#planning-admin-status')).toHaveText('Session supprimee.');
+    await expect(page.locator('.planning-admin-empty')).toContainText('Aucune session candidate');
+    expect(adminRequests[2]).toMatchObject({
+      method: 'DELETE',
+      payload: { id: 'session-admin' }
+    });
+  });
+
   test('un utilisateur connecte peut modifier et enregistrer ses disponibilites', async ({ page }) => {
     const slots = Array.from({ length: 7 }, () => Array.from({ length: 4 }, () => false));
     slots[0][2] = true;

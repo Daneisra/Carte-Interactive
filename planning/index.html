@@ -35,6 +35,7 @@
             </nav>
             <div class="planning-header-actions">
                 <a class="planning-link-button" href="/map/">Entrer sur la carte</a>
+                <a id="planning-admin-link" class="planning-link-button planning-link-button-admin" href="#planning-admin" hidden>Admin planning</a>
             </div>
         </header>
 
@@ -56,7 +57,7 @@
                 <div class="planning-hero-meta" aria-label="Etat du module planning">
                     <div class="planning-stat">
                         <span>Version</span>
-                        <strong id="planning-version">0.17.42</strong>
+                        <strong id="planning-version">0.17.43</strong>
                     </div>
                     <div class="planning-stat">
                         <span>Statut</span>
@@ -225,6 +226,58 @@
                 </div>
                 <div id="planning-best-slots" class="planning-best-slots" aria-live="polite">
                     <article class="planning-best-empty">Aucune synthese chargee.</article>
+                </div>
+            </section>
+
+            <section id="planning-admin" class="planning-panel planning-admin" aria-labelledby="planning-admin-title" hidden>
+                <div class="planning-panel-header">
+                    <div>
+                        <p class="planning-panel-kicker">Administration</p>
+                        <h2 id="planning-admin-title">Sessions candidates</h2>
+                    </div>
+                    <p id="planning-admin-status" class="planning-status" role="status" aria-live="polite">Reserve aux admins.</p>
+                </div>
+                <form id="planning-admin-form" class="planning-admin-form">
+                    <input id="planning-admin-session-id" type="hidden">
+                    <label>
+                        Titre
+                        <input id="planning-admin-title-input" type="text" maxlength="140" required placeholder="Session de campagne">
+                    </label>
+                    <label>
+                        Date
+                        <input id="planning-admin-date" type="date" required>
+                    </label>
+                    <label>
+                        Debut
+                        <input id="planning-admin-start" type="time" required>
+                    </label>
+                    <label>
+                        Duree
+                        <input id="planning-admin-duration" type="number" min="30" max="720" step="15" value="180">
+                    </label>
+                    <label>
+                        Groupe
+                        <input id="planning-admin-group" type="text" maxlength="140" placeholder="Groupe principal">
+                    </label>
+                    <label>
+                        Statut
+                        <select id="planning-admin-session-status">
+                            <option value="candidate">Candidate</option>
+                            <option value="confirmed">Confirmee</option>
+                            <option value="cancelled">Annulee</option>
+                        </select>
+                    </label>
+                    <label class="planning-admin-description">
+                        Description
+                        <textarea id="planning-admin-description" maxlength="600" rows="4" placeholder="Objectif, contexte, notes MJ..."></textarea>
+                    </label>
+                    <div class="planning-admin-actions">
+                        <button id="planning-admin-save" class="planning-cta planning-cta-primary" type="submit">Creer la session</button>
+                        <button id="planning-admin-reset" class="planning-cta" type="button">Nouveau</button>
+                    </div>
+                </form>
+                <div id="planning-admin-list" class="planning-admin-list" aria-live="polite">
+                    <article class="planning-admin-empty">Aucune session candidate chargee.</article>
                 </div>
             </section>
 

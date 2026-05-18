@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.42`.
+Version actuelle : `0.17.43`.
 
 ## Réalisations majeures livrées
 
@@ -29,7 +29,7 @@ Version actuelle : `0.17.42`.
 - [x] Groupes JDR, personnages liés aux utilisateurs et visualisation des groupes sur la carte.
 - [x] Page d'accueil immersive avec CTA carte, état de session, communauté, dons, crédits et panneau admin dédié.
 - [x] Page chronologie dédiée avec frise horizontale, filtres, détail événement, liens carte/frise et panneau admin dédié.
-- [x] Page planning dédiée avec agenda mensuel, sessions candidates, réponses joueur et disponibilités datées.
+- [x] Page planning dédiée avec agenda mensuel, sessions candidates, réponses joueur, disponibilités datées et admin planning.
 - [x] Séparation des panneaux admin : accueil, chronologie et carte.
 - [x] Admin accueil branché sur `/api/admin/home-config`.
 - [x] Admin chronologie branché sur `/api/admin/timeline-config`.
@@ -108,7 +108,7 @@ Socle livré : agenda daté, sessions candidates, disponibilités par date/heure
 
 - [x] Transformer la page planning en véritable agenda daté, avec navigation mois précédent/suivant et semaine courante.
 - [x] Ajouter un modèle de sessions candidates : titre, date, heure de début, durée, groupe, description et statut.
-- [ ] Permettre au MJ de proposer plusieurs dates candidates pour une partie.
+- [x] Permettre au MJ/admin de proposer plusieurs dates candidates pour une partie depuis l'admin planning.
 - [x] Permettre à chaque utilisateur de déclarer ses disponibilités à n'importe quelle date et n'importe quelle heure.
 - [x] Permettre aux joueurs de répondre à une date précise : disponible, incertain, indisponible, commentaire optionnel.
 - [x] Afficher les événements confirmés dans une vue calendrier mensuelle, pas seulement une projection de semaine type.
@@ -118,6 +118,7 @@ Socle livré : agenda daté, sessions candidates, disponibilités par date/heure
 - [x] Prévoir une vue mobile agenda claire : liste chronologique + mini calendrier compact.
 - [x] Préparer la persistance JSON dédiée, par exemple `assets/planning.json`, avec API de lecture publique.
 - [x] Ajouter l'API admin/utilisateur d'écriture des sessions candidates.
+- [x] Ajouter une interface admin planning pour créer, modifier et supprimer les sessions candidates.
 - [x] Ajouter des tests API/UI sur création de session candidate, réponse joueur et affichage mensuel.
 
 ### P8 - Différenciants carte et narration

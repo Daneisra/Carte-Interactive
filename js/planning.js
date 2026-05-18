@@ -12,6 +12,7 @@ const SITE_CONFIG_URL = '/assets/site-config.json';
 const SESSION_URL = '/auth/session';
 const PROFILE_URL = '/api/profile';
 const SESSIONS_URL = '/api/planning/sessions';
+const ADMIN_SESSIONS_URL = '/api/admin/planning/sessions';
 const DATED_AVAILABILITY_URL = '/api/planning/my-availability';
 const SUMMARY_URL = '/api/planning/availability-summary';
 
@@ -48,7 +49,22 @@ const dom = {
     datedEnd: document.getElementById('planning-dated-end'),
     datedResponse: document.getElementById('planning-dated-response'),
     datedComment: document.getElementById('planning-dated-comment'),
-    datedList: document.getElementById('planning-dated-list')
+    datedList: document.getElementById('planning-dated-list'),
+    adminLink: document.getElementById('planning-admin-link'),
+    adminPanel: document.getElementById('planning-admin'),
+    adminStatus: document.getElementById('planning-admin-status'),
+    adminForm: document.getElementById('planning-admin-form'),
+    adminId: document.getElementById('planning-admin-session-id'),
+    adminTitle: document.getElementById('planning-admin-title-input'),
+    adminDate: document.getElementById('planning-admin-date'),
+    adminStart: document.getElementById('planning-admin-start'),
+    adminDuration: document.getElementById('planning-admin-duration'),
+    adminGroup: document.getElementById('planning-admin-group'),
+    adminSessionStatus: document.getElementById('planning-admin-session-status'),
+    adminDescription: document.getElementById('planning-admin-description'),
+    adminSave: document.getElementById('planning-admin-save'),
+    adminReset: document.getElementById('planning-admin-reset'),
+    adminList: document.getElementById('planning-admin-list')
 };
 
 const state = {
@@ -63,7 +79,10 @@ const state = {
     view: 'week',
     dirty: false,
     saving: false,
-    datedSaving: false
+    datedSaving: false,
+    role: 'guest',
+    adminSaving: false,
+    adminEditingId: ''
 };
 
 const setText = (node, value) => {
@@ -106,6 +125,13 @@ const setDatedStatus = (message, isError = false) => {
     }
     dom.datedStatus.textContent = message;
     dom.datedStatus.classList.toggle('is-error', isError);
+};
+const setAdminStatus = (message, isError = false) => {
+    if (!dom.adminStatus) {
+        return;
+    }
+    dom.adminStatus.textContent = message;
+    dom.adminStatus.classList.toggle('is-error', isError);
 };
 const setAgendaStatus = (message, isError = false) => {
     if (!dom.agendaStatus) {
@@ -168,6 +194,7 @@ const getSessionStatusClass = status => {
     }
     return 'is-candidate';
 };
+const isAdmin = () => state.role === 'admin';
 const getResponseSummaryText = summary => {
     const available = Number(summary?.available) || 0;
     const maybe = Number(summary?.maybe) || 0;
@@ -298,6 +325,150 @@ const renderDatedAvailability = () => {
         deleteButton.dataset.availabilityId = entry.id;
         deleteButton.textContent = 'Supprimer';
         item.append(content, deleteButton);
+        return item;
+    }));
+};
+
+const syncAdminPanel = () => {
+    const canAdmin = isAdmin();
+    if (dom.adminLink) {
+        dom.adminLink.hidden = !canAdmin;
+    }
+    if (dom.adminPanel) {
+        dom.adminPanel.hidden = !canAdmin;
+    }
+    const disabled = !canAdmin || state.adminSaving;
+    [
+        dom.adminTitle,
+        dom.adminDate,
+        dom.adminStart,
+        dom.adminDuration,
+        dom.adminGroup,
+        dom.adminSessionStatus,
+        dom.adminDescription
+    ].forEach(field => {
+        if (field) {
+            field.disabled = disabled;
+        }
+    });
+    if (dom.adminSave) {
+        dom.adminSave.disabled = disabled;
+        dom.adminSave.textContent = state.adminSaving
+            ? 'Sauvegarde...'
+            : (state.adminEditingId ? 'Modifier la session' : 'Creer la session');
+    }
+    if (dom.adminReset) {
+        dom.adminReset.disabled = disabled;
+    }
+};
+
+const resetAdminForm = () => {
+    state.adminEditingId = '';
+    if (dom.adminId) {
+        dom.adminId.value = '';
+    }
+    if (dom.adminTitle) {
+        dom.adminTitle.value = '';
+    }
+    if (dom.adminDate) {
+        dom.adminDate.value = formatDateKey(new Date());
+    }
+    if (dom.adminStart) {
+        dom.adminStart.value = '20:30';
+    }
+    if (dom.adminDuration) {
+        dom.adminDuration.value = '180';
+    }
+    if (dom.adminGroup) {
+        dom.adminGroup.value = '';
+    }
+    if (dom.adminSessionStatus) {
+        dom.adminSessionStatus.value = 'candidate';
+    }
+    if (dom.adminDescription) {
+        dom.adminDescription.value = '';
+    }
+    syncAdminPanel();
+};
+
+const fillAdminForm = session => {
+    if (!session) {
+        resetAdminForm();
+        return;
+    }
+    state.adminEditingId = session.id || '';
+    if (dom.adminId) {
+        dom.adminId.value = state.adminEditingId;
+    }
+    if (dom.adminTitle) {
+        dom.adminTitle.value = session.title || '';
+    }
+    if (dom.adminDate) {
+        dom.adminDate.value = session.date || formatDateKey(new Date());
+    }
+    if (dom.adminStart) {
+        dom.adminStart.value = session.startTime || '20:30';
+    }
+    if (dom.adminDuration) {
+        dom.adminDuration.value = String(session.durationMinutes || 180);
+    }
+    if (dom.adminGroup) {
+        dom.adminGroup.value = session.groupName || session.groupId || '';
+    }
+    if (dom.adminSessionStatus) {
+        dom.adminSessionStatus.value = session.status || 'candidate';
+    }
+    if (dom.adminDescription) {
+        dom.adminDescription.value = session.description || '';
+    }
+    syncAdminPanel();
+    setAdminStatus(`Edition de "${session.title}".`);
+};
+
+const renderAdminSessions = () => {
+    syncAdminPanel();
+    if (!dom.adminList) {
+        return;
+    }
+    if (!isAdmin()) {
+        dom.adminList.replaceChildren(Object.assign(document.createElement('article'), {
+            className: 'planning-admin-empty',
+            textContent: 'Connectez-vous avec un compte admin pour gerer les sessions.'
+        }));
+        return;
+    }
+    if (!state.sessions.length) {
+        dom.adminList.replaceChildren(Object.assign(document.createElement('article'), {
+            className: 'planning-admin-empty',
+            textContent: 'Aucune session candidate chargee.'
+        }));
+        return;
+    }
+    dom.adminList.replaceChildren(...state.sessions.map(session => {
+        const item = document.createElement('article');
+        item.className = `planning-admin-entry ${getSessionStatusClass(session.status)}`;
+        const content = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = session.title;
+        const meta = document.createElement('span');
+        meta.textContent = `${formatFullDate(session.date)} - ${session.startTime || '--:--'} - ${getSessionStatusLabel(session.status)}`;
+        const detail = document.createElement('small');
+        detail.textContent = session.groupName || session.groupId || 'Aucun groupe lie';
+        content.append(title, meta, detail);
+        const actions = document.createElement('div');
+        actions.className = 'planning-admin-entry-actions';
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.dataset.adminAction = 'edit';
+        edit.dataset.sessionId = session.id;
+        edit.textContent = 'Modifier';
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.dataset.adminAction = 'delete';
+        remove.dataset.sessionId = session.id;
+        remove.textContent = 'Supprimer';
+        actions.append(edit, remove);
+        item.append(content, actions);
         return item;
     }));
 };
@@ -543,9 +714,105 @@ const saveSessionResponse = async (sessionId, status) => {
         }
         setAgendaStatus('Reponse enregistree.');
         renderAgenda();
+        renderAdminSessions();
     } catch (error) {
         console.warn('[planning] session response save failed', error);
         setAgendaStatus('Impossible d enregistrer votre reponse.', true);
+    }
+};
+
+const collectAdminSessionPayload = () => ({
+    id: dom.adminId?.value || undefined,
+    title: dom.adminTitle?.value || '',
+    date: dom.adminDate?.value || '',
+    startTime: dom.adminStart?.value || '',
+    durationMinutes: Number(dom.adminDuration?.value) || 180,
+    groupName: dom.adminGroup?.value || '',
+    status: dom.adminSessionStatus?.value || 'candidate',
+    description: dom.adminDescription?.value || ''
+});
+
+const saveAdminSession = async event => {
+    event?.preventDefault?.();
+    if (!isAdmin() || state.adminSaving) {
+        setAdminStatus('Action reservee aux admins.', true);
+        return;
+    }
+    const payload = collectAdminSessionPayload();
+    if (!payload.title.trim() || !payload.date) {
+        setAdminStatus('Titre et date sont requis.', true);
+        return;
+    }
+    const editing = Boolean(state.adminEditingId);
+    if (editing) {
+        payload.id = state.adminEditingId;
+    } else {
+        delete payload.id;
+    }
+    state.adminSaving = true;
+    syncAdminPanel();
+    setAdminStatus(editing ? 'Modification de la session...' : 'Creation de la session...');
+    try {
+        const response = await fetch(ADMIN_SESSIONS_URL, {
+            method: editing ? 'PATCH' : 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const result = await response.json();
+        state.sessions = Array.isArray(result?.sessions) ? result.sessions : state.sessions;
+        if (!state.sessions.length && result?.session) {
+            state.sessions = [result.session];
+        }
+        setAdminStatus(editing ? 'Session modifiee.' : 'Session creee.');
+        resetAdminForm();
+        renderAgenda();
+        renderAdminSessions();
+    } catch (error) {
+        console.error('[planning] admin session save failed', error);
+        setAdminStatus('Impossible d enregistrer la session.', true);
+    } finally {
+        state.adminSaving = false;
+        syncAdminPanel();
+    }
+};
+
+const deleteAdminSession = async sessionId => {
+    if (!isAdmin() || state.adminSaving || !sessionId) {
+        return;
+    }
+    state.adminSaving = true;
+    syncAdminPanel();
+    setAdminStatus('Suppression de la session...');
+    try {
+        const response = await fetch(ADMIN_SESSIONS_URL, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: sessionId })
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const result = await response.json();
+        state.sessions = Array.isArray(result?.sessions)
+            ? result.sessions
+            : state.sessions.filter(session => session.id !== sessionId);
+        if (state.adminEditingId === sessionId) {
+            resetAdminForm();
+        }
+        setAdminStatus('Session supprimee.');
+        renderAgenda();
+        renderAdminSessions();
+    } catch (error) {
+        console.error('[planning] admin session delete failed', error);
+        setAdminStatus('Impossible de supprimer la session.', true);
+    } finally {
+        state.adminSaving = false;
+        syncAdminPanel();
     }
 };
 
@@ -567,6 +834,7 @@ const loadSessions = async () => {
         setAgendaStatus('Agenda indisponible pour le moment.', true);
     }
     renderAgenda();
+    renderAdminSessions();
 };
 
 const shiftAgendaMonth = offset => {
@@ -775,6 +1043,7 @@ const loadSession = async () => {
         }
         const session = await response.json();
         state.authenticated = Boolean(session?.authenticated);
+        state.role = session?.role || 'guest';
         state.username = session?.username || 'Invite';
         const normalized = normalizeAvailabilityStatusPayload(session?.availability, state.timezone);
         state.timezone = normalized?.timezone || state.timezone || resolveLocalTimezone();
@@ -787,10 +1056,13 @@ const loadSession = async () => {
     } catch (error) {
         console.warn('[planning] session unavailable', error);
         state.authenticated = false;
+        state.role = 'guest';
         state.slots = createAvailabilityStatusMatrix();
         setStatus('Session indisponible. Reessayez plus tard.', true);
     }
     syncSessionCard();
+    syncAdminPanel();
+    renderAdminSessions();
     renderCalendar();
     renderAgenda();
 };
@@ -964,6 +1236,32 @@ if (dom.datedList) {
         deleteDatedAvailability(button.dataset.availabilityId);
     });
 }
+if (dom.adminForm) {
+    dom.adminForm.addEventListener('submit', saveAdminSession);
+}
+if (dom.adminReset) {
+    dom.adminReset.addEventListener('click', () => {
+        resetAdminForm();
+        setAdminStatus('Creation d une nouvelle session.');
+    });
+}
+if (dom.adminList) {
+    dom.adminList.addEventListener('click', event => {
+        const button = event.target?.closest?.('[data-admin-action][data-session-id]');
+        if (!button || !dom.adminList.contains(button)) {
+            return;
+        }
+        const sessionId = button.dataset.sessionId;
+        if (button.dataset.adminAction === 'edit') {
+            fillAdminForm(state.sessions.find(session => session.id === sessionId));
+            dom.adminForm?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+            return;
+        }
+        if (button.dataset.adminAction === 'delete') {
+            deleteAdminSession(sessionId);
+        }
+    });
+}
 
 if (dom.datedDate && !dom.datedDate.value) {
     dom.datedDate.value = formatDateKey(new Date());
@@ -974,11 +1272,13 @@ if (dom.datedStart && !dom.datedStart.value) {
 if (dom.datedEnd && !dom.datedEnd.value) {
     dom.datedEnd.value = '23:00';
 }
+resetAdminForm();
 
 setText(dom.year, String(new Date().getFullYear()));
 buildCalendar();
 renderAgenda();
 renderDatedAvailability();
+renderAdminSessions();
 setPlanningView('week');
 syncSessionCard();
 loadVersion();

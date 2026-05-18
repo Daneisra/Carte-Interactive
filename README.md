@@ -2,7 +2,7 @@
 
 Hub narratif et carte interactive pour l'univers d'Hesta. Le projet sert à explorer les lieux, suivre les quêtes, relier la chronologie aux zones de la carte et administrer les contenus sans modifier les JSON à la main.
 
-Version actuelle : `0.17.42`.
+Version actuelle : `0.17.43`.
 
 ## Fonctionnalités principales
 
