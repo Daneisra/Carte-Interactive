@@ -11,8 +11,8 @@ test.describe('Changelog - UI', () => {
         entries: [
           {
             date: '2026-05-18',
-            title: 'Version 0.17.43 - Admin planning',
-            summary: 'La page planning gagne une interface admin.'
+            title: 'Version 0.17.44 - Planning date et sessions',
+            summary: 'Le planning clique directement les dates.'
           },
           {
             date: '2026-05-12',
@@ -30,7 +30,7 @@ test.describe('Changelog - UI', () => {
     await expect(page.locator('#changelog-count')).toHaveText('2');
     await expect(page.locator('#changelog-source')).toHaveText('Config');
     await expect(page.locator('.changelog-entry')).toHaveCount(2);
-    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.43 - Admin planning');
+    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.44 - Planning date et sessions');
   });
 
   test('la page reste exploitable sur mobile', async ({ page }) => {

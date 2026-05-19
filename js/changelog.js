@@ -4,6 +4,7 @@ const SITE_CONFIG_URL = '/assets/site-config.json';
 const dom = {
     year: document.getElementById('changelog-year'),
     version: document.getElementById('changelog-version'),
+    versionFooter: document.getElementById('changelog-version-footer'),
     count: document.getElementById('changelog-count'),
     source: document.getElementById('changelog-source'),
     status: document.getElementById('changelog-status'),
@@ -13,8 +14,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-18',
-        title: 'Version 0.17.43 - Admin planning',
-        summary: 'La page planning gagne une interface admin pour creer, modifier et supprimer les sessions candidates directement depuis l agenda.'
+        title: 'Version 0.17.44 - Planning date et sessions',
+        summary: 'Le planning permet de cliquer une date pour ajouter une disponibilite, retire l ancien affichage semaine type, prolonge la session Discord et harmonise les footers.'
     }
 ];
 
@@ -94,6 +95,7 @@ const loadFromSiteConfig = async () => {
     const config = await response.json();
     if (config?.version) {
         setText(dom.version, config.version);
+        setText(dom.versionFooter, config.version);
     }
     renderEntries(config?.changelog, 'config');
 };

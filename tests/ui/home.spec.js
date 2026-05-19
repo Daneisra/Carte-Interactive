@@ -60,8 +60,8 @@ test.describe('Accueil - patch notes', () => {
         entries: [
           {
             date: '2026-05-18',
-            title: 'Version 0.17.43 - Admin planning',
-            summary: 'La page planning gagne une interface admin.'
+            title: 'Version 0.17.44 - Planning date et sessions',
+            summary: 'Le planning clique directement les dates.'
           }
         ]
       })
@@ -73,7 +73,7 @@ test.describe('Accueil - patch notes', () => {
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.43 - Admin planning');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.44 - Planning date et sessions');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
 });

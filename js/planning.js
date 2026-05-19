@@ -19,6 +19,7 @@ const SUMMARY_URL = '/api/planning/availability-summary';
 const dom = {
     year: document.getElementById('planning-year'),
     version: document.getElementById('planning-version'),
+    versionFooter: document.getElementById('planning-version-footer'),
     status: document.getElementById('planning-status'),
     profileName: document.getElementById('planning-profile-name'),
     timezone: document.getElementById('planning-timezone'),
@@ -500,6 +501,8 @@ const renderAgenda = () => {
         const dayAvailability = availabilityByDate.get(dateKey) || [];
         const item = document.createElement('article');
         item.className = 'planning-agenda-day';
+        item.tabIndex = 0;
+        item.dataset.date = dateKey;
         item.classList.toggle('is-outside-month', date.getMonth() !== month);
         item.classList.toggle('has-session', daySessions.length > 0);
         item.classList.toggle('has-availability', dayAvailability.length > 0);
@@ -1029,10 +1032,25 @@ const loadVersion = async () => {
         const config = await response.json();
         if (config?.version) {
             setText(dom.version, config.version);
+            setText(dom.versionFooter, config.version);
         }
     } catch (error) {
         console.warn('[planning] site config unavailable, keeping static version', error);
     }
+};
+
+const selectAgendaDateForAvailability = dateKey => {
+    if (!dateKey || !dom.datedDate) {
+        return;
+    }
+    dom.datedDate.value = dateKey;
+    if (!state.authenticated) {
+        setDatedStatus('Date selectionnee. Connectez-vous via Discord pour enregistrer une disponibilite.', true);
+    } else {
+        setDatedStatus(`Date selectionnee: ${formatFullDate(dateKey)}.`);
+    }
+    dom.datedForm?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+    dom.datedStart?.focus?.({ preventScroll: true });
 };
 
 const loadSession = async () => {
@@ -1222,6 +1240,26 @@ if (dom.agendaList) {
             return;
         }
         saveSessionResponse(button.dataset.sessionId, button.dataset.responseStatus);
+    });
+}
+if (dom.agendaGrid) {
+    dom.agendaGrid.addEventListener('click', event => {
+        const day = event.target?.closest?.('.planning-agenda-day[data-date]');
+        if (!day || !dom.agendaGrid.contains(day)) {
+            return;
+        }
+        selectAgendaDateForAvailability(day.dataset.date);
+    });
+    dom.agendaGrid.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+        const day = event.target?.closest?.('.planning-agenda-day[data-date]');
+        if (!day || !dom.agendaGrid.contains(day)) {
+            return;
+        }
+        event.preventDefault();
+        selectAgendaDateForAvailability(day.dataset.date);
     });
 }
 if (dom.datedForm) {

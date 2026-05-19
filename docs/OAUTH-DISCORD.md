@@ -34,7 +34,7 @@ DISCORD_CLIENT_SECRET=xxxxxxxx
 DISCORD_REDIRECT_URI=http://localhost:4173/auth/discord/callback
 DISCORD_ADMIN_IDS=
 SESSION_SECRET=xxxxxxxx
-SESSION_TTL_MS=43200000
+SESSION_TTL_MS=2592000000
 COOKIE_SECURE=false
 ```
 
@@ -46,7 +46,7 @@ DISCORD_CLIENT_SECRET=xxxxxxxx
 DISCORD_REDIRECT_URI=https://cartehesta.dannytech.fr/auth/discord/callback
 DISCORD_ADMIN_IDS=1172705521317449809
 SESSION_SECRET=xxxxxxxx
-SESSION_TTL_MS=43200000
+SESSION_TTL_MS=2592000000
 COOKIE_SECURE=true
 ```
 
@@ -57,7 +57,7 @@ COOKIE_SECURE=true
 - Le cookie réel actuel est `map_session`, codé en dur côté serveur.
 - Ne pas documenter `COOKIE_NAME` comme variable active tant que le code n'utilise pas `process.env.COOKIE_NAME`.
 - Les sessions sont persistées dans `assets/logs/sessions.json`.
-- `SESSION_TTL_MS` contrôle la durée de vie serveur.
+- `SESSION_TTL_MS` contrôle la durée de vie serveur. La valeur recommandée actuelle est `2592000000` (30 jours) pour éviter les déconnexions trop fréquentes.
 - `COOKIE_SECURE=true` doit être utilisé en production HTTPS.
 
 ## Fonctionnement local

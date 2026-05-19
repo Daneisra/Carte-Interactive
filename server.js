@@ -74,7 +74,7 @@ const AVAILABILITY_STATUS = {
   BUSY: 'busy'
 };
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.43',
+  version: '0.17.44',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -130,6 +130,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-20',
+      title: 'Version 0.17.44 - Planning date et sessions',
+      summary: 'Le planning permet de cliquer une date pour ajouter une disponibilite, retire l ancien affichage semaine type, prolonge la session Discord et harmonise les footers.'
+    },
     {
       date: '2026-05-18',
       title: 'Version 0.17.43 - Admin planning',
@@ -611,7 +616,8 @@ const sessionStore = new Map();
 const SESSION_COOKIE_NAME = 'map_session';
 const oauthStateStore = new Map();
 const OAUTH_STATE_TTL_MS = 5 * 60 * 1000;
-const SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.SESSION_TTL_MS) || (12 * 60 * 60 * 1000));
+const DEFAULT_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.SESSION_TTL_MS) || DEFAULT_SESSION_TTL_MS);
 const SESSION_SECRET = (process.env.SESSION_SECRET || 'dev-secret').padEnd(32, '0');
 const SESSION_PERSIST_DEBOUNCE_MS = 1_000;
 let sessionPersistTimer = null;

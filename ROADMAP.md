@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.43`.
+Version actuelle : `0.17.44`.
 
 ## Réalisations majeures livrées
 
@@ -25,7 +25,7 @@ Version actuelle : `0.17.43`.
 - [x] Annotations personnalisées sur la carte avec persistance et suppression synchronisée.
 - [x] Flux temps réel par SSE pour annotations, quêtes, lieux et informations live.
 - [x] Authentification Discord OAuth, sessions persistées et rôles admin.
-- [x] Mini-profil utilisateur : avatar, rôle, personnages, groupes, disponibilités, personnalisation, actions rapides.
+- [x] Mini-profil utilisateur : avatar, rôle, personnages, groupes, personnalisation et actions rapides.
 - [x] Groupes JDR, personnages liés aux utilisateurs et visualisation des groupes sur la carte.
 - [x] Page d'accueil immersive avec CTA carte, état de session, communauté, dons, crédits et panneau admin dédié.
 - [x] Page chronologie dédiée avec frise horizontale, filtres, détail événement, liens carte/frise et panneau admin dédié.
@@ -94,14 +94,14 @@ Version actuelle : `0.17.43`.
 
 ### P7 - Planning et calendrier JDR
 
-Socle livré : agenda daté, sessions candidates, disponibilités par date/heure, semaine type conservée en compatibilité et synthèse de créneaux communs.
+Socle livré : agenda daté, sessions candidates, disponibilités par date/heure, admin planning et synthèse de créneaux communs.
 
 - [x] Créer une page planning/calendrier dédiée à la logistique des parties.
-- [x] Permettre à chaque utilisateur de renseigner ses disponibilités par jour et par créneau horaire.
+- [x] Permettre à chaque utilisateur de renseigner ses disponibilités à une date et une heure précises.
 - [x] Visualiser rapidement les créneaux communs disponibles pour un groupe ou une campagne.
 - [x] Lier le planning aux groupes JDR et aux personnages lorsque c'est utile.
 - [x] Ajouter des statuts de réponse : disponible, incertain, indisponible, non renseigné.
-- [x] Prévoir une vue semaine/mois lisible sur desktop et mobile.
+- [x] Prévoir une vue agenda lisible sur desktop et mobile.
 - [x] Ajouter une synthèse MJ pour repérer les meilleures dates de session.
 
 ### P7.1 - Rework agenda/calendrier réel
@@ -112,7 +112,7 @@ Socle livré : agenda daté, sessions candidates, disponibilités par date/heure
 - [x] Permettre à chaque utilisateur de déclarer ses disponibilités à n'importe quelle date et n'importe quelle heure.
 - [x] Permettre aux joueurs de répondre à une date précise : disponible, incertain, indisponible, commentaire optionnel.
 - [x] Afficher les événements confirmés dans une vue calendrier mensuelle, pas seulement une projection de semaine type.
-- [x] Conserver la semaine type comme aide secondaire/compatibilité, sans en faire le système principal.
+- [x] Retirer l'ancienne semaine type de l'interface planning et du mini-profil carte pour éviter les doublons.
 - [x] Ajouter une synthèse par session candidate : nombre de oui/incertain/non.
 - [x] Ajouter les meilleurs créneaux et conflits visibles par session candidate, avec prise en compte des disponibilités datées quand elles existent.
 - [x] Prévoir une vue mobile agenda claire : liste chronologique + mini calendrier compact.
@@ -147,7 +147,7 @@ Socle livré : agenda daté, sessions candidates, disponibilités par date/heure
 - [x] Mobile admin : panneaux accueil, chronologie et carte exploitables en plein écran sans débordement horizontal.
 - [ ] Intégration mobile fluide et complète sur accueil, carte, chronologie, planning et panneaux admin, sans dégrader la version desktop.
 - [x] QA responsive dédiée : navigation tactile, panneaux latéraux, modales, formulaires longs, scroll, performance et lisibilité sur téléphone.
-- [x] Maintien fiable de la connexion Discord : reprise, expiration contrôlée, messages d'état.
+- [x] Maintien fiable de la connexion Discord : reprise, expiration contrôlée, TTL 30 jours par défaut et messages d'état.
 - [x] Améliorer le téléchargement des assets : rapidité, packaging, exclusions et robustesse.
 - [x] Fiabiliser le compteur Discord automatique de l'accueil avec fallback clair.
 - [x] Créer une page changelog dédiée pour consulter l'historique complet des versions et changements.

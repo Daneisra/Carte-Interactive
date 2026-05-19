@@ -51,13 +51,12 @@
                     <div class="planning-hero-actions">
                         <a class="planning-cta planning-cta-primary" href="#planning-agenda">Voir l'agenda</a>
                         <a class="planning-cta" href="#planning-dated">Renseigner mes dispos</a>
-                        <a class="planning-cta" href="#planning-week">Semaine type</a>
                     </div>
                 </div>
                 <div class="planning-hero-meta" aria-label="Etat du module planning">
                     <div class="planning-stat">
                         <span>Version</span>
-                        <strong id="planning-version">0.17.43</strong>
+                        <strong id="planning-version">0.17.44</strong>
                     </div>
                     <div class="planning-stat">
                         <span>Statut</span>
@@ -164,52 +163,6 @@
                 </div>
             </section>
 
-            <section id="planning-week" class="planning-panel" aria-labelledby="planning-week-title">
-                <div class="planning-panel-header">
-                    <div>
-                        <p class="planning-panel-kicker">Compatibilite</p>
-                        <h2 id="planning-week-title">Semaine type (ancien systeme)</h2>
-                        <p class="planning-panel-note">Optionnel : conserve les profils deja renseignes et la synthese globale, mais l'agenda date devient prioritaire.</p>
-                    </div>
-                    <p id="planning-status" class="planning-status" role="status" aria-live="polite">Chargement de la session...</p>
-                </div>
-                <div class="planning-legend" aria-label="Legende des disponibilites">
-                    <span><i class="planning-dot planning-dot-available"></i>Disponible</span>
-                    <span><i class="planning-dot planning-dot-maybe"></i>Incertain</span>
-                    <span><i class="planning-dot planning-dot-busy"></i>Indisponible</span>
-                    <span><i class="planning-dot planning-dot-empty"></i>Non renseigne</span>
-                </div>
-                <div class="planning-view-toggle" role="tablist" aria-label="Mode d'affichage du planning">
-                    <button id="planning-view-week" class="is-active" type="button" role="tab" aria-selected="true" aria-controls="planning-week-view">Vue semaine</button>
-                    <button id="planning-view-month" type="button" role="tab" aria-selected="false" aria-controls="planning-month-view">Vue mois</button>
-                </div>
-                <div id="planning-week-view" class="planning-week-view" role="tabpanel" aria-labelledby="planning-view-week">
-                    <div class="planning-session-card">
-                        <div>
-                            <span class="planning-session-label">Profil</span>
-                            <strong id="planning-profile-name">Invite</strong>
-                        </div>
-                        <div>
-                            <span class="planning-session-label">Fuseau</span>
-                            <strong id="planning-timezone">--</strong>
-                        </div>
-                        <a id="planning-login" class="planning-link-button" href="/auth/discord/login?redirect=/planning/">Connexion Discord</a>
-                    </div>
-                    <div id="planning-calendar" class="planning-calendar" role="table" aria-label="Disponibilites de la semaine"></div>
-                    <div class="planning-actions">
-                        <button id="planning-save" class="planning-cta planning-cta-primary" type="button" disabled>Enregistrer mes disponibilites</button>
-                        <button id="planning-clear" class="planning-cta" type="button" disabled>Vider la semaine</button>
-                    </div>
-                </div>
-                <div id="planning-month-view" class="planning-month-view" role="tabpanel" aria-labelledby="planning-view-month" hidden>
-                    <div class="planning-month-header">
-                        <h3 id="planning-month-title">Projection mensuelle</h3>
-                        <p>Vue lecture seule basee sur votre semaine type.</p>
-                    </div>
-                    <div id="planning-month-grid" class="planning-month-grid" aria-label="Projection mensuelle des disponibilites"></div>
-                </div>
-            </section>
-
             <section id="planning-summary" class="planning-panel" aria-labelledby="planning-summary-title">
                 <div class="planning-panel-header">
                     <div>
@@ -283,12 +236,19 @@
 
         </main>
 
-        <footer class="planning-footer">
-            <span>&copy; <span id="planning-year"></span> Carte Hesta</span>
-            <nav aria-label="Liens secondaires">
+        <footer class="planning-footer site-footer">
+            <div class="site-footer-left">
+                <p>&copy; <span id="planning-year"></span> Carte Hesta. Tous droits reserves.</p>
+                <p class="site-footer-version">Version <span id="planning-version-footer">0.17.44</span></p>
+                <p class="site-footer-note">Projet narratif / JDR - fan project / page planning officielle.</p>
+            </div>
+            <nav class="site-footer-links" aria-label="Liens secondaires">
                 <a href="/">Accueil</a>
+                <a href="/map/">Carte</a>
                 <a href="/timeline/">Chronologie</a>
+                <a href="/planning/">Planning</a>
                 <a href="/changelog/">Changelog</a>
+                <a href="/docs/ASSETS-CREDITS.md">Credits assets</a>
             </nav>
         </footer>
     </div>
