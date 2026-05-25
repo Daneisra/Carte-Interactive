@@ -1,32 +1,3 @@
 {
-  "sessions": [
-    {
-      "id": "candidate-conseil-dipoviya",
-      "title": "Conseil de Dipoviya",
-      "date": "2026-05-23",
-      "startTime": "20:30",
-      "durationMinutes": 180,
-      "groupId": "",
-      "groupName": "Groupe principal",
-      "status": "candidate",
-      "description": "Date candidate pour une session de coordination et de preparation des prochaines quetes.",
-      "responses": {},
-      "createdAt": "2026-05-17T00:00:00.000Z",
-      "updatedAt": "2026-05-17T00:00:00.000Z"
-    },
-    {
-      "id": "confirmed-session-hesta",
-      "title": "Session Hesta",
-      "date": "2026-06-06",
-      "startTime": "21:00",
-      "durationMinutes": 210,
-      "groupId": "",
-      "groupName": "Table Hesta",
-      "status": "confirmed",
-      "description": "Partie confirmee pour poursuivre les arcs narratifs en cours.",
-      "responses": {},
-      "createdAt": "2026-05-17T00:00:00.000Z",
-      "updatedAt": "2026-05-17T00:00:00.000Z"
-    }
-  ]
+  "sessions": []
 }

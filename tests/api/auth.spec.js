@@ -86,12 +86,6 @@ test.describe('Integration Auth API', () => {
         expect(adminPayload.status).toBe('ok');
         expect(Array.isArray(adminPayload.users)).toBeTruthy();
 
-        const planningResponse = await request.get('/api/planning/availability-summary');
-        expect(planningResponse.status()).toBe(200);
-        const planningPayload = await planningResponse.json();
-        expect(planningPayload.status).toBe('ok');
-        expect(Array.isArray(planningPayload.scopes)).toBeTruthy();
-        expect(planningPayload.scopes[0].id).toBe('all');
     });
 
     test('logout clears session and protects admin route', async ({ request }) => {

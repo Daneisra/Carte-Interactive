@@ -56,7 +56,7 @@
                 <div class="planning-hero-meta" aria-label="Etat du module planning">
                     <div class="planning-stat">
                         <span>Version</span>
-                        <strong id="planning-version">0.17.44</strong>
+                        <strong id="planning-version">0.17.45</strong>
                     </div>
                     <div class="planning-stat">
                         <span>Statut</span>
@@ -133,8 +133,9 @@
                 </div>
                 <form id="planning-dated-form" class="planning-dated-form">
                     <label>
-                        Date
+                        Dates
                         <input id="planning-dated-date" type="date" required>
+                        <small>Chaque date choisie est ajoutee au lot ci-dessous.</small>
                     </label>
                     <label>
                         Debut
@@ -156,29 +157,11 @@
                         Note optionnelle
                         <input id="planning-dated-comment" type="text" maxlength="280" placeholder="Ex: apres 20h30 seulement">
                     </label>
+                    <div id="planning-dated-selected-dates" class="planning-selected-dates" aria-live="polite"></div>
                     <button id="planning-dated-save" class="planning-cta planning-cta-primary" type="submit">Ajouter ce creneau</button>
                 </form>
                 <div id="planning-dated-list" class="planning-dated-list" aria-live="polite">
                     <article class="planning-dated-empty">Aucune disponibilite datee chargee.</article>
-                </div>
-            </section>
-
-            <section id="planning-summary" class="planning-panel" aria-labelledby="planning-summary-title">
-                <div class="planning-panel-header">
-                    <div>
-                        <p class="planning-panel-kicker">Synthese MJ</p>
-                        <h2 id="planning-summary-title">Creneaux communs</h2>
-                    </div>
-                    <p id="planning-summary-status" class="planning-status" role="status" aria-live="polite">Connectez-vous pour charger la synthese.</p>
-                </div>
-                <div class="planning-summary-toolbar">
-                    <label for="planning-scope">Groupe</label>
-                    <select id="planning-scope" disabled>
-                        <option value="all">Tous les joueurs</option>
-                    </select>
-                </div>
-                <div id="planning-best-slots" class="planning-best-slots" aria-live="polite">
-                    <article class="planning-best-empty">Aucune synthese chargee.</article>
                 </div>
             </section>
 
@@ -197,8 +180,9 @@
                         <input id="planning-admin-title-input" type="text" maxlength="140" required placeholder="Session de campagne">
                     </label>
                     <label>
-                        Date
+                        Dates
                         <input id="planning-admin-date" type="date" required>
+                        <small>Selectionnez plusieurs dates avant de creer les sessions.</small>
                     </label>
                     <label>
                         Debut
@@ -224,6 +208,7 @@
                         Description
                         <textarea id="planning-admin-description" maxlength="600" rows="4" placeholder="Objectif, contexte, notes MJ..."></textarea>
                     </label>
+                    <div id="planning-admin-selected-dates" class="planning-selected-dates" aria-live="polite"></div>
                     <div class="planning-admin-actions">
                         <button id="planning-admin-save" class="planning-cta planning-cta-primary" type="submit">Creer la session</button>
                         <button id="planning-admin-reset" class="planning-cta" type="button">Nouveau</button>
@@ -239,7 +224,7 @@
         <footer class="planning-footer site-footer">
             <div class="site-footer-left">
                 <p>&copy; <span id="planning-year"></span> Carte Hesta. Tous droits reserves.</p>
-                <p class="site-footer-version">Version <span id="planning-version-footer">0.17.44</span></p>
+                <p class="site-footer-version">Version <span id="planning-version-footer">0.17.45</span></p>
                 <p class="site-footer-note">Projet narratif / JDR - fan project / page planning officielle.</p>
             </div>
             <nav class="site-footer-links" aria-label="Liens secondaires">

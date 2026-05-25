@@ -10,7 +10,7 @@ Les données principales du projet sont stockées en JSON dans `assets/`. En pro
 - `assets/timeline.json` : chronologie et événements.
 - `assets/planning.json` : agenda planning, sessions candidates ou confirmées.
 - `assets/site-config.json` : configuration éditoriale de l'accueil, version affichée et changelog public.
-- `assets/users.json` : utilisateurs et rôles.
+- `assets/users.json` : utilisateurs, rôles et disponibilités datées du planning.
 - `assets/groups.json` : groupes JDR, peut être `[]`.
 - `assets/logs/*` : logs, audit, sessions et traces locales.
 
@@ -38,7 +38,7 @@ Peuvent être modifiés depuis l'UI admin :
 - utilisateurs ;
 - événements de quête ;
 - chronologie ;
-- sessions candidates du planning via API dédiée, UI admin à finaliser ;
+- sessions candidates du planning via API dédiée et interface admin multi-date ;
 - images d'événements de chronologie ;
 - configuration accueil ;
 - médias uploadés.

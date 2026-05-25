@@ -272,43 +272,10 @@ body[data-theme="light"] .auth-panel .auth-status {
     opacity: 0.75;
 }
 
-.admin-availability-grid {
-    overflow-x: auto;
-}
-
 .admin-availability-empty {
     margin: 8px 0 0;
     font-size: 12px;
     opacity: 0.7;
-}
-
-.admin-availability-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-}
-
-.admin-availability-table th,
-.admin-availability-table td {
-    padding: 6px 6px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-    text-align: center;
-}
-
-.admin-availability-table th:first-child,
-.admin-availability-table td:first-child {
-    text-align: left;
-    font-weight: 600;
-}
-
-.admin-availability-count {
-    border-radius: 8px;
-}
-
-.admin-availability-count.is-peak {
-    background: rgba(59, 130, 246, 0.25);
-    color: #dbeafe;
-    font-weight: 600;
 }
 
 .admin-live-metrics {
@@ -712,16 +679,6 @@ body[data-theme="light"] .admin-home-fieldset textarea {
 
     .admin-live-metrics {
         grid-template-columns: 1fr;
-    }
-
-    .admin-availability-grid {
-        margin-inline: -4px;
-        padding-inline: 4px;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .admin-availability-table {
-        min-width: 560px;
     }
 
     .admin-section .validation-warnings-list {

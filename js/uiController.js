@@ -392,9 +392,6 @@ export class UiController {
             timelineList: document.getElementById('admin-timeline-list'),
             timelineCount: document.getElementById('admin-timeline-count'),
             timelineEmpty: document.getElementById('admin-timeline-empty'),
-            availabilityHint: document.getElementById('admin-availability-hint'),
-            availabilityGrid: document.getElementById('admin-availability-grid'),
-            availabilityEmpty: document.getElementById('admin-availability-empty'),
             liveMetrics: document.getElementById('admin-live-metrics'),
             liveEmpty: document.getElementById('admin-live-empty'),
             validationWarnings: document.getElementById('admin-validation-warnings'),
@@ -476,7 +473,6 @@ export class UiController {
         this.availability = null;
         this.availabilityDirty = false;
         this.availabilityTimezone = resolveLocalTimezone();
-        this.adminAvailability = null;
         this.adminMetrics = null;
         this.adminMetricsInterval = null;
         this.adminSiteConfig = null;
@@ -3436,9 +3432,6 @@ export class UiController {
             this.setAvailabilityStatus('Disponibilites enregistrees.');
             this.recordProfileEdit('availability', 'Disponibilites enregistrees', 'ok');
             this.renderAvailabilityGrid();
-            if (this.isAdmin() && this.adminDom.overlay && !this.adminDom.overlay.hidden) {
-                this.fetchAdminAvailability();
-            }
         } catch (error) {
             console.error('[profile] availability save failed', error);
             this.setAvailabilityStatus('Impossible d\'enregistrer les disponibilites.', true);
@@ -3883,7 +3876,6 @@ export class UiController {
             }
             this.fetchAdminTimeline();
         }
-        this.fetchAdminAvailability();
         this.fetchAdminDescriptionAudit();
         this.startAdminMetrics();
         this.closeCharacterOverlay();
@@ -4200,104 +4192,6 @@ export class UiController {
 
     validateAdminSiteConfigDraft(config) {
         return validateAdminSiteConfigDraftModel(config);
-    }
-
-    syncAdminAvailability() {
-        const grid = this.adminDom.availabilityGrid;
-        const hint = this.adminDom.availabilityHint;
-        const empty = this.adminDom.availabilityEmpty;
-        if (!grid || !hint || !empty) {
-            return;
-        }
-        clearElement(grid);
-        const summary = this.adminAvailability;
-        const counts = Array.isArray(summary?.counts) ? summary.counts : null;
-        const respondents = Number.isFinite(summary?.respondents) ? summary.respondents : 0;
-        const totalUsers = Number.isFinite(summary?.totalUsers) ? summary.totalUsers : null;
-        if (!counts || !counts.length || respondents <= 0) {
-            hint.textContent = 'Aucune disponibilite recue.';
-            empty.hidden = false;
-            return;
-        }
-        const hintParts = [`Disponibilites de ${respondents} joueur(s)`];
-        if (totalUsers) {
-            hintParts.push(`sur ${totalUsers}`);
-        }
-        const timezones = summary?.timezones && typeof summary.timezones === 'object' ? summary.timezones : null;
-        if (timezones) {
-            const topZones = Object.entries(timezones)
-                .sort(([, aCount], [, bCount]) => bCount - aCount)
-                .slice(0, 3)
-                .map(([zone, count]) => `${zone} (${count})`);
-            if (topZones.length) {
-                hintParts.push(`Fuseaux: ${topZones.join(', ')}`);
-            }
-        }
-        hint.textContent = hintParts.join(' - ');
-        empty.hidden = true;
-
-        const maxCount = counts.flat().reduce((acc, value) => Math.max(acc, Number(value) || 0), 0);
-        const table = createElement('table', { className: 'admin-availability-table' });
-        const thead = createElement('thead');
-        const headerRow = createElement('tr');
-        headerRow.appendChild(createElement('th', { text: 'Jour' }));
-        AVAILABILITY_SLOTS.forEach(slot => {
-            headerRow.appendChild(createElement('th', { text: slot.label }));
-        });
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-
-        const tbody = createElement('tbody');
-        counts.forEach((daySlots, dayIndex) => {
-            const row = createElement('tr');
-            const dayLabel = AVAILABILITY_DAYS[dayIndex]?.label || `J${dayIndex + 1}`;
-            row.appendChild(createElement('td', { text: dayLabel }));
-            AVAILABILITY_SLOTS.forEach((slot, slotIndex) => {
-                const count = Number(daySlots?.[slotIndex]) || 0;
-                const cell = createElement('td', {
-                    className: 'admin-availability-count',
-                    text: count.toString(),
-                    title: `${count}/${respondents}`
-                });
-                if (maxCount > 0 && count === maxCount) {
-                    cell.classList.add('is-peak');
-                }
-                row.appendChild(cell);
-            });
-            tbody.appendChild(row);
-        });
-        table.appendChild(tbody);
-        grid.appendChild(table);
-    }
-
-    async fetchAdminAvailability() {
-        if (!this.adminDom.availabilityGrid || !this.adminDom.availabilityHint || !this.adminDom.availabilityEmpty) {
-            return;
-        }
-        if (!this.isAdmin()) {
-            this.adminAvailability = null;
-            this.syncAdminAvailability();
-            return;
-        }
-        try {
-            const response = await fetch('/api/admin/availability', { credentials: 'include' });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            const payload = await response.json();
-            this.adminAvailability = payload;
-            this.syncAdminAvailability();
-        } catch (error) {
-            console.error('[admin] availability fetch failed', error);
-            this.logTelemetryEvent({
-                title: 'Erreur disponibilites',
-                description: 'Chargement des disponibilites impossible.',
-                route: '/api/admin/availability',
-                method: 'GET'
-            });
-            this.adminAvailability = null;
-            this.syncAdminAvailability();
-        }
     }
 
     markAdminSiteConfigDirty() {

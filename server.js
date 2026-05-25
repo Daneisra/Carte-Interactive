@@ -74,7 +74,7 @@ const AVAILABILITY_STATUS = {
   BUSY: 'busy'
 };
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.44',
+  version: '0.17.45',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -130,6 +130,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-26',
+      title: 'Version 0.17.45 - Planning multi-date',
+      summary: 'Les joueurs et admins peuvent enregistrer plusieurs dates en une fois ; les syntheses hebdomadaires obsoletes ont ete retirees du planning et de l admin carte.'
+    },
     {
       date: '2026-05-20',
       title: 'Version 0.17.44 - Planning date et sessions',
@@ -1111,6 +1116,18 @@ const buildPlanningSessionFromPayload = (payload, { existing = null, sessions = 
   return sanitizePlanningSession(merged);
 };
 
+const getPlanningPayloadDates = payload => {
+  const source = Array.isArray(payload?.dates) ? payload.dates : [payload?.date];
+  if (!source.length) {
+    return [];
+  }
+  const dates = source.map(sanitizePlanningDate);
+  if (dates.some(date => !date)) {
+    return [];
+  }
+  return [...new Set(dates)];
+};
+
 const sanitizePlanningConfig = value => {
   const sessionsSource = Array.isArray(value)
     ? value
@@ -1912,13 +1929,6 @@ const sanitizeAvailabilityRecord = value => {
   return { timezone, slots };
 };
 
-const availabilityHasSlots = availability => {
-  if (!availability || !Array.isArray(availability.slots)) {
-    return false;
-  }
-  return availability.slots.some(day => Array.isArray(day) && day.some(status => Boolean(status)));
-};
-
 const collectUserGroupIds = user => {
   const ids = new Set();
   if (Array.isArray(user?.groups)) {
@@ -1936,62 +1946,6 @@ const collectUserGroupIds = user => {
     }
   });
   return ids;
-};
-
-const createAvailabilityCounts = () => Array.from({ length: AVAILABILITY_DAYS.length }, () => (
-  Array.from({ length: AVAILABILITY_SLOTS.length }, () => 0)
-));
-
-const buildAvailabilityScope = ({ id, label, kind, users }) => {
-  const counts = createAvailabilityCounts();
-  const timezones = {};
-  let respondents = 0;
-  users.forEach(user => {
-    const availability = sanitizeAvailabilityRecord(user?.availability);
-    if (!availability || !availabilityHasSlots(availability)) {
-      return;
-    }
-    respondents += 1;
-    availability.slots.forEach((daySlots, dayIndex) => {
-      daySlots.forEach((active, slotIndex) => {
-        if (active === AVAILABILITY_STATUS.AVAILABLE) {
-          counts[dayIndex][slotIndex] += 1;
-        }
-      });
-    });
-    if (availability.timezone) {
-      timezones[availability.timezone] = (timezones[availability.timezone] || 0) + 1;
-    }
-  });
-  const best = [];
-  counts.forEach((daySlots, dayIndex) => {
-    daySlots.forEach((count, slotIndex) => {
-      if (count > 0) {
-        best.push({
-          day: AVAILABILITY_DAYS[dayIndex],
-          slot: AVAILABILITY_SLOTS[slotIndex],
-          dayIndex,
-          slotIndex,
-          count
-        });
-      }
-    });
-  });
-  best.sort((left, right) => (
-    right.count - left.count ||
-    left.dayIndex - right.dayIndex ||
-    left.slotIndex - right.slotIndex
-  ));
-  return {
-    id,
-    label,
-    kind,
-    respondents,
-    totalUsers: users.length,
-    counts,
-    timezones,
-    best: best.slice(0, 5)
-  };
 };
 
 const resolvePlanningSessionSlot = session => {
@@ -2118,38 +2072,6 @@ const getDatedAvailabilityCountsForSession = (users, session) => {
   return counts;
 };
 
-const scorePlanningSlot = counts => (
-  (counts.available * 3) + counts.maybe - (counts.busy * 2)
-);
-
-const buildPlanningBestSlots = users => {
-  const candidates = [];
-  AVAILABILITY_DAYS.forEach((day, dayIndex) => {
-    AVAILABILITY_SLOTS.forEach((slot, slotIndex) => {
-      const counts = getAvailabilityCountsForSlot(users, dayIndex, slotIndex);
-      candidates.push({
-        day,
-        slot,
-        dayIndex,
-        slotIndex,
-        ...counts,
-        score: scorePlanningSlot(counts)
-      });
-    });
-  });
-  return candidates
-    .filter(candidate => candidate.respondents > 0)
-    .sort((a, b) => (
-      b.score - a.score
-      || b.available - a.available
-      || a.busy - b.busy
-      || a.dayIndex - b.dayIndex
-      || a.slotIndex - b.slotIndex
-    ))
-    .slice(0, 3)
-    .map(({ dayIndex, slotIndex, ...candidate }) => candidate);
-};
-
 const buildPlanningSessionInsight = (session, users = []) => {
   const targetUsers = collectPlanningTargetUsers(session, Array.isArray(users) ? users : []);
   const responseSummary = summarizePlanningSessionResponses(session?.responses);
@@ -2173,7 +2095,6 @@ const buildPlanningSessionInsight = (session, users = []) => {
     } : null,
     weekly,
     dated,
-    bestSlots: buildPlanningBestSlots(targetUsers),
     conflicts,
     quality
   };
@@ -3243,17 +3164,28 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         const planning = await readPlanningFile();
-        const session = buildPlanningSessionFromPayload(payload, { sessions: planning.sessions });
-        if (!session) {
+        const dates = getPlanningPayloadDates(payload);
+        const created = [];
+        dates.forEach(date => {
+          const session = buildPlanningSessionFromPayload(
+            { ...payload, date },
+            { sessions: [...planning.sessions, ...created] }
+          );
+          if (session) {
+            created.push(session);
+          }
+        });
+        if (!dates.length || created.length !== dates.length) {
           send(res, 400, JSON.stringify({ status: 'error', message: 'Session invalide: titre et date sont requis.' }), { 'Content-Type': 'application/json' });
           return;
         }
-        planning.sessions.push(session);
+        planning.sessions.push(...created);
         await writePlanningFile(planning);
         const users = await readUsersFile();
         send(res, 201, JSON.stringify({
           status: 'ok',
-          session: withPlanningResponseSummary(session, { users }),
+          session: withPlanningResponseSummary(created[0], { users }),
+          created: created.map(session => withPlanningResponseSummary(session, { users })),
           sessions: planning.sessions.map(entry => withPlanningResponseSummary(entry, { users }))
         }), { 'Content-Type': 'application/json' });
         return;
@@ -3433,20 +3365,24 @@ const server = http.createServer(async (req, res) => {
       }
       const requestedId = sanitizePlanningId(payload?.id);
       const existing = requestedId ? current.find(entry => entry.id === requestedId) : null;
-      const entry = sanitizePlanningAvailabilityEntry(payload, { existing, touch: true });
-      if (!entry) {
+      const dates = existing || req.method !== 'POST'
+        ? [payload?.date || existing?.date]
+        : getPlanningPayloadDates(payload);
+      const entries = dates.map(date => sanitizePlanningAvailabilityEntry({ ...payload, date }, { existing, touch: true }));
+      if (!dates.length || entries.some(entry => !entry)) {
         send(res, 400, JSON.stringify({ status: 'error', message: 'Disponibilite invalide: date et heures sont requises.' }), { 'Content-Type': 'application/json' });
         return;
       }
       const next = existing
-        ? current.map(item => (item.id === existing.id ? entry : item))
-        : [...current, entry];
+        ? current.map(item => (item.id === existing.id ? entries[0] : item))
+        : [...current, ...entries];
       user.planningAvailability = sanitizePlanningAvailabilityList(next);
       await writeUsersFile(users);
       updateSessionsForUser(user.id, { planningAvailability: user.planningAvailability });
       send(res, existing ? 200 : 201, JSON.stringify({
         status: 'ok',
-        entry,
+        entry: entries[0],
+        entries,
         availability: user.planningAvailability
       }), { 'Content-Type': 'application/json' });
       return;
@@ -3462,59 +3398,6 @@ const server = http.createServer(async (req, res) => {
       send(res, 200, JSON.stringify({
         status: 'ok',
         sessions: planning.sessions.map(session => withPlanningResponseSummary(session, { users }))
-      }), { 'Content-Type': 'application/json' });
-      return;
-    }
-
-    if (urlObj.pathname === '/api/planning/availability-summary') {
-      if (req.method !== 'GET') {
-        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
-        return;
-      }
-      if (!(await ensureAuthorized(req, res, 'user'))) {
-        return;
-      }
-      const users = await readUsersFile();
-      const groups = await readGroupsFile();
-      const currentUserId = req.auth?.user?.id || null;
-      const currentUser = currentUserId ? users.find(user => user?.id === currentUserId) : null;
-      const currentGroupIds = collectUserGroupIds(currentUser);
-      const isAdmin = req.auth?.role === 'admin';
-      const scopes = [
-        buildAvailabilityScope({
-          id: 'all',
-          label: 'Tous les joueurs',
-          kind: 'global',
-          users
-        })
-      ];
-      groups.forEach(group => {
-        const record = sanitizeGroupRecord(group);
-        if (!record.id) {
-          return;
-        }
-        if (!isAdmin && currentGroupIds.size && !currentGroupIds.has(record.id)) {
-          return;
-        }
-        if (!isAdmin && !currentGroupIds.size) {
-          return;
-        }
-        const members = users.filter(user => collectUserGroupIds(user).has(record.id));
-        if (!members.length) {
-          return;
-        }
-        scopes.push(buildAvailabilityScope({
-          id: record.id,
-          label: record.name || record.id,
-          kind: 'group',
-          users: members
-        }));
-      });
-      send(res, 200, JSON.stringify({
-        status: 'ok',
-        days: AVAILABILITY_DAYS,
-        slots: AVAILABILITY_SLOTS,
-        scopes
       }), { 'Content-Type': 'application/json' });
       return;
     }
@@ -3638,49 +3521,6 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET,PATCH,PUT' });
-      return;
-    }
-
-    if (urlObj.pathname === '/api/admin/availability') {
-      if (req.method !== 'GET') {
-        send(res, 405, JSON.stringify({ status: 'error', message: 'Method Not Allowed' }), { 'Content-Type': 'application/json', 'Allow': 'GET' });
-        return;
-      }
-      if (!(await ensureAuthorized(req, res, 'admin'))) {
-        return;
-      }
-      const users = await readUsersFile();
-      const counts = Array.from({ length: AVAILABILITY_DAYS.length }, () => (
-        Array.from({ length: AVAILABILITY_SLOTS.length }, () => 0)
-      ));
-      const timezones = {};
-      let respondents = 0;
-      users.forEach(user => {
-        const availability = sanitizeAvailabilityRecord(user?.availability);
-        if (!availability || !availabilityHasSlots(availability)) {
-          return;
-        }
-        respondents += 1;
-        availability.slots.forEach((daySlots, dayIndex) => {
-          daySlots.forEach((active, slotIndex) => {
-            if (active === AVAILABILITY_STATUS.AVAILABLE) {
-              counts[dayIndex][slotIndex] += 1;
-            }
-          });
-        });
-        if (availability.timezone) {
-          timezones[availability.timezone] = (timezones[availability.timezone] || 0) + 1;
-        }
-      });
-      send(res, 200, JSON.stringify({
-        status: 'ok',
-        days: AVAILABILITY_DAYS,
-        slots: AVAILABILITY_SLOTS,
-        respondents,
-        totalUsers: users.length,
-        counts,
-        timezones
-      }), { 'Content-Type': 'application/json' });
       return;
     }
 

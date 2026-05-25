@@ -742,6 +742,14 @@ a {
     font-weight: 800;
 }
 
+.planning-dated-form small,
+.planning-admin-form small {
+    color: var(--planning-muted);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
 .planning-dated-form input,
 .planning-dated-form select,
 .planning-admin-form input,
@@ -774,6 +782,49 @@ a {
 
 .planning-dated-comment {
     grid-column: span 2;
+}
+
+.planning-selected-dates {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.planning-selected-date {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 8px 6px 12px;
+    border: 1px solid rgba(125, 211, 252, 0.24);
+    border-radius: 999px;
+    background: rgba(30, 64, 175, 0.14);
+    color: var(--planning-text);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.planning-selected-date button {
+    min-height: 28px;
+    padding: 0 9px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(248, 113, 113, 0.14);
+    color: #fecaca;
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+}
+
+.planning-selected-date button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.planning-selected-dates-empty {
+    color: var(--planning-muted);
+    font-size: 12px;
 }
 
 .planning-dated-list {
@@ -1095,70 +1146,6 @@ a {
     color: #fecaca;
 }
 
-.planning-summary-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.planning-summary-toolbar label {
-    color: var(--planning-muted);
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.planning-summary-toolbar select {
-    min-height: 42px;
-    min-width: min(100%, 260px);
-    border: 1px solid rgba(148, 163, 184, 0.22);
-    border-radius: 14px;
-    background: rgba(15, 23, 42, 0.72);
-    color: var(--planning-text);
-    padding: 0 12px;
-    font: inherit;
-}
-
-.planning-best-slots {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
-}
-
-.planning-best-slot,
-.planning-best-empty {
-    min-width: 0;
-    padding: 16px;
-    border: 1px solid rgba(148, 163, 184, 0.16);
-    border-radius: 20px;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(30, 41, 59, 0.38));
-}
-
-.planning-best-slot strong {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 1.05rem;
-}
-
-.planning-best-slot span,
-.planning-best-empty {
-    color: var(--planning-muted);
-    line-height: 1.5;
-}
-
-.planning-best-slot-count {
-    display: inline-flex;
-    margin-top: 12px;
-    padding: 7px 10px;
-    border-radius: 999px;
-    background: rgba(52, 211, 153, 0.14);
-    color: #bbf7d0;
-    font-weight: 800;
-}
-
 .planning-footer {
     align-items: center;
     border: 1px solid rgba(148, 163, 184, 0.16);
@@ -1240,10 +1227,6 @@ a {
         grid-template-columns: 1fr;
     }
 
-    .planning-best-slots {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .planning-session-card {
         grid-template-columns: 1fr;
     }
@@ -1319,10 +1302,6 @@ a {
         width: 100%;
         white-space: normal;
         text-align: center;
-    }
-
-    .planning-best-slots {
-        grid-template-columns: 1fr;
     }
 
     .planning-view-toggle {

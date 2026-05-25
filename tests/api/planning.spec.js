@@ -73,6 +73,7 @@ test.describe('Planning - API', () => {
         const datedAvailabilityResponse = await request.post('/api/planning/my-availability', {
             data: {
                 date: '2026-07-12',
+                dates: ['2026-07-12', '2026-07-19', '2026-07-12'],
                 startTime: '20:00',
                 endTime: '23:30',
                 status: 'busy',
@@ -81,13 +82,15 @@ test.describe('Planning - API', () => {
         });
         expect(datedAvailabilityResponse.status()).toBe(201);
         const datedAvailabilityPayload = await datedAvailabilityResponse.json();
-        expect(datedAvailabilityPayload.availability[0].date).toBe('2026-07-12');
-        expect(datedAvailabilityPayload.availability[0].status).toBe('busy');
+        expect(datedAvailabilityPayload.entries).toHaveLength(2);
+        expect(datedAvailabilityPayload.entries.map(entry => entry.date)).toEqual(['2026-07-12', '2026-07-19']);
+        expect(datedAvailabilityPayload.entries[0].status).toBe('busy');
 
         const createResponse = await request.post('/api/admin/planning/sessions', {
             data: {
                 title: 'Session candidate API',
                 date: '2026-07-12',
+                dates: ['2026-07-12', '2026-07-19', '2026-07-12'],
                 startTime: '20:45',
                 durationMinutes: 180,
                 groupName: 'Groupe test',
@@ -98,11 +101,12 @@ test.describe('Planning - API', () => {
         expect(createResponse.status()).toBe(201);
         const createdPayload = await createResponse.json();
         expect(createdPayload.status).toBe('ok');
+        expect(createdPayload.created).toHaveLength(2);
+        expect(createdPayload.created.map(session => session.date)).toEqual(['2026-07-12', '2026-07-19']);
         expect(createdPayload.session.id).toBeTruthy();
         expect(createdPayload.session.responseSummary.available).toBe(0);
         expect(createdPayload.session.planningInsight.weekly.busy).toBeGreaterThanOrEqual(1);
         expect(createdPayload.session.planningInsight.dated.busy).toBeGreaterThanOrEqual(1);
-        expect(createdPayload.session.planningInsight.bestSlots.length).toBeGreaterThanOrEqual(1);
 
         const sessionId = createdPayload.session.id;
         const response = await request.patch(`/api/planning/sessions/${sessionId}/response`, {
@@ -141,11 +145,18 @@ test.describe('Planning - API', () => {
         const deletePayload = await deleteResponse.json();
         expect(deletePayload.removed.id).toBe(sessionId);
 
+        const deleteSecondSessionResponse = await request.delete('/api/admin/planning/sessions', {
+            data: { id: createdPayload.created[1].id }
+        });
+        expect(deleteSecondSessionResponse.status()).toBe(200);
+
         const deleteAvailabilityResponse = await request.delete('/api/planning/my-availability', {
-            data: { id: datedAvailabilityPayload.availability[0].id }
+            data: { id: datedAvailabilityPayload.entries[0].id }
         });
         expect(deleteAvailabilityResponse.status()).toBe(200);
-        const deleteAvailabilityPayload = await deleteAvailabilityResponse.json();
-        expect(deleteAvailabilityPayload.availability).toHaveLength(0);
+        const deleteSecondAvailabilityResponse = await request.delete('/api/planning/my-availability', {
+            data: { id: datedAvailabilityPayload.entries[1].id }
+        });
+        expect(deleteSecondAvailabilityResponse.status()).toBe(200);
     });
 });

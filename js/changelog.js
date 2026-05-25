@@ -13,9 +13,9 @@ const dom = {
 
 const FALLBACK_CHANGELOG = [
     {
-        date: '2026-05-18',
-        title: 'Version 0.17.44 - Planning date et sessions',
-        summary: 'Le planning permet de cliquer une date pour ajouter une disponibilite, retire l ancien affichage semaine type, prolonge la session Discord et harmonise les footers.'
+        date: '2026-05-26',
+        title: 'Version 0.17.45 - Planning multi-date',
+        summary: 'Les joueurs et admins peuvent enregistrer plusieurs dates en une fois ; les syntheses hebdomadaires obsoletes ont ete retirees du planning et de l admin carte.'
     }
 ];
 

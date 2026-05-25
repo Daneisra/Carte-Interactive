@@ -10,7 +10,7 @@ test.describe('Planning - UI', () => {
     await expect(page.locator('#planning-agenda-title')).toHaveText('Sessions candidates');
     await expect(page.locator('#planning-dated-title')).toHaveText("Mes disponibilites dans l'agenda");
     await expect(page.locator('.planning-agenda-day')).toHaveCount(42);
-    await expect(page.locator('#planning-summary-status')).toContainText('Connectez-vous');
+    await expect(page.locator('#planning-summary')).toHaveCount(0);
     await expect(page.locator('#planning-week')).toHaveCount(0);
     await expect(page.locator('.site-footer-links a[href="/changelog/"]')).toHaveText('Changelog');
   });
@@ -51,31 +51,30 @@ test.describe('Planning - UI', () => {
         body: JSON.stringify({
           status: 'ok',
           availability: [
-            {
-              id: 'availability-test',
-              date: savedPayload.date,
+            ...savedPayload.dates.map((date, index) => ({
+              id: `availability-test-${index}`,
+              date,
               startTime: savedPayload.startTime,
               endTime: savedPayload.endTime,
               status: savedPayload.status,
               comment: savedPayload.comment
-            }
+            }))
           ]
         })
       });
     });
-    await page.route('**/api/planning/availability-summary', route => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ status: 'ok', scopes: [] })
-    }));
 
     await page.goto('/planning/');
     await page.waitForLoadState('domcontentloaded');
 
     const agendaDay = page.locator('.planning-agenda-day[data-date]').nth(20);
     const selectedDate = await agendaDay.getAttribute('data-date');
+    const secondAgendaDay = page.locator('.planning-agenda-day[data-date]').nth(21);
+    const secondSelectedDate = await secondAgendaDay.getAttribute('data-date');
     await agendaDay.click();
-    await expect(page.locator('#planning-dated-date')).toHaveValue(selectedDate);
+    await secondAgendaDay.click();
+    await expect(page.locator('#planning-dated-date')).toHaveValue(secondSelectedDate);
+    await expect(page.locator('.planning-selected-date')).toHaveCount(2);
 
     await page.locator('#planning-dated-start').fill('20:30');
     await page.locator('#planning-dated-end').fill('23:30');
@@ -83,19 +82,21 @@ test.describe('Planning - UI', () => {
     await page.locator('#planning-dated-comment').fill('Disponible apres le repas');
     await page.locator('#planning-dated-save').click();
 
-    await expect(page.locator('#planning-dated-status')).toHaveText('Disponibilite datee enregistree.');
+    await expect(page.locator('#planning-dated-status')).toHaveText('2 disponibilites datees enregistrees.');
     expect(savedPayload).toMatchObject({
       date: selectedDate,
+      dates: [selectedDate, secondSelectedDate],
       startTime: '20:30',
       endTime: '23:30',
       status: 'available',
       comment: 'Disponible apres le repas'
     });
-    await expect(page.locator('.planning-dated-entry')).toContainText('Disponible apres le repas');
+    await expect(page.locator('.planning-dated-entry')).toHaveCount(2);
+    await expect(page.locator('.planning-dated-entry').first()).toContainText('Disponible apres le repas');
 
-    await page.locator('.planning-dated-delete').click();
+    await page.locator('.planning-dated-delete').first().click();
     await expect(page.locator('#planning-dated-status')).toHaveText('Disponibilite supprimee.');
-    expect(deletedPayload.id).toBe('availability-test');
+    expect(deletedPayload.id).toBe('availability-test-0');
   });
 
   test('un admin peut creer modifier et supprimer une session candidate', async ({ page }) => {
@@ -122,35 +123,28 @@ test.describe('Planning - UI', () => {
       contentType: 'application/json',
       body: JSON.stringify({ status: 'ok', availability: [] })
     }));
-    await page.route('**/api/planning/availability-summary', route => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ status: 'ok', scopes: [] })
-    }));
     await page.route('**/api/admin/planning/sessions', route => {
       const method = route.request().method();
       const payload = route.request().postDataJSON();
       adminRequests.push({ method, payload });
       if (method === 'POST') {
-        sessions = [
-          {
-            id: 'session-admin',
+        sessions = payload.dates.map((date, index) => ({
+            id: `session-admin-${index}`,
             title: payload.title,
-            date: payload.date,
+            date,
             startTime: payload.startTime,
             durationMinutes: payload.durationMinutes,
             groupName: payload.groupName,
             status: payload.status,
             description: payload.description,
             responseSummary: { available: 0, maybe: 0, busy: 0 },
-            planningInsight: { quality: 'unknown', weekly: {}, dated: {}, bestSlots: [] },
+            planningInsight: { quality: 'unknown', weekly: {}, dated: {} },
             responses: {}
-          }
-        ];
+          }));
         return route.fulfill({
           status: 201,
           contentType: 'application/json',
-          body: JSON.stringify({ status: 'ok', session: sessions[0], sessions })
+          body: JSON.stringify({ status: 'ok', session: sessions[0], created: sessions, sessions })
         });
       }
       if (method === 'PATCH') {
@@ -177,19 +171,23 @@ test.describe('Planning - UI', () => {
 
     await page.locator('#planning-admin-title-input').fill('Session admin test');
     await page.locator('#planning-admin-date').fill('2026-08-14');
+    await page.locator('#planning-admin-date').dispatchEvent('change');
+    await page.locator('#planning-admin-date').fill('2026-08-21');
+    await page.locator('#planning-admin-date').dispatchEvent('change');
     await page.locator('#planning-admin-start').fill('20:45');
     await page.locator('#planning-admin-duration').fill('210');
     await page.locator('#planning-admin-group').fill('Table Hesta');
     await page.locator('#planning-admin-description').fill('Session creee depuis admin planning.');
     await page.locator('#planning-admin-save').click();
 
-    await expect(page.locator('#planning-admin-status')).toHaveText('Session creee.');
-    await expect(page.locator('.planning-admin-entry')).toContainText('Session admin test');
+    await expect(page.locator('#planning-admin-status')).toHaveText('2 sessions creees.');
+    await expect(page.locator('.planning-admin-entry')).toHaveCount(2);
     expect(adminRequests[0]).toMatchObject({
       method: 'POST',
       payload: {
         title: 'Session admin test',
-        date: '2026-08-14',
+        date: '2026-08-21',
+        dates: ['2026-08-14', '2026-08-21'],
         startTime: '20:45',
         durationMinutes: 210,
         groupName: 'Table Hesta',
@@ -197,7 +195,7 @@ test.describe('Planning - UI', () => {
       }
     });
 
-    await page.locator('[data-admin-action="edit"]').click();
+    await page.locator('[data-admin-action="edit"]').first().click();
     await page.locator('#planning-admin-title-input').fill('Session admin modifiee');
     await page.locator('#planning-admin-session-status').selectOption('confirmed');
     await page.locator('#planning-admin-save').click();
@@ -206,66 +204,19 @@ test.describe('Planning - UI', () => {
     expect(adminRequests[1]).toMatchObject({
       method: 'PATCH',
       payload: {
-        id: 'session-admin',
+        id: 'session-admin-0',
         title: 'Session admin modifiee',
         status: 'confirmed'
       }
     });
 
-    await page.locator('[data-admin-action="delete"]').click();
+    await page.locator('[data-admin-action="delete"]').first().click();
     await expect(page.locator('#planning-admin-status')).toHaveText('Session supprimee.');
-    await expect(page.locator('.planning-admin-empty')).toContainText('Aucune session candidate');
+    await expect(page.locator('.planning-admin-entry')).toHaveCount(1);
     expect(adminRequests[2]).toMatchObject({
       method: 'DELETE',
-      payload: { id: 'session-admin' }
+      payload: { id: 'session-admin-0' }
     });
-  });
-
-  test('la synthese planning affiche les scopes de groupe', async ({ page }) => {
-    await page.route('**/auth/session', route => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        authenticated: true,
-        username: 'Danny',
-        availability: { timezone: 'Europe/Warsaw', slots: [] }
-      })
-    }));
-    await page.route('**/api/planning/availability-summary', route => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        status: 'ok',
-        scopes: [
-          {
-            id: 'all',
-            label: 'Tous les joueurs',
-            kind: 'global',
-            respondents: 4,
-            totalUsers: 5,
-            best: [{ day: 'wed', slot: 'evening', count: 4 }]
-          },
-          {
-            id: 'groupe-a',
-            label: 'Groupe A',
-            kind: 'group',
-            respondents: 3,
-            totalUsers: 3,
-            best: [{ day: 'fri', slot: 'night', count: 3 }]
-          }
-        ]
-      })
-    }));
-
-    await page.goto('/planning/');
-    await page.waitForLoadState('domcontentloaded');
-
-    await expect(page.locator('#planning-summary-status')).toHaveText('2 syntheses chargees.');
-    await expect(page.locator('#planning-scope')).toBeEnabled();
-    await expect(page.locator('.planning-best-slot').first()).toContainText('Mer - Soir');
-    await page.locator('#planning-scope').selectOption('groupe-a');
-    await expect(page.locator('.planning-best-slot').first()).toContainText('Ven - Nuit');
-    await expect(page.locator('.planning-best-slot').first()).toContainText('3 dispo');
   });
 
   test('la vue agenda affiche les sessions datees et navigue par mois', async ({ page }) => {
@@ -307,9 +258,6 @@ test.describe('Planning - UI', () => {
             planningInsight: {
               quality: 'conflict',
               weekly: { available: 0, maybe: 1, busy: 1, empty: 0, respondents: 2 },
-              bestSlots: [
-                { day: 'mon', slot: 'evening', available: 2, maybe: 0, busy: 0, score: 6 }
-              ],
               conflicts: 1,
               targetUsers: 2
             },
@@ -328,9 +276,6 @@ test.describe('Planning - UI', () => {
             planningInsight: {
               quality: 'good',
               weekly: { available: 2, maybe: 0, busy: 0, empty: 0, respondents: 2 },
-              bestSlots: [
-                { day: 'wed', slot: 'night', available: 2, maybe: 0, busy: 0, score: 6 }
-              ],
               conflicts: 1,
               targetUsers: 2
             },
@@ -359,9 +304,6 @@ test.describe('Planning - UI', () => {
             planningInsight: {
               quality: 'good',
               weekly: { available: 1, maybe: 1, busy: 0, empty: 0, respondents: 2 },
-              bestSlots: [
-                { day: 'mon', slot: 'evening', available: 2, maybe: 0, busy: 0, score: 6 }
-              ],
               conflicts: 0,
               targetUsers: 2
             },
@@ -380,7 +322,6 @@ test.describe('Planning - UI', () => {
     await expect(page.locator('.planning-agenda-chip').first()).toContainText('Conseil des routes');
     await expect(page.locator('.planning-agenda-response-summary').first()).toContainText('0 dispo / 1 incertain / 0 indispo');
     await expect(page.locator('.planning-agenda-insight').first()).toContainText('Creneau prevu: 0 dispo / 1 incertain / 1 conflit');
-    await expect(page.locator('.planning-agenda-insight').first()).toContainText('Meilleurs creneaux: Lun Soir');
     await page.locator('.planning-agenda-response-actions button', { hasText: 'Disponible' }).first().click();
     expect(savedResponse.status).toBe('available');
     await expect(page.locator('#planning-agenda-status')).toHaveText('Reponse enregistree.');

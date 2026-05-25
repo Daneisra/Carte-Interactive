@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.44`.
+Version actuelle : `0.17.45`.
 
 ## Réalisations majeures livrées
 
@@ -94,22 +94,22 @@ Version actuelle : `0.17.44`.
 
 ### P7 - Planning et calendrier JDR
 
-Socle livré : agenda daté, sessions candidates, disponibilités par date/heure, admin planning et synthèse de créneaux communs.
+Socle livré : agenda daté, sessions candidates, disponibilités par date/heure, création multi-date et admin planning.
 
 - [x] Créer une page planning/calendrier dédiée à la logistique des parties.
 - [x] Permettre à chaque utilisateur de renseigner ses disponibilités à une date et une heure précises.
-- [x] Visualiser rapidement les créneaux communs disponibles pour un groupe ou une campagne.
+- [x] Visualiser rapidement les réponses et conflits sur chaque date candidate.
 - [x] Lier le planning aux groupes JDR et aux personnages lorsque c'est utile.
 - [x] Ajouter des statuts de réponse : disponible, incertain, indisponible, non renseigné.
 - [x] Prévoir une vue agenda lisible sur desktop et mobile.
-- [x] Ajouter une synthèse MJ pour repérer les meilleures dates de session.
+- [x] Ajouter une synthèse MJ directement sur chaque session candidate.
 
 ### P7.1 - Rework agenda/calendrier réel
 
 - [x] Transformer la page planning en véritable agenda daté, avec navigation mois précédent/suivant et semaine courante.
 - [x] Ajouter un modèle de sessions candidates : titre, date, heure de début, durée, groupe, description et statut.
-- [x] Permettre au MJ/admin de proposer plusieurs dates candidates pour une partie depuis l'admin planning.
-- [x] Permettre à chaque utilisateur de déclarer ses disponibilités à n'importe quelle date et n'importe quelle heure.
+- [x] Permettre au MJ/admin de proposer plusieurs dates candidates en une seule soumission depuis l'admin planning.
+- [x] Permettre à chaque utilisateur de déclarer une même disponibilité sur plusieurs dates en une seule soumission.
 - [x] Permettre aux joueurs de répondre à une date précise : disponible, incertain, indisponible, commentaire optionnel.
 - [x] Afficher les événements confirmés dans une vue calendrier mensuelle, pas seulement une projection de semaine type.
 - [x] Retirer l'ancienne semaine type de l'interface planning et du mini-profil carte pour éviter les doublons.

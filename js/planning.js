@@ -14,7 +14,6 @@ const PROFILE_URL = '/api/profile';
 const SESSIONS_URL = '/api/planning/sessions';
 const ADMIN_SESSIONS_URL = '/api/admin/planning/sessions';
 const DATED_AVAILABILITY_URL = '/api/planning/my-availability';
-const SUMMARY_URL = '/api/planning/availability-summary';
 
 const dom = {
     year: document.getElementById('planning-year'),
@@ -27,9 +26,6 @@ const dom = {
     calendar: document.getElementById('planning-calendar'),
     save: document.getElementById('planning-save'),
     clear: document.getElementById('planning-clear'),
-    summaryStatus: document.getElementById('planning-summary-status'),
-    scope: document.getElementById('planning-scope'),
-    bestSlots: document.getElementById('planning-best-slots'),
     viewWeek: document.getElementById('planning-view-week'),
     viewMonth: document.getElementById('planning-view-month'),
     weekView: document.getElementById('planning-week-view'),
@@ -50,6 +46,7 @@ const dom = {
     datedEnd: document.getElementById('planning-dated-end'),
     datedResponse: document.getElementById('planning-dated-response'),
     datedComment: document.getElementById('planning-dated-comment'),
+    datedSelectedDates: document.getElementById('planning-dated-selected-dates'),
     datedList: document.getElementById('planning-dated-list'),
     adminLink: document.getElementById('planning-admin-link'),
     adminPanel: document.getElementById('planning-admin'),
@@ -63,6 +60,7 @@ const dom = {
     adminGroup: document.getElementById('planning-admin-group'),
     adminSessionStatus: document.getElementById('planning-admin-session-status'),
     adminDescription: document.getElementById('planning-admin-description'),
+    adminSelectedDates: document.getElementById('planning-admin-selected-dates'),
     adminSave: document.getElementById('planning-admin-save'),
     adminReset: document.getElementById('planning-admin-reset'),
     adminList: document.getElementById('planning-admin-list')
@@ -75,15 +73,16 @@ const state = {
     slots: createAvailabilityStatusMatrix(),
     sessions: [],
     datedAvailability: [],
+    datedSelectedDates: [],
     agendaMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    summaryScopes: [],
     view: 'week',
     dirty: false,
     saving: false,
     datedSaving: false,
     role: 'guest',
     adminSaving: false,
-    adminEditingId: ''
+    adminEditingId: '',
+    adminSelectedDates: []
 };
 
 const setText = (node, value) => {
@@ -98,14 +97,6 @@ const setStatus = (message, isError = false) => {
     }
     dom.status.textContent = message;
     dom.status.classList.toggle('is-error', isError);
-};
-
-const setSummaryStatus = (message, isError = false) => {
-    if (!dom.summaryStatus) {
-        return;
-    }
-    dom.summaryStatus.textContent = message;
-    dom.summaryStatus.classList.toggle('is-error', isError);
 };
 
 const getDayLabel = dayId => AVAILABILITY_DAYS.find(day => day.id === dayId)?.label || dayId;
@@ -177,6 +168,45 @@ const formatFullDate = value => {
         return value;
     }
 };
+const getUniqueDates = dates => [...new Set(
+    dates.filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date || ''))
+)].sort();
+const renderSelectedDates = (container, dates, action, disabled = false) => {
+    if (!container) {
+        return;
+    }
+    if (!dates.length) {
+        container.replaceChildren(Object.assign(document.createElement('span'), {
+            className: 'planning-selected-dates-empty',
+            textContent: 'Aucune date selectionnee.'
+        }));
+        return;
+    }
+    container.replaceChildren(...dates.map(date => {
+        const chip = document.createElement('span');
+        chip.className = 'planning-selected-date';
+        const text = document.createElement('span');
+        text.textContent = formatFullDate(date);
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.dataset.dateAction = action;
+        remove.dataset.date = date;
+        remove.disabled = disabled;
+        remove.setAttribute('aria-label', `Retirer ${formatFullDate(date)}`);
+        remove.textContent = 'Retirer';
+        chip.append(text, remove);
+        return chip;
+    }));
+};
+const addDatedSelectedDate = date => {
+    state.datedSelectedDates = getUniqueDates([...state.datedSelectedDates, date]);
+    renderSelectedDates(dom.datedSelectedDates, state.datedSelectedDates, 'dated-remove', state.datedSaving);
+};
+const addAdminSelectedDate = date => {
+    state.adminSelectedDates = getUniqueDates([...state.adminSelectedDates, date]);
+    renderSelectedDates(dom.adminSelectedDates, state.adminSelectedDates, 'admin-remove', state.adminSaving);
+    syncAdminPanel();
+};
 const getSessionStatusLabel = status => {
     if (status === 'confirmed') {
         return 'Confirmee';
@@ -213,16 +243,6 @@ const getPlanningInsightText = insight => {
         return 'Pas assez de disponibilites pour evaluer ce creneau.';
     }
     return `${Number(dated.respondents) > 0 ? 'Disponibilites datees' : 'Creneau prevu'}: ${available} dispo / ${maybe} incertain / ${busy} conflit`;
-};
-const getBestSlotsText = insight => {
-    const bestSlots = Array.isArray(insight?.bestSlots) ? insight.bestSlots : [];
-    if (!bestSlots.length) {
-        return 'Meilleurs creneaux: aucun signal pour le moment.';
-    }
-    const formatted = bestSlots.map(slot => (
-        `${getDayLabel(slot.day)} ${getSlotLabel(slot.slot)} (${slot.available} dispo)`
-    ));
-    return `Meilleurs creneaux: ${formatted.join(', ')}`;
 };
 const getNextStatus = status => {
     if (!status) {
@@ -283,8 +303,11 @@ const syncDatedForm = () => {
     const button = dom.datedForm?.querySelector?.('button[type="submit"]');
     if (button) {
         button.disabled = disabled;
-        button.textContent = state.datedSaving ? 'Sauvegarde...' : 'Ajouter ce creneau';
+        button.textContent = state.datedSaving
+            ? 'Sauvegarde...'
+            : (state.datedSelectedDates.length > 1 ? 'Ajouter ces creneaux' : 'Ajouter ce creneau');
     }
+    renderSelectedDates(dom.datedSelectedDates, state.datedSelectedDates, 'dated-remove', disabled);
 };
 
 const renderDatedAvailability = () => {
@@ -356,15 +379,19 @@ const syncAdminPanel = () => {
         dom.adminSave.disabled = disabled;
         dom.adminSave.textContent = state.adminSaving
             ? 'Sauvegarde...'
-            : (state.adminEditingId ? 'Modifier la session' : 'Creer la session');
+            : (state.adminEditingId
+                ? 'Modifier la session'
+                : (state.adminSelectedDates.length > 1 ? 'Creer les sessions' : 'Creer la session'));
     }
     if (dom.adminReset) {
         dom.adminReset.disabled = disabled;
     }
+    renderSelectedDates(dom.adminSelectedDates, state.adminSelectedDates, 'admin-remove', disabled || Boolean(state.adminEditingId));
 };
 
 const resetAdminForm = () => {
     state.adminEditingId = '';
+    state.adminSelectedDates = [];
     if (dom.adminId) {
         dom.adminId.value = '';
     }
@@ -372,7 +399,7 @@ const resetAdminForm = () => {
         dom.adminTitle.value = '';
     }
     if (dom.adminDate) {
-        dom.adminDate.value = formatDateKey(new Date());
+        dom.adminDate.value = '';
     }
     if (dom.adminStart) {
         dom.adminStart.value = '20:30';
@@ -398,6 +425,7 @@ const fillAdminForm = session => {
         return;
     }
     state.adminEditingId = session.id || '';
+    state.adminSelectedDates = [];
     if (dom.adminId) {
         dom.adminId.value = state.adminEditingId;
     }
@@ -406,6 +434,7 @@ const fillAdminForm = session => {
     }
     if (dom.adminDate) {
         dom.adminDate.value = session.date || formatDateKey(new Date());
+        addAdminSelectedDate(dom.adminDate.value);
     }
     if (dom.adminStart) {
         dom.adminStart.value = session.startTime || '20:30';
@@ -565,9 +594,7 @@ const renderAgenda = () => {
         insight.className = `planning-agenda-insight is-${session.planningInsight?.quality || 'unknown'}`;
         const insightText = document.createElement('span');
         insightText.textContent = getPlanningInsightText(session.planningInsight);
-        const bestSlots = document.createElement('span');
-        bestSlots.textContent = getBestSlotsText(session.planningInsight);
-        insight.append(insightText, bestSlots);
+        insight.append(insightText);
         const actions = document.createElement('div');
         actions.className = 'planning-agenda-response-actions';
         actions.hidden = !state.authenticated;
@@ -622,8 +649,10 @@ const saveDatedAvailability = async event => {
         setDatedStatus('Connectez-vous via Discord pour renseigner vos disponibilites.', true);
         return;
     }
+    const dates = getUniqueDates([...state.datedSelectedDates, dom.datedDate?.value || '']);
     const payload = {
-        date: dom.datedDate?.value || '',
+        date: dates[0] || '',
+        dates,
         startTime: dom.datedStart?.value || '',
         endTime: dom.datedEnd?.value || '',
         status: dom.datedResponse?.value || AVAILABILITY_STATUS.AVAILABLE,
@@ -647,7 +676,13 @@ const saveDatedAvailability = async event => {
         if (dom.datedComment) {
             dom.datedComment.value = '';
         }
-        setDatedStatus('Disponibilite datee enregistree.');
+        state.datedSelectedDates = [];
+        if (dom.datedDate) {
+            dom.datedDate.value = '';
+        }
+        setDatedStatus(dates.length > 1
+            ? `${dates.length} disponibilites datees enregistrees.`
+            : 'Disponibilite datee enregistree.');
         renderDatedAvailability();
         renderAgenda();
         loadSessions();
@@ -751,7 +786,9 @@ const saveAdminSession = async event => {
         payload.id = state.adminEditingId;
     } else {
         delete payload.id;
+        payload.dates = getUniqueDates([...state.adminSelectedDates, payload.date]);
     }
+    const createdCount = editing ? 1 : payload.dates.length;
     state.adminSaving = true;
     syncAdminPanel();
     setAdminStatus(editing ? 'Modification de la session...' : 'Creation de la session...');
@@ -770,7 +807,9 @@ const saveAdminSession = async event => {
         if (!state.sessions.length && result?.session) {
             state.sessions = [result.session];
         }
-        setAdminStatus(editing ? 'Session modifiee.' : 'Session creee.');
+        setAdminStatus(editing
+            ? 'Session modifiee.'
+            : (createdCount > 1 ? `${createdCount} sessions creees.` : 'Session creee.'));
         resetAdminForm();
         renderAgenda();
         renderAdminSessions();
@@ -1044,6 +1083,7 @@ const selectAgendaDateForAvailability = dateKey => {
         return;
     }
     dom.datedDate.value = dateKey;
+    addDatedSelectedDate(dateKey);
     if (!state.authenticated) {
         setDatedStatus('Date selectionnee. Connectez-vous via Discord pour enregistrer une disponibilite.', true);
     } else {
@@ -1111,7 +1151,6 @@ const saveAvailability = async () => {
         state.dirty = false;
         setStatus('Disponibilites enregistrees.');
         renderCalendar();
-        loadSummary();
     } catch (error) {
         console.error('[planning] availability save failed', error);
         setStatus('Impossible d enregistrer les disponibilites.', true);
@@ -1132,80 +1171,6 @@ const clearAvailability = () => {
     renderCalendar();
     syncActions();
 };
-
-const renderSummary = () => {
-    if (!dom.scope || !dom.bestSlots) {
-        return;
-    }
-    const requestedScopeId = dom.scope.value;
-    dom.scope.replaceChildren(...state.summaryScopes.map(scope => {
-        const option = document.createElement('option');
-        option.value = scope.id;
-        option.textContent = scope.kind === 'group' ? `Groupe - ${scope.label}` : scope.label;
-        return option;
-    }));
-    dom.scope.disabled = !state.authenticated || state.summaryScopes.length <= 1;
-    const selected = state.summaryScopes.find(scope => scope.id === requestedScopeId) || state.summaryScopes[0] || null;
-    if (!selected) {
-        dom.bestSlots.replaceChildren(Object.assign(document.createElement('article'), {
-            className: 'planning-best-empty',
-            textContent: state.authenticated ? 'Aucune synthese disponible.' : 'Connectez-vous pour charger la synthese.'
-        }));
-        return;
-    }
-    dom.scope.value = selected.id;
-    if (!Array.isArray(selected.best) || !selected.best.length) {
-        dom.bestSlots.replaceChildren(Object.assign(document.createElement('article'), {
-            className: 'planning-best-empty',
-            textContent: `${selected.label}: aucun creneau commun renseigne.`
-        }));
-        return;
-    }
-    dom.bestSlots.replaceChildren(...selected.best.map(slot => {
-        const item = document.createElement('article');
-        item.className = 'planning-best-slot';
-        const title = document.createElement('strong');
-        title.textContent = `${getDayLabel(slot.day)} - ${getSlotLabel(slot.slot)}`;
-        const detail = document.createElement('span');
-        detail.textContent = `${selected.label} - ${selected.respondents} repondant${selected.respondents > 1 ? 's' : ''}`;
-        const count = document.createElement('span');
-        count.className = 'planning-best-slot-count';
-        count.textContent = `${slot.count} dispo`;
-        item.append(title, detail, count);
-        return item;
-    }));
-};
-
-const loadSummary = async () => {
-    if (!state.authenticated) {
-        state.summaryScopes = [];
-        setSummaryStatus('Connectez-vous pour charger la synthese.', true);
-        renderSummary();
-        return;
-    }
-    setSummaryStatus('Chargement des creneaux communs...');
-    try {
-        const response = await fetch(SUMMARY_URL, { credentials: 'include', cache: 'no-store' });
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        const payload = await response.json();
-        state.summaryScopes = Array.isArray(payload?.scopes) ? payload.scopes : [];
-        const scopeCount = state.summaryScopes.length;
-        setSummaryStatus(scopeCount
-            ? `${scopeCount} synthese${scopeCount > 1 ? 's' : ''} chargee${scopeCount > 1 ? 's' : ''}.`
-            : 'Aucun creneau commun disponible.');
-    } catch (error) {
-        console.warn('[planning] availability summary unavailable', error);
-        state.summaryScopes = [];
-        setSummaryStatus('Synthese indisponible pour le moment.', true);
-    }
-    renderSummary();
-};
-
-if (dom.scope) {
-    dom.scope.addEventListener('change', renderSummary);
-}
 
 if (dom.save) {
     dom.save.addEventListener('click', saveAvailability);
@@ -1265,6 +1230,20 @@ if (dom.agendaGrid) {
 if (dom.datedForm) {
     dom.datedForm.addEventListener('submit', saveDatedAvailability);
 }
+if (dom.datedDate) {
+    dom.datedDate.addEventListener('change', () => addDatedSelectedDate(dom.datedDate.value));
+}
+if (dom.datedSelectedDates) {
+    dom.datedSelectedDates.addEventListener('click', event => {
+        const button = event.target?.closest?.('[data-date-action="dated-remove"][data-date]');
+        if (!button) {
+            return;
+        }
+        state.datedSelectedDates = state.datedSelectedDates.filter(date => date !== button.dataset.date);
+        dom.datedDate.value = state.datedSelectedDates.at(-1) || '';
+        syncDatedForm();
+    });
+}
 if (dom.datedList) {
     dom.datedList.addEventListener('click', event => {
         const button = event.target?.closest?.('[data-availability-id]');
@@ -1281,6 +1260,25 @@ if (dom.adminReset) {
     dom.adminReset.addEventListener('click', () => {
         resetAdminForm();
         setAdminStatus('Creation d une nouvelle session.');
+    });
+}
+if (dom.adminDate) {
+    dom.adminDate.addEventListener('change', () => {
+        if (state.adminEditingId) {
+            state.adminSelectedDates = [];
+        }
+        addAdminSelectedDate(dom.adminDate.value);
+    });
+}
+if (dom.adminSelectedDates) {
+    dom.adminSelectedDates.addEventListener('click', event => {
+        const button = event.target?.closest?.('[data-date-action="admin-remove"][data-date]');
+        if (!button || state.adminEditingId) {
+            return;
+        }
+        state.adminSelectedDates = state.adminSelectedDates.filter(date => date !== button.dataset.date);
+        dom.adminDate.value = state.adminSelectedDates.at(-1) || '';
+        syncAdminPanel();
     });
 }
 if (dom.adminList) {
@@ -1301,9 +1299,6 @@ if (dom.adminList) {
     });
 }
 
-if (dom.datedDate && !dom.datedDate.value) {
-    dom.datedDate.value = formatDateKey(new Date());
-}
 if (dom.datedStart && !dom.datedStart.value) {
     dom.datedStart.value = '20:00';
 }
@@ -1323,5 +1318,4 @@ loadVersion();
 loadSessions();
 loadSession().then(() => {
     loadDatedAvailability();
-    loadSummary();
 });
