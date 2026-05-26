@@ -16,6 +16,7 @@ export class UserAdminPanel {
         onDeleteUser = null,
         onAddGroup = null,
         onUpdateGroup = null,
+        onUpdateGroups = null,
         onDeleteGroup = null,
         onPlaceGroup = null,
         onClearGroup = null
@@ -29,6 +30,7 @@ export class UserAdminPanel {
         this.onDeleteUser = onDeleteUser;
         this.onAddGroup = onAddGroup;
         this.onUpdateGroup = onUpdateGroup;
+        this.onUpdateGroups = onUpdateGroups;
         this.onDeleteGroup = onDeleteGroup;
         this.onPlaceGroup = onPlaceGroup;
         this.onClearGroup = onClearGroup;
@@ -40,6 +42,7 @@ export class UserAdminPanel {
         this.groupList = null;
         this.groupEmpty = null;
         this.groupForm = null;
+        this.updateAllGroupsButton = null;
         this.groups = [];
         this.latestData = { users: [], groups: [] };
 
@@ -118,7 +121,21 @@ export class UserAdminPanel {
 
         if (this.isGroupsMode()) {
             const groupSection = createElement('div', { className: 'user-admin-group-section' });
-            groupSection.appendChild(createElement('h4', { text: 'Groupes JDR' }));
+            const groupHeading = createElement('div', { className: 'user-admin-group-heading' });
+            groupHeading.appendChild(createElement('h4', { text: 'Groupes JDR' }));
+            this.updateAllGroupsButton = createElement('button', {
+                className: 'secondary-button',
+                text: 'Mettre a jour tous les groupes',
+                attributes: { type: 'button' }
+            });
+            this.updateAllGroupsButton.addEventListener('click', () => {
+                const groups = this.collectGroupDrafts();
+                if (groups) {
+                    this.onUpdateGroups?.(groups);
+                }
+            });
+            groupHeading.appendChild(this.updateAllGroupsButton);
+            groupSection.appendChild(groupHeading);
             this.groupList = createElement('div', { className: 'user-admin-group-list' });
             groupSection.appendChild(this.groupList);
             this.groupEmpty = createElement('p', { className: 'user-admin-empty', text: 'Aucun groupe enregistre.' });
@@ -192,6 +209,7 @@ export class UserAdminPanel {
             this.groupList = null;
             this.groupEmpty = null;
             this.groupForm = null;
+            this.updateAllGroupsButton = null;
         }
 
         if (this.isUsersMode()) {
@@ -389,11 +407,16 @@ export class UserAdminPanel {
         if (this.groupEmpty) {
             this.groupEmpty.hidden = groups.length > 0;
         }
+        if (this.updateAllGroupsButton) {
+            this.updateAllGroupsButton.disabled = groups.length === 0;
+        }
         groups.forEach(group => {
             const row = createElement('div', { className: 'user-admin-group-row' });
+            row.dataset.groupId = group.id;
 
             const nameWrap = createElement('div', { className: 'user-admin-group-name' });
             const nameInput = createElement('input', {
+                className: 'user-admin-group-name-input',
                 attributes: {
                     type: 'text',
                     value: group.name || group.id
@@ -467,6 +490,30 @@ export class UserAdminPanel {
             row.appendChild(actions);
             this.groupList.appendChild(row);
         });
+    }
+
+    collectGroupDrafts() {
+        const rows = Array.from(this.groupList?.querySelectorAll('.user-admin-group-row') || []);
+        if (!rows.length) {
+            return null;
+        }
+        const groups = [];
+        for (const row of rows) {
+            const nameInput = row.querySelector('.user-admin-group-name-input');
+            const colorInput = row.querySelector('.user-admin-group-color');
+            const id = (row.dataset.groupId || '').trim();
+            const name = (nameInput?.value || '').trim();
+            if (!id || !name) {
+                nameInput?.focus();
+                return null;
+            }
+            groups.push({
+                id,
+                name,
+                color: (colorInput?.value || '').trim()
+            });
+        }
+        return groups;
     }
 
     onPromote(user) {

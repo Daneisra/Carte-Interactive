@@ -14,8 +14,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-26',
-        title: 'Version 0.17.46 - Publication version et changelog',
-        summary: 'La configuration servie aligne les versions affichees et publie correctement les patch notes du planning multi-date sur l accueil et le changelog.'
+        title: 'Version 0.17.47 - Admin groupes et tests API',
+        summary: 'L admin carte permet de mettre a jour tous les groupes JDR en une action et les tests API partageant des fichiers persistants sont serialises.'
     }
 ];
 

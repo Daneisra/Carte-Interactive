@@ -59,6 +59,8 @@ Routes utiles :
 - `PATCH /api/admin/home-config`
 - `GET /api/admin/timeline-config`
 - `PATCH /api/admin/timeline-config`
+- `GET /api/admin/groups`
+- `PATCH /api/admin/groups` (`{ id, ... }` ou `{ groups: [...] }`)
 
 ## Données
 
@@ -96,6 +98,7 @@ Les modifications faites via l'UI en production écrivent sur le VPS, pas dans l
 - Les données modifiées en prod peuvent être écrasées par un déploiement si le repo local n'est pas synchronisé.
 - `COOKIE_NAME` n'est pas une variable active tant que le code garde `map_session` en dur.
 - `/api/events/stream` est un flux SSE : tester avec un client qui accepte une connexion longue.
+- Les tests API modifient des fichiers JSON et les sessions locales ; le projet Playwright `api` reste serialise (`workers: 1`).
 
 ## Commandes de test
 

@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.46`.
+Version actuelle : `0.17.47`.
 
 ## Réalisations majeures livrées
 
@@ -34,6 +34,7 @@ Version actuelle : `0.17.46`.
 - [x] Admin accueil branché sur `/api/admin/home-config`.
 - [x] Admin chronologie branché sur `/api/admin/timeline-config`.
 - [x] Admin carte recentré sur lieux, carte, groupes, annotations, live, validation et télémétrie.
+- [x] Mise a jour globale des groupes JDR depuis l'admin carte.
 - [x] CI avec lint, tests unitaires, validation assets et tests Playwright.
 - [x] Déploiement continu vers VPS avec rsync, PM2 et Nginx.
 

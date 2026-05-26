@@ -1,9 +1,86 @@
 [
   {
     "id": "la-garderie",
-    "name": "La Garderie",
-    "color": null,
+    "name": "🦄 La Garderie",
+    "color": "#f9429e",
     "x": 7801,
     "y": 3715
+  },
+  {
+    "id": "le-bon-la-brute-et-le-truand",
+    "name": "🌵 Le Bon, la Brute et le Truand",
+    "color": "#d47a31",
+    "x": 7607,
+    "y": 442
+  },
+  {
+    "id": "les-mousseux",
+    "name": "🍾 Les Mousseux",
+    "color": "#efe1b8",
+    "x": 7415,
+    "y": 2600
+  },
+  {
+    "id": "sucre-coton",
+    "name": "🎍 Sucre & Coton",
+    "color": "#dccf64",
+    "x": 7565,
+    "y": 2583
+  },
+  {
+    "id": "les-hibours",
+    "name": "🦉 Les Hibours",
+    "color": "#6b6054",
+    "x": null,
+    "y": null
+  },
+  {
+    "id": "les-defenseurs",
+    "name": "🛡 Les Défenseurs",
+    "color": "#efd807",
+    "x": null,
+    "y": null
+  },
+  {
+    "id": "ordre-exterminatus",
+    "name": "📖 Ordre Exterminatus",
+    "color": "#fcce92",
+    "x": 1979,
+    "y": 1400
+  },
+  {
+    "id": "l-equipage",
+    "name": "🪼 L'Equipage",
+    "color": "#40e0d0",
+    "x": 5430,
+    "y": 2424
+  },
+  {
+    "id": "suicide-squad",
+    "name": "⚡ Suicide Squad",
+    "color": "#fa25cb",
+    "x": null,
+    "y": null
+  },
+  {
+    "id": "projet-manhattan",
+    "name": "💣 Projet Manhattan",
+    "color": "#3b4470",
+    "x": null,
+    "y": null
+  },
+  {
+    "id": "les-baladeurs-du-pourtour",
+    "name": "🚶 Les Baladeurs du Pourtour",
+    "color": "#80b7f2",
+    "x": null,
+    "y": null
+  },
+  {
+    "id": "les-mages-en-formation",
+    "name": "🧙 Les Mages en Formation",
+    "color": "#59138d",
+    "x": null,
+    "y": null
   }
 ]

@@ -1742,6 +1742,18 @@ body[data-theme="light"] .user-admin-table tbody tr:hover {
     gap: 12px;
 }
 
+.user-admin-group-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.user-admin-group-heading h4 {
+    margin: 0;
+}
+
 .user-admin-group-list {
     display: flex;
     flex-direction: column;

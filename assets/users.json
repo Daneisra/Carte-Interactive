@@ -7,8 +7,8 @@
     "role": "admin",
     "apiTokens": [],
     "avatar": "https://cdn.discordapp.com/avatars/1172705521317449809/128046ca64cc0ca2529912c88dd18a49.png?size=128",
-    "lastLoginAt": "2026-05-25T14:11:00.620Z",
-    "lastSeenAt": "2026-05-25T14:11:00.620Z",
+    "lastLoginAt": "2026-05-26T12:50:13.804Z",
+    "lastSeenAt": "2026-05-26T12:50:13.804Z",
     "availability": {
       "timezone": "Europe/Warsaw",
       "slots": [
@@ -66,7 +66,47 @@
         "twitch": "https://www.twitch.tv/daneisra",
         "youtube": "https://www.youtube.com/@daneisra"
       }
-    }
+    },
+    "groups": [
+      "le-bon-la-brute-et-le-truand",
+      "les-mousseux",
+      "ordre-exterminatus"
+    ],
+    "characters": [
+      {
+        "id": "char_65d066e8-c0e7-42eb-98ac-e32903ec2b81",
+        "name": "Lucina Brigieve",
+        "bio": "Fanatique Impitoyable de l'Ordre Exterminatus Lucina Brigieve",
+        "avatar": "https://cdn.discordapp.com/attachments/1194585061425684480/1194585061945786468/rafal-dorsz-sisterofbattle-rafaldorsz.png?ex=6a16c409&is=6a157289&hm=019f3368bf5f4f556bdb5f52449f2ae8d34697fc4733e05f408c9259a3693bfd",
+        "groupId": "ordre-exterminatus",
+        "active": false
+      },
+      {
+        "id": "char_2db7dbd7-ffef-4e96-92ef-792815a02269",
+        "name": "Kegan Valdefer",
+        "bio": null,
+        "avatar": "https://cdn.discordapp.com/attachments/1271539027732074628/1360670826063466626/raw.png?ex=6a1683b4&is=6a153234&hm=50f185660e852b0038630124a08a90f27b098dff023fb3336aa3bd70745eb8e1",
+        "groupId": null,
+        "active": true
+      },
+      {
+        "id": "char_1d58bcd7-7021-40a0-b352-68074a33a3bf",
+        "name": "Célinis Bovarie",
+        "bio": "Pour raconter l’histoire de Célinis, il faut d’abord parler de son père : Théobald Bovarie.\nThéobald venait d’une famille de riches marchands de l’Empire. Il hérita d’une immense fortune à la mort de son père... qu’il épuisa aussitôt pour publier ses propres écrits, d’une qualité plus que douteuse. \nIl épousa une marginale et s’installa dans un petit village reculé. Sa femme eut l’incroyable idée d’avoir recours à l’occultisme pour offrir à cet écrivain raté une inspiration infinie. Une entité inconnue répondit et exauça le vœu de Théobald… mais cela ne fit pas de lui un meilleur auteur.\n\nNeuf mois plus tard, Célinis naquit. Sa mère mourut en couches, et Théobald découvrit avec stupeur que sa fille était tieffeline. Par peur de l’Inquisition, il la cacha dans le grenier. \nCélinis passa ainsi toute son enfance à lire les torchons écrits par son père qu’il faisait passer pour de la grande littérature. C’est ainsi qu’elle développa une passion pour l’écriture… et pour son père. \n\nUn jour, à onze ans, elle aperçut par une fente dans le mur du grenier un jeune homme du village : Caleb Darkbraun, un grand beau brun ténébreux qui cachait plein de secrets.\nEnfin.. c’est le nom et l’histoire qu’elle s’imagina.\nElle commença alors à écrire des récits où elle partageait sa vie avec cet amant imaginaire, et vécut toute son adolescence dans ce monde de papier et de fantasmes. \n\nC’est durant cette période que Théobald découvrit un don étrange : lorsque Célinis dormait, elle partageait ses rêves fantasques avec ceux qui se trouvaient autour d’elle. \nPris de panique, il fit appel à un vieil ami, Théophilus Malherbe, un illusionniste raté vivant de tours de passe-passe et de spectacles miteux. C’est auprès de lui qu’elle apprit les rudiments de la magie d’illusion.\n\nPuis un soir, poussée par la curiosité, Célinis s’évada. \nElle découvrit la fête du Solstice de Moussart : la foule, les rires, les danses, les visages. Elle s’émerveilla tant qu’elle se mit à imaginer et écrire une romance pour chacun d’eux, et bien sûr, elle y glissa aussi son père. \nLe lendemain, elle se réveilla chez l’inquisiteur local. \nEt la fête reprit. \n\nCe fut à ce moment-là qu’elle parla de Théobald sans retenue, en long, en large et en travers, lui présentant même une romance qu’elle avait écrite entre lui et l’inquisiteur. \nLe lendemain, l’Inquisition arrêta Théobald pour hérésie. \n\nSeule, Célinis décida de suivre un groupe d’individus fascinants, les mêmes qu’elle avait rencontrés la veille, avant que la nuit et le vin ne les fassent tous échouer chez l’inquisiteur. Autant de sources d’inspiration qu’elle voyait déjà comme les protagonistes de son futur chef-d’œuvre romantique.\n\nIls étaient quatre. Une elfe noire silencieuse au regard dur, une tieffeline aux fantasmes débordants et aux rêves contagieux, un guérisseur à la peau d’écorce et au silence enraciné, et Niskar, le Tabaxi qui léchait les pierres pour lire l’avenir.\nCélinis trouva en eux la matière d’un millier d’histoires… et peut-être, sans le savoir, celle de sa propre rédemption.\n\n*Célinis est une tieffeline qui maîtrise la magie d’illusion.*\n*Elle écrit des histoires d’amour sur toutes les personnes qu’elle croise et a tendance à saigner du nez lorsqu’elle s’y plonge trop.*\n*Quand elle dort, ceux qui l’entourent rêvent de ses romances, qu’ils le veuillent ou non.*",
+        "avatar": "https://cdn.discordapp.com/attachments/1431310021857382440/1431310022234607757/734b1b77-b9c2-4e8d-9029-78d1fa0fd4d8.png?ex=6a166b15&is=6a151995&hm=3b05497bfa91d8f9a9da340701993713afd596e3768ed38db8d2f9e9d1d3b3f0",
+        "groupId": "les-mousseux",
+        "active": false
+      },
+      {
+        "id": "char_a8093a93-3a56-4087-955c-61ba303d502d",
+        "name": "Rovan Kessel",
+        "bio": "La Guerre des Rats venait à peine d’être déclarée lorsque Rovan Kessel sentit Carléone changer de souffle.\n\nDans la ville tentaculaire, les étages supérieurs parlaient déjà de bannières, de régence et de légitimité. Dans les bas-quartiers, on parlait surtout de peste, de pénurie et de recruteurs trop pressés. Les convois se multipliaient sur la grande route du sud, mais plus rien n’arrivait jusqu’aux niveaux inférieurs. L’or montait. La faim descendait.\n\nRovan opérait là où l’Empire n’osait pas regarder. Passeur devenu contrebandier, il faisait circuler déserteurs, espions et cargaisons non déclarées à travers les galeries mortes de Carléone. Les deux camps cherchaient déjà à acheter ce qu’ils ne pouvaient pas obtenir officiellement : armes sans sceau, messagers discrets, hommes “volontaires”.\n\nLa peste offrait d’autres opportunités. Les familles endettées signaient n’importe quoi pour fuir les niveaux infectés. Rovan appelait cela du transport sous contrat. D’autres parlaient déjà d’esclavage. Lui se contentait de fermer les registres et d’ouvrir des routes vers le sud, loin de la capitale.\n\nDans les tavernes basses, on murmurait que les rats d’argent et de jais se disputaient le royaume pendant que des rats comme Kessel prospéraient dans les murs. Théon combattait pour l’honneur, Kegan tissait sa toile - et Rovan survivait.\n\nLa guerre n’avait qu’un mois, mais Carléone saignait déjà.\nEt Rovan Kessel savait une chose : tant que le conflit durerait, la ville aurait besoin d’hommes capables de faire disparaître ce qu’elle ne voulait pas assumer.",
+        "avatar": "https://cdn.discordapp.com/attachments/1449554179243769887/1449554179822715031/82d7c649753ac3d275be6bc16fe1b6b0.png?ex=6a16df47&is=6a158dc7&hm=725beb55163a2b5a41d1656ead6b6df4bb5d154a613f0c77e5c21f0fa6412651",
+        "groupId": "le-bon-la-brute-et-le-truand",
+        "active": false
+      }
+    ],
+    "character": null
   },
   {
     "id": "discord:449219148636225547",
@@ -126,7 +166,15 @@
       ]
     },
     "groups": [
-      "la-garderie"
+      "la-garderie",
+      "le-bon-la-brute-et-le-truand",
+      "les-mousseux",
+      "les-hibours",
+      "les-defenseurs",
+      "ordre-exterminatus",
+      "l-equipage",
+      "projet-manhattan",
+      "les-mages-en-formation"
     ]
   },
   {
@@ -143,7 +191,9 @@
     "lastLoginAt": "2026-05-25T14:36:47.238Z",
     "lastSeenAt": "2026-05-25T14:36:47.238Z",
     "groups": [
-      "la-garderie"
+      "la-garderie",
+      "les-mousseux",
+      "l-equipage"
     ],
     "apiTokens": []
   }

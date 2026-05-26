@@ -28,7 +28,9 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'api',
-      testDir: 'tests/api'
+      testDir: 'tests/api',
+      // API specs mutate shared JSON and session fixtures.
+      workers: 1
     },
     {
       name: 'chromium',

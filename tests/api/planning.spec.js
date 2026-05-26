@@ -4,10 +4,12 @@ const path = require('path');
 
 const USERS_PATH = path.resolve(__dirname, '../../assets/users.json');
 const PLANNING_PATH = path.resolve(__dirname, '../../assets/planning.json');
+const GROUPS_PATH = path.resolve(__dirname, '../../assets/groups.json');
 const SESSIONS_PATH = path.resolve(__dirname, '../../assets/logs/sessions.json');
 
 let usersSnapshot = null;
 let planningSnapshot = null;
+let groupsSnapshot = null;
 
 const loginWithDiscordStub = async request => {
     const loginResponse = await request.get('/auth/discord/login', { maxRedirects: 0 });
@@ -29,6 +31,7 @@ test.describe('Planning - API', () => {
     test.beforeAll(async () => {
         usersSnapshot = await fs.promises.readFile(USERS_PATH, 'utf8').catch(() => null);
         planningSnapshot = await fs.promises.readFile(PLANNING_PATH, 'utf8').catch(() => null);
+        groupsSnapshot = await fs.promises.readFile(GROUPS_PATH, 'utf8').catch(() => null);
         await fs.promises.unlink(SESSIONS_PATH).catch(error => {
             if (error.code !== 'ENOENT') {
                 throw error;
@@ -43,6 +46,9 @@ test.describe('Planning - API', () => {
         if (planningSnapshot !== null) {
             await fs.promises.writeFile(PLANNING_PATH, planningSnapshot, 'utf8');
         }
+        if (groupsSnapshot !== null) {
+            await fs.promises.writeFile(GROUPS_PATH, groupsSnapshot, 'utf8');
+        }
         await fs.promises.unlink(SESSIONS_PATH).catch(error => {
             if (error.code !== 'ENOENT') {
                 throw error;
@@ -55,8 +61,8 @@ test.describe('Planning - API', () => {
         expect(changelogResponse.status()).toBe(200);
         const changelogPayload = await changelogResponse.json();
         expect(changelogPayload.entries.map(entry => entry.title)).toEqual([
-            'Version 0.17.46 - Publication version et changelog',
-            'Version 0.17.45 - Planning multi-date'
+            'Version 0.17.47 - Admin groupes et tests API',
+            'Version 0.17.46 - Publication version et changelog'
         ]);
 
         const publicBefore = await request.get('/api/planning/sessions');
@@ -65,6 +71,30 @@ test.describe('Planning - API', () => {
         expect(Array.isArray(publicPayload.sessions)).toBeTruthy();
 
         await loginWithDiscordStub(request);
+        const groupsBeforeResponse = await request.get('/api/admin/groups');
+        expect(groupsBeforeResponse.status()).toBe(200);
+        const groupsBefore = (await groupsBeforeResponse.json()).groups;
+        expect(groupsBefore.length).toBeGreaterThan(0);
+        const existingGroup = groupsBefore[0];
+        const createGroupResponse = await request.post('/api/admin/groups', {
+            data: { name: 'Groupe lot API', color: '#2468ac' }
+        });
+        expect(createGroupResponse.status()).toBe(201);
+        const createdGroup = (await createGroupResponse.json()).group;
+        const updateGroupsResponse = await request.patch('/api/admin/groups', {
+            data: {
+                groups: [
+                    { id: existingGroup.id, name: `${existingGroup.name} test lot`, color: '#123456' },
+                    { id: createdGroup.id, name: 'Groupe lot API actualise', color: '#654321' }
+                ]
+            }
+        });
+        expect(updateGroupsResponse.status()).toBe(200);
+        const updatedGroups = (await updateGroupsResponse.json()).groups;
+        expect(updatedGroups.map(group => group.name)).toEqual([`${existingGroup.name} test lot`, 'Groupe lot API actualise']);
+        expect(updatedGroups[0].x).toBe(existingGroup.x);
+        expect(updatedGroups[0].y).toBe(existingGroup.y);
+
         const slots = Array.from({ length: 7 }, () => Array.from({ length: 4 }, () => null));
         slots[0][2] = 'available';
         slots[6][2] = 'busy';

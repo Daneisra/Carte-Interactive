@@ -304,6 +304,53 @@ test.describe('Points d\'entree admin', () => {
     expect(requests).toHaveLength(0);
   });
 
+  test('l admin groupes met a jour tous les groupes en une action', async ({ page }) => {
+    await loginAsAdmin(page);
+    let updatePayload = null;
+    await page.route('**/api/admin/groups', async route => {
+      const request = route.request();
+      const groups = [
+        { id: 'groupe-a', name: 'Groupe A', color: '#111111', x: null, y: null },
+        { id: 'groupe-b', name: 'Groupe B', color: '#222222', x: 10, y: 20 }
+      ];
+      if (request.method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ status: 'ok', groups })
+        });
+        return;
+      }
+      if (request.method() === 'PATCH') {
+        updatePayload = request.postDataJSON();
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ status: 'ok', groups: updatePayload.groups })
+        });
+        return;
+      }
+      await route.continue();
+    });
+
+    await page.goto('/map/');
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('#profile-button').click();
+    await page.locator('#quick-admin-groups').click();
+
+    await expect(page.locator('#user-admin-overlay')).toBeVisible();
+    const rows = page.locator('.user-admin-group-row');
+    await expect(rows).toHaveCount(2);
+    await rows.nth(0).locator('.user-admin-group-name-input').fill('Groupe A actualise');
+    await rows.nth(1).locator('.user-admin-group-color').fill('#abcdef');
+    await page.getByRole('button', { name: 'Mettre a jour tous les groupes' }).click();
+
+    await expect.poll(() => updatePayload?.groups || null).toEqual([
+      { id: 'groupe-a', name: 'Groupe A actualise', color: '#111111' },
+      { id: 'groupe-b', name: 'Groupe B', color: '#abcdef' }
+    ]);
+  });
+
   test('le panneau admin carte charge l audit global des descriptions', async ({ page }) => {
     await loginAsAdmin(page);
 

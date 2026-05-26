@@ -74,7 +74,7 @@ const AVAILABILITY_STATUS = {
   BUSY: 'busy'
 };
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.46',
+  version: '0.17.47',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -130,6 +130,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-05-26',
+      title: 'Version 0.17.47 - Admin groupes et tests API',
+      summary: 'L admin carte permet de mettre a jour tous les groupes JDR en une action et les tests API partageant des fichiers persistants sont serialises.'
+    },
     {
       date: '2026-05-26',
       title: 'Version 0.17.46 - Publication version et changelog',
@@ -2575,6 +2580,45 @@ const updateGroup = async (id, { name, color, x, y }) => {
   return group;
 };
 
+const updateGroups = async entries => {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return [];
+  }
+  const groups = await readGroupsFile();
+  const byId = new Map(groups.map(group => [group.id, group]));
+  const seen = new Set();
+  const changes = [];
+  for (const entry of entries) {
+    const id = normalizeString(entry?.id);
+    const name = normalizeString(entry?.name);
+    const group = byId.get(id);
+    if (!id || !name || !group || seen.has(id)) {
+      return null;
+    }
+    seen.add(id);
+    changes.push({
+      group,
+      name,
+      color: normalizeGroupColor(entry?.color)
+    });
+  }
+  let updated = false;
+  changes.forEach(({ group, name, color }) => {
+    if (group.name !== name) {
+      group.name = name;
+      updated = true;
+    }
+    if (group.color !== color) {
+      group.color = color;
+      updated = true;
+    }
+  });
+  if (updated) {
+    await writeGroupsFile(groups);
+  }
+  return changes.map(({ group }) => group);
+};
+
 const removeGroupFromUsers = async groupId => {
   const users = await readUsersFile();
   let changed = false;
@@ -3632,6 +3676,22 @@ const server = http.createServer(async (req, res) => {
           payload = JSON.parse(body || '{}');
         } catch (error) {
           send(res, 400, 'Invalid JSON');
+          return;
+        }
+        if (Array.isArray(payload?.groups)) {
+          if (!payload.groups.length) {
+            send(res, 400, JSON.stringify({ status: 'error', message: 'groups is required.' }), { 'Content-Type': 'application/json' });
+            return;
+          }
+          const groups = await updateGroups(payload.groups);
+          if (!groups) {
+            send(res, 400, JSON.stringify({ status: 'error', message: 'Each group must reference an existing id and a name.' }), { 'Content-Type': 'application/json' });
+            return;
+          }
+          send(res, 200, JSON.stringify({
+            status: 'ok',
+            groups: groups.map(group => sanitizeGroupRecord(group))
+          }), { 'Content-Type': 'application/json' });
           return;
         }
         const id = normalizeString(payload?.id);

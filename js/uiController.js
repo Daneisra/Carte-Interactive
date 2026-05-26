@@ -3802,6 +3802,7 @@ export class UiController {
                 onDeleteUser: user => this.removeUser(user),
                 onAddGroup: payload => this.createGroup(payload),
                 onUpdateGroup: payload => this.updateGroup(payload),
+                onUpdateGroups: groups => this.updateGroups(groups),
                 onDeleteGroup: group => this.removeGroup(group),
                 onPlaceGroup: group => this.startGroupPlacement(group),
                 onClearGroup: group => this.clearGroupPlacement(group)
@@ -4614,6 +4615,47 @@ export class UiController {
             this.logTelemetryEvent({
                 title: 'Admin groups - mise a jour',
                 description: error?.message || 'Echec mise a jour groupe',
+                route: '/api/admin/groups',
+                method: 'PATCH',
+                status: error?.status || null
+            });
+        }
+    }
+
+    async updateGroups(groups) {
+        if (!Array.isArray(groups) || !groups.length) {
+            this.announcer?.assertive?.('Aucun groupe a mettre a jour.');
+            return;
+        }
+        try {
+            const response = await fetch('/api/admin/groups', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ groups })
+            });
+            if (!response.ok) {
+                const error = new Error(`HTTP ${response.status}`);
+                error.status = response.status;
+                this.logTelemetryEvent({
+                    title: 'Admin groups - mise a jour globale',
+                    description: error.message,
+                    route: '/api/admin/groups',
+                    method: 'PATCH',
+                    status: response.status
+                });
+                throw error;
+            }
+            await this.refreshUserAdminPanel();
+            await this.fetchSession();
+            await this.fetchGroups();
+            this.announcer?.polite?.('Tous les groupes ont ete mis a jour.');
+        } catch (error) {
+            console.error('[admin] update all groups failed', error);
+            this.announcer?.assertive?.('Mise a jour des groupes impossible.');
+            this.logTelemetryEvent({
+                title: 'Admin groups - mise a jour globale',
+                description: error?.message || 'Echec mise a jour groupes',
                 route: '/api/admin/groups',
                 method: 'PATCH',
                 status: error?.status || null
