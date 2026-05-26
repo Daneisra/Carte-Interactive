@@ -14,8 +14,8 @@ const dom = {
 const FALLBACK_CHANGELOG = [
     {
         date: '2026-05-26',
-        title: 'Version 0.17.45 - Planning multi-date',
-        summary: 'Les joueurs et admins peuvent enregistrer plusieurs dates en une fois ; les syntheses hebdomadaires obsoletes ont ete retirees du planning et de l admin carte.'
+        title: 'Version 0.17.46 - Publication version et changelog',
+        summary: 'La configuration servie aligne les versions affichees et publie correctement les patch notes du planning multi-date sur l accueil et le changelog.'
     }
 ];
 

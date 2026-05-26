@@ -10,9 +10,9 @@ test.describe('Changelog - UI', () => {
         source: 'config',
         entries: [
           {
-            date: '2026-05-18',
-            title: 'Version 0.17.44 - Planning date et sessions',
-            summary: 'Le planning clique directement les dates.'
+            date: '2026-05-26',
+            title: 'Version 0.17.46 - Publication version et changelog',
+            summary: 'Les versions visibles et les patch notes sont alignees.'
           },
           {
             date: '2026-05-12',
@@ -27,10 +27,12 @@ test.describe('Changelog - UI', () => {
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('#changelog-title')).toContainText('Suivre les evolutions');
+    await expect(page.locator('#changelog-version')).toHaveText('0.17.46');
+    await expect(page.locator('#changelog-version-footer')).toHaveText('0.17.46');
     await expect(page.locator('#changelog-count')).toHaveText('2');
     await expect(page.locator('#changelog-source')).toHaveText('Config');
     await expect(page.locator('.changelog-entry')).toHaveCount(2);
-    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.44 - Planning date et sessions');
+    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.46 - Publication version et changelog');
   });
 
   test('la page reste exploitable sur mobile', async ({ page }) => {

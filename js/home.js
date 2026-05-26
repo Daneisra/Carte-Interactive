@@ -84,7 +84,7 @@ const PAYPAL_DONATION_URL = 'https://paypal.me/Daneisra?country.x=FR&locale.x=fr
 const HOME_ADMIN_ENTRY_URL = '/?admin=home';
 
 const DEFAULT_SITE_CONFIG = {
-    version: '0.17.45',
+    version: '0.17.46',
     home: {
         kicker: 'Accueil - Hub narratif',
         title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -140,6 +140,11 @@ const DEFAULT_SITE_CONFIG = {
         footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
     },
         changelog: [
+        {
+            date: '2026-05-26',
+            title: 'Version 0.17.46 - Publication version et changelog',
+            summary: 'La configuration servie aligne les versions affichees et publie correctement les patch notes du planning multi-date sur l accueil et le changelog.'
+        },
         {
             date: '2026-05-26',
             title: 'Version 0.17.45 - Planning multi-date',

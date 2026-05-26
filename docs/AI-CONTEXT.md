@@ -84,7 +84,9 @@ Les modifications faites via l'UI en production écrivent sur le VPS, pas dans l
 - Garder le front en modules ES et le serveur en CommonJS.
 - Préférer des correctifs minimaux et ciblés.
 - Respecter les données JSON existantes et valider avant livraison.
-- Pour chaque changement livré, aligner la version dans `package.json`, `package-lock.json`, `assets/site-config.json`, le changelog accueil, `ROADMAP.md` et les docs concernées.
+- Pour chaque changement livre, incrementer et aligner la version dans `package.json`, `package-lock.json`, `assets/site-config.json`, `server.js`, `js/home.js`, `js/changelog.js`, `js/ui/adminHome.js`, `index.html`, `planning/index.html`, `changelog/index.html`, `README.md`, `ROADMAP.md` et les docs/tests concernes.
+- Ajouter l'entree de changelog en tete de `assets/site-config.json`, `server.js` et `js/home.js`; actualiser le fallback de `js/changelog.js`.
+- `assets/site-config.json` est la source runtime de la version et du changelog : il remplace les valeurs statiques des pages accueil/planning et alimente `/api/changelog`. Une version non mise a jour dans ce fichier masque les autres corrections visibles.
 
 ## Pièges connus
 

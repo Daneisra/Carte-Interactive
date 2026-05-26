@@ -7,6 +7,8 @@ test.describe('Planning - UI', () => {
 
     await expect(page.locator('.planning-nav a[aria-current="page"]')).toHaveText('Planning');
     await expect(page.locator('#planning-title')).toContainText('Trouver une date');
+    await expect(page.locator('#planning-version')).toHaveText('0.17.46');
+    await expect(page.locator('#planning-version-footer')).toHaveText('0.17.46');
     await expect(page.locator('#planning-agenda-title')).toHaveText('Sessions candidates');
     await expect(page.locator('#planning-dated-title')).toHaveText("Mes disponibilites dans l'agenda");
     await expect(page.locator('.planning-agenda-day')).toHaveCount(42);

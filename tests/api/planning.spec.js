@@ -51,6 +51,14 @@ test.describe('Planning - API', () => {
     });
 
     test('admin cree une session candidate et un joueur repond a une date precise', async ({ request }) => {
+        const changelogResponse = await request.get('/api/changelog?limit=2');
+        expect(changelogResponse.status()).toBe(200);
+        const changelogPayload = await changelogResponse.json();
+        expect(changelogPayload.entries.map(entry => entry.title)).toEqual([
+            'Version 0.17.46 - Publication version et changelog',
+            'Version 0.17.45 - Planning multi-date'
+        ]);
+
         const publicBefore = await request.get('/api/planning/sessions');
         expect(publicBefore.status()).toBe(200);
         const publicPayload = await publicBefore.json();
