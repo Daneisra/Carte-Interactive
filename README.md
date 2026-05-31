@@ -2,7 +2,7 @@
 
 Hub narratif et carte interactive pour l'univers d'Hesta. Le projet sert à explorer les lieux, suivre les quêtes, relier la chronologie aux zones de la carte et administrer les contenus sans modifier les JSON à la main.
 
-Version actuelle : `0.17.47`.
+Version actuelle : `0.17.48`.
 
 ## Fonctionnalités principales
 
@@ -10,6 +10,7 @@ Version actuelle : `0.17.47`.
 - Édition admin des lieux, médias, groupes, annotations et événements de quête.
 - Authentification Discord OAuth avec rôles utilisateur/admin.
 - Accueil immersif avec liens communauté, dons, crédits et panneau admin dédié.
+- Page convention Geek Unchained pour presenter Le Monde d'Hesta aux visiteurs et joueurs.
 - Chronologie horizontale dédiée avec événements, filtres, médias et liens vers la carte.
 - Planning JDR dédié pour saisir les disponibilités, repérer les créneaux communs et préparer les sessions.
 - Page changelog publique pour consulter les versions et changements récents.

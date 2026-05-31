@@ -13,9 +13,9 @@ const dom = {
 
 const FALLBACK_CHANGELOG = [
     {
-        date: '2026-05-26',
-        title: 'Version 0.17.47 - Admin groupes et tests API',
-        summary: 'L admin carte permet de mettre a jour tous les groupes JDR en une action et les tests API partageant des fichiers persistants sont serialises.'
+        date: '2026-06-01',
+        title: 'Version 0.17.48 - Page Geek Unchained',
+        summary: 'Une page publique dediee a la Geek Unchained presente Le Monde d Hesta, ses tables JDR, la carte interactive et les infos pratiques de convention.'
     }
 ];
 

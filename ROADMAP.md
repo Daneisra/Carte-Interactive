@@ -12,7 +12,7 @@ Objectifs produit :
 - garder une expérience lisible pour les joueurs, les MJ et les contributeurs ;
 - conserver un socle technique simple : front statique, API Node légère, données JSON versionnables.
 
-Version actuelle : `0.17.47`.
+Version actuelle : `0.17.48`.
 
 ## Réalisations majeures livrées
 
@@ -30,6 +30,7 @@ Version actuelle : `0.17.47`.
 - [x] Page d'accueil immersive avec CTA carte, état de session, communauté, dons, crédits et panneau admin dédié.
 - [x] Page chronologie dédiée avec frise horizontale, filtres, détail événement, liens carte/frise et panneau admin dédié.
 - [x] Page planning dédiée avec agenda mensuel, sessions candidates, réponses joueur, disponibilités datées et admin planning.
+- [x] Page convention Geek Unchained dédiée a la presentation publique du Monde d'Hesta.
 - [x] Séparation des panneaux admin : accueil, chronologie et carte.
 - [x] Admin accueil branché sur `/api/admin/home-config`.
 - [x] Admin chronologie branché sur `/api/admin/timeline-config`.

@@ -14,6 +14,7 @@ Ce document sert de point d'entrée pour une IA travaillant dans VS Code/Codex s
 ## Fichiers principaux
 
 - `index.html` : page d'accueil.
+- `geek-unchained/index.html` : page publique de presentation convention Geek Unchained.
 - `map/index.html` : page carte.
 - `timeline/index.html` : page chronologie.
 - `js/main.js` : initialisation de la carte.

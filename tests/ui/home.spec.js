@@ -19,7 +19,7 @@ test.describe('Accueil - compteur Discord', () => {
     await page.waitForLoadState('domcontentloaded');
 
     const proof = page.locator('#home-community-discord-proof');
-    await expect(page.locator('#home-version')).toHaveText('0.17.47');
+    await expect(page.locator('#home-version')).toHaveText('0.17.48');
     await expect(proof).toHaveText('321 membres sur Discord en direct');
     await expect(proof).toHaveAttribute('data-state', 'live');
     await expect(page.locator('#home-community-note')).toContainText('Compteur Discord live actif.');
@@ -61,7 +61,7 @@ test.describe('Accueil - patch notes', () => {
         entries: [
           {
             date: '2026-05-26',
-            title: 'Version 0.17.47 - Admin groupes et tests API',
+            title: 'Version 0.17.48 - Page Geek Unchained',
             summary: 'Les versions visibles et les patch notes sont alignees.'
           }
         ]
@@ -72,10 +72,11 @@ test.describe('Accueil - patch notes', () => {
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
-    await expect(page.locator('#home-version')).toHaveText('0.17.47');
+    await expect(page.locator('#home-version')).toHaveText('0.17.48');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.47 - Admin groupes et tests API');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.48 - Page Geek Unchained');
+    await expect(page.locator('.site-footer-links a[href="/geek-unchained/"]')).toHaveText('Geek Unchained');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
 });
