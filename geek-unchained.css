@@ -343,6 +343,12 @@ h3 {
     padding: clamp(24px, 4vw, 44px);
 }
 
+.gu-section-flat {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+}
+
 .gu-section-emphasis {
     background: linear-gradient(135deg, rgba(13, 20, 36, 0.94), rgba(26, 19, 42, 0.88));
 }
@@ -402,7 +408,19 @@ h3 {
     color: var(--gu-text);
     font-size: clamp(1.25rem, 2vw, 1.8rem);
     font-weight: 850;
+    font-style: italic;
     line-height: 1.35;
+}
+
+.gu-quote-card cite {
+    display: block;
+    margin-top: 16px;
+    color: var(--gu-gold);
+    font-size: 0.95rem;
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .gu-world {
@@ -430,10 +448,10 @@ h3 {
 
 .gu-list-grid p {
     margin: 0;
+    padding: 0 0 0 16px;
     border-left: 3px solid rgba(115, 183, 255, 0.64);
-    border-radius: 14px;
-    padding: 14px 16px;
-    background: rgba(115, 183, 255, 0.06);
+    border-radius: 0;
+    background: transparent;
 }
 
 .gu-steps {
@@ -472,53 +490,6 @@ h3 {
 .gu-info-list dd {
     margin: 7px 0 0;
     font-weight: 800;
-}
-
-.gu-map-preview {
-    min-height: 320px;
-    border: 1px solid rgba(196, 181, 253, 0.2);
-    border-radius: 28px;
-    background:
-        radial-gradient(circle at 22% 28%, rgba(230, 193, 106, 0.34), transparent 12%),
-        radial-gradient(circle at 70% 64%, rgba(115, 183, 255, 0.3), transparent 13%),
-        radial-gradient(circle at 54% 36%, rgba(248, 113, 113, 0.24), transparent 11%),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-    position: relative;
-    overflow: hidden;
-}
-
-.gu-map-preview::before {
-    content: "";
-    position: absolute;
-    inset: 18px;
-    border: 1px dashed rgba(229, 237, 248, 0.2);
-    border-radius: 24px;
-}
-
-.gu-map-preview span {
-    position: absolute;
-    border: 1px solid rgba(229, 237, 248, 0.2);
-    border-radius: 999px;
-    padding: 8px 10px;
-    background: rgba(3, 7, 18, 0.72);
-    color: var(--gu-text);
-    font-weight: 900;
-}
-
-.gu-map-preview span:nth-child(1) {
-    top: 24%;
-    left: 14%;
-}
-
-.gu-map-preview span:nth-child(2) {
-    right: 14%;
-    bottom: 24%;
-}
-
-.gu-map-preview span:nth-child(3) {
-    top: 42%;
-    right: 18%;
-    color: #fecaca;
 }
 
 .gu-info-list {
@@ -636,7 +607,4 @@ h3 {
         grid-template-columns: 1fr;
     }
 
-    .gu-map-preview {
-        min-height: 240px;
-    }
 }
