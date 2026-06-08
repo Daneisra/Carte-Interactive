@@ -343,18 +343,11 @@ h3 {
     padding: clamp(24px, 4vw, 44px);
 }
 
-.gu-section-flat {
-    border-color: transparent;
-    background: transparent;
-    box-shadow: none;
-}
-
 .gu-section-emphasis {
     background: linear-gradient(135deg, rgba(13, 20, 36, 0.94), rgba(26, 19, 42, 0.88));
 }
 
 .gu-card-grid,
-.gu-list-grid,
 .gu-steps,
 .gu-facts,
 .gu-info-list,
@@ -440,18 +433,6 @@ h3 {
 .gu-world blockquote p {
     color: var(--gu-text);
     font-size: clamp(1.05rem, 1.8vw, 1.36rem);
-}
-
-.gu-list-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.gu-list-grid p {
-    margin: 0;
-    padding: 0 0 0 16px;
-    border-left: 3px solid rgba(115, 183, 255, 0.64);
-    border-radius: 0;
-    background: transparent;
 }
 
 .gu-steps {
@@ -599,7 +580,6 @@ h3 {
     }
 
     .gu-card-grid,
-    .gu-list-grid,
     .gu-steps,
     .gu-facts,
     .gu-info-list,
