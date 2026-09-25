@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/assets/hesta-identity.css">
     <link rel="stylesheet" href="editor.css">
     <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
@@ -419,7 +420,8 @@
 
     <!-- 🎛️ Barre de contrôle en bas à droite -->
     <div id="map-controls">
-        <a id="back-home" class="map-home-link" href="/" aria-label="Revenir a l'accueil" title="Revenir a l'accueil">Accueil</a>
+        <a id="back-home" class="map-home-link" href="/" aria-label="Accueil Carte Hesta" title="Accueil Carte Hesta"><span class="hesta-wordmark">HESTA</span><span class="hesta-divider" aria-hidden="true">·</span>Carte Hesta</a>
+        <a class="map-home-link map-pa-link" href="https://pahesta.dannytech.fr/" aria-label="Système PA" title="Système PA"><span class="map-pa-label-full">Système PA</span><span class="map-pa-label-compact" aria-hidden="true">PA</span></a>
         <button id="zoom-in" aria-label="Zoom avant" type="button"><span aria-hidden="true">&#x2795;</span></button>
         <button id="zoom-out" aria-label="Zoom arrière" type="button"><span aria-hidden="true">&#x2796;</span></button>
         <button id="reset-map" aria-label="Recentrer la carte" type="button" title="Recentrer"><span aria-hidden="true">&#x21BA;</span></button>
