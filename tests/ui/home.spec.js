@@ -21,9 +21,8 @@ test.describe('Accueil - compteur Discord', () => {
     const proof = page.locator('#home-community-discord-proof');
     await expect(page.locator('#home-version')).toHaveText('0.17.49');
     const paLink = page.locator('.home-nav a[href="https://pahesta.dannytech.fr/"]');
-    await expect(paLink).toHaveText('Système PA / Armures d100');
-    await expect(paLink).toHaveAttribute('target', '_blank');
-    await expect(paLink).toHaveAttribute('rel', 'noopener noreferrer');
+    await expect(paLink).toHaveText('Système PA');
+    await expect(paLink).not.toHaveAttribute('target');
     await expect(proof).toHaveText('321 membres sur Discord en direct');
     await expect(proof).toHaveAttribute('data-state', 'live');
     await expect(page.locator('#home-community-note')).toContainText('Compteur Discord live actif.');
@@ -97,7 +96,7 @@ test.describe('Accueil - mobile', () => {
     await expect(page.locator('.home-nav')).toBeVisible();
     await expect(page.locator('.home-nav a[href="/changelog/"]')).toHaveText('Changelog');
     await expect(page.locator('.home-nav a[href="/planning/"]')).toHaveText('Planning');
-    await expect(page.locator('.home-nav a[href="https://pahesta.dannytech.fr/"]')).toHaveText('Système PA / Armures d100');
+    await expect(page.locator('.home-nav a[href="https://pahesta.dannytech.fr/"]')).toHaveText('Système PA');
     await expect(page.locator('#home-enter-map')).toBeVisible();
     await expect(page.locator('#home-support-title')).toBeVisible();
 
