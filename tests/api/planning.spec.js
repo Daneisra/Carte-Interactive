@@ -61,8 +61,8 @@ test.describe('Planning - API', () => {
         expect(changelogResponse.status()).toBe(200);
         const changelogPayload = await changelogResponse.json();
         expect(changelogPayload.entries.map(entry => entry.title)).toEqual([
-            'Version 0.17.48 - Page Geek Unchained',
-            'Version 0.17.47 - Admin groupes et tests API'
+            'Version 0.17.49 - Acces au systeme PA',
+            'Version 0.17.48 - Page Geek Unchained'
         ]);
 
         const publicBefore = await request.get('/api/planning/sessions');

@@ -74,7 +74,7 @@ const AVAILABILITY_STATUS = {
   BUSY: 'busy'
 };
 const DEFAULT_SITE_CONFIG = {
-  version: '0.17.48',
+  version: '0.17.49',
   home: {
     kicker: 'Accueil - Hub narratif',
     title: "Entrez dans l'univers avant d'ouvrir la carte",
@@ -130,6 +130,11 @@ const DEFAULT_SITE_CONFIG = {
     footerNote: "Projet narratif / JDR - fan project / page d'accueil officielle."
   },
   changelog: [
+    {
+      date: '2026-09-25',
+      title: 'Version 0.17.49 - Acces au systeme PA',
+      summary: 'L accueil propose un lien direct vers l outil Systeme PA / Armures d100 dans la navigation principale.'
+    },
     {
       date: '2026-06-01',
       title: 'Version 0.17.48 - Page Geek Unchained',

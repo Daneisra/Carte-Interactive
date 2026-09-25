@@ -10,8 +10,8 @@ test.describe('Changelog - UI', () => {
         source: 'config',
         entries: [
           {
-            date: '2026-05-26',
-            title: 'Version 0.17.48 - Page Geek Unchained',
+            date: '2026-09-25',
+            title: 'Version 0.17.49 - Acces au systeme PA',
             summary: 'Les versions visibles et les patch notes sont alignees.'
           },
           {
@@ -27,12 +27,12 @@ test.describe('Changelog - UI', () => {
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('#changelog-title')).toContainText('Suivre les evolutions');
-    await expect(page.locator('#changelog-version')).toHaveText('0.17.48');
-    await expect(page.locator('#changelog-version-footer')).toHaveText('0.17.48');
+    await expect(page.locator('#changelog-version')).toHaveText('0.17.49');
+    await expect(page.locator('#changelog-version-footer')).toHaveText('0.17.49');
     await expect(page.locator('#changelog-count')).toHaveText('2');
     await expect(page.locator('#changelog-source')).toHaveText('Config');
     await expect(page.locator('.changelog-entry')).toHaveCount(2);
-    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.48 - Page Geek Unchained');
+    await expect(page.locator('.changelog-entry').first()).toContainText('Version 0.17.49 - Acces au systeme PA');
   });
 
   test('la page reste exploitable sur mobile', async ({ page }) => {

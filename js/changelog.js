@@ -13,9 +13,9 @@ const dom = {
 
 const FALLBACK_CHANGELOG = [
     {
-        date: '2026-06-01',
-        title: 'Version 0.17.48 - Page Geek Unchained',
-        summary: 'Une page publique dediee a la Geek Unchained presente Le Monde d Hesta, ses tables JDR, la carte interactive et les infos pratiques de convention.'
+        date: '2026-09-25',
+        title: 'Version 0.17.49 - Acces au systeme PA',
+        summary: 'L accueil propose un lien direct vers l outil Systeme PA / Armures d100 dans la navigation principale.'
     }
 ];
 

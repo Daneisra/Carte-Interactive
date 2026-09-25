@@ -19,7 +19,11 @@ test.describe('Accueil - compteur Discord', () => {
     await page.waitForLoadState('domcontentloaded');
 
     const proof = page.locator('#home-community-discord-proof');
-    await expect(page.locator('#home-version')).toHaveText('0.17.48');
+    await expect(page.locator('#home-version')).toHaveText('0.17.49');
+    const paLink = page.locator('.home-nav a[href="https://pahesta.dannytech.fr/"]');
+    await expect(paLink).toHaveText('Système PA / Armures d100');
+    await expect(paLink).toHaveAttribute('target', '_blank');
+    await expect(paLink).toHaveAttribute('rel', 'noopener noreferrer');
     await expect(proof).toHaveText('321 membres sur Discord en direct');
     await expect(proof).toHaveAttribute('data-state', 'live');
     await expect(page.locator('#home-community-note')).toContainText('Compteur Discord live actif.');
@@ -60,8 +64,8 @@ test.describe('Accueil - patch notes', () => {
         source: 'config',
         entries: [
           {
-            date: '2026-05-26',
-            title: 'Version 0.17.48 - Page Geek Unchained',
+            date: '2026-09-25',
+            title: 'Version 0.17.49 - Acces au systeme PA',
             summary: 'Les versions visibles et les patch notes sont alignees.'
           }
         ]
@@ -72,10 +76,10 @@ test.describe('Accueil - patch notes', () => {
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('#home-changelog-title')).toHaveText('Derniers changements');
-    await expect(page.locator('#home-version')).toHaveText('0.17.48');
+    await expect(page.locator('#home-version')).toHaveText('0.17.49');
     await expect(page.locator('#home-changelog-status')).toHaveText('A jour');
     await expect(page.locator('.home-changelog-item')).toHaveCount(1);
-    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.48 - Page Geek Unchained');
+    await expect(page.locator('.home-changelog-item').first()).toContainText('Version 0.17.49 - Acces au systeme PA');
     await expect(page.locator('.site-footer-links a[href="/geek-unchained/"]')).toHaveText('Geek Unchained');
     await expect(page.locator('a[href="/changelog/"]').first()).toBeVisible();
   });
@@ -93,6 +97,7 @@ test.describe('Accueil - mobile', () => {
     await expect(page.locator('.home-nav')).toBeVisible();
     await expect(page.locator('.home-nav a[href="/changelog/"]')).toHaveText('Changelog');
     await expect(page.locator('.home-nav a[href="/planning/"]')).toHaveText('Planning');
+    await expect(page.locator('.home-nav a[href="https://pahesta.dannytech.fr/"]')).toHaveText('Système PA / Armures d100');
     await expect(page.locator('#home-enter-map')).toBeVisible();
     await expect(page.locator('#home-support-title')).toBeVisible();
 
