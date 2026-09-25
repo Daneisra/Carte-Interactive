@@ -3059,19 +3059,29 @@ body[data-theme="light"] #events-filter option {
     border-color: rgba(255, 255, 255, 0.18);
 }
 
-#map-controls .map-home-link.map-home-action {
+#map-controls .map-home-link:is(.map-home-action, .map-pa-link) {
     flex: 0 0 38px;
     width: 38px;
     padding: 0;
+}
+
+#map-controls .map-home-link.map-home-action {
     font-size: 20px;
 }
 
-#map-controls .map-home-link.map-identity {
-    padding-inline: 11px;
+#map-controls .map-hesta-link {
+    padding-inline: 12px;
 }
 
-.map-pa-label-compact {
-    display: none;
+#map-controls .map-hesta-link .hesta-wordmark {
+    font-size: 12px;
+    opacity: 1;
+}
+
+#map-controls .map-nav-icon {
+    width: 19px;
+    height: 19px;
+    flex: none;
 }
 
 #map-controls button.map-control-button {
@@ -3107,6 +3117,11 @@ body[data-theme="light"] #events-filter option {
 #map-controls .map-home-link:focus-visible {
     background: rgba(59, 130, 246, 0.32);
     border-color: rgba(147, 197, 253, 0.7);
+}
+
+#map-controls .map-home-link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
 }
 
 #map-controls button.active,
@@ -3260,24 +3275,22 @@ body[data-theme="light"] #events-filter option {
         font-size: 16px;
     }
 
+    #map-controls .map-home-link:is(.map-home-action, .map-pa-link) {
+        flex: 0 0 46px;
+        width: 46px;
+        padding: 0;
+    }
+
+    #map-controls .map-hesta-link {
+        padding-inline: 12px;
+    }
+
     #zoom-level {
         font-size: 16px;
     }
 }
 
 @media (max-width: 768px) {
-    .map-identity-suffix {
-        display: none;
-    }
-
-    .map-pa-label-full {
-        display: none;
-    }
-
-    .map-pa-label-compact {
-        display: inline;
-    }
-
     #sidebar {
         max-height: min(42vh, 390px);
         padding: 14px 12px 16px;
@@ -3413,6 +3426,11 @@ body[data-theme="light"] #events-filter option {
         min-height: 42px;
         padding: 0 14px;
         font-size: 14px;
+    }
+
+    #map-controls .map-home-link:is(.map-home-action, .map-pa-link) {
+        flex-basis: 42px;
+        width: 42px;
     }
 
     #events-feed {
