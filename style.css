@@ -3059,6 +3059,17 @@ body[data-theme="light"] #events-filter option {
     border-color: rgba(255, 255, 255, 0.18);
 }
 
+#map-controls .map-home-link.map-home-action {
+    flex: 0 0 38px;
+    width: 38px;
+    padding: 0;
+    font-size: 20px;
+}
+
+#map-controls .map-home-link.map-identity {
+    padding-inline: 11px;
+}
+
 .map-pa-label-compact {
     display: none;
 }
@@ -3255,6 +3266,10 @@ body[data-theme="light"] #events-filter option {
 }
 
 @media (max-width: 768px) {
+    .map-identity-suffix {
+        display: none;
+    }
+
     .map-pa-label-full {
         display: none;
     }
