@@ -1,3 +1,11 @@
+<div align="center">
+  <strong>HESTA</strong><br>
+  <em>Un univers, plusieurs outils.</em><br>
+  <a href="https://hesta.dannytech.fr/">Portail Hesta</a> ·
+  <a href="https://cartehesta.dannytech.fr/">Carte Hesta</a> ·
+  <a href="https://pahesta.dannytech.fr/">Système PA</a>
+</div>
+
 # Carte Interactive Hesta
 
 Hub narratif et carte interactive pour l'univers d'Hesta. Le projet sert à explorer les lieux, suivre les quêtes, relier la chronologie aux zones de la carte et administrer les contenus sans modifier les JSON à la main.
@@ -73,3 +81,11 @@ tests/                  Tests unitaires et Playwright
 - [Contribution](docs/CONTRIBUTING.md)
 
 Les secrets vivent dans `.env` et ne doivent jamais être commités. Utiliser `.env.example` comme modèle local.
+
+## Écosystème Hesta
+
+| Application | Rôle | URL publique |
+| --- | --- | --- |
+| Hesta Hub | Portail central | [hesta.dannytech.fr](https://hesta.dannytech.fr/) |
+| Carte Hesta — ce projet | Carte interactive, quêtes, chronologie, planning et communauté | [cartehesta.dannytech.fr](https://cartehesta.dannytech.fr/) |
+| Système PA | Armures, matériaux, builds et outils de combat | [pahesta.dannytech.fr](https://pahesta.dannytech.fr/) |
